@@ -276,7 +276,7 @@ async def get_store_kpi_overview(
     }, {"_id": 0}).to_list(1000)
     
     # Also get manager KPIs
-    manager_kpis = await db.manager_kpi.find({
+    manager_kpis = await db.manager_kpis.find({
         "store_id": resolved_store_id,
         "date": target_date
     }, {"_id": 0}).to_list(100)
@@ -355,7 +355,7 @@ async def get_dates_with_data(
     
     # Get distinct dates with data
     dates = await db.kpi_entries.distinct("date", query)
-    manager_dates = await db.manager_kpi.distinct("date", query)
+        manager_dates = await db.manager_kpis.distinct("date", query)
     
     all_dates = sorted(set(dates) | set(manager_dates))
     
@@ -379,7 +379,7 @@ async def get_available_years(
     resolved_store_id = context.get('resolved_store_id')
     
     dates = await db.kpi_entries.distinct("date", {"store_id": resolved_store_id})
-    manager_dates = await db.manager_kpi.distinct("date", {"store_id": resolved_store_id})
+        manager_dates = await db.manager_kpis.distinct("date", {"store_id": resolved_store_id})
     
     all_dates = set(dates) | set(manager_dates)
     
@@ -602,7 +602,7 @@ async def get_manager_kpis(
             "date": {"$gte": start_date, "$lte": end_date}
         }
         
-        kpis = await db.manager_kpi.find(query, {"_id": 0}).sort("date", -1).to_list(500)
+        kpis = await db.manager_kpis.find(query, {"_id": 0}).sort("date", -1).to_list(500)
         
         return kpis
         
@@ -652,7 +652,7 @@ async def save_manager_kpi(
             )
         
         # Check if entry exists for this date
-        existing = await db.manager_kpi.find_one({
+        existing = await db.manager_kpis.find_one({
             "store_id": resolved_store_id,
             "date": date
         })
@@ -678,7 +678,7 @@ async def save_manager_kpi(
         }
         
         if existing:
-            await db.manager_kpi.update_one(
+            await db.manager_kpis.update_one(
                 {"_id": existing['_id']},
                 {"$set": entry_data}
             )
@@ -686,7 +686,7 @@ async def save_manager_kpi(
         else:
             entry_data['id'] = str(uuid4())
             entry_data['created_at'] = datetime.now(timezone.utc).isoformat()
-            await db.manager_kpi.insert_one(entry_data)
+            await db.manager_kpis.insert_one(entry_data)
         
         if '_id' in entry_data:
             del entry_data['_id']
@@ -2027,7 +2027,7 @@ async def analyze_store_kpis(
         }, {"_id": 0}).to_list(1000)
         
         # Also get manager KPIs
-        manager_kpis = await db.manager_kpi.find({
+        manager_kpis = await db.manager_kpis.find({
             "store_id": resolved_store_id,
             "date": {"$gte": start_date, "$lte": end_date}
         }, {"_id": 0}).to_list(100)

@@ -947,7 +947,7 @@ class GerantService:
         }, {"_id": 0}).to_list(10000)
         
         # Get manager KPIs for this store
-        manager_kpis = await self.db.manager_kpi.find({
+        manager_kpis = await self.db.manager_kpis.find({
             "store_id": store_id,
             "date": {"$gte": start_date_query, "$lte": end_date_query}
         }, {"_id": 0}).to_list(10000)
@@ -1048,7 +1048,7 @@ class GerantService:
                 years_set.add(year)
         
         # Get distinct years from manager_kpi
-        manager_years = await self.db.manager_kpi.distinct("date", {"store_id": store_id})
+        manager_years = await self.db.manager_kpis.distinct("date", {"store_id": store_id})
         for date_str in manager_years:
             if date_str and len(date_str) >= 4:
                 year = int(date_str[:4])
@@ -1346,7 +1346,7 @@ class GerantService:
                 entry['seller_name'] = entry.get('seller_name', 'Vendeur (historique)')
         
         # Get manager KPIs for this store
-        manager_kpis_list = await self.db.manager_kpi.find({
+        manager_kpis_list = await self.db.manager_kpis.find({
             "store_id": store_id,
             "date": date
         }, {"_id": 0}).to_list(100)

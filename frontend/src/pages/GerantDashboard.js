@@ -928,20 +928,11 @@ const GerantDashboard = ({ user, onLogout }) => {
                             <p className="text-xs text-gray-500 truncate">{storeData.location}</p>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-lg font-bold text-gray-800">
-                              {(storeData.periodCA || 0).toLocaleString('fr-FR')} €
-                            </p>
-                            <p className="text-xs text-gray-500">{storeData.periodVentes || 0} ventes</p>
-                          </div>
-                          {storeData.periodEvolution !== 0 && isFinite(storeData.periodEvolution) && (
-                            <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${
-                              storeData.periodEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                            }`}>
-                              {storeData.periodEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.periodEvolution).toFixed(0)}%
-                            </div>
-                          )}
+                        <div>
+                          <p className="text-lg font-bold text-gray-800">
+                            {(storeData.periodCA || 0).toLocaleString('fr-FR')} €
+                          </p>
+                          <p className="text-xs text-gray-500">{storeData.periodVentes || 0} ventes</p>
                         </div>
                       </div>
                     );
@@ -953,9 +944,8 @@ const GerantDashboard = ({ user, onLogout }) => {
                   {/* Header du tableau */}
                   <div className="grid grid-cols-12 gap-2 p-2 bg-gray-100 font-semibold text-xs text-gray-600 border-b border-gray-200">
                     <div className="col-span-1 text-center">#</div>
-                    <div className="col-span-5">Magasin</div>
-                    <div className="col-span-3 text-right">CA</div>
-                    <div className="col-span-3 text-right">Évol.</div>
+                    <div className="col-span-6">Magasin</div>
+                    <div className="col-span-5 text-right">CA</div>
                   </div>
                   {/* Corps du tableau avec scroll */}
                   <div className="max-h-[240px] overflow-y-auto">
@@ -979,22 +969,11 @@ const GerantDashboard = ({ user, onLogout }) => {
                             <p className="font-semibold text-gray-800 truncate text-xs sm:text-sm">{storeData.name}</p>
                             <p className="text-xs text-gray-400 truncate hidden sm:block">{storeData.location}</p>
                           </div>
-                          <div className="col-span-3 text-right">
+                          <div className="col-span-5 text-right">
                             <p className="font-bold text-gray-800 text-xs sm:text-sm">
                               {(storeData.periodCA || 0).toLocaleString('fr-FR')} €
                             </p>
                             <p className="text-xs text-gray-400">{storeData.periodVentes || 0} ventes</p>
-                          </div>
-                          <div className="col-span-3 text-right">
-                            {storeData.periodEvolution !== 0 && isFinite(storeData.periodEvolution) ? (
-                              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-semibold ${
-                                storeData.periodEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                              }`}>
-                                {storeData.periodEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.periodEvolution).toFixed(0)}%
-                              </span>
-                            ) : (
-                              <span className="text-xs text-gray-400">—</span>
-                            )}
                           </div>
                         </div>
                       );

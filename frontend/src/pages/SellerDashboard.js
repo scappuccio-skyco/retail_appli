@@ -833,32 +833,39 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-start gap-3 sm:gap-4 w-full md:w-auto">
             <Logo variant="header" size="md" showByline={true} />
-            <div>
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl md:text-4xl font-bold text-[#1E40AF] mb-2">
                 Bonjour,<br />{user.name}!
               </h1>
-              <p className="text-gray-600 text-sm sm:text-base">
+              <p className="text-gray-600 text-sm sm:text-base mb-3">
                 Suivez vos performances et progressez chaque jour
-                {(storeName || managerName) && (
-                  <span className="inline-flex items-center gap-2 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap flex-wrap">
-                    {storeName && (
-                      <span className="inline-flex items-center gap-1">
-                        🏢 Nom de la boutique: {storeName}
-                      </span>
-                    )}
-                    {managerName && (
-                      <span className="inline-flex items-center gap-1 text-purple-600">
-                        {storeName && <span className="text-gray-400">•</span>}
-                        👤 Votre manager: {managerName}
-                      </span>
-                    )}
-                  </span>
-                )}
               </p>
+              
+              {/* Informations magasin et manager - Affichage séparé pour meilleure lisibilité */}
+              {(storeName || managerName) && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                  {storeName && (
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <span className="text-gray-500">🏢</span>
+                      <span className="text-gray-600">Nom de la boutique:</span>
+                      <span className="text-[#1E40AF] font-semibold">{storeName}</span>
+                    </div>
+                  )}
+                  {managerName && (
+                    <div className="flex items-center gap-1.5 text-sm">
+                      {storeName && <span className="text-gray-400 hidden sm:inline">•</span>}
+                      <span className="text-gray-500">👤</span>
+                      <span className="text-gray-600">Votre manager:</span>
+                      <span className="text-purple-600 font-semibold">{managerName}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               {/* Badge Données Sécurisées */}
-              <div className="flex items-center gap-1 mt-1">
+              <div className="flex items-center gap-1.5">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -874,21 +881,21 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3 justify-center md:justify-end w-full md:w-auto">
+          <div className="flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-end w-full md:w-auto mt-4 md:mt-0">
             <button
               onClick={() => diagnostic ? setShowProfileModal(true) : setShowDiagnosticFormModal(true)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-white border-2 border-pink-500 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 hover:shadow-md transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-white border-2 border-pink-500 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 hover:shadow-md transition-all text-sm sm:text-base"
               title="Mon Profil de Vente"
             >
-              <User className="w-5 h-5" />
+              <User className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Profil</span>
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-white border-2 border-purple-500 text-purple-600 font-semibold rounded-xl hover:bg-purple-50 hover:shadow-md transition-all group"
+              className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-white border-2 border-purple-500 text-purple-600 font-semibold rounded-xl hover:bg-purple-50 hover:shadow-md transition-all group text-sm sm:text-base"
               title="Personnaliser l'affichage du dashboard"
             >
-              <svg className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -896,20 +903,20 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             </button>
             <button
               onClick={() => setShowSupportModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all text-sm sm:text-base"
               title="Contacter le support"
             >
-              <Headphones className="w-5 h-5" />
+              <Headphones className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Support</span>
             </button>
             <TutorialButton onClick={onboarding.open} />
             <button
               data-testid="logout-button"
               onClick={onLogout}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow-md transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow-md transition-all text-sm sm:text-base"
               title="Se déconnecter"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Déconnexion</span>
             </button>
           </div>
