@@ -27,16 +27,27 @@ class ManagerService:
         Note: Uses store_id as primary filter. 
         manager_id is used for logging/audit but not required for filtering
         since a gérant can also query sellers.
+        
+        Returns only active sellers (status is 'active' or null/undefined, not 'suspended' or 'deleted').
         """
+        # Query: sellers with store_id, role=seller, and status NOT in ['deleted', 'suspended']
+        # This includes: status='active', status=None, or status field doesn't exist
         sellers = await self.user_repo.find_many(
             {
                 "store_id": store_id,
                 "role": "seller",
-                "status": {"$ne": "deleted"}
+                "$or": [
+                    {"status": {"$exists": False}},  # No status field (defaults to active)
+                    {"status": None},  # Explicitly null
+                    {"status": "active"}  # Explicitly active
+                ]
             },
             {"_id": 0, "password": 0}
         )
-        return sellers
+        # Filter out any sellers that might have been included with 'suspended' or 'deleted' status
+        # (though the query above should already exclude them)
+        active_sellers = [s for s in sellers if s.get('status') not in ['deleted', 'suspended']]
+        return active_sellers
     
     async def get_invitations(self, manager_id: str) -> List[Dict]:
         """Get pending invitations for manager"""

@@ -521,6 +521,36 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     }
   }, [activeTab, overviewDate, viewMode, selectedWeek, selectedMonth, selectedYear]);
 
+  // ⭐ Fetch sellers when "Saisie des données" tab is opened
+  useEffect(() => {
+    if (activeTab === 'prospects') {
+      fetchSellers();
+    }
+  }, [activeTab, storeId]);
+
+  const fetchSellers = async () => {
+    try {
+      setLoadingSellers(true);
+      // Ajouter store_id pour les gérants
+      const storeParam = storeId ? `?store_id=${storeId}` : '';
+      const res = await api.get(`/manager/sellers${storeParam}`);
+      
+      // Filtrer uniquement les vendeurs actifs (status === 'active' ou status === null/undefined)
+      const activeSellers = (res.data || []).filter(seller => 
+        !seller.status || seller.status === 'active'
+      );
+      
+      setSellers(activeSellers);
+      logger.log(`[StoreKPIModal] Loaded ${activeSellers.length} active sellers for store ${storeId}`);
+    } catch (err) {
+      logger.error('Error fetching sellers:', err);
+      toast.error('Erreur lors du chargement des vendeurs');
+      setSellers([]);
+    } finally {
+      setLoadingSellers(false);
+    }
+  };
+
   const fetchKPIConfig = async () => {
     try {
       // Ajouter store_id pour les gérants
@@ -1412,65 +1442,65 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                             <div className="p-4">
                               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                                 {/* CA Total */}
-                                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border-2 border-green-300">
+                                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border-2 border-green-300 flex flex-col items-center justify-center text-center">
                                   <div className="text-xs text-green-700 font-semibold mb-1">💰 CA Total</div>
-                                  <div className="text-lg font-bold text-green-900">
+                                  <div className="text-sm font-bold text-green-900 break-words">
                                     {totals.total_ca.toFixed(2)} €
                                   </div>
                                 </div>
 
                                 {/* Ventes Total */}
-                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border-2 border-blue-300">
+                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border-2 border-blue-300 flex flex-col items-center justify-center text-center">
                                   <div className="text-xs text-blue-700 font-semibold mb-1">🛍️ Ventes Total</div>
-                                  <div className="text-lg font-bold text-blue-900">
+                                  <div className="text-sm font-bold text-blue-900 break-words">
                                     {totals.total_ventes}
                                   </div>
                                 </div>
 
                                 {/* Articles Total */}
-                                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-3 border-2 border-indigo-300">
+                                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-3 border-2 border-indigo-300 flex flex-col items-center justify-center text-center">
                                   <div className="text-xs text-indigo-700 font-semibold mb-1">📦 Articles Total</div>
-                                  <div className="text-lg font-bold text-indigo-900">
+                                  <div className="text-sm font-bold text-indigo-900 break-words">
                                     {totals.total_articles}
                                   </div>
                                 </div>
 
                                 {/* Prospects Total */}
-                                <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-3 border-2 border-pink-300">
+                                <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-3 border-2 border-pink-300 flex flex-col items-center justify-center text-center">
                                   <div className="text-xs text-pink-700 font-semibold mb-1">👤 Prospects Total</div>
-                                  <div className="text-lg font-bold text-pink-900">
+                                  <div className="text-sm font-bold text-pink-900 break-words">
                                     {totals.total_prospects}
                                   </div>
                                 </div>
 
                                 {/* Clients Total */}
-                                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 border-2 border-yellow-300">
+                                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 border-2 border-yellow-300 flex flex-col items-center justify-center text-center">
                                   <div className="text-xs text-yellow-700 font-semibold mb-1">👥 Clients Total</div>
-                                  <div className="text-lg font-bold text-yellow-900">
+                                  <div className="text-sm font-bold text-yellow-900 break-words">
                                     {totals.total_clients > 0 ? totals.total_clients : 'N/A'}
                                   </div>
                                 </div>
 
                                 {/* Panier Moyen */}
-                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border-2 border-purple-300">
+                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border-2 border-purple-300 flex flex-col items-center justify-center text-center">
                                   <div className="text-xs text-purple-700 font-semibold mb-1">🛒 Panier Moyen</div>
-                                  <div className="text-lg font-bold text-purple-900">
+                                  <div className="text-sm font-bold text-purple-900 break-words">
                                     {panierMoyen} €
                                   </div>
                                 </div>
 
                                 {/* Taux Transformation */}
-                                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border-2 border-orange-300">
+                                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border-2 border-orange-300 flex flex-col items-center justify-center text-center">
                                   <div className="text-xs text-orange-700 font-semibold mb-1">📈 Taux Transfo</div>
-                                  <div className="text-lg font-bold text-orange-900">
+                                  <div className="text-sm font-bold text-orange-900 break-words">
                                     {tauxTransfo}%
                                   </div>
                                 </div>
 
                                 {/* Indice Vente */}
-                                <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-3 border-2 border-cyan-300">
+                                <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-3 border-2 border-cyan-300 flex flex-col items-center justify-center text-center">
                                   <div className="text-xs text-cyan-700 font-semibold mb-1">📊 Indice Vente</div>
-                                  <div className="text-lg font-bold text-cyan-900">
+                                  <div className="text-sm font-bold text-cyan-900 break-words">
                                     {indiceVente}
                                   </div>
                                 </div>
