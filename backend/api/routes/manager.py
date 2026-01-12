@@ -389,7 +389,7 @@ async def get_dates_with_data(
     
     # Get distinct dates with data
     dates = await db.kpi_entries.distinct("date", query)
-        manager_dates = await db.manager_kpis.distinct("date", query)
+    manager_dates = await db.manager_kpis.distinct("date", query)
     
     all_dates = sorted(set(dates) | set(manager_dates))
     
@@ -413,7 +413,7 @@ async def get_available_years(
     resolved_store_id = context.get('resolved_store_id')
     
     dates = await db.kpi_entries.distinct("date", {"store_id": resolved_store_id})
-        manager_dates = await db.manager_kpis.distinct("date", {"store_id": resolved_store_id})
+    manager_dates = await db.manager_kpis.distinct("date", {"store_id": resolved_store_id})
     
     all_dates = set(dates) | set(manager_dates)
     

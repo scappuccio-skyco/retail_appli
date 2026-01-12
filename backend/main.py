@@ -262,12 +262,13 @@ async def create_indexes_background():
             # 🔒 PRODUCTION-SAFE: Unique index on stripe_subscription_id (prevents duplicates)
             # ✅ PARTIAL FILTER: Only enforce uniqueness if stripe_subscription_id exists and is string
             # This handles legacy data with nulls/missing values
+            # ⚠️ $ne is not supported in partialFilterExpression, use $gt instead
             try:
                 await db.subscriptions.create_index(
                     "stripe_subscription_id",
                     unique=True,
                     partialFilterExpression={
-                        "stripe_subscription_id": {"$exists": True, "$type": "string", "$ne": ""}
+                        "stripe_subscription_id": {"$exists": True, "$type": "string", "$gt": ""}
                     },
                     background=True,
                     name="unique_stripe_subscription_id"

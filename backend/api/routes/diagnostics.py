@@ -16,7 +16,7 @@ from core.security import get_current_user
 from services.manager_service import DiagnosticService
 from api.dependencies import get_diagnostic_service, get_db
 from services.ai_service import AIService
-from api.routes.manager import get_store_context
+from api.routes.manager import get_store_context, verify_manager_or_gerant
 
 router = APIRouter(prefix="/manager-diagnostic", tags=["Diagnostics"])
 
@@ -24,13 +24,6 @@ router = APIRouter(prefix="/manager-diagnostic", tags=["Diagnostics"])
 class ManagerDiagnosticCreate(BaseModel):
     """Input model for creating manager diagnostic"""
     responses: Dict[str, Any]
-
-
-async def verify_manager_or_gerant(current_user: dict = Depends(get_current_user)) -> dict:
-    """Verify current user is a manager or gérant"""
-    if current_user.get('role') not in ['manager', 'gerant', 'gérant']:
-        raise HTTPException(status_code=403, detail="Access restricted to managers and gérants")
-    return current_user
 
 
 async def analyze_manager_diagnostic_with_ai(responses: dict) -> dict:

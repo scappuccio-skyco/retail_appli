@@ -388,9 +388,23 @@ class GerantService:
         # Calculate today's KPIs
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         
-        # Sellers KPIs today
+        # 🔒 ANTI-DOUBLON: Get manager_ids that have entries in manager_kpis for today
+        # This prevents double counting if a manager also has entries in kpi_entries
+        managers_with_kpis_today = await self.db.manager_kpis.distinct(
+            "manager_id",
+            {"store_id": store_id, "date": today}
+        )
+        
+        # Sellers KPIs today (excluding managers with dedicated entries)
+        seller_match_today = {
+            "store_id": store_id,
+            "date": today
+        }
+        if managers_with_kpis_today:
+            seller_match_today["seller_id"] = {"$nin": managers_with_kpis_today}
+        
         sellers_today = await self.db.kpi_entries.aggregate([
-            {"$match": {"store_id": store_id, "date": today}},
+            {"$match": seller_match_today},
             {"$group": {
                 "_id": None,
                 "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
@@ -448,9 +462,24 @@ class GerantService:
         else:
             raise ValueError("Invalid period_type. Must be 'week', 'month', or 'year'")
         
-        # Get period KPIs
+        # 🔒 ANTI-DOUBLON: Get manager_ids that have entries in manager_kpis for this period
+        # This prevents double counting if a manager also has entries in kpi_entries
+        managers_with_kpis = await self.db.manager_kpis.distinct(
+            "manager_id",
+            {"store_id": store_id, "date": {"$gte": period_start, "$lte": period_end}}
+        )
+        
+        # Build seller match filter - exclude managers who have entries in manager_kpis
+        seller_match = {
+            "store_id": store_id,
+            "date": {"$gte": period_start, "$lte": period_end}
+        }
+        if managers_with_kpis:
+            seller_match["seller_id"] = {"$nin": managers_with_kpis}
+        
+        # Get period KPIs (sellers only, excluding managers with dedicated entries)
         period_sellers = await self.db.kpi_entries.aggregate([
-            {"$match": {"store_id": store_id, "date": {"$gte": period_start, "$lte": period_end}}},
+            {"$match": seller_match},
             {"$group": {
                 "_id": None,
                 "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
@@ -472,9 +501,21 @@ class GerantService:
         period_ventes = (period_sellers[0].get("total_ventes", 0) if period_sellers else 0) + \
                         (period_managers[0].get("total_ventes", 0) if period_managers else 0)
         
-        # Get previous period KPIs for evolution
+        # Get previous period KPIs for evolution (same anti-doublon logic)
+        prev_managers_with_kpis = await self.db.manager_kpis.distinct(
+            "manager_id",
+            {"store_id": store_id, "date": {"$gte": prev_start, "$lte": prev_end}}
+        )
+        
+        prev_seller_match = {
+            "store_id": store_id,
+            "date": {"$gte": prev_start, "$lte": prev_end}
+        }
+        if prev_managers_with_kpis:
+            prev_seller_match["seller_id"] = {"$nin": prev_managers_with_kpis}
+        
         prev_sellers = await self.db.kpi_entries.aggregate([
-            {"$match": {"store_id": store_id, "date": {"$gte": prev_start, "$lte": prev_end}}},
+            {"$match": prev_seller_match},
             {"$group": {"_id": None, "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}}}}
         ]).to_list(1)
         
@@ -562,14 +603,22 @@ class GerantService:
         first_day_of_month = now.replace(day=1).strftime('%Y-%m-%d')
         today = now.strftime('%Y-%m-%d')
         
-        # Aggregate CA for all stores for current month
+        # 🔒 ANTI-DOUBLON: Get manager_ids that have entries in manager_kpis for this month
+        managers_with_kpis = await self.db.manager_kpis.distinct(
+            "manager_id",
+            {"store_id": {"$in": store_ids}, "date": {"$gte": first_day_of_month, "$lte": today}}
+        )
+        
+        # Aggregate CA for all stores for current month (sellers only, excluding managers with dedicated entries)
+        seller_match = {
+            "store_id": {"$in": store_ids},
+            "date": {"$gte": first_day_of_month, "$lte": today}
+        }
+        if managers_with_kpis:
+            seller_match["seller_id"] = {"$nin": managers_with_kpis}
+        
         pipeline = [
-            {
-                "$match": {
-                    "store_id": {"$in": store_ids},
-                    "date": {"$gte": first_day_of_month, "$lte": today}
-                }
-            },
+            {"$match": seller_match},
             {
                 "$group": {
                     "_id": None,
@@ -582,10 +631,40 @@ class GerantService:
         
         kpi_stats = await self.db.kpi_entries.aggregate(pipeline).to_list(length=1)
         
-        if kpi_stats:
-            stats = kpi_stats[0]
-        else:
-            stats = {"total_ca": 0, "total_ventes": 0, "total_articles": 0}
+        # Aggregate manager KPIs separately
+        manager_pipeline = [
+            {
+                "$match": {
+                    "store_id": {"$in": store_ids},
+                    "date": {"$gte": first_day_of_month, "$lte": today}
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
+                    "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                    "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}}
+                }
+            }
+        ]
+        
+        manager_stats = await self.db.manager_kpis.aggregate(manager_pipeline).to_list(length=1)
+        
+        # Combine seller and manager stats
+        seller_ca = kpi_stats[0].get("total_ca", 0) if kpi_stats else 0
+        seller_ventes = kpi_stats[0].get("total_ventes", 0) if kpi_stats else 0
+        seller_articles = kpi_stats[0].get("total_articles", 0) if kpi_stats else 0
+        
+        manager_ca = manager_stats[0].get("total_ca", 0) if manager_stats else 0
+        manager_ventes = manager_stats[0].get("total_ventes", 0) if manager_stats else 0
+        manager_articles = manager_stats[0].get("total_articles", 0) if manager_stats else 0
+        
+        stats = {
+            "total_ca": seller_ca + manager_ca,
+            "total_ventes": seller_ventes + manager_ventes,
+            "total_articles": seller_articles + manager_articles
+        }
         
         return {
             "total_stores": len(stores),
