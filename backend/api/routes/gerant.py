@@ -2,7 +2,7 @@
 Gérant-specific Routes
 Dashboard stats, subscription status, and workspace management
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from typing import Dict, Optional
@@ -15,6 +15,7 @@ from services.gerant_service import GerantService
 from services.vat_service import validate_vat_number, calculate_vat_rate, is_eu_country
 from models.billing import BillingProfileCreate, BillingProfileUpdate, BillingProfile, BillingProfileResponse
 from api.dependencies import get_gerant_service, get_db
+from email_service import send_staff_email_update_confirmation, send_staff_email_update_alert
 import logging
 
 logger = logging.getLogger(__name__)
@@ -775,6 +776,171 @@ async def get_store_sellers(
         return await gerant_service.get_store_sellers(store_id, current_user['id'])
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.put("/staff/{user_id}")
+async def update_staff_member(
+    user_id: str,
+    update_data: Dict,
+    background_tasks: BackgroundTasks,
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Update staff member information (manager or seller).
+    
+    Allowed fields: name, email, phone
+    Security: Only gérant can update their own staff members
+    
+    If email is changed:
+    - Sends confirmation email to new address (synchronous)
+    - Sends alert email to old address (background task)
+    """
+    try:
+        # Find the user
+        user = await db.users.find_one(
+            {"id": user_id},
+            {"_id": 0}
+        )
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+        
+        # Security: Verify the user belongs to the gérant
+        user_gerant_id = user.get('gerant_id')
+        if not user_gerant_id or user_gerant_id != current_user['id']:
+            raise HTTPException(
+                status_code=403,
+                detail="Vous n'avez pas l'autorisation de modifier cet utilisateur"
+            )
+        
+        # Verify role is manager or seller
+        user_role = user.get('role')
+        if user_role not in ['manager', 'seller']:
+            raise HTTPException(
+                status_code=400,
+                detail="Seuls les managers et vendeurs peuvent être modifiés via cet endpoint"
+            )
+        
+        # Store old email before update (for email notifications)
+        old_email = user.get('email', '').lower().strip() if user.get('email') else None
+        user_name = user.get('name', 'Utilisateur')
+        gerant_name = current_user.get('name', 'Votre gérant')
+        
+        # Whitelist allowed fields
+        ALLOWED_FIELDS = ['name', 'email', 'phone']
+        updates = {}
+        
+        for field in ALLOWED_FIELDS:
+            if field in update_data and update_data[field] is not None:
+                updates[field] = update_data[field]
+        
+        if not updates:
+            raise HTTPException(status_code=400, detail="Aucun champ valide à mettre à jour")
+        
+        # Validate email format if provided
+        email_changed = False
+        new_email = None
+        
+        if 'email' in updates:
+            import re
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, updates['email']):
+                raise HTTPException(status_code=400, detail="Format d'email invalide")
+            
+            # Normalize email to lowercase for consistency and uniqueness check
+            email_lower = updates['email'].lower().strip()
+            new_email = email_lower
+            
+            # Check if email has actually changed
+            if old_email and old_email != email_lower:
+                email_changed = True
+            
+            updates['email'] = email_lower  # Store normalized email
+            
+            # Check if email is already used by another user (case-insensitive)
+            # Since we normalize to lowercase, we can check both exact match and case-insensitive
+            # to catch any existing emails that might not be normalized yet
+            existing_user = await db.users.find_one(
+                {
+                    "$and": [
+                        {
+                            "$or": [
+                                {"email": email_lower},  # Exact match (normalized)
+                                {"email": {"$regex": f"^{re.escape(email_lower)}$", "$options": "i"}}  # Case-insensitive fallback
+                            ]
+                        },
+                        {"id": {"$ne": user_id}}
+                    ]
+                },
+                {"_id": 0, "id": 1, "email": 1}
+            )
+            if existing_user:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Cet email est déjà utilisé par un autre utilisateur"
+                )
+        
+        # Add updated_at timestamp
+        updates['updated_at'] = datetime.now(timezone.utc).isoformat()
+        
+        # Update user
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": updates}
+        )
+        
+        # Fetch updated user
+        updated_user = await db.users.find_one(
+            {"id": user_id},
+            {"_id": 0}
+        )
+        
+        # Send email notifications if email was changed
+        if email_changed and new_email and old_email:
+            try:
+                # Send confirmation email to new address (synchronous - important)
+                send_staff_email_update_confirmation(
+                    recipient_email=new_email,
+                    recipient_name=user_name,
+                    new_email=new_email
+                )
+                logger.info(f"Email confirmation sent to new address {new_email} for user {user_id}")
+                
+                # Send alert email to old address (background task - non-blocking)
+                background_tasks.add_task(
+                    send_staff_email_update_alert,
+                    recipient_email=old_email,
+                    recipient_name=user_name,
+                    new_email=new_email,
+                    gerant_name=gerant_name
+                )
+                logger.info(f"Email alert scheduled for old address {old_email} for user {user_id}")
+            except Exception as email_error:
+                # Log error but don't fail the request
+                logger.error(f"Error sending email notifications for user {user_id}: {str(email_error)}", exc_info=True)
+        
+        logger.info(f"Staff member {user_id} updated by gérant {current_user['id']}")
+        
+        return {
+            "success": True,
+            "message": "Informations mises à jour avec succès",
+            "user": {
+                "id": updated_user['id'],
+                "name": updated_user.get('name'),
+                "email": updated_user.get('email'),
+                "phone": updated_user.get('phone'),
+                "role": updated_user.get('role'),
+                "store_id": updated_user.get('store_id'),
+                "status": updated_user.get('status')
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating staff member: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
 
 
 @router.get("/stores/{store_id}/kpi-overview")

@@ -5,8 +5,9 @@ import { toast } from 'sonner';
 import { 
   Users, UserCog, Search, Filter, Building2, Mail, Phone, 
   MoreVertical, Trash2, Ban, CheckCircle, ArrowRightLeft, X,
-  Clock, RefreshCw, Send, Lock
+  Clock, RefreshCw, Send, Lock, Edit
 } from 'lucide-react';
+import EditStaffModal from './EditStaffModal';
 
 export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCreateStoreModal, isReadOnly = false }) {
   const [activeTab, setActiveTab] = useState('managers');
@@ -23,6 +24,8 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [resendingInvitation, setResendingInvitation] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -439,6 +442,17 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
 
                       {actionMenuOpen === user.id && !isReadOnly && (
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                          <button
+                            onClick={() => {
+                              setUserToEdit(user);
+                              setEditModalOpen(true);
+                              setActionMenuOpen(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <Edit className="w-4 h-4" />
+                            Modifier
+                          </button>
                           {(user.status || 'active') === 'active' && (
                             <>
                               <button
@@ -628,6 +642,29 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
           </div>
         )}
       </div>
+
+      {/* Edit Staff Modal */}
+      {editModalOpen && userToEdit && (
+        <EditStaffModal
+          isOpen={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setUserToEdit(null);
+          }}
+          user={userToEdit}
+          onUpdate={(updatedUser) => {
+            // Update the user in the appropriate list
+            if (updatedUser.role === 'manager') {
+              setManagers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+            } else if (updatedUser.role === 'seller') {
+              setSellers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+            }
+            if (onRefresh) {
+              onRefresh();
+            }
+          }}
+        />
+      )}
 
       {/* Transfer Modal */}
       {transferModalOpen && selectedUser && (

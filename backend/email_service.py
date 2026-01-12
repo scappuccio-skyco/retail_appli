@@ -690,3 +690,180 @@ def send_early_access_confirmation_email(
         logger.error(f"Error sending early access confirmation email to {email}: {e}")
         return False
 
+
+def send_staff_email_update_confirmation(
+    recipient_email: str,
+    recipient_name: str,
+    new_email: str
+):
+    """
+    Envoyer un email de confirmation à la nouvelle adresse email après mise à jour par le gérant.
+    Contient le nouvel identifiant et un lien vers la page de login.
+    """
+    frontend_url = get_frontend_url().rstrip('/')
+    login_link = f"{frontend_url}/login"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">📧 Mise à jour de vos identifiants</h1>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px;">Bonjour <strong>{recipient_name}</strong>,</p>
+            
+            <p style="font-size: 16px;">
+                Votre gérant a mis à jour votre adresse e-mail sur <strong>Retail Performer AI</strong>.
+            </p>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1E40AF;">
+                <h3 style="margin-top: 0; color: #1E40AF;">🔑 Vos nouveaux identifiants :</h3>
+                <p style="font-size: 16px; margin: 10px 0;">
+                    <strong>Email :</strong> <span style="color: #1E40AF; font-weight: bold;">{new_email}</span>
+                </p>
+                <p style="font-size: 14px; color: #666; margin: 10px 0;">
+                    <strong>Mot de passe :</strong> Votre mot de passe reste le même.
+                </p>
+            </div>
+            
+            <div style="background-color: #EFF6FF; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #1E40AF;">
+                <p style="margin: 0; font-size: 14px; color: #1E40AF;">
+                    ℹ️ <strong>Pour votre prochaine connexion,</strong> veuillez utiliser votre nouvelle adresse e-mail : <strong>{new_email}</strong>
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{login_link}" 
+                   style="background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%); 
+                          color: white; 
+                          padding: 15px 40px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-size: 16px; 
+                          font-weight: bold; 
+                          display: inline-block;
+                          box-shadow: 0 4px 15px rgba(30, 64, 175, 0.4);">
+                    🔑 Accéder à mon espace
+                </a>
+            </div>
+            
+            <div style="background-color: #FFF7ED; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #F97316;">
+                <p style="margin: 0; font-size: 14px; color: #EA580C;">
+                    ⚠️ <strong>Important :</strong> Votre session actuelle reste active jusqu'à expiration. 
+                    Vous devrez utiliser votre nouvelle adresse e-mail lors de votre prochaine connexion.
+                </p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                Retail Performer AI<br>
+                © 2025 Tous droits réservés
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject="Mise à jour de vos identifiants Retail Performer AI",
+            html_content=html_content
+        )
+        
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Staff email update confirmation sent to {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending staff email update confirmation to {recipient_email}: {e}")
+        return False
+
+
+def send_staff_email_update_alert(
+    recipient_email: str,
+    recipient_name: str,
+    new_email: str,
+    gerant_name: str
+):
+    """
+    Envoyer un email d'alerte à l'ancienne adresse email indiquant que l'identifiant a été mis à jour.
+    """
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">⚠️ Mise à jour de votre identifiant</h1>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px;">Bonjour <strong>{recipient_name}</strong>,</p>
+            
+            <p style="font-size: 16px;">
+                Votre gérant <strong>{gerant_name}</strong> a mis à jour votre adresse e-mail de connexion 
+                sur <strong>Retail Performer AI</strong>.
+            </p>
+            
+            <div style="background-color: #FFF7ED; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F97316;">
+                <h3 style="margin-top: 0; color: #EA580C;">📧 Nouvelle adresse e-mail :</h3>
+                <p style="font-size: 16px; margin: 10px 0; color: #EA580C; font-weight: bold;">
+                    {new_email}
+                </p>
+            </div>
+            
+            <div style="background-color: #EFF6FF; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #1E40AF;">
+                <p style="margin: 0; font-size: 14px; color: #1E40AF;">
+                    ℹ️ <strong>Pour votre prochaine connexion,</strong> veuillez utiliser votre nouvelle adresse e-mail : <strong>{new_email}</strong>
+                </p>
+                <p style="margin: 10px 0 0 0; font-size: 14px; color: #1E40AF;">
+                    Votre mot de passe reste le même.
+                </p>
+            </div>
+            
+            <div style="background-color: #F8D7DA; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #DC3545;">
+                <p style="margin: 0; font-size: 14px; color: #721C24;">
+                    🛡️ <strong>Vous n'avez pas demandé cette modification ?</strong><br>
+                    Contactez votre gérant ou notre support si vous pensez qu'il s'agit d'une erreur.
+                </p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                Retail Performer AI<br>
+                © 2025 Tous droits réservés
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject="Mise à jour de votre identifiant Retail Performer AI",
+            html_content=html_content
+        )
+        
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Staff email update alert sent to old email {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending staff email update alert to {recipient_email}: {e}")
+        return False
+
