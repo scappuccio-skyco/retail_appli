@@ -65,7 +65,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     nb_articles: '',
     nb_prospects: ''
   });
+  const [sellers, setSellers] = useState([]);  // ⭐ Liste des vendeurs actifs
+  const [sellersKPIData, setSellersKPIData] = useState({});  // ⭐ Données KPIs par vendeur {seller_id: {ca, ventes, articles}}
   const [loading, setLoading] = useState(false);
+  const [loadingSellers, setLoadingSellers] = useState(false);
   
   // Vérifier si la date sélectionnée est verrouillée (données API)
   const isDateLocked = (date) => {
@@ -1808,7 +1811,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   {!isManagerDateLocked && (
                     <div className="bg-orange-500 rounded-xl p-4 border-2 border-orange-600 mb-6">
                       <p className="text-sm text-white font-bold">
-                        💡 <strong>Saisie des données Manager :</strong> Remplissez les données que vous avez configurées pour le manager.
+                        💡 <strong>Saisie par Vendeur :</strong> Remplissez les données pour chaque vendeur individuellement.
                       </p>
                     </div>
                   )}
@@ -1841,108 +1844,160 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {kpiConfig.manager_track_ca && (
-                        <div className={`rounded-lg p-4 border-2 ${isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200'}`}>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">💰 Chiffre d'Affaires</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            required={!isManagerDateLocked}
-                            disabled={isManagerDateLocked}
-                            value={managerKPIData.ca_journalier}
-                            onChange={(e) => setManagerKPIData({ ...managerKPIData, ca_journalier: e.target.value })}
-                            className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
-                              isManagerDateLocked 
-                                ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' 
-                                : 'border-gray-300 focus:border-purple-400'
-                            }`}
-                            placeholder="Ex: 2500.50"
-                          />
+                    {/* ⭐ NOUVELLE INTERFACE : Liste des vendeurs */}
+                    {(kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_articles) && (
+                      <div className="space-y-4">
+                        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                          <h3 className="text-sm font-bold text-gray-800 mb-2">📋 Saisie par Vendeur</h3>
+                          <p className="text-xs text-gray-600">
+                            Saisissez les données pour chaque vendeur actif du magasin.
+                          </p>
                         </div>
-                      )}
 
-                      {kpiConfig.manager_track_ventes && (
-                        <div className={`rounded-lg p-4 border-2 ${isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200'}`}>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">🛍️ Nombre de Ventes</label>
-                          <input
-                            type="number"
-                            min="0"
-                            required={!isManagerDateLocked}
-                            disabled={isManagerDateLocked}
-                            value={managerKPIData.nb_ventes}
-                            onChange={(e) => setManagerKPIData({ ...managerKPIData, nb_ventes: e.target.value })}
-                            className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
-                              isManagerDateLocked 
-                                ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' 
-                                : 'border-gray-300 focus:border-purple-400'
-                            }`}
-                            placeholder="Ex: 25"
-                          />
-                        </div>
-                      )}
+                        {loadingSellers ? (
+                          <div className="text-center py-8">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                            <p className="text-sm text-gray-600 mt-2">Chargement des vendeurs...</p>
+                          </div>
+                        ) : sellers.length === 0 ? (
+                          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                            <p className="text-sm text-yellow-800">
+                              ⚠️ Aucun vendeur actif trouvé pour ce magasin.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {sellers.map((seller) => (
+                              <div
+                                key={seller.id}
+                                className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors"
+                              >
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-semibold text-gray-800">{seller.name}</h4>
+                                  <span className="text-xs text-gray-500">ID: {seller.id.substring(0, 8)}...</span>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                  {kpiConfig.manager_track_ca && (
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        💰 CA (€)
+                                      </label>
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        disabled={isManagerDateLocked}
+                                        value={sellersKPIData[seller.id]?.ca_journalier || ''}
+                                        onChange={(e) => {
+                                          setSellersKPIData(prev => ({
+                                            ...prev,
+                                            [seller.id]: {
+                                              ...prev[seller.id],
+                                              ca_journalier: e.target.value
+                                            }
+                                          }));
+                                        }}
+                                        className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${
+                                          isManagerDateLocked 
+                                            ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' 
+                                            : 'border-gray-300 focus:border-orange-400'
+                                        }`}
+                                        placeholder="0.00"
+                                      />
+                                    </div>
+                                  )}
 
-                      {kpiConfig.manager_track_clients && (
-                        <div className={`rounded-lg p-4 border-2 ${isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200'}`}>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">👥 Nombre de Clients</label>
-                          <input
-                            type="number"
-                            min="0"
-                            required={!isManagerDateLocked}
-                            disabled={isManagerDateLocked}
-                            value={managerKPIData.nb_clients}
-                            onChange={(e) => setManagerKPIData({ ...managerKPIData, nb_clients: e.target.value })}
-                            className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
-                              isManagerDateLocked 
-                                ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' 
-                                : 'border-gray-300 focus:border-purple-400'
-                            }`}
-                            placeholder="Ex: 30"
-                          />
-                        </div>
-                      )}
+                                  {kpiConfig.manager_track_ventes && (
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        🛍️ Ventes
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        disabled={isManagerDateLocked}
+                                        value={sellersKPIData[seller.id]?.nb_ventes || ''}
+                                        onChange={(e) => {
+                                          setSellersKPIData(prev => ({
+                                            ...prev,
+                                            [seller.id]: {
+                                              ...prev[seller.id],
+                                              nb_ventes: e.target.value
+                                            }
+                                          }));
+                                        }}
+                                        className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${
+                                          isManagerDateLocked 
+                                            ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' 
+                                            : 'border-gray-300 focus:border-orange-400'
+                                        }`}
+                                        placeholder="0"
+                                      />
+                                    </div>
+                                  )}
 
-                      {kpiConfig.manager_track_articles && (
-                        <div className={`rounded-lg p-4 border-2 ${isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200'}`}>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">📦 Nombre d'Articles</label>
-                          <input
-                            type="number"
-                            min="0"
-                            required={!isManagerDateLocked}
-                            disabled={isManagerDateLocked}
-                            value={managerKPIData.nb_articles}
-                            onChange={(e) => setManagerKPIData({ ...managerKPIData, nb_articles: e.target.value })}
-                            className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
-                              isManagerDateLocked 
-                                ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' 
-                                : 'border-gray-300 focus:border-purple-400'
-                            }`}
-                            placeholder="Ex: 45"
-                          />
-                        </div>
-                      )}
+                                  {kpiConfig.manager_track_articles && (
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        📦 Articles
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        disabled={isManagerDateLocked}
+                                        value={sellersKPIData[seller.id]?.nb_articles || ''}
+                                        onChange={(e) => {
+                                          setSellersKPIData(prev => ({
+                                            ...prev,
+                                            [seller.id]: {
+                                              ...prev[seller.id],
+                                              nb_articles: e.target.value
+                                            }
+                                          }));
+                                        }}
+                                        className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${
+                                          isManagerDateLocked 
+                                            ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' 
+                                            : 'border-gray-300 focus:border-orange-400'
+                                        }`}
+                                        placeholder="0"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                      {kpiConfig.manager_track_prospects && (
-                        <div className={`rounded-lg p-4 border-2 ${isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200'}`}>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">🚶 Nombre de Prospects</label>
-                          <input
-                            type="number"
-                            min="0"
-                            required={!isManagerDateLocked}
-                            disabled={isManagerDateLocked}
-                            value={managerKPIData.nb_prospects}
-                            onChange={(e) => setManagerKPIData({ ...managerKPIData, nb_prospects: e.target.value })}
-                            className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
-                              isManagerDateLocked 
-                                ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' 
-                                : 'border-gray-300 focus:border-purple-400'
-                            }`}
-                            placeholder="Ex: 150"
-                          />
-                        </div>
-                      )}
-                    </div>
+                    {/* ⭐ Prospects globaux (pour répartition) */}
+                    {kpiConfig.manager_track_prospects && (
+                      <div className={`rounded-lg p-4 border-2 ${isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200'}`}>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          🚶 Nombre de Prospects (Trafic Magasin Global)
+                        </label>
+                        <p className="text-xs text-gray-600 mb-2">
+                          Ce total sera réparti automatiquement entre les vendeurs pour le calcul du taux de transformation.
+                        </p>
+                        <input
+                          type="number"
+                          min="0"
+                          required={!isManagerDateLocked}
+                          disabled={isManagerDateLocked}
+                          value={managerKPIData.nb_prospects}
+                          onChange={(e) => setManagerKPIData({ ...managerKPIData, nb_prospects: e.target.value })}
+                          className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
+                            isManagerDateLocked 
+                              ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' 
+                              : 'border-gray-300 focus:border-purple-400'
+                          }`}
+                          placeholder="Ex: 150"
+                        />
+                      </div>
+                    )}
 
                     <div className="flex gap-3">
                       <button

@@ -64,6 +64,319 @@ def get_plan_from_seats(seats: int) -> str:
 router = APIRouter(prefix="/gerant", tags=["Gérant"])
 
 
+@router.get("/profile")
+async def get_gerant_profile(
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Get gérant profile information (name, email, phone, company_name).
+    
+    Returns:
+        Dict with profile data including user info and workspace company name
+    """
+    try:
+        gerant_id = current_user['id']
+        
+        # Get user info
+        user = await db.users.find_one(
+            {"id": gerant_id},
+            {"_id": 0, "password": 0}
+        )
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+        
+        # Get workspace company name
+        workspace_id = user.get('workspace_id')
+        company_name = None
+        
+        if workspace_id:
+            workspace = await db.workspaces.find_one(
+                {"id": workspace_id},
+                {"_id": 0, "name": 1}
+            )
+            if workspace:
+                company_name = workspace.get('name')
+        
+        return {
+            "id": user.get('id'),
+            "name": user.get('name'),
+            "email": user.get('email'),
+            "phone": user.get('phone'),
+            "company_name": company_name,
+            "created_at": user.get('created_at')
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching gérant profile: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération du profil: {str(e)}")
+
+
+@router.put("/profile")
+async def update_gerant_profile(
+    update_data: Dict,
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Update gérant profile information.
+    
+    Allowed fields: name, email, phone, company_name
+    
+    If email is changed, validation and uniqueness checks are performed.
+    If company_name is changed, the workspace name is updated.
+    
+    Returns:
+        Updated profile data
+    """
+    try:
+        gerant_id = current_user['id']
+        
+        # Get current user
+        user = await db.users.find_one(
+            {"id": gerant_id},
+            {"_id": 0}
+        )
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+        
+        # Whitelist allowed fields
+        ALLOWED_USER_FIELDS = ['name', 'email', 'phone']
+        user_updates = {}
+        company_name_update = None
+        
+        for field in ALLOWED_USER_FIELDS:
+            if field in update_data and update_data[field] is not None:
+                user_updates[field] = update_data[field]
+        
+        # Handle company_name separately (it's in workspace, not user)
+        if 'company_name' in update_data and update_data['company_name'] is not None:
+            company_name_update = update_data['company_name'].strip()
+            if not company_name_update:
+                raise HTTPException(status_code=400, detail="Le nom de l'entreprise ne peut pas être vide")
+        
+        # Store old email for Stripe update and audit
+        old_email = user.get('email', '').lower().strip() if user.get('email') else None
+        email_changed = False
+        
+        # Validate email format if provided
+        if 'email' in user_updates:
+            import re
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, user_updates['email']):
+                raise HTTPException(status_code=400, detail="Format d'email invalide")
+            
+            # Normalize email to lowercase
+            email_lower = user_updates['email'].lower().strip()
+            
+            # Check if email has actually changed
+            if old_email and old_email != email_lower:
+                email_changed = True
+            
+            user_updates['email'] = email_lower
+            
+            # Check if email is already used by another user
+            existing_user = await db.users.find_one(
+                {
+                    "$and": [
+                        {
+                            "$or": [
+                                {"email": email_lower},
+                                {"email": {"$regex": f"^{re.escape(email_lower)}$", "$options": "i"}}
+                            ]
+                        },
+                        {"id": {"$ne": gerant_id}}
+                    ]
+                },
+                {"_id": 0, "id": 1, "email": 1}
+            )
+            if existing_user:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Cet email est déjà utilisé par un autre utilisateur"
+                )
+        
+        # Update user if there are changes
+        if user_updates:
+            user_updates['updated_at'] = datetime.now(timezone.utc).isoformat()
+            await db.users.update_one(
+                {"id": gerant_id},
+                {"$set": user_updates}
+            )
+        
+        # Store old company name for audit
+        old_company_name = None
+        if company_name_update:
+            workspace_id = user.get('workspace_id')
+            if workspace_id:
+                # Get old company name for audit
+                old_workspace = await db.workspaces.find_one(
+                    {"id": workspace_id},
+                    {"_id": 0, "name": 1}
+                )
+                if old_workspace:
+                    old_company_name = old_workspace.get('name')
+                
+                await db.workspaces.update_one(
+                    {"id": workspace_id},
+                    {"$set": {
+                        "name": company_name_update,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                # Audit log for company name change (important for legal/billing documents)
+                if old_company_name and old_company_name != company_name_update:
+                    try:
+                        await db.system_logs.insert_one({
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "level": "info",
+                            "type": "audit",
+                            "message": f"Company name changed by gérant {gerant_id}",
+                            "endpoint": "/gerant/profile",
+                            "user_id": gerant_id,
+                            "details": {
+                                "action": "company_name_update",
+                                "old_company_name": old_company_name,
+                                "new_company_name": company_name_update,
+                                "workspace_id": workspace_id
+                            }
+                        })
+                        logger.info(f"Audit log: Company name changed from '{old_company_name}' to '{company_name_update}' by gérant {gerant_id}")
+                    except Exception as audit_error:
+                        # Don't fail the request if audit logging fails
+                        logger.error(f"Failed to log company name change audit: {str(audit_error)}")
+            else:
+                logger.warning(f"Gérant {gerant_id} has no workspace_id, cannot update company_name")
+        
+        # Fetch updated data
+        updated_user = await db.users.find_one(
+            {"id": gerant_id},
+            {"_id": 0, "password": 0}
+        )
+        
+        # Get updated workspace name
+        workspace_id = updated_user.get('workspace_id')
+        company_name = None
+        if workspace_id:
+            workspace = await db.workspaces.find_one(
+                {"id": workspace_id},
+                {"_id": 0, "name": 1}
+            )
+            if workspace:
+                company_name = workspace.get('name')
+        
+        # Update Stripe customer email if email changed and customer exists
+        if email_changed and old_email:
+            stripe_customer_id = user.get('stripe_customer_id')
+            if stripe_customer_id:
+                try:
+                    stripe.Customer.modify(
+                        stripe_customer_id,
+                        email=user_updates['email']
+                    )
+                    logger.info(f"Stripe customer {stripe_customer_id} email updated to {user_updates['email']}")
+                except stripe.error.InvalidRequestError as stripe_error:
+                    # Customer might not exist in Stripe, log but don't fail
+                    logger.warning(f"Failed to update Stripe customer {stripe_customer_id} email: {str(stripe_error)}")
+                except Exception as stripe_error:
+                    # Other Stripe errors, log but don't fail the request
+                    logger.error(f"Error updating Stripe customer email: {str(stripe_error)}", exc_info=True)
+        
+        logger.info(f"Gérant profile {gerant_id} updated")
+        
+        return {
+            "success": True,
+            "message": "Profil mis à jour avec succès",
+            "profile": {
+                "id": updated_user.get('id'),
+                "name": updated_user.get('name'),
+                "email": updated_user.get('email'),
+                "phone": updated_user.get('phone'),
+                "company_name": company_name,
+                "created_at": updated_user.get('created_at')
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating gérant profile: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour du profil: {str(e)}")
+
+
+@router.put("/profile/change-password")
+async def change_gerant_password(
+    password_data: Dict,
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Change gérant password.
+    
+    Requires:
+    - old_password: Current password for verification
+    - new_password: New password (min 8 characters)
+    
+    Returns:
+        Success message
+    """
+    try:
+        from core.security import verify_password, get_password_hash
+        
+        gerant_id = current_user['id']
+        old_password = password_data.get('old_password')
+        new_password = password_data.get('new_password')
+        
+        if not old_password:
+            raise HTTPException(status_code=400, detail="L'ancien mot de passe est requis")
+        
+        if not new_password:
+            raise HTTPException(status_code=400, detail="Le nouveau mot de passe est requis")
+        
+        if len(new_password) < 8:
+            raise HTTPException(status_code=400, detail="Le nouveau mot de passe doit contenir au moins 8 caractères")
+        
+        # Get current user with password
+        user = await db.users.find_one(
+            {"id": gerant_id},
+            {"_id": 0}
+        )
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+        
+        # Verify old password
+        if not verify_password(old_password, user.get('password', '')):
+            raise HTTPException(status_code=401, detail="Ancien mot de passe incorrect")
+        
+        # Hash new password
+        hashed_password = get_password_hash(new_password)
+        
+        # Update password
+        await db.users.update_one(
+            {"id": gerant_id},
+            {"$set": {
+                "password": hashed_password,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        logger.info(f"Password changed for gérant {gerant_id}")
+        
+        return {
+            "success": True,
+            "message": "Mot de passe modifié avec succès"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error changing password: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors du changement de mot de passe: {str(e)}")
+
+
 @router.get("/dashboard/stats")
 async def get_dashboard_stats(
     current_user: dict = Depends(get_current_gerant),

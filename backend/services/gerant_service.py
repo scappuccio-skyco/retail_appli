@@ -1020,12 +1020,41 @@ class GerantService:
             end_date_query = end_date.strftime('%Y-%m-%d')
         
         # Get ALL KPI entries for this store directly by store_id
-        seller_entries = await self.db.kpi_entries.find({
+        all_seller_entries = await self.db.kpi_entries.find({
             "store_id": store_id,
             "date": {"$gte": start_date_query, "$lte": end_date_query}
         }, {"_id": 0}).to_list(10000)
         
-        # Get manager KPIs for this store
+        # ⭐ PRIORITÉ DE LA DONNÉE : Si un vendeur ET un manager ont saisi pour la même journée/vendeur,
+        # utiliser la version du manager (created_by: 'manager')
+        seller_entries_dict = {}
+        for entry in all_seller_entries:
+            seller_id = entry.get('seller_id')
+            date = entry.get('date')
+            if not seller_id or not date:
+                continue
+            
+            # Clé unique : seller_id + date
+            key = f"{seller_id}_{date}"
+            
+            # Si aucune entrée pour ce vendeur/date, l'ajouter
+            if key not in seller_entries_dict:
+                seller_entries_dict[key] = entry
+            else:
+                # Si une entrée existe déjà, vérifier la priorité
+                existing_entry = seller_entries_dict[key]
+                existing_created_by = existing_entry.get('created_by')
+                new_created_by = entry.get('created_by')
+                
+                # Priorité : created_by='manager' > created_by='seller' ou None
+                if new_created_by == 'manager' and existing_created_by != 'manager':
+                    seller_entries_dict[key] = entry  # Remplacer par la version manager
+                # Sinon, garder l'existant (déjà manager ou pas de priorité)
+        
+        # Convertir le dictionnaire en liste (sans doublons)
+        seller_entries = list(seller_entries_dict.values())
+        
+        # Get manager KPIs for this store (uniquement pour prospects globaux maintenant)
         manager_kpis = await self.db.manager_kpis.find({
             "store_id": store_id,
             "date": {"$gte": start_date_query, "$lte": end_date_query}
@@ -1035,7 +1064,9 @@ class GerantService:
         date_map = {}
         locked_dates = set()  # Track which dates have locked entries
         
-        # Add manager KPIs
+        # ⭐ NOTE : manager_kpis ne contient plus que nb_prospects (globaux) avec la nouvelle logique
+        # Les CA/ventes/articles sont maintenant dans kpi_entries avec created_by='manager'
+        # Add manager KPIs (uniquement prospects globaux)
         for kpi in manager_kpis:
             date = kpi['date']
             if date not in date_map:
@@ -1048,16 +1079,14 @@ class GerantService:
                     "nb_prospects": 0,
                     "locked": False
                 }
-            date_map[date]["ca_journalier"] += kpi.get("ca_journalier") or 0
-            date_map[date]["nb_ventes"] += kpi.get("nb_ventes") or 0
-            date_map[date]["nb_clients"] += kpi.get("nb_clients") or 0
-            date_map[date]["nb_articles"] += kpi.get("nb_articles") or 0
+            # ⭐ Avec la nouvelle logique, manager_kpis ne devrait plus contenir CA/ventes/articles
+            # (seulement nb_prospects globaux pour répartition)
             date_map[date]["nb_prospects"] += kpi.get("nb_prospects") or 0
             # Check if locked
             if kpi.get("locked"):
                 locked_dates.add(date)
         
-        # Add seller entries
+        # Add seller entries (déjà filtrées pour priorité manager)
         for entry in seller_entries:
             date = entry['date']
             if date not in date_map:
@@ -1411,10 +1440,35 @@ class GerantService:
         }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
         
         # Get ALL KPI entries for this store directly by store_id
-        seller_entries = await self.db.kpi_entries.find({
+        all_seller_entries = await self.db.kpi_entries.find({
             "store_id": store_id,
             "date": date
         }, {"_id": 0}).to_list(100)
+        
+        # ⭐ PRIORITÉ DE LA DONNÉE : Si un vendeur ET un manager ont saisi pour la même journée,
+        # utiliser la version du manager (created_by: 'manager')
+        seller_entries_dict = {}
+        for entry in all_seller_entries:
+            seller_id = entry.get('seller_id')
+            if not seller_id:
+                continue
+            
+            # Si aucune entrée pour ce vendeur, l'ajouter
+            if seller_id not in seller_entries_dict:
+                seller_entries_dict[seller_id] = entry
+            else:
+                # Si une entrée existe déjà, vérifier la priorité
+                existing_entry = seller_entries_dict[seller_id]
+                existing_created_by = existing_entry.get('created_by')
+                new_created_by = entry.get('created_by')
+                
+                # Priorité : created_by='manager' > created_by='seller' ou None
+                if new_created_by == 'manager' and existing_created_by != 'manager':
+                    seller_entries_dict[seller_id] = entry  # Remplacer par la version manager
+                # Sinon, garder l'existant (déjà manager ou pas de priorité)
+        
+        # Convertir le dictionnaire en liste
+        seller_entries = list(seller_entries_dict.values())
         
         # Enrich seller entries with names
         for entry in seller_entries:
@@ -1424,19 +1478,49 @@ class GerantService:
             else:
                 entry['seller_name'] = entry.get('seller_name', 'Vendeur (historique)')
         
-        # Get manager KPIs for this store
+        # Get manager KPIs for this store (uniquement pour prospects globaux)
         manager_kpis_list = await self.db.manager_kpis.find({
             "store_id": store_id,
             "date": date
         }, {"_id": 0}).to_list(100)
         
-        # Aggregate totals from managers
+        # ⭐ NOUVELLE LOGIQUE : Prospects globaux pour répartition
+        global_prospects = sum((kpi.get("nb_prospects") or 0) for kpi in manager_kpis_list)
+        
+        # ⭐ GESTION DES ABSENTS : Compter uniquement les vendeurs ayant des données saisies (présents)
+        sellers_with_data = len(seller_entries)  # Vendeurs ayant travaillé ce jour-là
+        active_sellers_count = len(sellers)  # Tous les vendeurs actifs du magasin (pour référence)
+        
+        # Calculer le prorata de prospects par vendeur
+        # ⭐ CORRECTION : Utiliser sellers_with_data (vendeurs présents) au lieu de active_sellers_count
+        prospect_prorata_per_seller = {}
+        if global_prospects > 0 and sellers_with_data > 0:
+            # Répartition équitable : prospects globaux / nombre de vendeurs ayant travaillé
+            base_prorata = global_prospects / sellers_with_data
+            
+            # ⭐ Attribuer le prorata UNIQUEMENT aux vendeurs ayant des données (présents)
+            for entry in seller_entries:
+                seller_id = entry.get('seller_id')
+                if seller_id:
+                    prospect_prorata_per_seller[seller_id] = base_prorata
+        
+        # Enrichir les entrées vendeurs avec le prorata de prospects
+        for entry in seller_entries:
+            seller_id = entry.get('seller_id')
+            # Si le vendeur a déjà saisi ses propres prospects, les utiliser
+            # Sinon, utiliser le prorata calculé
+            if not entry.get('nb_prospects') or entry.get('nb_prospects') == 0:
+                entry['prospect_prorata'] = prospect_prorata_per_seller.get(seller_id, 0)
+            else:
+                entry['prospect_prorata'] = entry.get('nb_prospects', 0)
+        
+        # Aggregate totals from managers (uniquement CA/ventes si saisis globalement - legacy)
         managers_total = {
             "ca_journalier": sum((kpi.get("ca_journalier") or 0) for kpi in manager_kpis_list),
             "nb_ventes": sum((kpi.get("nb_ventes") or 0) for kpi in manager_kpis_list),
             "nb_clients": sum((kpi.get("nb_clients") or 0) for kpi in manager_kpis_list),
             "nb_articles": sum((kpi.get("nb_articles") or 0) for kpi in manager_kpis_list),
-            "nb_prospects": sum((kpi.get("nb_prospects") or 0) for kpi in manager_kpis_list)
+            "nb_prospects": global_prospects  # ⭐ Prospects globaux (pour répartition)
         }
         
         # Aggregate totals from sellers
@@ -1445,22 +1529,43 @@ class GerantService:
             "nb_ventes": sum((entry.get("nb_ventes") or 0) for entry in seller_entries),
             "nb_clients": sum((entry.get("nb_clients") or 0) for entry in seller_entries),
             "nb_articles": sum((entry.get("nb_articles") or 0) for entry in seller_entries),
-            "nb_prospects": sum((entry.get("nb_prospects") or 0) for entry in seller_entries),
+            "nb_prospects": sum((entry.get("nb_prospects") or 0) for entry in seller_entries),  # Prospects individuels saisis
             "nb_sellers_reported": len(seller_entries)
         }
         
+        # ⭐ Calculer le total prospects avec prorata pour les vendeurs sans prospects individuels
+        total_prospects_with_prorata = sellers_total["nb_prospects"]
+        for entry in seller_entries:
+            seller_id = entry.get('seller_id')
+            # Si le vendeur n'a pas saisi de prospects mais a un prorata, l'ajouter
+            if (not entry.get('nb_prospects') or entry.get('nb_prospects') == 0) and prospect_prorata_per_seller.get(seller_id, 0) > 0:
+                total_prospects_with_prorata += prospect_prorata_per_seller.get(seller_id, 0)
+        
         # Calculate store totals
-        total_ca = managers_total["ca_journalier"] + sellers_total["ca_journalier"]
-        total_ventes = managers_total["nb_ventes"] + sellers_total["nb_ventes"]
-        total_clients = managers_total["nb_clients"] + sellers_total["nb_clients"]
-        total_articles = managers_total["nb_articles"] + sellers_total["nb_articles"]
-        total_prospects = managers_total["nb_prospects"] + sellers_total["nb_prospects"]
+        # ⚠️ IMPORTANT : Ne plus additionner CA/ventes manager + vendeurs si manager saisit par vendeur
+        # Si created_by='manager' existe dans seller_entries, les données sont déjà individuelles
+        total_ca = sellers_total["ca_journalier"]  # ⭐ Utiliser uniquement les données vendeurs (déjà individuelles)
+        total_ventes = sellers_total["nb_ventes"]  # ⭐ Utiliser uniquement les données vendeurs
+        total_clients = sellers_total["nb_clients"]
+        total_articles = sellers_total["nb_articles"]
+        # ⭐ Utiliser le total avec prorata pour les prospects
+        total_prospects = total_prospects_with_prorata if total_prospects_with_prorata > 0 else global_prospects
         
         # Calculate derived KPIs
         calculated_kpis = {
             "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else None,
             "taux_transformation": round((total_ventes / total_prospects) * 100, 2) if total_prospects > 0 else None,
             "indice_vente": round(total_articles / total_ventes, 2) if total_ventes > 0 else None
+        }
+        
+        # ⭐ Ajouter les informations de répartition pour le frontend
+        calculated_kpis["prospect_repartition"] = {
+            "global_prospects": global_prospects,
+            "sellers_prospects": sellers_total["nb_prospects"],
+            "prospect_prorata_per_seller": prospect_prorata_per_seller,
+            "total_with_prorata": total_prospects_with_prorata,
+            "active_sellers_count": active_sellers_count,  # Tous les vendeurs actifs du magasin
+            "sellers_with_data": sellers_with_data  # ⭐ Vendeurs ayant travaillé ce jour-là (utilisés pour prorata)
         }
         
         return {

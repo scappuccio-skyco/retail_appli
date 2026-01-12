@@ -698,8 +698,26 @@ async def save_manager_kpi(
     db = Depends(get_db)
 ):
     """
-    Save manager KPI entry for a specific date.
-    This is for KPIs that the manager tracks (not sellers).
+    Save manager KPI entries.
+    
+    NOUVELLE LOGIQUE : 
+    - Si `sellers_data` est fourni : Enregistre les KPIs pour chaque vendeur dans kpi_entries avec created_by='manager'
+    - Si `nb_prospects` est fourni : Enregistre les prospects globaux dans manager_kpis (pour répartition)
+    
+    Format attendu :
+    {
+        "date": "YYYY-MM-DD",
+        "sellers_data": [
+            {
+                "seller_id": "uuid",
+                "ca_journalier": 1000.0,
+                "nb_ventes": 10,
+                "nb_articles": 15
+            },
+            ...
+        ],
+        "nb_prospects": 100  # Optionnel : prospects globaux magasin
+    }
     """
     from uuid import uuid4
     
@@ -728,52 +746,148 @@ async def save_manager_kpi(
                 detail="🔒 Cette date est verrouillée. Les données proviennent de l'API/ERP."
             )
         
-        # Check if entry exists for this date
-        existing = await db.manager_kpis.find_one({
-            "store_id": resolved_store_id,
-            "date": date
-        })
-        
-        # Vérifier si l'entrée existante est verrouillée
-        if existing and existing.get('locked'):
-            raise HTTPException(
-                status_code=403,
-                detail="🔒 Cette entrée est verrouillée (données API)."
-            )
-        
-        entry_data = {
-            "store_id": resolved_store_id,
-            "manager_id": manager_id,
-            "date": date,
-            "ca_journalier": kpi_data.get('ca_journalier') or 0,
-            "nb_ventes": kpi_data.get('nb_ventes') or 0,
-            "nb_clients": kpi_data.get('nb_clients') or 0,
-            "nb_articles": kpi_data.get('nb_articles') or 0,
-            "nb_prospects": kpi_data.get('nb_prospects') or 0,
-            "source": "manual",
-            "updated_at": datetime.now(timezone.utc).isoformat()
+        results = {
+            "sellers_entries": [],
+            "prospects_entry": None
         }
         
-        if existing:
-            await db.manager_kpis.update_one(
-                {"_id": existing['_id']},
-                {"$set": entry_data}
-            )
-            entry_data['id'] = existing.get('id', str(existing['_id']))
-        else:
-            entry_data['id'] = str(uuid4())
-            entry_data['created_at'] = datetime.now(timezone.utc).isoformat()
-            await db.manager_kpis.insert_one(entry_data)
+        # NOUVELLE LOGIQUE : Saisie par vendeur
+        sellers_data = kpi_data.get('sellers_data', [])
+        if sellers_data:
+            # Vérifier que tous les seller_id appartiennent au store
+            seller_ids = [s.get('seller_id') for s in sellers_data if s.get('seller_id')]
+            if seller_ids:
+                sellers = await db.users.find(
+                    {"id": {"$in": seller_ids}, "store_id": resolved_store_id, "role": "seller"},
+                    {"_id": 0, "id": 1, "name": 1}
+                ).to_list(100)
+                
+                valid_seller_ids = {s['id'] for s in sellers}
+                invalid_seller_ids = set(seller_ids) - valid_seller_ids
+                
+                if invalid_seller_ids:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Certains vendeurs n'appartiennent pas à ce magasin: {invalid_seller_ids}"
+                    )
+            
+            # Enregistrer les KPIs pour chaque vendeur dans kpi_entries
+            for seller_entry in sellers_data:
+                seller_id = seller_entry.get('seller_id')
+                if not seller_id:
+                    continue
+                
+                # Récupérer le nom du vendeur
+                seller = await db.users.find_one(
+                    {"id": seller_id},
+                    {"_id": 0, "name": 1, "manager_id": 1}
+                )
+                seller_name = seller.get('name', 'Vendeur') if seller else 'Vendeur'
+                seller_manager_id = seller.get('manager_id') if seller else manager_id
+                
+                # Vérifier si l'entrée existe déjà
+                existing = await db.kpi_entries.find_one({
+                    "seller_id": seller_id,
+                    "date": date
+                })
+                
+                # 🔒 Vérifier si l'entrée existante est verrouillée
+                if existing and existing.get('locked'):
+                    raise HTTPException(
+                        status_code=403,
+                        detail=f"🔒 L'entrée pour {seller_name} est verrouillée (données API)."
+                    )
+                
+                entry_data = {
+                    "seller_id": seller_id,
+                    "seller_name": seller_name,
+                    "manager_id": seller_manager_id,
+                    "store_id": resolved_store_id,
+                    "date": date,
+                    "seller_ca": seller_entry.get('ca_journalier') or seller_entry.get('seller_ca') or 0,
+                    "ca_journalier": seller_entry.get('ca_journalier') or seller_entry.get('seller_ca') or 0,
+                    "nb_ventes": seller_entry.get('nb_ventes') or 0,
+                    "nb_clients": seller_entry.get('nb_clients') or 0,
+                    "nb_articles": seller_entry.get('nb_articles') or 0,
+                    "nb_prospects": seller_entry.get('nb_prospects') or 0,
+                    "source": "manual",
+                    "created_by": "manager",  # ⭐ NOUVEAU : Distinction manager vs vendeur
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                if existing:
+                    # Update existing entry
+                    await db.kpi_entries.update_one(
+                        {"_id": existing['_id']},
+                        {"$set": entry_data}
+                    )
+                    entry_data['id'] = existing.get('id', str(existing['_id']))
+                else:
+                    # Create new entry
+                    entry_data['id'] = str(uuid4())
+                    entry_data['created_at'] = datetime.now(timezone.utc).isoformat()
+                    await db.kpi_entries.insert_one(entry_data)
+                
+                if '_id' in entry_data:
+                    del entry_data['_id']
+                
+                results["sellers_entries"].append(entry_data)
         
-        if '_id' in entry_data:
-            del entry_data['_id']
+        # Gestion des prospects globaux (pour répartition)
+        nb_prospects = kpi_data.get('nb_prospects')
+        if nb_prospects is not None and nb_prospects > 0:
+            # Enregistrer les prospects globaux dans manager_kpis
+            existing_prospects = await db.manager_kpis.find_one({
+                "store_id": resolved_store_id,
+                "date": date
+            })
+            
+            # Vérifier si l'entrée existante est verrouillée
+            if existing_prospects and existing_prospects.get('locked'):
+                raise HTTPException(
+                    status_code=403,
+                    detail="🔒 Cette entrée est verrouillée (données API)."
+                )
+            
+            prospects_entry_data = {
+                "store_id": resolved_store_id,
+                "manager_id": manager_id,
+                "date": date,
+                "ca_journalier": 0,  # Pas de CA global
+                "nb_ventes": 0,  # Pas de ventes globales
+                "nb_clients": 0,
+                "nb_articles": 0,
+                "nb_prospects": nb_prospects,  # ⭐ Prospects globaux uniquement
+                "source": "manual",
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            if existing_prospects:
+                # Mettre à jour uniquement les prospects, préserver les autres champs si existants
+                await db.manager_kpis.update_one(
+                    {"_id": existing_prospects['_id']},
+                    {"$set": {
+                        "nb_prospects": nb_prospects,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                prospects_entry_data['id'] = existing_prospects.get('id', str(existing_prospects['_id']))
+            else:
+                prospects_entry_data['id'] = str(uuid4())
+                prospects_entry_data['created_at'] = datetime.now(timezone.utc).isoformat()
+                await db.manager_kpis.insert_one(prospects_entry_data)
+            
+            if '_id' in prospects_entry_data:
+                del prospects_entry_data['_id']
+            
+            results["prospects_entry"] = prospects_entry_data
         
-        return entry_data
+        return results
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error saving manager KPI: {e}")
+        logger.error(f"Error saving manager KPI: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

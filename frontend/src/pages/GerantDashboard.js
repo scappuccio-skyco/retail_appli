@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog, Info, Lock, Headphones, Store, FileText } from 'lucide-react';
+import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog, Info, Lock, Headphones, Store, FileText, User } from 'lucide-react';
 import CreateStoreModal from '../components/gerant/CreateStoreModal';
 import TutorialButton from '../components/onboarding/TutorialButton';
 import OnboardingModal from '../components/onboarding/OnboardingModal';
@@ -21,6 +21,7 @@ import APIKeysManagement from '../components/gerant/APIKeysManagement';
 import StaffOverview from '../components/gerant/StaffOverview';
 import StoresManagement from '../components/gerant/StoresManagement';
 import BillingProfileModal from '../components/gerant/BillingProfileModal';
+import GerantProfile from '../components/gerant/GerantProfile';
 
 const GerantDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   
   // View state
-  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' ou 'api'
+  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard', 'stores', 'staff', 'api', 'profile'
   
   // Period selection state
   const [periodType, setPeriodType] = useState('week'); // 'week', 'month', 'year'
@@ -651,6 +652,17 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <Key className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden xs:inline">Intégrations</span> API
               </button>
+              <button
+                onClick={() => setActiveView('profile')}
+                className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-base font-semibold transition-all whitespace-nowrap ${
+                  activeView === 'profile'
+                    ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Profil</span>
+              </button>
             </div>
           </div>
         </div>
@@ -694,6 +706,8 @@ const GerantDashboard = ({ user, onLogout }) => {
             onOpenCreateStoreModal={() => !isReadOnly && setShowCreateStoreModal(true)}
             isReadOnly={isReadOnly}
           />
+        ) : activeView === 'profile' ? (
+          <GerantProfile />
         ) : (
           <>
             {/* Stats Globales */}
