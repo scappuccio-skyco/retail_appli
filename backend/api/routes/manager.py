@@ -9,8 +9,9 @@ import logging
 
 from core.security import get_current_user, verify_resource_store_access, verify_seller_store_access
 from services.manager_service import ManagerService, APIKeyService
-from api.dependencies import get_manager_service, get_api_key_service, get_db, get_seller_service
+from api.dependencies import get_manager_service, get_api_key_service, get_db, get_seller_service, get_gerant_service
 from services.seller_service import SellerService
+from services.gerant_service import GerantService
 
 router = APIRouter(prefix="/manager", tags=["Manager"])
 logger = logging.getLogger(__name__)
@@ -289,74 +290,75 @@ async def get_store_kpi_overview(
     date: str = Query(None),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """
     Get KPI overview for manager's store on a specific date.
     Returns aggregated KPIs for all sellers.
+    
+    ⭐ HARMONISATION : Cette route délègue TOUT le calcul à GerantService.get_store_kpi_overview
+    pour garantir une source unique de vérité et éviter les incohérences.
+    
+    La méthode GerantService.get_store_kpi_overview :
+    - Applique la logique de priorité (created_by='manager' > created_by='seller')
+    - Calcule le prorata des prospects globaux
+    - Gère les vendeurs actifs même sans données
+    - Retourne les KPIs calculés (panier moyen, taux transformation, indice vente)
     
     - Manager: Uses their assigned store
     - Gérant: Must provide store_id query param
     """
     resolved_store_id = context.get('resolved_store_id')
     
+    if not resolved_store_id:
+        raise HTTPException(status_code=400, detail="Store ID requis")
+    
     # Use provided date or today
     target_date = date or datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
-    # Get all KPI entries for the store on this date
-    kpi_entries = await db.kpi_entries.find({
-        "store_id": resolved_store_id,
-        "date": target_date
-    }, {"_id": 0}).to_list(1000)
-    
-    # Also get manager KPIs
-    manager_kpis = await db.manager_kpis.find({
-        "store_id": resolved_store_id,
-        "date": target_date
-    }, {"_id": 0}).to_list(100)
-    
-    # Aggregate totals
-    total_ca = sum(e.get('ca_journalier') or e.get('seller_ca') or 0 for e in kpi_entries)
-    total_ca += sum(k.get('ca_journalier') or 0 for k in manager_kpis)
-    
-    total_ventes = sum(e.get('nb_ventes') or 0 for e in kpi_entries)
-    total_ventes += sum(k.get('nb_ventes') or 0 for k in manager_kpis)
-    
-    total_clients = sum(e.get('nb_clients') or 0 for e in kpi_entries)
-    total_clients += sum(k.get('nb_clients') or 0 for k in manager_kpis)
-    
-    total_articles = sum(e.get('nb_articles') or 0 for e in kpi_entries)
-    total_articles += sum(k.get('nb_articles') or 0 for k in manager_kpis)
-    
-    total_prospects = sum(e.get('nb_prospects') or 0 for e in kpi_entries)
-    total_prospects += sum(k.get('nb_prospects') or 0 for k in manager_kpis)
-    
-    # Count sellers who have submitted
-    sellers_submitted = len(set(e.get('seller_id') for e in kpi_entries if e.get('seller_id')))
-    
-    # Calculate derived KPIs
-    panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
-    taux_transformation = (total_ventes / total_clients * 100) if total_clients > 0 else 0
-    indice_vente = total_articles / total_ventes if total_ventes > 0 else 0
-    
-    return {
-        "date": target_date,
-        "store_id": store_id,
-        "totals": {
-            "ca_journalier": total_ca,
-            "nb_ventes": total_ventes,
-            "nb_clients": total_clients,
-            "nb_articles": total_articles,
-            "nb_prospects": total_prospects
-        },
-        "derived": {
-            "panier_moyen": round(panier_moyen, 2),
-            "taux_transformation": round(taux_transformation, 2),
-            "indice_vente": round(indice_vente, 2)
-        },
-        "sellers_submitted": sellers_submitted,
-        "entries_count": len(kpi_entries) + len(manager_kpis)
-    }
+    # ⭐ DÉLÉGATION : Utiliser GerantService pour un calcul unifié et cohérent
+    try:
+        user_id = context.get('id')
+        overview = await gerant_service.get_store_kpi_overview(
+            store_id=resolved_store_id,
+            user_id=user_id,
+            date=target_date
+        )
+        
+        # Adapter le format de réponse pour compatibilité avec le frontend
+        calculated_kpis = overview.get('calculated_kpis', {})
+        totals = overview.get('totals', {})
+        
+        # ⭐ Les totaux sont déjà calculés dans GerantService avec la logique de priorité et prorata
+        # Utiliser directement les valeurs calculées depuis l'objet totals
+        total_ca = totals.get('ca', 0)
+        total_ventes = totals.get('ventes', 0)
+        total_clients = totals.get('clients', 0)
+        total_articles = totals.get('articles', 0)
+        total_prospects = totals.get('prospects', 0)
+        
+        return {
+            "date": target_date,
+            "store_id": resolved_store_id,
+            "totals": {
+                "ca": total_ca,
+                "ca_journalier": total_ca,  # Alias pour compatibilité
+                "nb_ventes": total_ventes,
+                "nb_clients": total_clients,
+                "nb_articles": total_articles,
+                "nb_prospects": total_prospects
+            },
+            "derived": {
+                "panier_moyen": calculated_kpis.get('panier_moyen'),
+                "taux_transformation": calculated_kpis.get('taux_transformation'),
+                "indice_vente": calculated_kpis.get('indice_vente')
+            },
+            "sellers_submitted": len(overview.get('seller_entries', [])),
+            "entries_count": len(overview.get('seller_entries', []))
+        }
+    except Exception as e:
+        logger.error(f"Error in get_store_kpi_overview: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors du calcul des KPIs: {str(e)}")
 
 
 @router.get("/dates-with-data")
@@ -722,9 +724,16 @@ async def save_manager_kpi(
     from uuid import uuid4
     
     try:
+        # ⭐ LOG POUR DEBUG
+        logger.info(f"[save_manager_kpi] Payload reçu: {kpi_data}")
+        logger.info(f"[save_manager_kpi] store_id query param: {store_id}")
+        logger.info(f"[save_manager_kpi] context: {context.get('id')}, role: {context.get('role')}")
+        
         resolved_store_id = context.get('resolved_store_id') or store_id
         manager_id = context.get('id')
         role = context.get('role')
+        
+        logger.info(f"[save_manager_kpi] resolved_store_id: {resolved_store_id}")
         
         # Validation explicite du store_id
         if not resolved_store_id:
@@ -746,10 +755,14 @@ async def save_manager_kpi(
         )
         
         if not store:
+            logger.error(f"[save_manager_kpi] Magasin {resolved_store_id} non trouvé ou inactif")
             raise HTTPException(
                 status_code=404,
                 detail=f"Magasin {resolved_store_id} non trouvé ou inactif"
             )
+        
+        # ⭐ LOG : Afficher le nom du magasin pour vérification
+        logger.info(f"[save_manager_kpi] Magasin trouvé: {store.get('name')} (ID: {resolved_store_id})")
         
         # Vérification supplémentaire pour gérant : s'assurer que le store_id correspond bien à son magasin
         if role in ['gerant', 'gérant']:
@@ -791,11 +804,26 @@ async def save_manager_kpi(
             "prospects_entry": None
         }
         
-        # NOUVELLE LOGIQUE : Saisie par vendeur
+        # ⭐ NOUVELLE LOGIQUE : Saisie par vendeur (tableau sellers_data)
         sellers_data = kpi_data.get('sellers_data', [])
+        
+        # Validation : sellers_data doit être un tableau
+        if sellers_data and not isinstance(sellers_data, list):
+            raise HTTPException(
+                status_code=400,
+                detail="Le champ 'sellers_data' doit être un tableau (array). Format attendu: [{\"seller_id\": \"...\", \"ca_journalier\": 1.0, ...}]"
+            )
+        
         if sellers_data:
             # Vérifier que tous les seller_id appartiennent au store
             seller_ids = [s.get('seller_id') for s in sellers_data if s.get('seller_id')]
+            
+            if not seller_ids:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Le tableau 'sellers_data' doit contenir au moins un élément avec un 'seller_id' valide"
+                )
+            
             if seller_ids:
                 sellers = await db.users.find(
                     {"id": {"$in": seller_ids}, "store_id": resolved_store_id, "role": "seller"},
@@ -811,10 +839,11 @@ async def save_manager_kpi(
                         detail=f"Certains vendeurs n'appartiennent pas à ce magasin: {invalid_seller_ids}"
                     )
             
-            # Enregistrer les KPIs pour chaque vendeur dans kpi_entries
+            # ⭐ Enregistrer les KPIs pour chaque vendeur dans kpi_entries avec created_by='manager'
             for seller_entry in sellers_data:
                 seller_id = seller_entry.get('seller_id')
                 if not seller_id:
+                    logger.warning(f"[save_manager_kpi] Entrée ignorée : seller_id manquant dans {seller_entry}")
                     continue
                 
                 # Récupérer le nom du vendeur
@@ -838,6 +867,7 @@ async def save_manager_kpi(
                         detail=f"🔒 L'entrée pour {seller_name} est verrouillée (données API)."
                     )
                 
+                # ⭐ Construire l'entrée avec created_by='manager' pour la priorité dans gerant_service
                 entry_data = {
                     "seller_id": seller_id,
                     "seller_name": seller_name,
@@ -851,22 +881,24 @@ async def save_manager_kpi(
                     "nb_articles": seller_entry.get('nb_articles') or 0,
                     "nb_prospects": seller_entry.get('nb_prospects') or 0,
                     "source": "manual",
-                    "created_by": "manager",  # ⭐ NOUVEAU : Distinction manager vs vendeur
+                    "created_by": "manager",  # ⭐ CRITIQUE : Ce flag permet à gerant_service.py de prioriser ces données
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }
                 
                 if existing:
-                    # Update existing entry
+                    # ⭐ Mise à jour : S'assurer que created_by='manager' est toujours présent
                     await db.kpi_entries.update_one(
                         {"_id": existing['_id']},
-                        {"$set": entry_data}
+                        {"$set": entry_data}  # entry_data contient déjà created_by='manager'
                     )
                     entry_data['id'] = existing.get('id', str(existing['_id']))
+                    logger.info(f"[save_manager_kpi] Entrée mise à jour pour vendeur {seller_id} (date: {date})")
                 else:
-                    # Create new entry
+                    # ⭐ Création : L'entrée contient created_by='manager' dès la création
                     entry_data['id'] = str(uuid4())
                     entry_data['created_at'] = datetime.now(timezone.utc).isoformat()
                     await db.kpi_entries.insert_one(entry_data)
+                    logger.info(f"[save_manager_kpi] Nouvelle entrée créée pour vendeur {seller_id} (date: {date})")
                 
                 if '_id' in entry_data:
                     del entry_data['_id']

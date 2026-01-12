@@ -639,30 +639,58 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     setLoading(true);
 
     try {
+      // ⭐ NOUVEAU FORMAT : Construire sellers_data comme tableau
+      const sellers_data = [];
+      
+      // Parcourir tous les vendeurs et construire le tableau sellers_data
+      sellers.forEach(seller => {
+        const sellerKPI = sellersKPIData[seller.id];
+        if (!sellerKPI) return; // Ignorer les vendeurs sans données
+        
+        const sellerEntry = {
+          seller_id: seller.id
+        };
+        
+        // Ajouter seulement les KPIs activés côté manager et qui ont une valeur
+        if (kpiConfig.manager_track_ca && (sellerKPI.ca_journalier !== '' && sellerKPI.ca_journalier !== undefined)) {
+          sellerEntry.ca_journalier = parseFloat(sellerKPI.ca_journalier) || 0;
+        }
+        if (kpiConfig.manager_track_ventes && (sellerKPI.nb_ventes !== '' && sellerKPI.nb_ventes !== undefined)) {
+          sellerEntry.nb_ventes = parseInt(sellerKPI.nb_ventes) || 0;
+        }
+        if (kpiConfig.manager_track_articles && (sellerKPI.nb_articles !== '' && sellerKPI.nb_articles !== undefined)) {
+          sellerEntry.nb_articles = parseInt(sellerKPI.nb_articles) || 0;
+        }
+        
+        // Ajouter l'entrée seulement si elle contient au moins un KPI
+        if (Object.keys(sellerEntry).length > 1) { // Plus que juste seller_id
+          sellers_data.push(sellerEntry);
+        }
+      });
+      
       const payload = {
         date: managerKPIData.date
       };
       
-      // Ajouter seulement les KPIs activés côté manager
-      // Note: On vérifie !== '' pour inclure les valeurs 0
-      if (kpiConfig.manager_track_ca && managerKPIData.ca_journalier !== '') {
-        payload.ca_journalier = parseFloat(managerKPIData.ca_journalier) || 0;
+      // Ajouter sellers_data si non vide
+      if (sellers_data.length > 0) {
+        payload.sellers_data = sellers_data;
       }
-      if (kpiConfig.manager_track_ventes && managerKPIData.nb_ventes !== '') {
-        payload.nb_ventes = parseInt(managerKPIData.nb_ventes) || 0;
-      }
-      if (kpiConfig.manager_track_clients && managerKPIData.nb_clients !== '') {
-        payload.nb_clients = parseInt(managerKPIData.nb_clients) || 0;
-      }
-      if (kpiConfig.manager_track_articles && managerKPIData.nb_articles !== '') {
-        payload.nb_articles = parseInt(managerKPIData.nb_articles) || 0;
-      }
+      
+      // Ajouter prospects globaux si configuré
       if (kpiConfig.manager_track_prospects && managerKPIData.nb_prospects !== '') {
         payload.nb_prospects = parseInt(managerKPIData.nb_prospects) || 0;
       }
 
       // Add store_id for gerant viewing specific store
       const storeParam = storeId ? `?store_id=${storeId}` : '';
+      
+      logger.log('[StoreKPIModal] Envoi des données KPI:', {
+        payload,
+        storeId,
+        sellersCount: sellers_data.length
+      });
+      
       await api.post(
         `/manager/manager-kpi${storeParam}`,
         payload

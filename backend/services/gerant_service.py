@@ -1492,17 +1492,34 @@ class GerantService:
         active_sellers_count = len(sellers)  # Tous les vendeurs actifs du magasin (pour référence)
         
         # Calculer le prorata de prospects par vendeur
-        # ⭐ CORRECTION : Utiliser sellers_with_data (vendeurs présents) au lieu de active_sellers_count
+        # ⭐ NOUVELLE LOGIQUE : Permettre le prorata même si les vendeurs n'ont pas encore d'entrées
+        # Si le manager saisit des prospects globaux, on peut les répartir sur tous les vendeurs actifs
+        # même si leur CA est à 0, pour activer immédiatement le calcul du Taux de Transformation
         prospect_prorata_per_seller = {}
-        if global_prospects > 0 and sellers_with_data > 0:
-            # Répartition équitable : prospects globaux / nombre de vendeurs ayant travaillé
-            base_prorata = global_prospects / sellers_with_data
+        if global_prospects > 0:
+            # Utiliser sellers_with_data si > 0 (vendeurs présents), sinon utiliser active_sellers_count (tous les vendeurs actifs)
+            # Cela permet au manager de "pousser" les prospects même si les vendeurs n'ont pas encore saisi de données
+            sellers_count_for_prorata = sellers_with_data if sellers_with_data > 0 else active_sellers_count
             
-            # ⭐ Attribuer le prorata UNIQUEMENT aux vendeurs ayant des données (présents)
-            for entry in seller_entries:
-                seller_id = entry.get('seller_id')
-                if seller_id:
-                    prospect_prorata_per_seller[seller_id] = base_prorata
+            if sellers_count_for_prorata > 0:
+                # Répartition équitable : prospects globaux / nombre de vendeurs (présents ou actifs)
+                base_prorata = global_prospects / sellers_count_for_prorata
+                
+                # ⭐ Si sellers_with_data > 0 : Attribuer le prorata aux vendeurs ayant des données (présents)
+                # ⭐ Si sellers_with_data == 0 : Attribuer le prorata à TOUS les vendeurs actifs (pour activation immédiate)
+                if sellers_with_data > 0:
+                    # Cas normal : vendeurs présents
+                    for entry in seller_entries:
+                        seller_id = entry.get('seller_id')
+                        if seller_id:
+                            prospect_prorata_per_seller[seller_id] = base_prorata
+                else:
+                    # Cas spécial : aucun vendeur n'a encore saisi de données, mais le manager a saisi des prospects globaux
+                    # On répartit sur TOUS les vendeurs actifs pour permettre le calcul immédiat du Taux de Transformation
+                    for seller in sellers:
+                        seller_id = seller.get('id')
+                        if seller_id:
+                            prospect_prorata_per_seller[seller_id] = base_prorata
         
         # Enrichir les entrées vendeurs avec le prorata de prospects
         for entry in seller_entries:
@@ -1535,11 +1552,18 @@ class GerantService:
         
         # ⭐ Calculer le total prospects avec prorata pour les vendeurs sans prospects individuels
         total_prospects_with_prorata = sellers_total["nb_prospects"]
+        
+        # Si des vendeurs ont déjà des entrées, ajouter leur prorata
         for entry in seller_entries:
             seller_id = entry.get('seller_id')
             # Si le vendeur n'a pas saisi de prospects mais a un prorata, l'ajouter
             if (not entry.get('nb_prospects') or entry.get('nb_prospects') == 0) and prospect_prorata_per_seller.get(seller_id, 0) > 0:
                 total_prospects_with_prorata += prospect_prorata_per_seller.get(seller_id, 0)
+        
+        # ⭐ Si aucun vendeur n'a encore d'entrées mais qu'il y a des prospects globaux,
+        # le prorata a déjà été calculé pour tous les vendeurs actifs, donc on utilise directement global_prospects
+        if sellers_with_data == 0 and global_prospects > 0:
+            total_prospects_with_prorata = global_prospects
         
         # Calculate store totals
         # ⚠️ IMPORTANT : Ne plus additionner CA/ventes manager + vendeurs si manager saisit par vendeur
