@@ -1,7 +1,7 @@
 import React, { useState, useEffect, startTransition } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
-import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, PauseCircle, Archive, RefreshCw, FileText, Coffee } from 'lucide-react';
+import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, Archive, RefreshCw, FileText, Coffee } from 'lucide-react';
 import { toast } from 'sonner';
 import TeamAIAnalysisModal from './TeamAIAnalysisModal';
 import EvaluationGenerator from './EvaluationGenerator';
@@ -51,8 +51,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [displayedSellerCount, setDisplayedSellerCount] = useState(5);
-  const [showArchivedSellers, setShowArchivedSellers] = useState(false); // Afficher vendeurs archivés
-  const [archivedSellers, setArchivedSellers] = useState([]); // Liste des vendeurs archivés
   const [hiddenSellerIds, setHiddenSellerIds] = useState([]); // IDs des vendeurs à masquer temporairement
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
   const [selectedSellerForEval, setSelectedSellerForEval] = useState(null);
@@ -523,46 +521,11 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Tabs: Actifs / Archivés + Bouton Rafraîchir */}
+              {/* Header avec Bouton Rafraîchir */}
               <div className="flex justify-between items-center border-b border-gray-200 mb-6">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowArchivedSellers(false)}
-                    className={`px-4 py-2 font-medium transition-colors ${
-                      !showArchivedSellers
-                        ? 'text-cyan-600 border-b-2 border-cyan-600'
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Vendeurs actifs
-                    </div>
-                  </button>
-                  <button
-                    onClick={async () => {
-                      setShowArchivedSellers(true);
-                      // Charger les vendeurs en veille
-                      try {
-                        const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
-                        const response = await api.get(`/manager/sellers/archived${storeParam}`);
-                        setArchivedSellers(response.data);
-                      } catch (error) {
-                        logger.error('Error fetching suspended sellers:', error);
-                        toast.error('Erreur lors du chargement des vendeurs en veille');
-                      }
-                    }}
-                    className={`px-4 py-2 font-medium transition-colors ${
-                      showArchivedSellers
-                        ? 'text-orange-600 border-b-2 border-orange-600'
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <PauseCircle className="w-4 h-4" />
-                      Vendeurs en veille
-                    </div>
-                  </button>
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-cyan-600" />
+                  <h3 className="text-lg font-semibold text-gray-800">Vendeurs actifs</h3>
                 </div>
                 <button
                   onClick={async () => {
@@ -580,7 +543,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
               </div>
 
               {/* Period Filter */}
-              {!showArchivedSellers && (
               <div className="flex items-center justify-between mb-4">
                 <div className="flex flex-col gap-3 w-full">
                   <div className="flex items-center gap-2">
@@ -700,8 +662,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
               </div>
               )}
 
-              {!showArchivedSellers && (
-              <>{/* Summary Cards */}
+              {/* Summary Cards */}
+              <>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-200">
                   <div className="flex items-center gap-3 mb-2">
@@ -951,92 +913,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
               </>
               )}
 
-              {/* Section Vendeurs En Veille */}
-              {showArchivedSellers && (
-                <div className="bg-white rounded-lg border border-gray-200">
-                  <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                      <PauseCircle className="w-5 h-5 text-orange-600" />
-                      Vendeurs en veille ({archivedSellers.length})
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Vendeurs temporairement suspendus - L'historique est conservé
-                    </p>
-                  </div>
-
-                  {archivedSellers.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">
-                      <PauseCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p>Aucun vendeur en veille</p>
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-gray-50 text-gray-600 text-sm">
-                            <th className="px-4 py-3 text-left font-semibold">Vendeur</th>
-                            <th className="px-4 py-3 text-center font-semibold">Statut</th>
-                            <th className="px-4 py-3 text-center font-semibold">Date archivage</th>
-                            <th className="px-4 py-3 text-center font-semibold">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {archivedSellers.map((seller) => (
-                            <tr key={seller.id} className="border-t border-gray-200 hover:bg-gray-50">
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-8 h-8 ${seller.status === 'inactive' ? 'bg-orange-100' : 'bg-gray-200'} rounded-full flex items-center justify-center`}>
-                                    <span className={`text-sm font-bold ${seller.status === 'inactive' ? 'text-orange-700' : 'text-gray-600'}`}>
-                                      {seller.name.charAt(0)}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <div className="font-medium text-gray-800">{seller.name}</div>
-                                    <div className="text-xs text-gray-500">{seller.email}</div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                {seller.status === 'suspended' ? (
-                                  <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
-                                    ⏸ En veille
-                                  </span>
-                                ) : (
-                                  <span className="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded-full">
-                                    Supprimé
-                                  </span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 text-center text-sm text-gray-600">
-                                {seller.deactivated_at 
-                                  ? new Date(seller.deactivated_at).toLocaleDateString('fr-FR')
-                                  : seller.deleted_at
-                                  ? new Date(seller.deleted_at).toLocaleDateString('fr-FR')
-                                  : '-'
-                                }
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <div className="flex items-center gap-2 justify-center">
-                                  <button
-                                    onClick={() => onViewSellerDetail(seller)}
-                                    className="px-3 py-1.5 bg-cyan-600 text-white text-xs font-medium rounded hover:bg-cyan-700 transition-colors"
-                                  >
-                                    Voir historique
-                                  </button>
-                                  {/* Réactivation réservée au Gérant - bouton retiré pour le Manager */}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              )}
-
               {/* Charts Section */}
-              {!showArchivedSellers && (
               <div className="mt-8 space-y-6">
                 {isUpdatingCharts && (
                   <div className="text-center py-8">

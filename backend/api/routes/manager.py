@@ -724,9 +724,49 @@ async def save_manager_kpi(
     try:
         resolved_store_id = context.get('resolved_store_id') or store_id
         manager_id = context.get('id')
+        role = context.get('role')
         
+        # Validation explicite du store_id
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="Store ID requis")
+            if role in ['gerant', 'gérant']:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Store ID requis. Veuillez fournir le paramètre ?store_id=xxx dans l'URL."
+                )
+            else:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Store ID requis. Le manager doit avoir un magasin assigné."
+                )
+        
+        # Vérifier que le store existe et est actif
+        store = await db.stores.find_one(
+            {"id": resolved_store_id, "active": True},
+            {"_id": 0, "id": 1, "name": 1, "gerant_id": 1}
+        )
+        
+        if not store:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Magasin {resolved_store_id} non trouvé ou inactif"
+            )
+        
+        # Vérification supplémentaire pour gérant : s'assurer que le store_id correspond bien à son magasin
+        if role in ['gerant', 'gérant']:
+            if store.get('gerant_id') != manager_id:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Accès refusé : ce magasin ne vous appartient pas"
+                )
+        
+        # Vérification pour manager : s'assurer que le store_id correspond à son magasin assigné
+        elif role == 'manager':
+            manager_store_id = context.get('store_id')  # store_id du manager depuis son profil
+            if manager_store_id != resolved_store_id:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Accès refusé : ce magasin ne vous est pas assigné"
+                )
         
         date = kpi_data.get('date', datetime.now(timezone.utc).strftime('%Y-%m-%d'))
         
