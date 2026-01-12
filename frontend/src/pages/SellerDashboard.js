@@ -833,39 +833,24 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-start gap-3 sm:gap-4 w-full md:w-auto">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Logo variant="header" size="md" showByline={true} />
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl md:text-4xl font-bold text-[#1E40AF] mb-2">
-                Bonjour,<br />{user.name}!
-              </h1>
-              <p className="text-gray-600 text-sm sm:text-base mb-3">
-                Suivez vos performances et progressez chaque jour
+            <div>
+              <p className="text-gray-600 text-sm sm:text-base">
+                Bienvenue, {user.name}
+                {storeName && (
+                  <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
+                    • 🏢 {storeName}
+                  </span>
+                )}
+                {managerName && (
+                  <span className="inline-flex items-center gap-1 ml-2 text-purple-600 font-semibold whitespace-nowrap">
+                    • 👤 {managerName}
+                  </span>
+                )}
               </p>
-              
-              {/* Informations magasin et manager - Affichage séparé pour meilleure lisibilité */}
-              {(storeName || managerName) && (
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
-                  {storeName && (
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <span className="text-gray-500">🏢</span>
-                      <span className="text-gray-600">Nom de la boutique:</span>
-                      <span className="text-[#1E40AF] font-semibold">{storeName}</span>
-                    </div>
-                  )}
-                  {managerName && (
-                    <div className="flex items-center gap-1.5 text-sm">
-                      {storeName && <span className="text-gray-400 hidden sm:inline">•</span>}
-                      <span className="text-gray-500">👤</span>
-                      <span className="text-gray-600">Votre manager:</span>
-                      <span className="text-purple-600 font-semibold">{managerName}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-              
               {/* Badge Données Sécurisées */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 mt-1">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
