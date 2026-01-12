@@ -1257,6 +1257,7 @@ Génère un brief motivant et concret basé sur ces données."""
         """
         try:
             structured = {
+                "humeur": "",  # ⭐ Ajout du champ pour l'humeur du jour
                 "flashback": "",
                 "focus": "",
                 "examples": [],
@@ -1274,7 +1275,15 @@ Génère un brief motivant et concret basé sur ces données."""
                 content = '\n'.join(lines[1:]).strip() if len(lines) > 1 else ""
                 
                 # Identifier la section par son titre
-                if any(kw in section_lower for kw in ['flash', 'bilan', 'hier', 'performance', '📊']):
+                # ⭐ PRIORITÉ : Vérifier l'humeur en premier (avant les autres sections)
+                if any(kw in section_lower for kw in ['humeur', 'bonjour', 'matin', '🌤️']):
+                    # ⭐ Stocker le contenu de l'humeur du jour
+                    structured["humeur"] = content
+                    # L'intro peut aussi contenir une question d'équipe (si pas déjà définie)
+                    if not structured["team_question"] and '?' in content:
+                        structured["team_question"] = content
+                        
+                elif any(kw in section_lower for kw in ['flash', 'bilan', 'hier', 'performance', '📊']):
                     # Extraire les points clés du flashback
                     structured["flashback"] = content
                     
@@ -1291,11 +1300,6 @@ Génère un brief motivant et concret basé sur ces données."""
                     
                 elif any(kw in section_lower for kw in ['mot', 'fin', 'conclusion', 'boost', '🚀']):
                     structured["booster"] = content
-                    
-                elif any(kw in section_lower for kw in ['humeur', 'bonjour', 'matin', '🌤️']):
-                    # L'intro peut contenir une question d'équipe
-                    if not structured["team_question"] and '?' in content:
-                        structured["team_question"] = content
             
             # Vérifier qu'on a au moins le focus et le booster
             if structured["focus"] or structured["booster"]:
@@ -1403,6 +1407,7 @@ Le premier à atteindre 500€ de CA gagne un café offert par le manager !
         
         # Structured fallback
         structured = {
+            "humeur": "Bonjour l'équipe ! Une nouvelle journée commence, pleine d'opportunités !",  # ⭐ Ajout de l'humeur du jour
             "flashback": f"CA réalisé hier : {ca_hier:,.0f}€. Continuons sur cette lancée !",
             "focus": "Dépasser notre CA d'hier et offrir une expérience client exceptionnelle !",
             "examples": [

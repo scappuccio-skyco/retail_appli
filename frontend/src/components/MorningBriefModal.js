@@ -15,6 +15,7 @@ import html2canvas from 'html2canvas';
  */
 const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId }) => {
   const [comments, setComments] = useState('');
+  const [objectiveDaily, setObjectiveDaily] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [brief, setBrief] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -429,9 +430,14 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
     setBrief(null);
 
     try {
+      const payload = {
+        comments: comments.trim() || null,
+        objective_daily: objectiveDaily ? parseFloat(objectiveDaily) : null
+      };
+
       const response = await api.post(
         `/briefs/morning${storeParam}`,
-        { comments: comments.trim() || null }
+        payload
       );
 
       if (response.data.success) {
@@ -482,6 +488,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
 
   const handleClose = () => {
     setComments('');
+    setObjectiveDaily('');
     setBrief(null);
     setActiveTab('new');
     onClose();
@@ -578,6 +585,18 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
 
     return (
       <div className="space-y-4">
+        {/* 🌤️ Humeur du Jour - AFFICHÉ EN PREMIER */}
+        {structured.humeur && (
+          <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[0].card}`}>
+            <div className="mb-3">
+              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${colorPalette[0].badge}`}>
+                ⛅ L'Humeur du Jour
+              </span>
+            </div>
+            {renderContentWithMarkdown(structured.humeur)}
+          </div>
+        )}
+
         {/* 📊 Flashback */}
         {structured.flashback && (
           <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[1].card}`}>
@@ -852,6 +871,23 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                     <span>{managerName || 'Manager'}</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Objectif CA du jour */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  💰 Objectif CA du jour (€)
+                </label>
+                <input
+                  type="number"
+                  value={objectiveDaily}
+                  onChange={(e) => setObjectiveDaily(e.target.value)}
+                  placeholder="Ex: 1200"
+                  min="0"
+                  step="0.01"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                />
+                <p className="text-xs text-gray-400 mt-1">Montant en euros (optionnel)</p>
               </div>
 
               {/* Textarea */}

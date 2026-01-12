@@ -24,6 +24,11 @@ class MorningBriefRequest(BaseModel):
         description="Consigne spécifique du manager pour le brief",
         max_length=500
     )
+    objective_daily: Optional[float] = Field(
+        None,
+        description="Objectif CA du jour en euros (sera sauvegardé dans stores.objective_daily)",
+        ge=0
+    )
     # Stats can be provided or will be fetched automatically
     stats: Optional[Dict] = Field(None, description="Statistiques optionnelles (sinon auto-fetch)")
 
@@ -139,6 +144,18 @@ async def generate_morning_brief(
     
     store_name = store.get("name", "Mon Magasin") if store else "Mon Magasin"
     final_store_id = store.get("id") if store else effective_store_id
+    
+    # ⭐ Sauvegarder l'objectif CA du jour dans le document du magasin
+    if request.objective_daily is not None and final_store_id:
+        try:
+            await db.stores.update_one(
+                {"id": final_store_id},
+                {"$set": {"objective_daily": request.objective_daily, "updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            logger.info(f"Objectif CA du jour mis à jour pour le magasin {final_store_id}: {request.objective_daily}€")
+        except Exception as e:
+            logger.error(f"Erreur lors de la sauvegarde de l'objectif CA: {e}")
+            # Ne pas bloquer la génération du brief si la sauvegarde échoue
     
     # Récupérer les statistiques du dernier jour avec données
     if request.stats:
