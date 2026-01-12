@@ -166,17 +166,17 @@ async def generate_morning_brief(
     # Extraire la date des données (dernier jour actif)
     data_date = stats.get("data_date")
     
-        # Générer le brief via le service IA
-        try:
-            ai_service = AIService()
-            result = await ai_service.generate_morning_brief(
-                stats=stats,
-                manager_name=manager_name,
-                store_name=store_name,
-                context=request.comments,
-                data_date=data_date,  # Passer la date du dernier jour avec des données
-                objective_daily=request.objective_daily  # ⭐ Passer l'objectif CA du jour
-            )
+    # Générer le brief via le service IA
+    try:
+        ai_service = AIService()
+        result = await ai_service.generate_morning_brief(
+            stats=stats,
+            manager_name=manager_name,
+            store_name=store_name,
+            context=request.comments,
+            data_date=data_date,  # Passer la date du dernier jour avec des données
+            objective_daily=request.objective_daily  # ⭐ Passer l'objectif CA du jour
+        )
         
         # Sauvegarder le brief dans l'historique
         if result.get("success"):
