@@ -23,10 +23,12 @@ def safe_import(module_path, router_name, fallback_prefix=None):
         module = __import__(module_path, fromlist=[router_name])
         router = getattr(module, router_name)
         routers.append(router)
-        print(f"[ROUTES] ✅ Loaded {module_path}.{router_name}", flush=True)
+        print(f"[ROUTES] ✅ Loaded {module_path}.{router_name} (prefix: {router.prefix}, routes: {len(router.routes)})", flush=True)
         return router
     except Exception as e:
         print(f"[ROUTES] ❌ Failed to load {module_path}.{router_name}: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
         return None
 
 # Import other routers with error handling

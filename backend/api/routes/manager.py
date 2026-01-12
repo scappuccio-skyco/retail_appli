@@ -15,6 +15,16 @@ from services.seller_service import SellerService
 router = APIRouter(prefix="/manager", tags=["Manager"])
 logger = logging.getLogger(__name__)
 
+# Log router initialization
+print(f"[MANAGER ROUTER] Router initialized with prefix: {router.prefix}", flush=True)
+logger.info(f"Manager router initialized with prefix: {router.prefix}")
+
+# Test endpoint to verify router is working
+@router.get("/test")
+async def test_endpoint():
+    """Test endpoint to verify router is registered"""
+    return {"status": "ok", "message": "Manager router is working", "router_prefix": router.prefix}
+
 
 # ===== RBAC: ROLE-BASED ACCESS CONTROL =====
 
@@ -51,63 +61,73 @@ async def get_store_context(
     
     Returns dict with user info + resolved store_id
     """
-    role = current_user.get('role')
-    
-    if role == 'manager':
-        # Manager: use their store_id
-        store_id = current_user.get('store_id')
-        if not store_id:
-            raise HTTPException(status_code=400, detail="Manager n'a pas de magasin assigné")
-        return {**current_user, 'resolved_store_id': store_id, 'view_mode': 'manager'}
-    
-    elif role in ['gerant', 'gérant']:
-        # Gérant: get store_id from query params
-        store_id = request.query_params.get('store_id')
+    try:
+        logger.debug(f"[get_store_context] Called for user {current_user.get('id')} with role {current_user.get('role')}")
+        role = current_user.get('role')
         
-        if not store_id:
-            # Pas de store_id - retourner le context sans resolved_store_id
-            # Les endpoints doivent gérer ce cas
-            return {
-                **current_user, 
-                'resolved_store_id': None, 
-                'view_mode': 'gerant_overview'
-            }
+        if role == 'manager':
+            # Manager: use their store_id
+            store_id = current_user.get('store_id')
+            if not store_id:
+                raise HTTPException(status_code=400, detail="Manager n'a pas de magasin assigné")
+            return {**current_user, 'resolved_store_id': store_id, 'view_mode': 'manager'}
         
-        # Security: Verify the gérant owns this store
-        try:
-            store = await db.stores.find_one(
-                {"id": store_id, "gerant_id": current_user['id'], "active": True},
-                {"_id": 0, "id": 1, "name": 1}
-            )
+        elif role in ['gerant', 'gérant']:
+            # Gérant: get store_id from query params
+            store_id = request.query_params.get('store_id')
             
-            if not store:
-                # Store doesn't exist or doesn't belong to gérant
-                # Return context with None store_id instead of raising exception
-                # This allows endpoints to handle the case gracefully
-                logger.warning(f"Gérant {current_user['id']} attempted to access store {store_id} which doesn't exist or doesn't belong to them")
+            if not store_id:
+                # Pas de store_id - retourner le context sans resolved_store_id
+                # Les endpoints doivent gérer ce cas
+                logger.debug(f"[get_store_context] Gérant {current_user.get('id')} - no store_id in query params")
                 return {
                     **current_user, 
                     'resolved_store_id': None, 
                     'view_mode': 'gerant_overview'
                 }
             
-            return {
-                **current_user, 
-                'resolved_store_id': store_id, 
-                'view_mode': 'gerant_as_manager',
-                'store_name': store.get('name')
-            }
-        except Exception as e:
-            logger.error(f"Error verifying store ownership: {e}", exc_info=True)
-            # Return context with None store_id on error
-            return {
-                **current_user, 
-                'resolved_store_id': None, 
-                'view_mode': 'gerant_overview'
-            }
-    
-    else:
-        raise HTTPException(status_code=403, detail="Rôle non autorisé")
+            # Security: Verify the gérant owns this store
+            try:
+                store = await db.stores.find_one(
+                    {"id": store_id, "gerant_id": current_user['id'], "active": True},
+                    {"_id": 0, "id": 1, "name": 1}
+                )
+                
+                if not store:
+                    # Store doesn't exist or doesn't belong to gérant
+                    # Return context with None store_id instead of raising exception
+                    # This allows endpoints to handle the case gracefully
+                    logger.warning(f"Gérant {current_user['id']} attempted to access store {store_id} which doesn't exist or doesn't belong to them")
+                    return {
+                        **current_user, 
+                        'resolved_store_id': None, 
+                        'view_mode': 'gerant_overview'
+                    }
+                
+                logger.debug(f"[get_store_context] Gérant {current_user.get('id')} - store {store_id} verified")
+                return {
+                    **current_user, 
+                    'resolved_store_id': store_id, 
+                    'view_mode': 'gerant_as_manager',
+                    'store_name': store.get('name')
+                }
+            except Exception as e:
+                logger.error(f"Error verifying store ownership: {e}", exc_info=True)
+                # Return context with None store_id on error
+                return {
+                    **current_user, 
+                    'resolved_store_id': None, 
+                    'view_mode': 'gerant_overview'
+                }
+        
+        else:
+            logger.warning(f"[get_store_context] Unauthorized role: {role}")
+            raise HTTPException(status_code=403, detail="Rôle non autorisé")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[get_store_context] Unexpected error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la résolution du contexte: {str(e)}")
 
 
 async def get_store_context_with_seller(
@@ -473,11 +493,16 @@ async def get_kpi_config(
 ):
     """Get KPI configuration for the store"""
     try:
+        logger.info(f"[KPI-CONFIG] GET request - store_id param: {store_id}, context: {context.get('view_mode')}")
+        
         # Utiliser store_id du query param en priorité, sinon celui du context
         resolved_store_id = context.get('resolved_store_id') or store_id
         
+        logger.info(f"[KPI-CONFIG] resolved_store_id: {resolved_store_id}")
+        
         if not resolved_store_id:
             # Retourner une config par défaut si pas de store (pour compatibilité)
+            logger.info("[KPI-CONFIG] No store_id, returning default config")
             return {
                 "enabled": True,
                 "saisie_enabled": True,
@@ -494,6 +519,7 @@ async def get_kpi_config(
         config = await manager_service.get_kpi_config(resolved_store_id)
         if not config:
             # Si aucune config n'existe, retourner la config par défaut
+            logger.info(f"[KPI-CONFIG] No config found for store {resolved_store_id}, returning default")
             return {
                 "store_id": resolved_store_id,
                 "enabled": True,
@@ -507,11 +533,13 @@ async def get_kpi_config(
                 "manager_track_articles": False,
                 "manager_track_prospects": False
             }
+        logger.info(f"[KPI-CONFIG] Returning config for store {resolved_store_id}")
         return config
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(f"[KPI-CONFIG] HTTPException: {e.status_code} - {e.detail}")
         raise
     except Exception as e:
-        logger.error(f"Error getting KPI config: {e}", exc_info=True)
+        logger.error(f"[KPI-CONFIG] Error getting KPI config: {e}", exc_info=True)
         # Return default config instead of raising error to prevent 404
         return {
             "enabled": True,
@@ -544,10 +572,15 @@ async def update_kpi_config(
     - manager_track_*: bool - Whether manager tracks this KPI
     """
     try:
+        logger.info(f"[KPI-CONFIG] PUT request - store_id param: {store_id}, context: {context.get('view_mode')}, config_update: {config_update}")
+        
         resolved_store_id = context.get('resolved_store_id') or store_id
         manager_id = context.get('id')
         
+        logger.info(f"[KPI-CONFIG] PUT - resolved_store_id: {resolved_store_id}, manager_id: {manager_id}")
+        
         if not resolved_store_id and not manager_id:
+            logger.error("[KPI-CONFIG] PUT - Missing both store_id and manager_id")
             raise HTTPException(status_code=400, detail="Store ID ou Manager ID requis")
         
         # Prepare update data
@@ -607,10 +640,11 @@ async def update_kpi_config(
             "saisie_enabled": update_data.get('saisie_enabled', True)
         }
         
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(f"[KPI-CONFIG] PUT - HTTPException: {e.status_code} - {e.detail}")
         raise
     except Exception as e:
-        logger.error(f"Error updating KPI config: {e}")
+        logger.error(f"[KPI-CONFIG] PUT - Error updating KPI config: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

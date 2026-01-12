@@ -151,9 +151,16 @@ if not auth_router_found:
 for router in routers:
     app.include_router(router, prefix="/api")
     logger.info(f"Registered router: {router.prefix} ({len(router.routes)} routes)")
+    print(f"[STARTUP] Registered router: {router.prefix} ({len(router.routes)} routes)", flush=True)
     if router.prefix == "/auth":
         logger.info(f"✅ Auth router registered: {[r.path for r in router.routes]}")
         print(f"[STARTUP] ✅ Auth router registered with routes: {[r.path for r in router.routes]}", flush=True)
+    if router.prefix == "/manager":
+        logger.info(f"✅ Manager router registered: {len(router.routes)} routes")
+        print(f"[STARTUP] ✅ Manager router registered: {len(router.routes)} routes", flush=True)
+        # Log first few routes for debugging
+        route_paths = [r.path for r in router.routes[:5]]
+        print(f"[STARTUP] Manager router sample routes: {route_paths}", flush=True)
     if router.prefix == "/briefs":
         logger.info("✅ Loaded router: /api/briefs")
         print("✅ Loaded router: /api/briefs", flush=True)
