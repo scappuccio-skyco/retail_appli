@@ -74,23 +74,37 @@ async def get_store_context(
             }
         
         # Security: Verify the gérant owns this store
-        store = await db.stores.find_one(
-            {"id": store_id, "gerant_id": current_user['id'], "active": True},
-            {"_id": 0, "id": 1, "name": 1}
-        )
-        
-        if not store:
-            raise HTTPException(
-                status_code=403, 
-                detail="Ce magasin n'existe pas ou ne vous appartient pas"
+        try:
+            store = await db.stores.find_one(
+                {"id": store_id, "gerant_id": current_user['id'], "active": True},
+                {"_id": 0, "id": 1, "name": 1}
             )
-        
-        return {
-            **current_user, 
-            'resolved_store_id': store_id, 
-            'view_mode': 'gerant_as_manager',
-            'store_name': store.get('name')
-        }
+            
+            if not store:
+                # Store doesn't exist or doesn't belong to gérant
+                # Return context with None store_id instead of raising exception
+                # This allows endpoints to handle the case gracefully
+                logger.warning(f"Gérant {current_user['id']} attempted to access store {store_id} which doesn't exist or doesn't belong to them")
+                return {
+                    **current_user, 
+                    'resolved_store_id': None, 
+                    'view_mode': 'gerant_overview'
+                }
+            
+            return {
+                **current_user, 
+                'resolved_store_id': store_id, 
+                'view_mode': 'gerant_as_manager',
+                'store_name': store.get('name')
+            }
+        except Exception as e:
+            logger.error(f"Error verifying store ownership: {e}", exc_info=True)
+            # Return context with None store_id on error
+            return {
+                **current_user, 
+                'resolved_store_id': None, 
+                'view_mode': 'gerant_overview'
+            }
     
     else:
         raise HTTPException(status_code=403, detail="Rôle non autorisé")

@@ -156,8 +156,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       } else if (viewMode === 'month' && selectedMonth) {
         // Parse month format "YYYY-MM"
         const [year, month] = selectedMonth.split('-');
-        startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-        endDate = new Date(parseInt(year), parseInt(month), 0); // Last day of month
+        // Set startDate to first day of the month at 00:00:00 UTC
+        startDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, 1, 0, 0, 0, 0));
+        // Set endDate to last day of the month at 23:59:59 UTC
+        endDate = new Date(Date.UTC(parseInt(year), parseInt(month), 0, 23, 59, 59, 999));
         days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
       } else if (viewMode === 'year' && selectedYear) {
         // Year view: get full year
@@ -281,9 +283,15 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
       // Filter data by date range if needed
       if (startDate && endDate) {
+        // Normalize dates to UTC for accurate comparison
+        const startUTC = new Date(startDate);
+        startUTC.setUTCHours(0, 0, 0, 0);
+        const endUTC = new Date(endDate);
+        endUTC.setUTCHours(23, 59, 59, 999);
+        
         historicalArray = historicalArray.filter(day => {
-          const dayDate = new Date(day.date);
-          return dayDate >= startDate && dayDate <= endDate;
+          const dayDate = new Date(day.date + 'T00:00:00Z'); // Parse as UTC
+          return dayDate >= startUTC && dayDate <= endUTC;
         });
       }
 
@@ -292,9 +300,17 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         const filledArray = [];
         const existingDates = new Set(historicalArray.map(d => d.date));
         
-        // Iterate through all days in the range
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-          const dateStr = d.toISOString().split('T')[0];
+        // Create a copy of startDate to avoid mutating the original
+        const currentDate = new Date(startDate);
+        const endDateCopy = new Date(endDate);
+        
+        // Normalize to UTC to avoid timezone issues
+        currentDate.setUTCHours(0, 0, 0, 0);
+        endDateCopy.setUTCHours(23, 59, 59, 999);
+        
+        // Iterate through all days in the range (from 1st to last day of month)
+        while (currentDate <= endDateCopy) {
+          const dateStr = currentDate.toISOString().split('T')[0];
           
           const existing = historicalArray.find(item => item.date === dateStr);
           if (existing) {
@@ -310,6 +326,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               seller_prospects: 0
             });
           }
+          
+          // Move to next day
+          currentDate.setUTCDate(currentDate.getUTCDate() + 1);
         }
         
         historicalArray = filledArray;
@@ -1478,7 +1497,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                             return (
                               <div 
                                 key={index}
-                                className="p-4 hover:bg-purple-50 transition-colors"
+                                className="p-5 hover:bg-purple-50 transition-colors border-b border-gray-100 last:border-b-0"
                               >
                                 {/* Date Header */}
                                 <div className="flex items-center justify-between mb-3">
@@ -1504,7 +1523,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                                 </div>
 
                                 {/* KPI Grid */}
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                                   {/* CA */}
                                   <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
                                     <div className="text-xs text-green-700 font-semibold mb-1">💰 CA</div>
