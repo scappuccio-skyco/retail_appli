@@ -671,12 +671,8 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
 
   // Parse et affiche le brief avec le style des sections colorées (legacy format)
   const renderBriefContent = (briefData) => {
-    // Si on a le format structuré, l'utiliser en priorité
-    if (briefData.structured) {
-      return renderStructuredBrief(briefData.structured);
-    }
-    
-    // Sinon, fallback sur le parsing du Markdown (rétro-compatibilité)
+    // ⭐ TOUJOURS utiliser le markdown complet pour l'affichage
+    // Le format structuré peut manquer certaines sections, le markdown est plus complet
     const briefText = typeof briefData === 'string' ? briefData : briefData.brief;
     if (!briefText) return null;
     
