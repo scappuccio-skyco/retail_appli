@@ -463,7 +463,7 @@ async def get_kpi_config(
         resolved_store_id = context.get('resolved_store_id') or store_id
         
         if not resolved_store_id:
-            # Retourner une config par défaut si pas de store
+            # Retourner une config par défaut si pas de store (pour compatibilité)
             return {
                 "enabled": True,
                 "saisie_enabled": True,
@@ -478,10 +478,39 @@ async def get_kpi_config(
             }
         
         config = await manager_service.get_kpi_config(resolved_store_id)
+        if not config:
+            # Si aucune config n'existe, retourner la config par défaut
+            return {
+                "store_id": resolved_store_id,
+                "enabled": True,
+                "saisie_enabled": True,
+                "seller_track_ca": True,
+                "seller_track_ventes": True,
+                "seller_track_articles": True,
+                "seller_track_prospects": True,
+                "manager_track_ca": False,
+                "manager_track_ventes": False,
+                "manager_track_articles": False,
+                "manager_track_prospects": False
+            }
         return config
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error getting KPI config: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error getting KPI config: {e}", exc_info=True)
+        # Return default config instead of raising error to prevent 404
+        return {
+            "enabled": True,
+            "saisie_enabled": True,
+            "seller_track_ca": True,
+            "seller_track_ventes": True,
+            "seller_track_articles": True,
+            "seller_track_prospects": True,
+            "manager_track_ca": False,
+            "manager_track_ventes": False,
+            "manager_track_articles": False,
+            "manager_track_prospects": False
+        }
 
 
 @router.put("/kpi-config")
@@ -1987,8 +2016,14 @@ async def analyze_store_kpis(
     from services.ai_service import AIService
     
     try:
-        resolved_store_id = context.get('resolved_store_id')
+        resolved_store_id = context.get('resolved_store_id') or store_id
         user_id = context.get('id')
+        
+        if not resolved_store_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Le paramètre store_id est requis pour analyser les KPIs d'un magasin"
+            )
         
         # Get store info
         store = await db.stores.find_one(
@@ -1996,7 +2031,13 @@ async def analyze_store_kpis(
             {"_id": 0, "name": 1, "location": 1}
         )
         
-        store_name = store.get('name', 'Magasin') if store else 'Magasin'
+        if not store:
+            raise HTTPException(
+                status_code=404,
+                detail="Magasin non trouvé"
+            )
+        
+        store_name = store.get('name', 'Magasin')
         
         # Get date range from request
         start_date = analysis_data.get('start_date') or analysis_data.get('startDate')
