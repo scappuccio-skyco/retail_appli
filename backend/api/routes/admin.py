@@ -10,10 +10,12 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from core.security import get_super_admin
 from services.admin_service import AdminService
 from repositories.admin_repository import AdminRepository
+from models.chat import ChatRequest
 import logging
 import uuid
 import bcrypt
 import secrets
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -753,34 +755,55 @@ async def get_gerants_trials(
         
         result = []
         for gerant in gerants:
+            gerant_id = gerant['id']
+            
             # Compter les vendeurs actifs
             active_sellers_count = await db.users.count_documents({
-                "gerant_id": gerant['id'],
+                "gerant_id": gerant_id,
                 "role": "seller",
                 "status": "active"
             })
             
-            # Vérifier s'il a un abonnement actif
+            # Récupérer le workspace du gérant (les essais sont stockés dans le workspace)
+            workspace = await db.workspaces.find_one(
+                {"gerant_id": gerant_id},
+                {"_id": 0}
+            )
+            
+            # Vérifier aussi l'abonnement pour compatibilité
             subscription = await db.subscriptions.find_one(
-                {"user_id": gerant['id']},
+                {"user_id": gerant_id},
                 {"_id": 0}
             )
             
             has_subscription = False
             trial_end = None
+            subscription_status = None
             
-            if subscription:
-                has_subscription = subscription.get('status') in ['active', 'trialing']
+            # Priorité au workspace pour les informations d'essai
+            if workspace:
+                subscription_status = workspace.get('subscription_status', 'inactive')
+                trial_end = workspace.get('trial_end')
+                
+                # Si le workspace est en essai, utiliser trial_end du workspace
+                if subscription_status == 'trialing' and trial_end:
+                    has_subscription = True
+                elif subscription_status == 'active':
+                    has_subscription = True
+            elif subscription:
+                # Fallback sur l'abonnement si pas de workspace
+                subscription_status = subscription.get('status')
+                has_subscription = subscription_status in ['active', 'trialing']
                 trial_end = subscription.get('trial_end')
             
             result.append({
-                "id": gerant['id'],
+                "id": gerant_id,
                 "name": gerant.get('name', 'N/A'),
                 "email": gerant['email'],
                 "trial_end": trial_end,
                 "active_sellers_count": active_sellers_count,
                 "has_subscription": has_subscription,
-                "subscription_status": subscription.get('status') if subscription else None
+                "subscription_status": subscription_status
             })
         
         # Trier par date d'expiration (les plus proches d'abord)
@@ -793,6 +816,109 @@ async def get_gerants_trials(
         
     except Exception as e:
         logger.error(f"Error fetching gerants trials: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/gerants/{gerant_id}/trial")
+async def update_gerant_trial(
+    gerant_id: str,
+    trial_data: Dict = Body(...),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Modifier la période d'essai d'un gérant"""
+    try:
+        # Vérifier que le gérant existe
+        gerant = await db.users.find_one(
+            {"id": gerant_id, "role": "gerant"},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            raise HTTPException(status_code=404, detail="Gérant non trouvé")
+        
+        # Récupérer la nouvelle date de fin d'essai
+        trial_end_str = trial_data.get('trial_end')
+        if not trial_end_str:
+            raise HTTPException(status_code=400, detail="Date de fin d'essai requise")
+        
+        # Parser et valider la date
+        try:
+            trial_end_date = datetime.fromisoformat(trial_end_str.replace('Z', '+00:00'))
+            # S'assurer que c'est en UTC
+            if trial_end_date.tzinfo is None:
+                trial_end_date = trial_end_date.replace(tzinfo=timezone.utc)
+            trial_end = trial_end_date.isoformat()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Format de date invalide")
+        
+        # Récupérer le workspace du gérant
+        workspace = await db.workspaces.find_one({"gerant_id": gerant_id})
+        
+        if workspace:
+            # Mettre à jour le workspace (source de vérité pour les essais)
+            await db.workspaces.update_one(
+                {"gerant_id": gerant_id},
+                {"$set": {
+                    "trial_end": trial_end,
+                    "subscription_status": "trialing",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+        else:
+            # Créer un workspace si il n'existe pas
+            workspace_id = str(uuid.uuid4())
+            await db.workspaces.insert_one({
+                "id": workspace_id,
+                "name": gerant.get('name', 'Workspace'),
+                "gerant_id": gerant_id,
+                "subscription_status": "trialing",
+                "trial_end": trial_end,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # Mettre à jour aussi l'abonnement pour compatibilité (si existe)
+        subscription = await db.subscriptions.find_one({"user_id": gerant_id})
+        if subscription:
+            await db.subscriptions.update_one(
+                {"user_id": gerant_id},
+                {"$set": {
+                    "trial_end": trial_end,
+                    "status": "trialing",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+        
+        # Log admin action
+        try:
+            await db.admin_logs.insert_one({
+                "admin_id": current_admin.get('id'),
+                "admin_email": current_admin.get('email'),
+                "action": "update_gerant_trial",
+                "details": {
+                    "gerant_id": gerant_id,
+                    "gerant_email": gerant.get('email'),
+                    "trial_end": trial_end
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        except Exception as e:
+            logger.error(f"Failed to log admin action: {e}")
+        
+        logger.info(f"Trial period updated for gerant {gerant_id} by admin {current_admin['email']}")
+        
+        return {
+            "success": True,
+            "message": "Période d'essai mise à jour avec succès",
+            "trial_end": trial_end
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating gerant trial: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -852,3 +978,230 @@ async def get_all_invitations(
     except Exception as e:
         logger.error(f"Error fetching invitations: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+async def get_app_context_for_ai(db: AsyncIOMotorDatabase):
+    """Gather relevant application context for AI assistant"""
+    try:
+        # Get recent errors (last 24h)
+        last_24h = datetime.now(timezone.utc) - timedelta(hours=24)
+        recent_errors = await db.system_logs.find(
+            {"level": "error", "timestamp": {"$gte": last_24h.isoformat()}},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(10).to_list(10)
+        
+        # Get recent warnings
+        recent_warnings = await db.system_logs.find(
+            {"level": "warning", "timestamp": {"$gte": last_24h.isoformat()}},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(5).to_list(5)
+        
+        # Get recent admin actions (last 7 days)
+        last_7d = datetime.now(timezone.utc) - timedelta(days=7)
+        recent_actions = await db.admin_logs.find(
+            {"timestamp": {"$gte": last_7d.isoformat()}},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(20).to_list(20)
+        
+        # Get platform stats
+        total_workspaces = await db.workspaces.count_documents({})
+        active_workspaces = await db.workspaces.count_documents({"status": "active"})
+        suspended_workspaces = await db.workspaces.count_documents({"status": "suspended"})
+        total_users = await db.users.count_documents({})
+        
+        # Get health status
+        errors_24h = len(recent_errors)
+        health_status = "healthy" if errors_24h < 10 else "warning" if errors_24h < 50 else "critical"
+        
+        context = {
+            "platform_stats": {
+                "total_workspaces": total_workspaces,
+                "active_workspaces": active_workspaces,
+                "suspended_workspaces": suspended_workspaces,
+                "total_users": total_users,
+                "health_status": health_status
+            },
+            "recent_errors": recent_errors[:5],  # Top 5 errors
+            "recent_warnings": recent_warnings[:3],  # Top 3 warnings
+            "recent_actions": recent_actions[:10],  # Last 10 admin actions
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        return context
+    except Exception as e:
+        logger.error(f"Error gathering AI context: {str(e)}")
+        return {}
+
+
+@router.post("/ai-assistant/chat")
+async def chat_with_ai_assistant(
+    request: ChatRequest,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Chat with AI assistant for troubleshooting and support"""
+    try:
+        # Get or create conversation
+        conversation_id = request.conversation_id
+        if not conversation_id:
+            # Create new conversation
+            conversation_id = str(uuid.uuid4())
+            conversation = {
+                "id": conversation_id,
+                "admin_email": current_admin['email'],
+                "admin_name": current_admin.get('name', 'Admin'),
+                "title": request.message[:50] + "..." if len(request.message) > 50 else request.message,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.ai_conversations.insert_one(conversation)
+        else:
+            # Update existing conversation
+            await db.ai_conversations.update_one(
+                {"id": conversation_id},
+                {"$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+        
+        # Get app context
+        app_context = await get_app_context_for_ai(db)
+        
+        # Get conversation history
+        history = await db.ai_messages.find(
+            {"conversation_id": conversation_id},
+            {"_id": 0}
+        ).sort("timestamp", 1).to_list(50)
+        
+        # Build system prompt
+        system_prompt = f"""Tu es un assistant IA expert pour le SuperAdmin de Retail Performer AI, une plateforme SaaS de coaching commercial.
+
+CONTEXTE DE L'APPLICATION:
+{json.dumps(app_context, indent=2, ensure_ascii=False)}
+
+TES CAPACITÉS:
+1. Analyser les logs système et audit pour diagnostiquer les problèmes
+2. Fournir des recommandations techniques précises
+3. Suggérer des actions concrètes (avec validation admin requise)
+4. Expliquer les fonctionnalités et l'architecture
+5. Identifier les patterns d'erreurs et tendances
+
+ACTIONS DISPONIBLES (toujours demander confirmation):
+- reactivate_workspace: Réactiver un workspace suspendu
+- change_workspace_plan: Changer le plan d'un workspace
+- suspend_workspace: Suspendre un workspace problématique
+- reset_ai_credits: Réinitialiser les crédits IA d'un workspace
+
+STYLE DE RÉPONSE:
+- Concis et technique
+- Utilise le format Markdown pour une meilleure lisibilité :
+  * Titres avec ## ou ### pour les sections
+  * Listes à puces (-) ou numérotées (1.)
+  * **Gras** pour les points importants
+  * `code` pour les valeurs techniques
+  * Sauts de ligne entre sections
+- Utilise des emojis pour la lisibilité (🔍 analyse, ⚠️ alertes, ✅ solutions, 📊 stats)
+- Structure tes réponses avec des sections claires et aérées
+- Propose des actions concrètes quand nécessaire
+
+Réponds toujours en français avec formatage Markdown."""
+
+        # Use OpenAI via AIService
+        from services.ai_service import AIService
+        
+        ai_service = AIService()
+        
+        if ai_service.available:
+            # Build user prompt with conversation history
+            user_prompt_parts = []
+            
+            # Add conversation history (last 10 messages)
+            for msg in history[-10:]:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
+                if role == "user":
+                    user_prompt_parts.append(f"Utilisateur: {content}")
+                elif role == "assistant":
+                    user_prompt_parts.append(f"Assistant: {content}")
+            
+            # Add current user message
+            user_prompt_parts.append(f"Utilisateur: {request.message}")
+            user_prompt = "\n\n".join(user_prompt_parts)
+            
+            # Get AI response using OpenAI
+            ai_response = await ai_service._send_message(
+                system_message=system_prompt,
+                user_prompt=user_prompt,
+                model="gpt-4o-mini",  # Use mini for cost efficiency
+                temperature=0.7
+            )
+            
+            if not ai_response:
+                # Fallback if AI service returns None
+                raise Exception("OpenAI service returned no response")
+        else:
+            # Fallback: Simple response if OpenAI not available
+            logger.warning("OpenAI not available, using fallback response")
+            ai_response = f"""🔍 **Analyse de votre demande**
+
+Je comprends votre question : "{request.message}"
+
+⚠️ **Note** : Le système OpenAI n'est pas configuré actuellement. Pour une assistance complète, veuillez configurer la clé API `OPENAI_API_KEY`.
+
+**Contexte de la plateforme** :
+- Workspaces actifs : {app_context.get('platform_stats', {}).get('active_workspaces', 0)}
+- Erreurs récentes (24h) : {len(app_context.get('recent_errors', []))}
+- Statut de santé : {app_context.get('platform_stats', {}).get('health_status', 'unknown')}
+
+Pour obtenir de l'aide, vous pouvez :
+1. Consulter les logs système via `/superadmin/system-logs`
+2. Vérifier les actions admin récentes via `/superadmin/logs`
+3. Examiner les workspaces via `/superadmin/workspaces`"""
+        
+        # Save user message
+        user_msg = {
+            "conversation_id": conversation_id,
+            "role": "user",
+            "content": request.message,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "context": app_context
+        }
+        await db.ai_messages.insert_one(user_msg)
+        
+        # Save assistant message
+        assistant_msg = {
+            "conversation_id": conversation_id,
+            "role": "assistant",
+            "content": ai_response,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await db.ai_messages.insert_one(assistant_msg)
+        
+        # Log admin action
+        try:
+            await db.admin_logs.insert_one({
+                "admin_id": current_admin.get('id'),
+                "admin_email": current_admin.get('email'),
+                "action": "ai_assistant_query",
+                "details": {
+                    "conversation_id": conversation_id,
+                    "query_length": len(request.message),
+                    "response_length": len(ai_response)
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        except Exception as e:
+            logger.error(f"Failed to log admin action: {e}")
+        
+        return {
+            "conversation_id": conversation_id,
+            "message": ai_response,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "context_used": {
+                "errors_count": len(app_context.get('recent_errors', [])),
+                "health_status": app_context.get('platform_stats', {}).get('health_status', 'unknown')
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in AI assistant chat: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur AI: {str(e)}")
