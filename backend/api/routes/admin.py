@@ -740,6 +740,91 @@ async def get_subscriptions_overview(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/subscriptions/{gerant_id}/details")
+async def get_subscription_details(
+    gerant_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """
+    Détails complets d'un abonnement spécifique.
+    Inclut historique des prorations, paiements, événements webhook.
+    """
+    try:
+        # Récupérer le gérant
+        gerant = await db.users.find_one(
+            {"id": gerant_id, "role": "gerant"},
+            {"_id": 0, "password": 0}
+        )
+        
+        if not gerant:
+            raise HTTPException(status_code=404, detail="Gérant non trouvé")
+        
+        # Récupérer l'abonnement
+        subscription = await db.subscriptions.find_one(
+            {"user_id": gerant_id},
+            {"_id": 0}
+        )
+        
+        # Récupérer le workspace du gérant
+        workspace = await db.workspaces.find_one(
+            {"gerant_id": gerant_id},
+            {"_id": 0}
+        )
+        
+        # Récupérer toutes les transactions
+        transactions = await db.payment_transactions.find(
+            {"user_id": gerant_id},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(100)
+        
+        # Récupérer les événements webhook liés
+        webhook_events = []
+        if subscription and subscription.get('stripe_subscription_id'):
+            webhook_events = await db.stripe_events.find(
+                {
+                    "$or": [
+                        {"data.object.id": subscription['stripe_subscription_id']},
+                        {"data.object.subscription": subscription['stripe_subscription_id']},
+                        {"data.object.customer": gerant.get('stripe_customer_id')}
+                    ]
+                },
+                {"_id": 0}
+            ).sort("created_at", -1).limit(50).to_list(50)
+        
+        # Compter les vendeurs
+        active_sellers = await db.users.count_documents({
+            "gerant_id": gerant_id,
+            "role": "seller",
+            "status": "active"
+        })
+        
+        suspended_sellers = await db.users.count_documents({
+            "gerant_id": gerant_id,
+            "role": "seller",
+            "status": "suspended"
+        })
+        
+        return {
+            "gerant": gerant,
+            "subscription": subscription,
+            "workspace": workspace,
+            "sellers": {
+                "active": active_sellers,
+                "suspended": suspended_sellers,
+                "total": active_sellers + suspended_sellers
+            },
+            "transactions": transactions,
+            "webhook_events": webhook_events
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching subscription details: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/gerants/trials")
 async def get_gerants_trials(
     db: AsyncIOMotorDatabase = Depends(get_db),
@@ -947,6 +1032,43 @@ async def get_ai_conversations(
         }
     except Exception as e:
         logger.error(f"Error fetching AI conversations: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/ai-assistant/conversation/{conversation_id}")
+async def get_conversation_messages(
+    conversation_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Get messages for a specific conversation"""
+    try:
+        # Verify conversation belongs to admin
+        conversation = await db.ai_conversations.find_one(
+            {
+                "id": conversation_id,
+                "admin_email": current_admin['email']
+            },
+            {"_id": 0}
+        )
+        
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation non trouvée")
+        
+        # Get messages
+        messages = await db.ai_messages.find(
+            {"conversation_id": conversation_id},
+            {"_id": 0}
+        ).sort("timestamp", 1).to_list(1000)
+        
+        return {
+            "conversation": conversation,
+            "messages": messages
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching conversation messages: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

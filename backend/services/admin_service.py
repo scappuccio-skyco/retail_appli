@@ -231,25 +231,10 @@ class AdminService:
                     "name": admin_name
                 })
         
-        # If no logs found in DB, return mock logs for display
-        if not normalized_logs:
-            mock_actions = ['user_login', 'workspace_created', 'subscription_updated', 'system_health_check']
-            normalized_logs = [
-                {
-                    "id": str(i),
-                    "timestamp": (now - timedelta(minutes=i*10)).isoformat(),
-                    "action": mock_actions[i % len(mock_actions)],  # CRITICAL: Always has action
-                    "admin_email": "system@retailperformer.com",
-                    "admin_name": "System",
-                    "workspace_id": None,
-                    "details": {},
-                    "level": "info" if i % 3 != 0 else "warning",
-                    "message": f"System event #{i}"
-                }
-                for i in range(min(10, limit))
-            ]
-            all_actions = set(mock_actions)
-            all_admins = [{"email": "system@retailperformer.com", "name": "System"}]
+        # ⚠️ IMPORTANT: Ne pas créer de logs mockés
+        # Les logs doivent être créés automatiquement par l'application lors d'événements réels
+        # Si aucun log n'est trouvé, retourner une liste vide plutôt que des données fictives
+        # Cela évite les incohérences avec l'IA assistant qui analyse les logs
         
         return {
             "logs": normalized_logs,
