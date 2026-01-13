@@ -94,6 +94,46 @@ def decode_token(token: str) -> dict:
 
 # ===== AUTHENTICATION DEPENDENCIES =====
 
+async def _check_workspace_status(db, user: dict) -> None:
+    """
+    Helper function to check workspace status and raise HTTPException if suspended/deleted.
+    
+    Args:
+        db: Database connection
+        user: User dict with workspace_id, gerant_id, role, and id
+        
+    Raises:
+        HTTPException 403: If workspace is suspended or deleted
+    """
+    # Super admin n'est jamais bloqué
+    if user.get('role') == 'super_admin':
+        return
+    
+    workspace_id = user.get('workspace_id')
+    gerant_id = user.get('gerant_id')
+    user_id = user.get('id')
+    user_role = user.get('role')
+    
+    # Trouver le workspace : soit directement via workspace_id, soit via gerant_id
+    workspace = None
+    if workspace_id:
+        workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "status": 1})
+    elif gerant_id:
+        # Pour les managers/sellers, trouver le workspace via le gérant
+        workspace = await db.workspaces.find_one({"gerant_id": gerant_id}, {"_id": 0, "status": 1})
+    elif user_role in ['gerant', 'gérant']:
+        # Pour les gérants, chercher par gerant_id = user.id
+        workspace = await db.workspaces.find_one({"gerant_id": user_id}, {"_id": 0, "status": 1})
+    
+    # Vérifier le statut du workspace
+    if workspace:
+        workspace_status = workspace.get('status', 'active')  # Par défaut 'active' si non défini
+        if workspace_status == 'suspended':
+            raise HTTPException(status_code=403, detail="Établissement suspendu")
+        elif workspace_status == 'deleted':
+            raise HTTPException(status_code=403, detail="Établissement supprimé")
+
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
@@ -114,6 +154,7 @@ async def get_current_user(
         
     Raises:
         HTTPException: If token invalid or user not found
+        HTTPException 403: If workspace is suspended
     """
     from core.database import get_db
     
@@ -125,6 +166,9 @@ async def get_current_user(
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Vérifier le statut du workspace
+    await _check_workspace_status(db, user)
     
     return user
 
@@ -163,6 +207,9 @@ async def get_current_gerant(
     if user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
+    # Vérifier le statut du workspace
+    await _check_workspace_status(db, user)
+    
     return user
 
 
@@ -195,6 +242,9 @@ async def get_current_manager(
     if user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Accès réservé aux managers")
     
+    # Vérifier le statut du workspace
+    await _check_workspace_status(db, user)
+    
     return user
 
 
@@ -226,6 +276,9 @@ async def get_current_seller(
     
     if user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Accès réservé aux vendeurs")
+    
+    # Vérifier le statut du workspace
+    await _check_workspace_status(db, user)
     
     return user
 
@@ -292,6 +345,9 @@ async def get_gerant_or_manager(
     
     if user['role'] not in ['gerant', 'gérant', 'manager']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants et managers")
+    
+    # Vérifier le statut du workspace
+    await _check_workspace_status(db, user)
     
     return user
 

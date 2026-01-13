@@ -60,6 +60,7 @@ class Workspace(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str  # Nom de l'entreprise (unique)
     gerant_id: Optional[str] = None  # ID du gérant propriétaire
+    status: str = "active"  # active, suspended, deleted
     stripe_customer_id: Optional[str] = None  # ID du customer Stripe
     stripe_subscription_id: Optional[str] = None  # ID de l'abonnement Stripe actif
     stripe_subscription_item_id: Optional[str] = None  # ID de l'item pour modifier quantity
@@ -83,6 +84,11 @@ class Workspace(BaseModel):
 class WorkspaceCreate(BaseModel):
     name: str  # Nom de l'entreprise
 
+
+class WorkspaceUpdate(BaseModel):
+    """Modèle pour mettre à jour un workspace"""
+    name: Optional[str] = None
+    status: Optional[str] = None  # active, suspended, deleted
 
 
 class ManagerTransfer(BaseModel):
