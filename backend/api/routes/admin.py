@@ -352,24 +352,54 @@ async def update_workspace_status(
 ):
     """Activer/désactiver un workspace"""
     try:
+        logger.info(f"🔧 Workspace status update request: workspace_id={workspace_id}, status={status}, admin={current_admin.get('email')}")
+        
         if status not in ['active', 'suspended', 'deleted']:
             raise HTTPException(status_code=400, detail="Invalid status. Must be: active, suspended, or deleted")
         
         # Get current workspace status before update
         workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "name": 1, "status": 1})
         if not workspace:
+            logger.error(f"❌ Workspace {workspace_id} not found")
             raise HTTPException(status_code=404, detail="Workspace not found")
         
-        old_status = workspace.get('status', 'active')
+        old_status = workspace.get('status')  # Ne pas utiliser 'active' par défaut ici
+        logger.info(f"📊 Current workspace status: {old_status} (workspace: {workspace.get('name', 'Unknown')})")
         
-        # Update workspace
+        # Si le statut est déjà le même, retourner un message informatif
+        if old_status == status:
+            logger.info(f"ℹ️ Workspace {workspace_id} status is already {status}, no update needed")
+            return {
+                "success": True, 
+                "message": f"Workspace status is already {status}",
+                "status_unchanged": True
+            }
+        
+        # Update workspace - toujours définir le statut même s'il n'existait pas
         result = await db.workspaces.update_one(
             {"id": workspace_id},
             {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
         )
         
+        logger.info(f"📝 Update result: matched={result.matched_count}, modified={result.modified_count}")
+        
+        if result.matched_count == 0:
+            logger.error(f"❌ Workspace {workspace_id} not found in database")
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        
         if result.modified_count == 0:
-            raise HTTPException(status_code=404, detail="Workspace not found or status unchanged")
+            # Cela peut arriver si le statut était déjà défini à cette valeur
+            # Mais on vient de vérifier, donc c'est étrange
+            logger.warning(f"⚠️ Workspace {workspace_id} update returned modified_count=0. Old status: {old_status}, New status: {status}")
+            # Forcer la mise à jour en utilisant upsert ou en vérifiant à nouveau
+            # Vérifier le statut actuel après la tentative de mise à jour
+            current_workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "status": 1})
+            current_status = current_workspace.get('status') if current_workspace else None
+            if current_status == status:
+                logger.info(f"✅ Workspace status is now {status} (may have been set by another process)")
+                return {"success": True, "message": f"Workspace status is {status}"}
+            else:
+                raise HTTPException(status_code=500, detail=f"Workspace status update failed - current status: {current_status}, expected: {status}")
         
         # Log admin action
         try:

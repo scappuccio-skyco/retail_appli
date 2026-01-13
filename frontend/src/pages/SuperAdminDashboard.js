@@ -143,19 +143,38 @@ export default function SuperAdminDashboard() {
 
   const handleWorkspaceStatusChange = async (workspaceId, newStatus) => {
     try {
-      await api.patch(
-        `/superadmin/workspaces/${workspaceId}/status`,
-        null,
-        {
-          params: { status: newStatus }
-        }
-      );
+      logger.info(`🔄 Changing workspace ${workspaceId} status to ${newStatus}`);
+      
+      // Utiliser query parameter dans l'URL directement
+      const url = `/superadmin/workspaces/${workspaceId}/status?status=${encodeURIComponent(newStatus)}`;
+      logger.info(`📡 Sending PATCH request to: ${url}`);
+      
+      const response = await api.patch(url);
+      
+      logger.info(`✅ Workspace status change response:`, response.data);
+      
       const statusMessage = newStatus === 'active' ? 'activé' : newStatus === 'suspended' ? 'suspendu' : 'supprimé';
-      toast.success(`Workspace ${statusMessage}`);
+      
+      // Vérifier si le statut n'a pas changé (déjà à cette valeur)
+      if (response.data?.status_unchanged) {
+        toast.info(`Le workspace est déjà ${statusMessage}`);
+      } else {
+        toast.success(`Workspace ${statusMessage} avec succès`);
+      }
+      
+      // Rafraîchir les données
       fetchData();
     } catch (error) {
-      toast.error('Erreur lors de la modification');
-      logger.error('Error:', error);
+      logger.error('❌ Error changing workspace status:', error);
+      logger.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url
+      });
+      
+      const errorMessage = error.response?.data?.detail || error.message || 'Erreur lors de la modification';
+      toast.error(`Erreur: ${errorMessage}`);
     }
   };
 
@@ -272,11 +291,7 @@ export default function SuperAdminDashboard() {
         for (const workspaceId of selectedWorkspaces) {
           try {
             await api.patch(
-              `/superadmin/workspaces/${workspaceId}/status`,
-              null,
-              {
-                params: { status: newStatus }
-              }
+              `/superadmin/workspaces/${workspaceId}/status?status=${newStatus}`
             );
             successCount++;
           } catch (err) {
