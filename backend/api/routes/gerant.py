@@ -64,7 +64,7 @@ async def get_gerant_profile(
             if workspace:
                 company_name = workspace.get('name')
         
-    return {
+        return {
             "id": user.get('id'),
             "name": user.get('name'),
             "email": user.get('email'),
