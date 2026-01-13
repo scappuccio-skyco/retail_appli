@@ -418,7 +418,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
   // Fetch all dates with data (last 2 years) for calendar highlighting
   const fetchDatesWithData = async () => {
-    logger.log('[DEBUG] fetchDatesWithData called, storeId:', storeId);
     try {
       const days = 730; // 2 years
       
@@ -468,14 +467,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               allDates.add(entry.date);
             }
             if (entry.locked === true) {
-              logger.log('[DEBUG] Found locked date:', entry.date, entry);
               allLockedDates.add(entry.date);
             }
           });
         });
-        
-        logger.log('[DEBUG] All dates with data:', [...allDates]);
-        logger.log('[DEBUG] All locked dates:', [...allLockedDates]);
         
         setDatesWithData([...allDates]);
         setLockedDates([...allLockedDates]);
@@ -541,7 +536,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       );
       
       setSellers(activeSellers);
-      logger.log(`[StoreKPIModal] Loaded ${activeSellers.length} active sellers for store ${storeId}`);
     } catch (err) {
       logger.error('Error fetching sellers:', err);
       toast.error('Erreur lors du chargement des vendeurs');
@@ -684,12 +678,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
       // Add store_id for gerant viewing specific store
       const storeParam = storeId ? `?store_id=${storeId}` : '';
-      
-      logger.log('[StoreKPIModal] Envoi des données KPI:', {
-        payload,
-        storeId,
-        sellersCount: sellers_data.length
-      });
       
       await api.post(
         `/manager/manager-kpi${storeParam}`,
@@ -1028,7 +1016,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                             e.target.showPicker();
                           }
                         } catch (error) {
-                          logger.log('showPicker not supported');
+                          // showPicker not supported on this browser
                         }
                       }}
                       className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
@@ -1060,7 +1048,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                             e.target.showPicker();
                           }
                         } catch (error) {
-                          logger.log('showPicker not supported');
+                          // showPicker not supported on this browser
                         }
                       }}
                       className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
@@ -1888,7 +1876,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                               e.target.showPicker();
                             }
                           } catch (error) {
-                            logger.log('showPicker not supported');
+                            // showPicker not supported in this browser
                           }
                         }}
                         className={`w-full p-3 border-2 rounded-lg focus:outline-none cursor-pointer ${

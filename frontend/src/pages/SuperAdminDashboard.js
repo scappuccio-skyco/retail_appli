@@ -75,7 +75,7 @@ export default function SuperAdminDashboard() {
       const [statsRes, workspacesRes, logsRes, healthRes] = await Promise.all([
         api.get('/superadmin/stats'),
         api.get('/superadmin/workspaces', { params: { include_deleted: true } }),
-        api.get('/superadmin/logs?limit=50&days=7'),
+        api.get('/superadmin/logs', { params: { limit: 50, days: 7 } }),
         api.get('/superadmin/health')
       ]);
 

@@ -57,7 +57,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
   // Initialize visible sellers only once when sellers change
   useEffect(() => {
-    logger.log(`[TeamModal] 🔄 Initializing visible sellers`);
     const initialVisibleSellers = {};
     sellers.forEach((seller, index) => {
       initialVisibleSellers[seller.id] = index < 5; // Only first 5 are visible
@@ -67,21 +66,16 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
   // Fetch team data when sellers or period changes
   useEffect(() => {
-    logger.log(`[TeamModal] 🔄 Fetching team data for period: ${periodFilter}, custom dates: ${customDateRange.start} - ${customDateRange.end}`);
     // Only fetch if:
     // - Period is not custom, OR
     // - Period is custom AND both dates are set
     if (periodFilter !== 'custom' || (periodFilter === 'custom' && customDateRange.start && customDateRange.end)) {
-      logger.log(`[TeamModal] ✅ Conditions met, calling fetchTeamData()`);
       fetchTeamData();
-    } else {
-      logger.log(`[TeamModal] ⏸️ Waiting for both dates to be set`);
     }
   }, [sellers, periodFilter, customDateRange.start, customDateRange.end]);
 
   // Prepare chart data when period changes
   useEffect(() => {
-    logger.log(`[TeamModal] 🔄 Period changed to: ${periodFilter}, preparing chart data`);
     if (Object.keys(visibleSellers).length > 0) {
       prepareChartData();
     }
@@ -94,9 +88,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
     }
     
     try {
-      
-      logger.log(`[TeamModal] ========== FETCHING DATA FOR PERIOD: ${periodFilter} days ==========`);
-      
       // Fetch data for each seller
       const sellersDataPromises = sellersToUse.map(async (seller) => {
         try {
@@ -116,9 +107,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
             kpiUrl = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
-            logger.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with custom dates: ${customDateRange.start} to ${customDateRange.end}`);
-          } else {
-            logger.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with days=${daysParam}`);
           }
           
           const [statsRes, kpiRes, diagRes] = await Promise.all([
@@ -137,24 +125,10 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           const kpiEntries = kpiRes.data;
           const diagnostic = diagRes.data;
 
-          logger.log(`[TeamModal] 📊 ${seller.name}: ${kpiEntries.length} entries returned from API`);
-          
-          // Debug: show first and last entry dates
-          if (kpiEntries.length > 0) {
-            logger.log(`[TeamModal] 📅 ${seller.name} date range: ${kpiEntries[kpiEntries.length - 1]?.date} to ${kpiEntries[0]?.date}`);
-          }
-
           // Calculate period totals
           const monthlyCA = kpiEntries.reduce((sum, entry) => sum + (entry.ca_journalier || 0), 0);
           const monthlyVentes = kpiEntries.reduce((sum, entry) => sum + (entry.nb_ventes || 0), 0);
           const panierMoyen = monthlyVentes > 0 ? monthlyCA / monthlyVentes : 0;
-          
-          // Debug: show a sample entry
-          if (kpiEntries.length > 0) {
-            logger.log(`[TeamModal] 📋 ${seller.name} SAMPLE ENTRY:`, kpiEntries[0]);
-          }
-          
-          logger.log(`[TeamModal] 💰 ${seller.name} CALCULATED => CA: ${monthlyCA.toFixed(2)} €, Ventes: ${monthlyVentes}`);
 
           // Get competences scores
           const competences = stats.avg_radar_scores || {};
@@ -227,16 +201,10 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
       const sellersData = await Promise.all(sellersDataPromises);
       
-      logger.log(`[TeamModal] ✅ ALL DATA PROCESSED, setting state with ${sellersData.length} sellers:`);
-      sellersData.forEach(s => {
-        logger.log(`[TeamModal]    - ${s.name}: CA=${s.monthlyCA.toFixed(2)} €`);
-      });
-      
       setTeamData(sellersData);
       
       // Also refresh chart data after team data is updated
       if (Object.keys(visibleSellers).length > 0) {
-        logger.log('[TeamModal] 📈 Refreshing chart data after team data update');
         prepareChartData();
       }
     } catch (err) {
@@ -487,8 +455,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   const teamTotalCA = teamData.reduce((sum, s) => sum + (s.monthlyCA || 0), 0);
   const teamTotalVentes = teamData.reduce((sum, s) => sum + (s.monthlyVentes || 0), 0);
   const sellersWithKPI = teamData.filter(s => s.hasKpiToday).length;
-  
-  logger.log('[TeamModal] 📊 Team totals:', { teamTotalCA, teamTotalVentes, teamDataLength: teamData.length });
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -616,7 +582,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                 }
                               } catch (error) {
                                 // showPicker n'est pas supporté par ce navigateur
-                                logger.log('showPicker not supported');
                               }
                             }}
                             className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none cursor-pointer"
@@ -644,7 +609,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                 }
                               } catch (error) {
                                 // showPicker n'est pas supporté par ce navigateur
-                                logger.log('showPicker not supported');
                               }
                             }}
                             className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none cursor-pointer"
@@ -1103,7 +1067,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                   }
                                 } catch (error) {
                                   // showPicker n'est pas supporté par ce navigateur
-                                  logger.log('showPicker not supported');
                                 }
                               }}
                               className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none cursor-pointer"
@@ -1131,7 +1094,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                   }
                                 } catch (error) {
                                   // showPicker n'est pas supporté par ce navigateur
-                                  logger.log('showPicker not supported');
                                 }
                               }}
                               className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none cursor-pointer"

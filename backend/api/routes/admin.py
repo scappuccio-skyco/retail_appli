@@ -1,17 +1,136 @@
 """
 Admin-only endpoints for subscription management and support operations.
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Body
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
+from pydantic import BaseModel
 from api.dependencies import get_db
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from core.security import get_super_admin
+from services.admin_service import AdminService
+from repositories.admin_repository import AdminRepository
 import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/superadmin", tags=["superadmin"])
+
+
+class WorkspacePlanUpdate(BaseModel):
+    plan: str
+
+
+class BulkStatusUpdate(BaseModel):
+    workspace_ids: List[str]
+    status: str
+
+
+@router.get("/stats")
+async def get_superadmin_stats(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Statistiques globales de la plateforme"""
+    try:
+        admin_repo = AdminRepository(db)
+        admin_service = AdminService(admin_repo)
+        stats = await admin_service.get_platform_stats()
+        return stats
+    except Exception as e:
+        logger.error(f"Error fetching superadmin stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/workspaces")
+async def get_all_workspaces(
+    include_deleted: bool = Query(False, description="Inclure les workspaces supprimés"),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Liste tous les workspaces avec informations détaillées"""
+    try:
+        admin_repo = AdminRepository(db)
+        admin_service = AdminService(admin_repo)
+        workspaces = await admin_service.get_workspaces_with_details(include_deleted=include_deleted)
+        return workspaces
+    except Exception as e:
+        logger.error(f"Error fetching workspaces: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/logs")
+async def get_audit_logs(
+    limit: int = Query(50, ge=1, le=1000, description="Nombre maximum de logs"),
+    days: int = Query(7, ge=1, le=365, description="Nombre de jours à remonter"),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Récupère les logs d'audit système"""
+    try:
+        admin_repo = AdminRepository(db)
+        admin_service = AdminService(admin_repo)
+        hours = days * 24
+        logs_data = await admin_service.get_system_logs(hours=hours, limit=limit)
+        return logs_data
+    except Exception as e:
+        logger.error(f"Error fetching audit logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/system-logs")
+async def get_system_logs(
+    limit: int = Query(100, ge=1, le=1000),
+    hours: int = Query(24, ge=1, le=168),
+    level: Optional[str] = Query(None, description="Filtrer par niveau (info, warning, error)"),
+    type: Optional[str] = Query(None, description="Filtrer par type"),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Récupère les logs système"""
+    try:
+        admin_repo = AdminRepository(db)
+        admin_service = AdminService(admin_repo)
+        logs_data = await admin_service.get_system_logs(hours=hours, limit=limit)
+        
+        # Apply filters if provided
+        if level or type:
+            filtered_logs = []
+            for log in logs_data.get("logs", []):
+                if level and log.get("level") != level:
+                    continue
+                if type and log.get("action") != type:
+                    continue
+                filtered_logs.append(log)
+            logs_data["logs"] = filtered_logs
+            logs_data["total"] = len(filtered_logs)
+        
+        return logs_data
+    except Exception as e:
+        logger.error(f"Error fetching system logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/health")
+async def get_health(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Vérifie l'état de santé du système"""
+    try:
+        # Test database connection
+        await db.command("ping")
+        db_status = "healthy"
+    except Exception as e:
+        logger.error(f"Database health check failed: {str(e)}")
+        db_status = "unhealthy"
+    
+    return {
+        "status": "healthy" if db_status == "healthy" else "degraded",
+        "database": db_status,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "2.0.0"
+    }
 
 
 @router.post("/subscription/resolve-duplicates")
@@ -217,3 +336,177 @@ async def resolve_duplicates(
     except Exception as e:
         logger.error(f"Erreur résolution doublons: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la résolution: {str(e)}")
+
+
+@router.patch("/workspaces/{workspace_id}/status")
+async def update_workspace_status(
+    workspace_id: str,
+    status: str = Query(..., description="Nouveau statut (active, suspended, deleted)"),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Activer/désactiver un workspace"""
+    try:
+        if status not in ['active', 'suspended', 'deleted']:
+            raise HTTPException(status_code=400, detail="Invalid status. Must be: active, suspended, or deleted")
+        
+        # Get current workspace status before update
+        workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "name": 1, "status": 1})
+        if not workspace:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        
+        old_status = workspace.get('status', 'active')
+        
+        # Update workspace
+        result = await db.workspaces.update_one(
+            {"id": workspace_id},
+            {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Workspace not found or status unchanged")
+        
+        # Log admin action
+        try:
+            await db.admin_logs.insert_one({
+                "admin_id": current_admin.get('id'),
+                "admin_email": current_admin.get('email'),
+                "action": "workspace_status_change",
+                "workspace_id": workspace_id,
+                "details": {
+                    "workspace_name": workspace.get('name', 'Unknown'),
+                    "old_status": old_status,
+                    "new_status": status
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        except Exception as e:
+            logger.error(f"Failed to log admin action: {e}")
+        
+        return {"success": True, "message": f"Workspace status updated to {status}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating workspace status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/workspaces/{workspace_id}/plan")
+async def update_workspace_plan(
+    workspace_id: str,
+    plan_data: WorkspacePlanUpdate = Body(...),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Changer le plan d'un workspace"""
+    try:
+        new_plan = plan_data.plan
+        valid_plans = ['trial', 'starter', 'professional', 'enterprise']
+        
+        if new_plan not in valid_plans:
+            raise HTTPException(status_code=400, detail=f"Invalid plan. Must be one of: {valid_plans}")
+        
+        # Get current workspace plan before update
+        workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "name": 1, "plan_type": 1, "subscription_plan": 1})
+        if not workspace:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        
+        old_plan = workspace.get('plan_type') or workspace.get('subscription_plan', 'trial')
+        
+        # Update workspace
+        await db.workspaces.update_one(
+            {"id": workspace_id},
+            {"$set": {
+                "plan_type": new_plan,
+                "subscription_plan": new_plan,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Update subscription if exists
+        await db.subscriptions.update_one(
+            {"workspace_id": workspace_id},
+            {"$set": {
+                "plan_type": new_plan,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=False  # Don't create if doesn't exist
+        )
+        
+        # Log admin action
+        try:
+            await db.admin_logs.insert_one({
+                "admin_id": current_admin.get('id'),
+                "admin_email": current_admin.get('email'),
+                "action": "workspace_plan_change",
+                "workspace_id": workspace_id,
+                "details": {
+                    "workspace_name": workspace.get('name', 'Unknown'),
+                    "old_plan": old_plan,
+                    "new_plan": new_plan
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        except Exception as e:
+            logger.error(f"Failed to log admin action: {e}")
+        
+        return {"success": True, "message": f"Plan changed to {new_plan}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating workspace plan: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/workspaces/bulk/status")
+async def bulk_update_workspace_status(
+    bulk_data: BulkStatusUpdate = Body(...),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Mettre à jour le statut de plusieurs workspaces en masse"""
+    try:
+        status = bulk_data.status
+        workspace_ids = bulk_data.workspace_ids
+        
+        if status not in ['active', 'suspended', 'deleted']:
+            raise HTTPException(status_code=400, detail="Invalid status. Must be: active, suspended, or deleted")
+        
+        if not workspace_ids or len(workspace_ids) == 0:
+            raise HTTPException(status_code=400, detail="No workspace IDs provided")
+        
+        # Update all workspaces
+        result = await db.workspaces.update_many(
+            {"id": {"$in": workspace_ids}},
+            {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        # Log admin action
+        try:
+            await db.admin_logs.insert_one({
+                "admin_id": current_admin.get('id'),
+                "admin_email": current_admin.get('email'),
+                "action": "bulk_workspace_status_change",
+                "details": {
+                    "workspace_ids": workspace_ids,
+                    "new_status": status,
+                    "updated_count": result.modified_count
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        except Exception as e:
+            logger.error(f"Failed to log admin action: {e}")
+        
+        return {
+            "success": True,
+            "message": f"Updated {result.modified_count} workspace(s) to status {status}",
+            "updated_count": result.modified_count
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error bulk updating workspace status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -773,8 +773,6 @@ export default function ManagerDashboard({ user, onLogout }) {
     return sections[sectionId];
   };
 
-  console.log('🔍 [DEBUG] ManagerDashboard rendering, loading:', loading);
-  
   return (
     <div data-testid="manager-dashboard" className="min-h-screen p-4 md:p-8">
       
@@ -1124,7 +1122,6 @@ export default function ManagerDashboard({ user, onLogout }) {
             setAutoShowRelationshipResult(false);
           }}
           onSuccess={async (formData) => {
-            logger.log('Form data:', formData);
             // FERMER LE MODAL IMMÉDIATEMENT (pattern correct)
             setShowRelationshipModal(false);
             

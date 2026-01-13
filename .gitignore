@@ -1,12 +1,14 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# IDE and editors
+# ===== IDE and editors =====
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
 
-# Dependencies
+# ===== Dependencies =====
 node_modules/
-/node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -16,54 +18,98 @@ node_modules/
 !.yarn/releases
 !.yarn/versions
 
-# Testing
+# ===== Testing =====
 /coverage
+*.coverage
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Next.js
+# ===== Next.js / React =====
 /.next/
 /out/
 next-env.d.ts
 *.tsbuildinfo
-
-# Production builds
 /build
 dist/
 dist
 
-
-*token.json*
-*credentials.json*
-
-# Logs and debug files
+# ===== Logs and debug files =====
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-dump.rdb
+*.log
+logs/
+*.log.*
 
-# System files
+# ===== System files =====
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 *.pem
+*.key
+*.cert
 
-# Python
+# ===== Python =====
 __pycache__/
-*pyc*
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
 .venv/
+env/
+ENV/
+.ENV
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
-# Development tools
+# ===== Environment files =====
+# CRITICAL: Never commit .env files
+*.env
+*.env.*
+!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ===== Credentials and secrets =====
+*token.json*
+*credentials.json*
+*.key
+*.pem
+*.cert
+secrets/
+.secrets/
+
+# ===== Development tools =====
 chainlit.md
 .chainlit
 .ipynb_checkpoints/
 .ac
 
-# Deployment
+# ===== Deployment =====
 .vercel
+.vercel.json.local
 
-# Data and databases
+# ===== Data and databases =====
 agenthub/agents/youtube/db
+*.db
+*.sqlite
+*.sqlite3
 
-# Archive files and large assets
+# ===== Archive files and large assets =====
 **/*.zip
 **/*.tar.gz
 **/*.tar
@@ -72,118 +118,40 @@ agenthub/agents/youtube/db
 *.deb
 *.dylib
 
-# Build caches
+# ===== Build caches =====
 .cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
 
-# Mobile development
-android-sdk/ frontend/node_modules/.cache/default-development/0.pack
-frontend/node_modules/.cache/default-development/0.pack
--e 
--e 
--e 
--e 
--e 
-frontend/node_modules/.cache/default-development/3.pack
-frontend/node_modules/.cache/default-development/4.pack
-frontend/node_modules/.cache/default-development/5.pack
-frontend/node_modules/.cache/default-development/6.pack
-frontend/node_modules/.cache/default-development/7.pack
-frontend/node_modules/.cache/default-development/8.pack
-frontend/node_modules/.cache/default-development/9.pack
-frontend/node_modules/.cache/default-development/11.pack
--e 
-frontend/node_modules/.cache/default-development/1.pack
-frontend/node_modules/.cache/default-development/2.pack
-frontend/node_modules/.cache/default-development/10.pack
-frontend/node_modules/.cache/default-development/12.pack
--e 
-frontend/node_modules/.cache/default-development/14.pack
--e 
-frontend/node_modules/.cache/default-development/1.pack_
-frontend/node_modules/.cache/default-development/13.pack
--e 
--e 
-frontend/node_modules/.cache/default-development/16.pack
-frontend/node_modules/.cache/default-development/18.pack
-frontend/node_modules/.cache/default-development/19.pack
-frontend/node_modules/.cache/default-development/20.pack
-frontend/node_modules/.cache/default-development/21.pack
--e 
--e 
--e 
-frontend/node_modules/.cache/default-development/15.pack
-frontend/node_modules/.cache/default-development/17.pack
--e 
-frontend/node_modules/.cache/default-development/2.pack_
--e 
--e 
--e 
--e 
-frontend/node_modules/.cache/default-development/22.pack
-frontend/node_modules/.cache/default-development/23.pack
-frontend/node_modules/.cache/default-development/24.pack
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
-frontend/node_modules/.cache/default-development/25.pack
-frontend/node_modules/.cache/default-development/26.pack
-frontend/node_modules/.cache/default-development/28.pack
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
--e 
-# Environment files
-# NOTE: .env files are NOT ignored for Emergent deployment
-# The platform automatically manages environment variables during deployment
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
+# ===== Mobile development =====
+android-sdk/
+
+# ===== Project-specific =====
+# Fichiers sensibles contenant des mots de passe
+TOUS_LES_MOTS_DE_PASSE.md
+IDENTIFIANTS_TEST.md
+*password*.md
+*credentials*.md
+
+# Backups (optionnel - décommenter si nécessaire)
+# backups/
+
+# Scripts de test temporaires
+test_*.py
+*_test.py
+!backend/tests/*.py
+
+# Fichiers de migration temporaires
+migrate_*.py
+fill_*.py
+create_*.py
+update_*.py
+fix_*.py
+sync_*.py
+reset_*.py
+enrich_*.py
+calculate_*.py
+remove_*.py
+add_*.py
+seed_*.py
