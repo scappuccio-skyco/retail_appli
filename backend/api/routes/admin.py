@@ -3,7 +3,7 @@ Admin-only endpoints for subscription management and support operations.
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Body
 from typing import List, Dict, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, EmailStr
 from api.dependencies import get_db
 from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -640,4 +640,215 @@ async def remove_super_admin(
         raise
     except Exception as e:
         logger.error(f"Error removing super admin: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/subscriptions/overview")
+async def get_subscriptions_overview(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """
+    Vue d'ensemble de tous les abonnements Stripe des gérants.
+    Affiche statuts, paiements, prorations, etc.
+    """
+    try:
+        # Récupérer tous les gérants
+        gerants = await db.users.find(
+            {"role": "gerant"},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "stripe_customer_id": 1, "created_at": 1}
+        ).to_list(None)
+        
+        subscriptions_data = []
+        
+        for gerant in gerants:
+            # Récupérer l'abonnement
+            subscription = await db.subscriptions.find_one(
+                {"user_id": gerant['id']},
+                {"_id": 0}
+            )
+            
+            # Compter les vendeurs actifs
+            active_sellers_count = await db.users.count_documents({
+                "gerant_id": gerant['id'],
+                "role": "seller",
+                "status": "active"
+            })
+            
+            # Récupérer la dernière transaction
+            last_transaction = await db.payment_transactions.find_one(
+                {"user_id": gerant['id']},
+                {"_id": 0},
+                sort=[("created_at", -1)]
+            )
+            
+            # Récupérer l'utilisation des crédits IA
+            team_members = await db.users.find(
+                {"gerant_id": gerant['id']},
+                {"_id": 0, "id": 1}
+            ).to_list(None)
+            
+            team_ids = [member['id'] for member in team_members]
+            
+            ai_credits_total = 0
+            if team_ids:
+                pipeline = [
+                    {"$match": {"user_id": {"$in": team_ids}}},
+                    {"$group": {"_id": None, "total": {"$sum": "$credits_consumed"}}}
+                ]
+                result = await db.ai_usage_logs.aggregate(pipeline).to_list(None)
+                if result:
+                    ai_credits_total = result[0]['total']
+            
+            subscriptions_data.append({
+                "gerant": {
+                    "id": gerant['id'],
+                    "name": gerant['name'],
+                    "email": gerant['email'],
+                    "created_at": gerant.get('created_at')
+                },
+                "subscription": subscription,
+                "active_sellers_count": active_sellers_count,
+                "last_transaction": last_transaction,
+                "ai_credits_used": ai_credits_total
+            })
+        
+        # Statistiques globales
+        total_gerants = len(gerants)
+        active_subscriptions = sum(1 for s in subscriptions_data if s['subscription'] and s['subscription'].get('status') in ['active', 'trialing'])
+        trialing_subscriptions = sum(1 for s in subscriptions_data if s['subscription'] and s['subscription'].get('status') == 'trialing')
+        total_mrr = sum(
+            s['subscription'].get('seats', 0) * s['subscription'].get('price_per_seat', 0)
+            for s in subscriptions_data
+            if s['subscription'] and s['subscription'].get('status') == 'active'
+        )
+        
+        return {
+            "summary": {
+                "total_gerants": total_gerants,
+                "active_subscriptions": active_subscriptions,
+                "trialing_subscriptions": trialing_subscriptions,
+                "total_mrr": round(total_mrr, 2)
+            },
+            "subscriptions": subscriptions_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching subscriptions overview: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/gerants/trials")
+async def get_gerants_trials(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Récupérer tous les gérants avec leurs informations d'essai"""
+    try:
+        # Récupérer tous les gérants
+        gerants = await db.users.find(
+            {"role": "gerant"},
+            {"_id": 0, "password": 0}
+        ).to_list(length=None)
+        
+        result = []
+        for gerant in gerants:
+            # Compter les vendeurs actifs
+            active_sellers_count = await db.users.count_documents({
+                "gerant_id": gerant['id'],
+                "role": "seller",
+                "status": "active"
+            })
+            
+            # Vérifier s'il a un abonnement actif
+            subscription = await db.subscriptions.find_one(
+                {"user_id": gerant['id']},
+                {"_id": 0}
+            )
+            
+            has_subscription = False
+            trial_end = None
+            
+            if subscription:
+                has_subscription = subscription.get('status') in ['active', 'trialing']
+                trial_end = subscription.get('trial_end')
+            
+            result.append({
+                "id": gerant['id'],
+                "name": gerant.get('name', 'N/A'),
+                "email": gerant['email'],
+                "trial_end": trial_end,
+                "active_sellers_count": active_sellers_count,
+                "has_subscription": has_subscription,
+                "subscription_status": subscription.get('status') if subscription else None
+            })
+        
+        # Trier par date d'expiration (les plus proches d'abord)
+        result.sort(key=lambda x: (
+            x['trial_end'] is None,  # Ceux sans essai en dernier
+            x['trial_end'] if x['trial_end'] else ''
+        ))
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error fetching gerants trials: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/ai-assistant/conversations")
+async def get_ai_conversations(
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Get AI assistant conversation history (last 7 days)"""
+    try:
+        # Get conversations from last 7 days
+        since = datetime.now(timezone.utc) - timedelta(days=7)
+        
+        conversations = await db.ai_conversations.find(
+            {
+                "admin_email": current_admin['email'],
+                "created_at": {"$gte": since.isoformat()}
+            },
+            {"_id": 0}
+        ).sort("updated_at", -1).limit(limit).to_list(limit)
+        
+        return {
+            "conversations": conversations,
+            "total": len(conversations)
+        }
+    except Exception as e:
+        logger.error(f"Error fetching AI conversations: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/invitations")
+async def get_all_invitations(
+    status: Optional[str] = Query(None, description="Filtrer par statut"),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Récupérer toutes les invitations (tous gérants)"""
+    try:
+        query = {}
+        if status:
+            query["status"] = status
+        
+        invitations = await db.gerant_invitations.find(query, {"_id": 0}).to_list(1000)
+        
+        # Enrichir avec les infos du gérant
+        for invite in invitations:
+            gerant = await db.users.find_one(
+                {"id": invite.get("gerant_id")}, 
+                {"_id": 0, "name": 1, "email": 1}
+            )
+            if gerant:
+                invite["gerant_name"] = gerant.get("name", "N/A")
+                invite["gerant_email"] = gerant.get("email", "N/A")
+        
+        return invitations
+    except Exception as e:
+        logger.error(f"Error fetching invitations: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
