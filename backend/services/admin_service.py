@@ -31,6 +31,14 @@ class AdminService:
             workspace_id = workspace.get('id')
             gerant_id = workspace.get('gerant_id')
             
+            # CRITICAL: Ensure workspace has a status field with default 'active'
+            # Frontend displays "Supprimé" if status is not 'active' or 'suspended'
+            # Only set default if status is missing, None, or empty string
+            # If status is explicitly 'deleted', keep it as is
+            current_status = workspace.get('status')
+            if not current_status or current_status == '' or current_status is None:
+                workspace['status'] = 'active'
+            
             # Get gérant info
             if gerant_id:
                 gerant = await self.admin_repo.get_gerant_by_id(gerant_id)
