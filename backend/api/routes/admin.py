@@ -881,12 +881,45 @@ async def get_gerants_trials(
                 has_subscription = subscription_status in ['active', 'trialing']
                 trial_end = subscription.get('trial_end')
             
+            # Calculer les jours restants si en essai
+            days_left = None
+            if subscription_status == 'trialing' and trial_end:
+                try:
+                    if isinstance(trial_end, str):
+                        trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+                    else:
+                        trial_end_dt = trial_end
+                    
+                    now = datetime.now(timezone.utc)
+                    if trial_end_dt.tzinfo is None:
+                        trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
+                    
+                    days_left = max(0, (trial_end_dt - now).days)
+                except Exception as e:
+                    logger.warning(f"Error calculating days_left for gerant {gerant_id}: {e}")
+            
+            # Déterminer la limite de vendeurs selon le plan
+            max_sellers = None
+            if subscription_status == 'trialing':
+                # Limite de 15 vendeurs pendant l'essai gratuit
+                max_sellers = 15
+            elif subscription_status == 'active':
+                # Pour les abonnements actifs, déterminer selon le nombre de vendeurs
+                if active_sellers_count >= 16:
+                    max_sellers = None  # Illimité pour enterprise
+                elif active_sellers_count >= 6:
+                    max_sellers = 15  # Professional
+                else:
+                    max_sellers = 5  # Starter
+            
             result.append({
                 "id": gerant_id,
                 "name": gerant.get('name', 'N/A'),
                 "email": gerant['email'],
                 "trial_end": trial_end,
                 "active_sellers_count": active_sellers_count,
+                "max_sellers": max_sellers,
+                "days_left": days_left,
                 "has_subscription": has_subscription,
                 "subscription_status": subscription_status
             })

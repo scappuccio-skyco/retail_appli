@@ -55,12 +55,25 @@ export default function TrialManagement() {
     if (!trialEnd) return null;
     const now = new Date();
     const end = new Date(trialEnd);
-    const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+    // Utiliser Math.floor pour être cohérent avec le backend
+    // et éviter les différences d'un jour selon l'heure
+    const diff = Math.floor((end - now) / (1000 * 60 * 60 * 24));
     return diff;
   };
 
   const getGerantStatus = (gerant) => {
-    if (gerant.has_subscription) return 'subscribed';
+    // ⚠️ IMPORTANT: has_subscription peut être true pour un essai (trialing) OU un abonnement actif (active)
+    // Il faut vérifier subscription_status pour distinguer les deux
+    if (gerant.subscription_status === 'active') {
+      return 'subscribed';
+    }
+    if (gerant.subscription_status === 'trialing') {
+      // Utiliser days_left du backend si disponible, sinon calculer
+      const daysRemaining = gerant.days_left !== undefined ? gerant.days_left : calculateDaysRemaining(gerant.trial_end);
+      if (daysRemaining === null || daysRemaining < 0) return 'expired';
+      if (daysRemaining <= 7) return 'expiring_soon';
+      return 'active_trial';
+    }
     if (!gerant.trial_end) return 'no_trial';
     const daysRemaining = calculateDaysRemaining(gerant.trial_end);
     if (daysRemaining < 0) return 'expired';
@@ -238,12 +251,12 @@ export default function TrialManagement() {
                         <h3 className="text-lg font-semibold text-gray-800">
                           {gerant.name}
                         </h3>
-                        {gerant.has_subscription ? (
+                        {gerant.subscription_status === 'active' ? (
                           <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center gap-1">
                             <CheckCircle className="w-3 h-3" />
                             Abonné
                           </span>
-                        ) : gerant.trial_end ? (
+                        ) : gerant.subscription_status === 'trialing' || gerant.trial_end ? (
                           <span className={`px-2 py-0.5 text-xs font-semibold rounded-full flex items-center gap-1 ${
                             isExpired ? 'bg-red-100 text-red-700' :
                             isExpiringSoon ? 'bg-orange-100 text-orange-700' :
@@ -264,10 +277,13 @@ export default function TrialManagement() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-1 text-gray-600">
                           <Users className="w-4 h-4" />
-                          <span>{gerant.active_sellers_count || 0} vendeurs actifs</span>
+                          <span>
+                            {gerant.active_sellers_count || 0} 
+                            {gerant.max_sellers ? ` / ${gerant.max_sellers}` : ''} vendeurs actifs
+                          </span>
                         </div>
                         
-                        {gerant.trial_end && (
+                        {(gerant.trial_end || gerant.days_left !== undefined) && (
                           <div className={`flex items-center gap-1 ${
                             isExpired ? 'text-red-600 font-semibold' :
                             isExpiringSoon ? 'text-orange-600 font-semibold' :
@@ -276,7 +292,7 @@ export default function TrialManagement() {
                             <Calendar className="w-4 h-4" />
                             <span>
                               {isExpired ? 'Expiré depuis ' : 'Expire dans '}
-                              {Math.abs(daysRemaining)} jour{Math.abs(daysRemaining) > 1 ? 's' : ''}
+                              {Math.abs(gerant.days_left !== undefined ? gerant.days_left : daysRemaining)} jour{Math.abs(gerant.days_left !== undefined ? gerant.days_left : daysRemaining) > 1 ? 's' : ''}
                             </span>
                           </div>
                         )}
