@@ -7,10 +7,10 @@ import { toast } from 'sonner';
 import QuantityModal from './QuantityModal';
 import ConfirmActionModal from './ConfirmActionModal';
 
+// ⚠️ SECURITY: No hardcoded prices - Stripe handles all pricing via tiered pricing
 const PLANS = {
   starter: {
     name: 'Small Team',
-    pricePerSeller: 29,
     minSellers: 1,
     maxSellers: 5,
     subtitle: 'Petites boutiques',
@@ -33,7 +33,6 @@ const PLANS = {
   },
   professional: {
     name: 'Medium Team',
-    pricePerSeller: 25,
     minSellers: 6,
     maxSellers: 15,
     subtitle: 'Magasins moyens',
@@ -56,7 +55,6 @@ const PLANS = {
   },
   enterprise: {
     name: 'Large Team',
-    pricePerSeller: null,
     minSellers: 16,
     maxSellers: null,
     subtitle: 'Pour réseaux & enseignes',
@@ -161,19 +159,12 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     return () => clearTimeout(timeoutId);
   }, [newSeatsCount, subscriptionInfo?.subscription?.seats, userRole, isMounted]);
 
-  // Calculate estimated amount for seat change (fallback if API fails)
+  // ⚠️ SECURITY: No price calculations on client side
+  // All pricing is handled by Stripe via tiered pricing
+  // This function is kept for compatibility but returns 0
   const calculateEstimatedAmount = (currentSeats, newSeats) => {
-    const diff = newSeats - currentSeats;
-    if (diff === 0) return 0;
-    
-    // Price tiers: 1-5 seats = 29€, 6+ seats = 25€
-    const pricePerSeat = newSeats <= 5 ? 29 : 25;
-    
-    // Simplified prorata calculation (assume mid-month)
-    const monthlyChange = Math.abs(diff) * pricePerSeat;
-    const prorataEstimate = monthlyChange * 0.5; // Rough estimate for mid-month
-    
-    return diff > 0 ? prorataEstimate : -prorataEstimate;
+    // Stripe will calculate the exact amount
+    return 0;
   };
 
   useEffect(() => {
@@ -407,23 +398,15 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     const suggestedQuantity = Math.max(sellerCount, planInfo.minSellers);
     const isUpgrade = (plan === 'professional' && currentPlan === 'starter');
     
-    // Calculate price based on billing period
-    const pricePerSeat = isAnnual 
-      ? Math.round(planInfo.pricePerSeller * 12 * 0.8) 
-      : planInfo.pricePerSeller;
-    const totalAmount = suggestedQuantity * pricePerSeat;
-    
-    // Show plan confirmation modal
+    // ⚠️ SECURITY: No price calculations - Stripe handles all pricing
+    // Show plan confirmation modal (without price data)
     setPlanConfirmData({
       planKey: plan,
       planName: planInfo.name,
-      pricePerSeat: pricePerSeat,
       quantity: suggestedQuantity,
       currentPlan,
       isUpgrade,
-      monthlyAmount: totalAmount,
-      isAnnual: isAnnual,
-      monthlyPrice: planInfo.pricePerSeller
+      isAnnual: isAnnual
     });
     setShowPlanConfirmModal(true);
   };
@@ -959,11 +942,11 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                         <>
                           <div className="flex justify-between text-sm">
                             <span>Prix par siège :</span>
-                            <span className="font-bold">{newSeatsCount <= 5 ? '29' : '25'}€/mois</span>
+                            <span className="font-bold">Tarification par paliers</span>
                           </div>
                           <div className="flex justify-between text-sm">
                             <span>Coût mensuel futur :</span>
-                            <span className="font-bold">{newSeatsCount * (newSeatsCount <= 5 ? 29 : 25)}€/mois</span>
+                            <span className="font-bold">Calculé par Stripe</span>
                           </div>
                           {subscriptionInfo.status === 'trialing' && subscriptionInfo.days_left !== null && (
                             <div className="mt-2 pt-2 border-t border-white/30">
@@ -1162,10 +1145,9 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                     ) : !isAnnual ? (
                       <div>
                         <div className="flex items-baseline justify-center gap-2">
-                          <span className="text-5xl font-bold" style={{ color: plan.color }}>
-                            {plan.pricePerSeller}€
+                          <span className="text-3xl font-bold" style={{ color: plan.color }}>
+                            Tarification par paliers
                           </span>
-                          <span className="text-[#334155]">/vendeur/mois</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                         <p className="text-sm font-semibold mt-2 text-green-600">
@@ -1176,16 +1158,15 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                     ) : (
                       <div>
                         <div className="flex items-baseline justify-center gap-2">
-                          <span className="text-5xl font-bold" style={{ color: plan.color }}>
-                            {Math.round(plan.pricePerSeller * 12 * 0.8)}€
+                          <span className="text-3xl font-bold" style={{ color: plan.color }}>
+                            Tarification par paliers
                           </span>
-                          <span className="text-[#334155]">/vendeur/an</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                         <p className="text-sm text-green-600 font-semibold mt-2">
                           {plan.minSellers} à {plan.maxSellers} espaces vendeur
                         </p>
-                        <p className="text-xs text-gray-600 mt-1">Au lieu de {plan.pricePerSeller * 12}€ • Économisez {Math.round(plan.pricePerSeller * 12 * 0.2)}€/vendeur/an</p>
+                        <p className="text-xs text-green-600 mt-1 font-semibold">Économisez jusqu'à 20% avec l'abonnement annuel</p>
                       </div>
                     )}
                   </div>
@@ -1378,11 +1359,11 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                 <p className="text-sm opacity-75 font-semibold">Plan sélectionné</p>
                 <p className="text-2xl font-black">{planConfirmData.planName}</p>
                 <p className="text-sm mt-1">
-                  {planConfirmData.pricePerSeat}€ / siège / {planConfirmData.isAnnual ? 'an' : 'mois'}
+                  Tarification par paliers (calculée par Stripe)
                 </p>
                 {planConfirmData.isAnnual && (
                   <p className="text-xs text-green-600 font-semibold mt-1">
-                    Au lieu de {planConfirmData.monthlyPrice * 12}€ • Économisez {Math.round(planConfirmData.monthlyPrice * 12 * 0.2)}€/an par siège
+                    Économisez jusqu'à 20% avec l'abonnement annuel
                   </p>
                 )}
               </div>
@@ -1397,8 +1378,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                       const newQty = Math.max(planConfirmData.quantity - 1, planInfo.minSellers, sellerCount);
                       setPlanConfirmData({
                         ...planConfirmData,
-                        quantity: newQty,
-                        monthlyAmount: newQty * planConfirmData.pricePerSeat
+                        quantity: newQty
                       });
                     }}
                     className="w-10 h-10 bg-white rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all font-bold text-xl"
@@ -1414,8 +1394,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                       const newQty = Math.min(planConfirmData.quantity + 1, planInfo.maxSellers);
                       setPlanConfirmData({
                         ...planConfirmData,
-                        quantity: newQty,
-                        monthlyAmount: newQty * planConfirmData.pricePerSeat
+                        quantity: newQty
                       });
                     }}
                     className="w-10 h-10 bg-white rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all font-bold text-xl"
@@ -1436,40 +1415,37 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                 )}
               </div>
 
-              {/* Cost Details - Simplified view */}
+              {/* Quantity Summary */}
               {(() => {
                 const currentSeats = subscriptionInfo?.subscription?.seats || 0;
-                const currentPlan = subscriptionInfo?.plan || 'starter';
-                const currentPricePerSeat = PLANS[currentPlan]?.pricePerSeller || 29;
-                const currentMonthlyAmount = currentSeats * currentPricePerSeat;
                 
                 return (
                   <>
-                    {/* Current Amount (if exists) */}
+                    {/* Current Subscription (if exists) */}
                     {currentSeats > 0 && (
                       <div className="bg-gray-50 rounded-lg p-3 border border-gray-300">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-semibold">📊 Abonnement actuel</span>
                           <span className="text-xl font-black text-gray-700">
-                            {currentMonthlyAmount}€
+                            {currentSeats} siège{currentSeats > 1 ? 's' : ''}
                           </span>
                         </div>
                         <p className="text-xs text-gray-600">
-                          {currentSeats} siège(s) × {currentPricePerSeat}€ = {currentMonthlyAmount}€/mois
+                          Le montant est géré par Stripe selon la tarification par paliers
                         </p>
                       </div>
                     )}
                     
-                    {/* New Recurring Amount */}
+                    {/* New Subscription */}
                     <div className="bg-blue-50 rounded-lg p-3 border border-blue-300">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-semibold">📅 Nouveau montant récurrent</span>
+                        <span className="text-sm font-semibold">📅 Nouveau nombre de sièges</span>
                         <span className="text-2xl font-black text-blue-700">
-                          {planConfirmData.monthlyAmount}€
+                          {planConfirmData.quantity}
                         </span>
                       </div>
                       <p className="text-xs text-gray-600">
-                        {planConfirmData.quantity} × {planConfirmData.pricePerSeat}€ = {planConfirmData.monthlyAmount}€/{planConfirmData.isAnnual ? 'an' : 'mois'}
+                        Le montant exact sera calculé par Stripe lors du paiement
                       </p>
                     </div>
                   </>

@@ -4,13 +4,16 @@ Admin-only endpoints for subscription management and support operations.
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Body
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from api.dependencies import get_db
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from core.security import get_super_admin
 from services.admin_service import AdminService
 from repositories.admin_repository import AdminRepository
 import logging
+import uuid
+import bcrypt
+import secrets
 
 logger = logging.getLogger(__name__)
 
@@ -509,4 +512,132 @@ async def bulk_update_workspace_status(
         raise
     except Exception as e:
         logger.error(f"Error bulk updating workspace status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/admins")
+async def get_super_admins(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Get list of super admins"""
+    try:
+        admins = await db.users.find(
+            {"role": "super_admin"},
+            {"_id": 0, "password": 0}
+        ).to_list(100)
+        
+        return {"admins": admins}
+    except Exception as e:
+        logger.error(f"Error fetching admins: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/admins")
+async def add_super_admin(
+    email: EmailStr = Query(..., description="Email du nouveau super admin"),
+    name: str = Query(..., description="Nom du nouveau super admin"),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Add a new super admin by email"""
+    try:
+        # Check if user already exists
+        existing = await db.users.find_one({"email": email})
+        if existing:
+            if existing.get('role') == 'super_admin':
+                raise HTTPException(status_code=400, detail="Cet email est déjà super admin")
+            else:
+                raise HTTPException(status_code=400, detail="Cet email existe déjà avec un autre rôle")
+        
+        # Generate temporary password
+        temp_password = secrets.token_urlsafe(16)
+        hashed_password = bcrypt.hashpw(temp_password.encode('utf-8'), bcrypt.gensalt())
+        
+        # Create new super admin
+        new_admin = {
+            "id": str(uuid.uuid4()),
+            "email": email,
+            "password": hashed_password.decode('utf-8'),
+            "name": name,
+            "role": "super_admin",
+            "status": "active",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by": current_admin['email']
+        }
+        
+        await db.users.insert_one(new_admin)
+        
+        # Log admin action
+        try:
+            await db.admin_logs.insert_one({
+                "admin_id": current_admin.get('id'),
+                "admin_email": current_admin.get('email'),
+                "action": "add_super_admin",
+                "details": {
+                    "new_admin_email": email,
+                    "new_admin_name": name,
+                    "temp_password_generated": True
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        except Exception as e:
+            logger.error(f"Failed to log admin action: {e}")
+        
+        return {
+            "success": True,
+            "email": email,
+            "temporary_password": temp_password,
+            "message": "Super admin ajouté. Envoyez-lui le mot de passe temporaire."
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error adding super admin: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/admins/{admin_id}")
+async def remove_super_admin(
+    admin_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Remove a super admin (cannot remove yourself)"""
+    try:
+        # Cannot remove yourself
+        if admin_id == current_admin['id']:
+            raise HTTPException(status_code=400, detail="Vous ne pouvez pas vous retirer vous-même")
+        
+        # Find admin to remove
+        admin_to_remove = await db.users.find_one({"id": admin_id, "role": "super_admin"})
+        if not admin_to_remove:
+            raise HTTPException(status_code=404, detail="Super admin non trouvé")
+        
+        # Remove admin
+        await db.users.delete_one({"id": admin_id})
+        
+        # Log admin action
+        try:
+            await db.admin_logs.insert_one({
+                "admin_id": current_admin.get('id'),
+                "admin_email": current_admin.get('email'),
+                "action": "remove_super_admin",
+                "details": {
+                    "removed_admin_email": admin_to_remove.get('email'),
+                    "removed_admin_name": admin_to_remove.get('name'),
+                    "removed_admin_id": admin_id
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        except Exception as e:
+            logger.error(f"Failed to log admin action: {e}")
+        
+        return {"success": True, "message": "Super admin supprimé"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error removing super admin: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

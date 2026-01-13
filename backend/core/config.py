@@ -33,13 +33,9 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = Field(..., description="Stripe webhook secret")
     BREVO_API_KEY: str = Field(..., description="Brevo (Sendinblue) API key")
     
-    # Stripe Price IDs (by plan and interval)
-    STRIPE_PRICE_STARTER_MONTHLY: str = Field(default="", description="Stripe Price ID for Starter plan (monthly)")
-    STRIPE_PRICE_STARTER_YEARLY: str = Field(default="", description="Stripe Price ID for Starter plan (yearly)")
-    STRIPE_PRICE_PRO_MONTHLY: str = Field(default="", description="Stripe Price ID for Professional plan (monthly)")
-    STRIPE_PRICE_PRO_YEARLY: str = Field(default="", description="Stripe Price ID for Professional plan (yearly)")
-    STRIPE_PRICE_ENTERPRISE_MONTHLY: str = Field(default="", description="Stripe Price ID for Enterprise plan (monthly)")
-    STRIPE_PRICE_ENTERPRISE_YEARLY: str = Field(default="", description="Stripe Price ID for Enterprise plan (yearly)")
+    # Stripe Price IDs (single product with tiered pricing)
+    STRIPE_PRICE_ID_MONTHLY: str = Field(..., description="Stripe Price ID for monthly subscription (tiered pricing)")
+    STRIPE_PRICE_ID_YEARLY: str = Field(..., description="Stripe Price ID for yearly subscription (tiered pricing)")
     
     # Email Configuration
     SENDER_EMAIL: str = Field(default="hello@retailperformerai.com")
@@ -108,12 +104,8 @@ def get_settings() -> Settings:
             STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
             BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
 
-            STRIPE_PRICE_STARTER_MONTHLY = os.environ.get("STRIPE_PRICE_STARTER_MONTHLY", "")
-            STRIPE_PRICE_STARTER_YEARLY = os.environ.get("STRIPE_PRICE_STARTER_YEARLY", "")
-            STRIPE_PRICE_PRO_MONTHLY = os.environ.get("STRIPE_PRICE_PRO_MONTHLY", "")
-            STRIPE_PRICE_PRO_YEARLY = os.environ.get("STRIPE_PRICE_PRO_YEARLY", "")
-            STRIPE_PRICE_ENTERPRISE_MONTHLY = os.environ.get("STRIPE_PRICE_ENTERPRISE_MONTHLY", "")
-            STRIPE_PRICE_ENTERPRISE_YEARLY = os.environ.get("STRIPE_PRICE_ENTERPRISE_YEARLY", "")
+            STRIPE_PRICE_ID_MONTHLY = os.environ.get("STRIPE_PRICE_ID_MONTHLY", "")
+            STRIPE_PRICE_ID_YEARLY = os.environ.get("STRIPE_PRICE_ID_YEARLY", "")
 
             SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "hello@retailperformerai.com")
             SENDER_NAME = os.environ.get("SENDER_NAME", "Retail Performer AI")

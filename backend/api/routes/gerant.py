@@ -2,7 +2,7 @@
 Gérant-specific Routes
 Dashboard stats, subscription status, and workspace management
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, Body
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from typing import Dict, Optional
@@ -23,43 +23,8 @@ logger = logging.getLogger(__name__)
 # ==========================================
 # STRIPE PRICE CONFIGURATION
 # ==========================================
-# Loaded from environment variables via settings
-# No hardcoded values - all IDs come from .env
-
-def get_stripe_prices() -> dict:
-    """
-    Build STRIPE_PRICES dict from settings.
-    Called at runtime to ensure settings are loaded.
-    """
-    return {
-        "starter": {
-            "monthly": settings.STRIPE_PRICE_STARTER_MONTHLY,
-            "yearly": settings.STRIPE_PRICE_STARTER_YEARLY,
-            "price_monthly": 29,
-            "price_yearly": 278,  # 29 * 12 * 0.8 = 278.40 arrondi
-        },
-        "professional": {
-            "monthly": settings.STRIPE_PRICE_PRO_MONTHLY,
-            "yearly": settings.STRIPE_PRICE_PRO_YEARLY,
-            "price_monthly": 25,
-            "price_yearly": 240,  # 25 * 12 * 0.8 = 240
-        },
-        "enterprise": {
-            "monthly": settings.STRIPE_PRICE_ENTERPRISE_MONTHLY,
-            "yearly": settings.STRIPE_PRICE_ENTERPRISE_YEARLY,
-            "price_monthly": 22,
-            "price_yearly": 211,  # 22 * 12 * 0.8 = 211.20 arrondi
-        }
-    }
-
-def get_plan_from_seats(seats: int) -> str:
-    """Determine plan tier based on seat count"""
-    if seats <= 5:
-        return "starter"
-    elif seats <= 15:
-        return "professional"
-    else:
-        return "enterprise"
+# Single product with tiered pricing (managed by Stripe)
+# Price IDs loaded from environment variables via settings
 
 router = APIRouter(prefix="/gerant", tags=["Gérant"])
 
@@ -99,7 +64,7 @@ async def get_gerant_profile(
             if workspace:
                 company_name = workspace.get('name')
         
-        return {
+    return {
             "id": user.get('id'),
             "name": user.get('name'),
             "email": user.get('email'),
@@ -456,7 +421,7 @@ async def update_subscription_seats(
         if new_seats < 1:
             raise HTTPException(status_code=400, detail="Le nombre de sièges doit être au moins 1")
         if new_seats > 50:
-            raise HTTPException(status_code=400, detail="Maximum 50 sièges. Contactez-nous pour un plan Enterprise.")
+            raise HTTPException(status_code=400, detail="Maximum 50 sièges. Contactez-nous pour un devis personnalisé.")
         
         # Use PaymentService for atomic Stripe + DB update
         # PaymentService will handle multiple active subscriptions check
@@ -641,97 +606,98 @@ async def preview_subscription_update(
         
         interval_changing = current_interval != new_interval
         
-        # Get plan info
-        current_plan = get_plan_from_seats(current_seats)
-        new_plan = get_plan_from_seats(new_seats)
+        # ⚠️ SECURITY: No price calculations on server side
+        # All pricing is handled by Stripe via tiered pricing
+        # We only use Stripe API to get accurate preview amounts
         
-        current_prices = get_stripe_prices()[current_plan]
-        new_prices = get_stripe_prices()[new_plan]
+        # For display purposes, use generic plan names since Stripe handles tiered pricing
+        current_plan = "tiered"
+        new_plan = "tiered"
         
-        # Calculate costs
-        current_price_monthly = current_prices['price_monthly']
-        new_price_monthly = new_prices['price_monthly']
-        
-        # Monthly costs
-        current_monthly_cost = current_seats * current_price_monthly
-        new_monthly_cost = new_seats * new_price_monthly
-        
-        # Yearly costs (with 20% discount)
-        current_yearly_cost = current_monthly_cost * 12 * 0.8
-        new_yearly_cost = new_monthly_cost * 12 * 0.8
-        
-        # Calculate what they'll actually pay based on interval
-        if new_interval == 'year':
-            effective_new_cost = new_yearly_cost
-            effective_current_cost = current_yearly_cost if current_interval == 'year' else current_monthly_cost * 12
-        else:
-            effective_new_cost = new_monthly_cost
-            effective_current_cost = current_monthly_cost
-        
-        # Proration calculation
+        # Get accurate costs from Stripe API (if subscription exists)
+        current_monthly_cost = 0.0
+        new_monthly_cost = 0.0
+        current_yearly_cost = 0.0
+        new_yearly_cost = 0.0
         proration_estimate = 0.0
         proration_description = ""
         
+        stripe_subscription_id = subscription.get('stripe_subscription_id')
+        stripe_subscription_item_id = subscription.get('stripe_subscription_item_id')
+        
         if is_trial:
             proration_description = "Aucun frais pendant la période d'essai"
-        elif interval_changing and new_interval == 'year':
-            # Upgrading to annual: credit remaining month + charge full year
-            # Simplified: charge (annual - remaining_month_credit)
-            if subscription.get('current_period_end'):
-                try:
-                    period_end_str = subscription['current_period_end']
-                    if isinstance(period_end_str, str):
-                        if '+' not in period_end_str and 'Z' not in period_end_str:
-                            period_end = datetime.fromisoformat(period_end_str).replace(tzinfo=timezone.utc)
-                        else:
-                            period_end = datetime.fromisoformat(period_end_str.replace('Z', '+00:00'))
+        elif stripe_subscription_id and stripe_subscription_item_id:
+            # Get real costs from Stripe API
+            try:
+                stripe.api_key = settings.STRIPE_API_KEY
+                
+                # Get customer ID
+                gerant = await db.users.find_one({"id": gerant_id}, {"_id": 0, "stripe_customer_id": 1})
+                stripe_customer_id = gerant.get('stripe_customer_id') if gerant else None
+                
+                if stripe_customer_id:
+                    # Get current subscription details from Stripe
+                    current_stripe_sub = stripe.Subscription.retrieve(stripe_subscription_id)
+                    current_price_id = current_stripe_sub['items']['data'][0]['price']['id']
+                    current_quantity = current_stripe_sub['items']['data'][0]['quantity']
+                    
+                    # Get price details from Stripe
+                    current_price_obj = stripe.Price.retrieve(current_price_id)
+                    
+                    # Preview new subscription with updated quantity/interval
+                    new_price_id = settings.STRIPE_PRICE_ID_YEARLY if new_interval == 'year' else settings.STRIPE_PRICE_ID_MONTHLY
+                    
+                    # Use Stripe Invoice.create_preview for accurate amounts
+                    preview_invoice = stripe.Invoice.create_preview(
+                        customer=stripe_customer_id,
+                        subscription=stripe_subscription_id,
+                        subscription_details={
+                            'items': [{
+                                'id': stripe_subscription_item_id,
+                                'price': new_price_id,
+                                'quantity': new_seats,
+                            }],
+                            'proration_behavior': 'create_prorations'
+                        }
+                    )
+                    
+                    # Extract amounts from Stripe (in cents, convert to euros)
+                    proration_estimate = round(preview_invoice.amount_due / 100, 2)
+                    
+                    # Get line items for cost breakdown
+                    for line in preview_invoice.lines.data:
+                        if line.type == 'subscription':
+                            new_monthly_cost = round(line.amount / 100, 2) / new_seats if new_seats > 0 else 0
+                            break
+                    
+                    # Calculate yearly cost (if applicable)
+                    if new_interval == 'year':
+                        new_yearly_cost = round(preview_invoice.amount_due / 100, 2)
                     else:
-                        period_end = period_end_str
-                        if period_end.tzinfo is None:
-                            period_end = period_end.replace(tzinfo=timezone.utc)
+                        new_monthly_cost = round(preview_invoice.amount_due / 100, 2) / new_seats if new_seats > 0 else 0
                     
-                    now = datetime.now(timezone.utc)
-                    days_remaining = max(0, (period_end - now).days)
-                    
-                    # Credit for remaining days
-                    daily_rate_current = current_monthly_cost / 30
-                    credit = daily_rate_current * days_remaining
-                    
-                    # Charge for new annual
-                    proration_estimate = round(new_yearly_cost - credit, 2)
-                    proration_description = f"Crédit de {credit:.2f}€ déduit du coût annuel de {new_yearly_cost:.2f}€"
-                except Exception as e:
-                    logger.warning(f"Error calculating proration: {e}")
-                    proration_estimate = new_yearly_cost
-                    proration_description = f"Coût annuel: {new_yearly_cost:.2f}€"
-            else:
-                proration_estimate = new_yearly_cost
-                proration_description = f"Coût annuel: {new_yearly_cost:.2f}€"
-        elif new_seats > current_seats:
-            # Adding seats
-            if subscription.get('current_period_end'):
-                try:
-                    period_end_str = subscription['current_period_end']
-                    if isinstance(period_end_str, str):
-                        if '+' not in period_end_str and 'Z' not in period_end_str:
-                            period_end = datetime.fromisoformat(period_end_str).replace(tzinfo=timezone.utc)
-                        else:
-                            period_end = datetime.fromisoformat(period_end_str.replace('Z', '+00:00'))
+                    # Get current costs from existing subscription
+                    if current_interval == 'year':
+                        current_yearly_cost = round(current_stripe_sub['items']['data'][0]['price']['unit_amount'] * current_quantity / 100, 2)
                     else:
-                        period_end = period_end_str
-                        if period_end.tzinfo is None:
-                            period_end = period_end.replace(tzinfo=timezone.utc)
+                        current_monthly_cost = round(current_stripe_sub['items']['data'][0]['price']['unit_amount'] * current_quantity / 100, 2)
                     
-                    now = datetime.now(timezone.utc)
-                    days_remaining = max(0, (period_end - now).days)
-                    daily_rate = new_price_monthly / 30
-                    proration_estimate = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
-                    proration_description = f"Prorata pour {new_seats - current_seats} siège(s) sur {days_remaining} jours"
-                except Exception:
-                    pass
+                    proration_description = f"Montant calculé par Stripe selon la tarification par paliers"
+                    
+            except stripe.StripeError as e:
+                logger.warning(f"Could not get Stripe preview: {str(e)}")
+                proration_description = "Impossible de calculer le montant exact. Stripe calculera le montant final lors de la modification."
+            except Exception as e:
+                logger.warning(f"Error getting Stripe preview: {str(e)}")
+                proration_description = "Impossible de calculer le montant exact. Stripe calculera le montant final lors de la modification."
         
-        # Annual savings
-        annual_savings_percent = 20.0  # Fixed 20% discount
+        # Calculate differences (only if we have values from Stripe)
+        price_difference_monthly = new_monthly_cost - current_monthly_cost if current_monthly_cost > 0 and new_monthly_cost > 0 else 0.0
+        price_difference_yearly = new_yearly_cost - current_yearly_cost if current_yearly_cost > 0 and new_yearly_cost > 0 else 0.0
+        
+        # Annual savings (Stripe handles this via tiered pricing)
+        annual_savings_percent = 20.0 if new_interval == 'year' else 0.0
         
         return PreviewUpdateResponse(
             current_seats=current_seats,
@@ -745,8 +711,8 @@ async def preview_subscription_update(
             new_monthly_cost=new_monthly_cost,
             current_yearly_cost=current_yearly_cost,
             new_yearly_cost=new_yearly_cost,
-            price_difference_monthly=new_monthly_cost - current_monthly_cost,
-            price_difference_yearly=new_yearly_cost - current_yearly_cost,
+            price_difference_monthly=price_difference_monthly,
+            price_difference_yearly=price_difference_yearly,
             proration_estimate=proration_estimate,
             proration_description=proration_description,
             is_upgrade=(new_seats > current_seats) or (new_interval == 'year' and current_interval == 'month'),
@@ -804,27 +770,24 @@ async def preview_seat_change(
         stripe_subscription_id = subscription.get('stripe_subscription_id')
         stripe_subscription_item_id = subscription.get('stripe_subscription_item_id')
         
-        # Calculate current plan/cost
-        def get_plan_info(seats):
-            if seats <= 5:
-                return 'starter', 29
-            elif seats <= 15:
-                return 'professional', 25
-            else:
-                return 'enterprise', 22
+        # ⚠️ SECURITY: No price calculations on server side
+        # All pricing is handled by Stripe via tiered pricing
+        # We only use Stripe API to get accurate preview amounts
         
-        current_plan, current_price = get_plan_info(current_seats)
-        new_plan, new_price = get_plan_info(new_seats)
+        # For display purposes, use generic plan names since Stripe handles tiered pricing
+        current_plan = "tiered"
+        new_plan = "tiered"
         
-        current_monthly_cost = current_seats * current_price
-        new_monthly_cost = new_seats * new_price
-        price_difference = new_monthly_cost - current_monthly_cost
+        # Get accurate costs from Stripe API (if subscription exists)
+        current_monthly_cost = 0.0
+        new_monthly_cost = 0.0
+        price_difference = 0.0
         
-        # Get REAL proration from Stripe (not estimated)
+        # ⚠️ SECURITY: Get REAL proration from Stripe API only
+        # No server-side price calculations
         proration_estimate = 0.0
-        stripe_preview_success = False
         
-        if not is_trial and new_seats > current_seats and stripe_subscription_id and stripe_subscription_item_id:
+        if not is_trial and stripe_subscription_id and stripe_subscription_item_id:
             STRIPE_API_KEY = settings.STRIPE_API_KEY
             if STRIPE_API_KEY:
                 try:
@@ -835,7 +798,7 @@ async def preview_seat_change(
                     stripe_customer_id = gerant.get('stripe_customer_id') if gerant else None
                     
                     if stripe_customer_id:
-                        # Call Stripe's Invoice preview API for accurate proration (SDK v13+)
+                        # Call Stripe's Invoice preview API for accurate proration
                         # This simulates what would happen WITHOUT actually changing anything
                         preview_invoice = stripe.Invoice.create_preview(
                             customer=stripe_customer_id,
@@ -849,45 +812,32 @@ async def preview_seat_change(
                             }
                         )
                         
-                        # The total is in cents, convert to euros
-                        # This is the EXACT amount Stripe will charge (includes prorations)
-                        proration_estimate = round(preview_invoice.total / 100, 2)
-                        stripe_preview_success = True
+                        # Extract amounts from Stripe (in cents, convert to euros)
+                        proration_estimate = round(preview_invoice.amount_due / 100, 2)
                         
-                        logger.info(f"✅ Stripe proration preview: {proration_estimate}€ for {current_seats}→{new_seats} seats")
+                        # Get monthly costs from line items
+                        for line in preview_invoice.lines.data:
+                            if line.type == 'subscription':
+                                new_monthly_cost = round(line.amount / 100, 2) / new_seats if new_seats > 0 else 0
+                                break
+                        
+                        # Get current subscription for comparison
+                        current_stripe_sub = stripe.Subscription.retrieve(stripe_subscription_id)
+                        if current_stripe_sub['items']['data']:
+                            current_price_amount = current_stripe_sub['items']['data'][0]['price']['unit_amount']
+                            current_quantity = current_stripe_sub['items']['data'][0]['quantity']
+                            current_monthly_cost = round(current_price_amount * current_quantity / 100, 2) / current_seats if current_seats > 0 else 0
+                        
+                        price_difference = new_monthly_cost * new_seats - current_monthly_cost * current_seats
+                        
+                        logger.info(f"✅ Stripe preview retrieved for {current_seats}→{new_seats} seats")
                     else:
-                        logger.info(f"ℹ️ No stripe_customer_id for gerant {gerant_id}, using fallback calculation")
+                        logger.info(f"ℹ️ No stripe_customer_id for gerant {gerant_id}")
                     
                 except stripe.StripeError as e:
                     logger.warning(f"⚠️ Could not get Stripe proration preview: {str(e)}")
                 except Exception as e:
                     logger.warning(f"⚠️ Unexpected error in Stripe preview: {str(e)}")
-        
-        # Fallback: Calculate based on actual days remaining in cycle
-        # Used when: trial, no Stripe IDs, or Stripe API call failed
-        if not stripe_preview_success and not is_trial and new_seats > current_seats:
-            if subscription.get('current_period_end'):
-                try:
-                    period_end_str = subscription['current_period_end']
-                    if isinstance(period_end_str, str):
-                        # Handle both with and without timezone
-                        if '+' not in period_end_str and 'Z' not in period_end_str:
-                            period_end = datetime.fromisoformat(period_end_str).replace(tzinfo=timezone.utc)
-                        else:
-                            period_end = datetime.fromisoformat(period_end_str.replace('Z', '+00:00'))
-                    else:
-                        period_end = period_end_str
-                        if period_end.tzinfo is None:
-                            period_end = period_end.replace(tzinfo=timezone.utc)
-                    
-                    now = datetime.now(timezone.utc)
-                    days_remaining = max(0, (period_end - now).days)
-                    daily_rate = new_price / 30
-                    proration_estimate = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
-                    
-                    logger.info(f"ℹ️ Fallback proration: {proration_estimate}€ ({days_remaining} days remaining)")
-                except Exception as parse_err:
-                    logger.warning(f"Could not calculate fallback proration: {parse_err}")
         
         return PreviewSeatsResponse(
             current_seats=current_seats,
@@ -1709,20 +1659,12 @@ async def create_gerant_checkout_session(
         quantity = checkout_data.quantity if checkout_data.quantity else active_sellers_count
         quantity = max(quantity, 1)  # Minimum 1 vendeur
         
-        # Validation des limites
+        # 🔒 Validation des limites : bloquer si > 15 vendeurs
         if quantity > 15:
             raise HTTPException(
                 status_code=400, 
-                detail="Plus de 15 vendeurs nécessite un devis personnalisé. Contactez notre équipe commerciale."
+                detail="Au-delà de 15 vendeurs, veuillez nous contacter pour un devis personnalisé."
             )
-        
-        # Logique de tarification
-        if 1 <= quantity <= 5:
-            price_per_seller = 29.00
-        elif 6 <= quantity <= 15:
-            price_per_seller = 25.00
-        else:
-            raise HTTPException(status_code=400, detail="Quantité invalide")
         
         # Vérifier si le gérant a déjà un customer ID Stripe
         gerant = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
@@ -1801,16 +1743,13 @@ async def create_gerant_checkout_session(
         success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{checkout_data.origin_url}/dashboard"
         
-        # Determine plan and price_id based on quantity
-        if 1 <= quantity <= 5:
-            plan = "starter"
-        elif 6 <= quantity <= 15:
-            plan = "professional"
+        # Sélectionner le Price ID selon la période (monthly ou yearly)
+        # Stripe gère automatiquement la tarification par paliers selon la quantité
+        if checkout_data.billing_period == 'monthly':
+            price_id = settings.STRIPE_PRICE_ID_MONTHLY
         else:
-            plan = "enterprise"
+            price_id = settings.STRIPE_PRICE_ID_YEARLY
         
-        prices = get_stripe_prices()[plan]
-        price_id = prices['monthly'] if checkout_data.billing_period == 'monthly' else prices['yearly']
         billing_interval = 'month' if checkout_data.billing_period == 'monthly' else 'year'
         
         # Generate correlation_id (unique per checkout attempt)
@@ -1833,10 +1772,9 @@ async def create_gerant_checkout_session(
                 'gerant_id': current_user['id'],
                 'workspace_id': current_user.get('workspace_id', ''),
                 'seller_quantity': str(quantity),
-                'price_per_seller': str(price_per_seller),
-                'plan': plan,
                 'correlation_id': correlation_id,
-                'source': 'app_checkout'
+                'source': 'app_checkout',
+                'billing_interval': billing_interval
             },
             subscription_data={
                 'metadata': {
@@ -1846,7 +1784,6 @@ async def create_gerant_checkout_session(
                     'workspace_id': current_user.get('workspace_id', ''),
                     'source': 'app_checkout',
                     'price_id': price_id,
-                    'plan': plan,
                     'billing_interval': billing_interval,
                     'quantity': str(quantity)
                 }
@@ -1859,9 +1796,8 @@ async def create_gerant_checkout_session(
             "checkout_url": session.url,
             "session_id": session.id,
             "quantity": quantity,
-            "price_per_seller": price_per_seller,
-            "total_monthly": price_per_seller * quantity,
-            "active_sellers_count": active_sellers_count
+            "active_sellers_count": active_sellers_count,
+            "billing_interval": billing_interval
         }
         
     except HTTPException:
@@ -2216,12 +2152,11 @@ async def switch_billing_interval(
         stripe_subscription_id = subscription.get('stripe_subscription_id')
         stripe_subscription_item_id = subscription.get('stripe_subscription_item_id')
         
-        # Calculate costs
-        plan = get_plan_from_seats(current_seats)
-        prices = get_stripe_prices()[plan]
-        
-        monthly_cost = current_seats * prices['price_monthly']
-        yearly_cost = monthly_cost * 12 * 0.8  # 20% discount
+        # ⚠️ SECURITY: No price calculations on server side
+        # All pricing is handled by Stripe via tiered pricing
+        # Get accurate costs from Stripe API if subscription exists
+        monthly_cost = 0.0
+        yearly_cost = 0.0
         
         proration_amount = 0.0
         next_billing_date = ""
@@ -2250,8 +2185,8 @@ async def switch_billing_interval(
             stripe.api_key = STRIPE_API_KEY
             
             try:
-                # Get new price ID based on interval
-                new_price_id = prices['yearly'] if new_interval == 'year' else prices['monthly']
+                # Get new price ID based on interval (using new simplified structure)
+                new_price_id = settings.STRIPE_PRICE_ID_YEARLY if new_interval == 'year' else settings.STRIPE_PRICE_ID_MONTHLY
                 
                 # CRITICAL: Modify subscription with new price
                 # This changes the billing interval while keeping the quantity
@@ -2268,12 +2203,26 @@ async def switch_billing_interval(
                 
                 logger.info(f"✅ Stripe subscription {stripe_subscription_id} switched to {new_interval}")
                 
-                # Get proration from upcoming invoice
+                # ⚠️ SECURITY: Get proration from Stripe API only (no server-side calculation)
+                proration_amount = 0.0
                 try:
                     upcoming = stripe.Invoice.upcoming(subscription=stripe_subscription_id)
                     proration_amount = upcoming.get('amount_due', 0) / 100
                 except Exception as e:
                     logger.warning(f"Could not get proration: {e}")
+                
+                # Get costs from Stripe subscription (for display only)
+                if updated_subscription['items']['data']:
+                    price_obj = updated_subscription['items']['data'][0]['price']
+                    unit_amount = price_obj.get('unit_amount', 0) / 100  # Convert cents to euros
+                    quantity = updated_subscription['items']['data'][0]['quantity']
+                    
+                    if new_interval == 'year':
+                        yearly_cost = unit_amount * quantity
+                        monthly_cost = yearly_cost / 12
+                    else:
+                        monthly_cost = unit_amount * quantity
+                        yearly_cost = monthly_cost * 12 * 0.8  # Estimated 20% discount
                 
                 # Get next billing date
                 if updated_subscription.current_period_end:
@@ -2315,11 +2264,10 @@ async def switch_billing_interval(
             )
         
         interval_label = "annuel" if new_interval == 'year' else "mensuel"
-        savings = round((monthly_cost * 12) - yearly_cost, 2) if new_interval == 'year' else 0
         
         message = f"🎉 Passage à l'abonnement {interval_label} réussi !"
-        if savings > 0:
-            message += f" Vous économisez {savings}€/an."
+        if new_interval == 'year':
+            message += " Vous bénéficiez d'une réduction avec l'abonnement annuel."
         
         logger.info(f"✅ {current_user['email']} switched from {current_interval} to {new_interval}")
         
@@ -2577,6 +2525,237 @@ async def cancel_subscription(
     except Exception as e:
         logger.error(f"Erreur annulation abonnement: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de l'annulation: {str(e)}")
+
+
+class ReactivateSubscriptionRequest(BaseModel):
+    """Request body for reactivating subscription"""
+    stripe_subscription_id: Optional[str] = None  # Optionnel, requis si abonnements multiples
+    support_mode: bool = False  # Si True, permet la sélection automatique même avec multiples
+
+
+class ReactivateSubscriptionResponse(BaseModel):
+    """Response for subscription reactivation"""
+    success: bool
+    message: str
+    subscription: Dict
+    reactivated_at: str
+
+
+@router.post("/subscription/reactivate", response_model=ReactivateSubscriptionResponse)
+async def reactivate_subscription(
+    request: ReactivateSubscriptionRequest = Body(...),
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Réactive un abonnement qui a été programmé pour annulation (cancel_at_period_end=True).
+    
+    Conditions:
+    - L'abonnement doit avoir cancel_at_period_end=True
+    - L'abonnement doit être actif (status='active' ou 'trialing')
+    
+    Comportement:
+    1. Vérifie que l'abonnement est programmé pour annulation
+    2. Appelle Stripe API pour réactiver (cancel_at_period_end=False)
+    3. Met à jour la base de données MongoDB
+    4. Retourne le nouveau statut
+    
+    Returns:
+        Dict avec statut de la réactivation et détails de l'abonnement
+    """
+    try:
+        gerant_id = current_user['id']
+        
+        # Get ALL active subscriptions (detect multiples)
+        active_subscriptions = await db.subscriptions.find(
+            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            {"_id": 0}
+        ).to_list(length=10)
+        
+        if not active_subscriptions:
+            raise HTTPException(status_code=404, detail="Aucun abonnement actif trouvé")
+        
+        # Filter subscriptions that are scheduled for cancellation
+        scheduled_subscriptions = [
+            s for s in active_subscriptions 
+            if s.get('cancel_at_period_end') is True
+        ]
+        
+        if not scheduled_subscriptions:
+            raise HTTPException(
+                status_code=400, 
+                detail="Aucun abonnement programmé pour annulation trouvé. Seuls les abonnements avec cancel_at_period_end=True peuvent être réactivés."
+            )
+        
+        # If multiple scheduled subscriptions, handle according to mode
+        if len(scheduled_subscriptions) > 1:
+            # Support mode: allow explicit targeting or auto-selection
+            if request.support_mode or request.stripe_subscription_id:
+                if request.stripe_subscription_id:
+                    # Explicitly target the specified subscription
+                    subscription = next(
+                        (s for s in scheduled_subscriptions if s.get('stripe_subscription_id') == request.stripe_subscription_id),
+                        None
+                    )
+                    if not subscription:
+                        raise HTTPException(
+                            status_code=404,
+                            detail=f"Abonnement {request.stripe_subscription_id} non trouvé parmi les abonnements programmés pour annulation"
+                        )
+                else:
+                    # Auto-select most recent (support mode)
+                    subscription = max(
+                        scheduled_subscriptions,
+                        key=lambda s: (
+                            s.get('current_period_end', '') or s.get('created_at', ''),
+                            s.get('status') == 'active'  # Prefer active over trialing
+                        )
+                    )
+                    logger.warning(
+                        f"⚠️ MULTIPLE SCHEDULED SUBSCRIPTIONS for {current_user['email']}: {len(scheduled_subscriptions)}. "
+                        f"Support mode: auto-selected {subscription.get('stripe_subscription_id')}"
+                    )
+            else:
+                # DEFAULT: Return 409 with list (production-safe)
+                scheduled_list = [
+                    {
+                        "stripe_subscription_id": s.get('stripe_subscription_id'),
+                        "status": s.get('status'),
+                        "seats": s.get('seats'),
+                        "billing_interval": s.get('billing_interval'),
+                        "current_period_end": s.get('current_period_end')
+                    }
+                    for s in scheduled_subscriptions
+                ]
+                
+                logger.warning(
+                    f"⚠️ MULTIPLE SCHEDULED SUBSCRIPTIONS for {current_user['email']}: {len(scheduled_subscriptions)}. "
+                    f"Returning 409 - user must specify which to reactivate."
+                )
+                
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "error": "MULTIPLE_SCHEDULED_SUBSCRIPTIONS",
+                        "message": f"{len(scheduled_subscriptions)} abonnement(s) programmé(s) pour annulation détecté(s). Veuillez spécifier lequel réactiver en fournissant 'stripe_subscription_id'.",
+                        "scheduled_subscriptions": scheduled_list,
+                        "hint": "Utilisez 'stripe_subscription_id' dans la requête pour cibler un abonnement spécifique, ou 'support_mode=true' pour la sélection automatique."
+                    }
+                )
+        else:
+            subscription = scheduled_subscriptions[0]
+        
+        stripe_subscription_id = subscription.get('stripe_subscription_id')
+        is_trial = subscription.get('status') == 'trialing'
+        
+        # For trial users, just update the database
+        if is_trial:
+            # Update subscription in DB
+            await db.subscriptions.update_one(
+                {"stripe_subscription_id": stripe_subscription_id} if stripe_subscription_id else {"user_id": gerant_id, "status": "trialing"},
+                {"$set": {
+                    "cancel_at_period_end": False,
+                    "canceled_at": None,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            logger.info(f"✅ Trial subscription reactivated for {current_user['email']} (no Stripe call)")
+            
+            # Get updated subscription
+            updated_subscription = await db.subscriptions.find_one(
+                {"stripe_subscription_id": stripe_subscription_id} if stripe_subscription_id else {"user_id": gerant_id, "status": "trialing"},
+                {"_id": 0}
+            )
+            
+            return ReactivateSubscriptionResponse(
+                success=True,
+                message="Abonnement d'essai réactivé avec succès",
+                subscription=updated_subscription or subscription,
+                reactivated_at=datetime.now(timezone.utc).isoformat()
+            )
+        
+        # For active subscribers, call Stripe API
+        if not stripe_subscription_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Impossible de réactiver l'abonnement. Identifiant Stripe manquant."
+            )
+        
+        STRIPE_API_KEY = settings.STRIPE_API_KEY
+        if not STRIPE_API_KEY:
+            raise HTTPException(status_code=500, detail="Configuration Stripe manquante")
+        
+        stripe.api_key = STRIPE_API_KEY
+        
+        try:
+            # Reactivate subscription in Stripe
+            updated_stripe_subscription = stripe.Subscription.modify(
+                stripe_subscription_id,
+                cancel_at_period_end=False
+            )
+            
+            logger.info(f"✅ Stripe subscription {stripe_subscription_id} reactivated for {current_user['email']}")
+            
+            # Update database
+            update_data = {
+                "cancel_at_period_end": False,
+                "canceled_at": None,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Update current_period_end if available from Stripe
+            if updated_stripe_subscription.current_period_end:
+                update_data["current_period_end"] = datetime.fromtimestamp(
+                    updated_stripe_subscription.current_period_end,
+                    tz=timezone.utc
+                ).isoformat()
+            
+            # IDEMPOTENCE: Use stripe_subscription_id as key
+            await db.subscriptions.update_one(
+                {"stripe_subscription_id": stripe_subscription_id},
+                {"$set": update_data}
+            )
+            
+            # Also update workspace
+            workspace_id = current_user.get('workspace_id')
+            if workspace_id:
+                await db.workspaces.update_one(
+                    {"id": workspace_id},
+                    {"$set": {"subscription_status": "active"}}
+                )
+            
+            # Get updated subscription from DB
+            updated_subscription = await db.subscriptions.find_one(
+                {"stripe_subscription_id": stripe_subscription_id},
+                {"_id": 0}
+            )
+            
+            if not updated_subscription:
+                # Fallback to original subscription with updates applied
+                updated_subscription = {**subscription, **update_data}
+            
+            logger.info(f"✅ Subscription reactivated successfully for {current_user['email']}")
+            
+            return ReactivateSubscriptionResponse(
+                success=True,
+                message="Abonnement réactivé avec succès. L'annulation programmée a été annulée.",
+                subscription=updated_subscription,
+                reactivated_at=datetime.now(timezone.utc).isoformat()
+            )
+            
+        except stripe.error.InvalidRequestError as e:
+            logger.error(f"❌ Stripe error reactivating subscription: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Erreur Stripe: {str(e)}")
+        except stripe.StripeError as e:
+            logger.error(f"❌ Stripe error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Erreur Stripe: {str(e)}")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur réactivation abonnement: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la réactivation: {str(e)}")
 
 
 @router.get("/subscriptions")

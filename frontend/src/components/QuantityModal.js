@@ -1,16 +1,15 @@
 import React from 'react';
 import { Crown, Loader } from 'lucide-react';
 
+// ⚠️ SECURITY: No hardcoded prices - Stripe handles all pricing via tiered pricing
 const PLANS = {
   starter: {
     name: 'Small Team',
-    pricePerSeller: 29,
     minSellers: 1,
     maxSellers: 5,
   },
   professional: {
     name: 'Medium Team', 
-    pricePerSeller: 25,
     minSellers: 6,
     maxSellers: 15,
   }
@@ -41,7 +40,7 @@ export default function QuantityModal({
           Nombre de vendeurs
         </h3>
         <p className="text-gray-600 mb-6 text-center">
-          Plan {plan.name} - {plan.pricePerSeller}€ par vendeur/mois
+          Plan {plan.name} - Tarification par paliers (calculée par Stripe)
         </p>
 
         {/* Quantity Selector */}
@@ -87,29 +86,19 @@ export default function QuantityModal({
           )}
         </div>
 
-        {/* Price Calculation */}
+        {/* Quantity Summary */}
         <div className="bg-blue-50 rounded-xl p-6 mb-6 border-2 border-blue-200">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-700">Prix par vendeur</span>
+            <span className="text-gray-700">Nombre de vendeurs</span>
             <span className="font-semibold text-gray-800">
-              {plan.pricePerSeller}€
-            </span>
-          </div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-700">Quantité</span>
-            <span className="font-semibold text-gray-800">
-              × {selectedQuantity}
+              {selectedQuantity}
             </span>
           </div>
           <div className="border-t-2 border-blue-300 pt-2 mt-2">
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-bold text-gray-800">Total</span>
-              <span className="text-3xl font-bold text-[#1E40AF]">
-                {plan.pricePerSeller * selectedQuantity}€
+            <div className="text-center">
+              <span className="text-sm text-gray-600">
+                Le montant exact sera calculé par Stripe selon la tarification par paliers
               </span>
-            </div>
-            <div className="text-right text-sm text-gray-600 mt-1">
-              par mois
             </div>
           </div>
         </div>
