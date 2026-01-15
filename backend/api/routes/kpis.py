@@ -8,9 +8,13 @@ from typing import Dict
 from models.kpis import KPIEntryCreate
 from services.kpi_service import KPIService
 from api.dependencies import get_kpi_service
-from core.security import get_current_user, get_current_seller, get_current_manager
+from core.security import get_current_user, get_current_seller, get_current_manager, require_active_space
 
-router = APIRouter(prefix="/kpi", tags=["KPI Management"])
+router = APIRouter(
+    prefix="/kpi",
+    tags=["KPI Management"],
+    dependencies=[Depends(require_active_space)]
+)
 
 
 # ===== SELLER UTILS =====

@@ -7,11 +7,15 @@ from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
+import logging
 
 from core.config import settings
 
 # Security scheme
-security = HTTPBearer()
+# Use auto_error=False to control 401 vs 403 at dependency level
+security = HTTPBearer(auto_error=False)
+
+logger = logging.getLogger(__name__)
 
 # JWT Configuration
 JWT_SECRET = settings.JWT_SECRET
@@ -94,44 +98,69 @@ def decode_token(token: str) -> dict:
 
 # ===== AUTHENTICATION DEPENDENCIES =====
 
-async def _check_workspace_status(db, user: dict) -> None:
+def _normalize_role(role: Optional[str]) -> Optional[str]:
+    if not role:
+        return None
+    normalized = role.strip().lower()
+    if normalized == 'gérant':
+        normalized = 'gerant'
+    if normalized in ['admin', 'superadmin', 'super_admin']:
+        normalized = 'super_admin'
+    return normalized
+
+
+def _extract_user_id(payload: dict) -> Optional[str]:
+    for key in ('user_id', 'sub', 'id'):
+        value = payload.get(key)
+        if value:
+            return value
+    return None
+
+
+def _get_token_payload(credentials: Optional[HTTPAuthorizationCredentials]) -> dict:
+    if not credentials or not isinstance(credentials, HTTPAuthorizationCredentials):
+        logger.warning("Auth rejected: missing bearer credentials")
+        raise HTTPException(status_code=401, detail="Missing token")
+    if not credentials.credentials:
+        logger.warning("Auth rejected: missing bearer token")
+        raise HTTPException(status_code=401, detail="Missing token")
+    token = credentials.credentials
+    return decode_token(token)
+
+
+async def _resolve_workspace(db, user: dict) -> Optional[dict]:
     """
-    Helper function to check workspace status and raise HTTPException if suspended/deleted.
-    
-    Args:
-        db: Database connection
-        user: User dict with workspace_id, gerant_id, role, and id
-        
-    Raises:
-        HTTPException 403: If workspace is suspended or deleted
+    Resolve workspace for a user without enforcing access rules.
+    Returns minimal workspace info or None.
     """
-    # Super admin n'est jamais bloqué
-    if user.get('role') == 'super_admin':
-        return
-    
+    if _normalize_role(user.get('role')) == 'super_admin':
+        return None
+
     workspace_id = user.get('workspace_id')
     gerant_id = user.get('gerant_id')
     user_id = user.get('id')
-    user_role = user.get('role')
-    
-    # Trouver le workspace : soit directement via workspace_id, soit via gerant_id
-    workspace = None
+    user_role = _normalize_role(user.get('role'))
+
     if workspace_id:
-        workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "status": 1})
-    elif gerant_id:
-        # Pour les managers/sellers, trouver le workspace via le gérant
-        workspace = await db.workspaces.find_one({"gerant_id": gerant_id}, {"_id": 0, "status": 1})
-    elif user_role in ['gerant', 'gérant']:
-        # Pour les gérants, chercher par gerant_id = user.id
-        workspace = await db.workspaces.find_one({"gerant_id": user_id}, {"_id": 0, "status": 1})
-    
-    # Vérifier le statut du workspace
-    if workspace:
-        workspace_status = workspace.get('status', 'active')  # Par défaut 'active' si non défini
-        if workspace_status == 'suspended':
-            raise HTTPException(status_code=403, detail="Établissement suspendu")
-        elif workspace_status == 'deleted':
-            raise HTTPException(status_code=403, detail="Établissement supprimé")
+        return await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "id": 1, "status": 1})
+    if gerant_id:
+        return await db.workspaces.find_one({"gerant_id": gerant_id}, {"_id": 0, "id": 1, "status": 1})
+    if user_role == 'gerant':
+        return await db.workspaces.find_one({"gerant_id": user_id}, {"_id": 0, "id": 1, "status": 1})
+    return None
+
+
+async def _attach_space_context(db, user: dict) -> dict:
+    """
+    Attach space info to the user without blocking auth.
+    """
+    workspace = await _resolve_workspace(db, user)
+    status = workspace.get('status', 'active') if workspace else 'unknown'
+    user['space'] = {
+        "id": workspace.get('id') if workspace else None,
+        "status": status
+    }
+    return user
 
 
 async def get_current_user(
@@ -158,18 +187,24 @@ async def get_current_user(
     """
     from core.database import get_db
     
-    token = credentials.credentials
-    payload = decode_token(token)
+    payload = _get_token_payload(credentials)
+    user_id = _extract_user_id(payload)
+    if not user_id:
+        logger.warning("Auth rejected: missing user_id in token payload")
+        raise HTTPException(status_code=401, detail="Invalid token payload")
     
     db = await get_db()
-    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
     
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.warning("Auth rejected: user not found for id %s", user_id)
+        raise HTTPException(status_code=401, detail="User not found")
     
-    # Vérifier le statut du workspace
-    await _check_workspace_status(db, user)
-    
+    await _attach_space_context(db, user)
+
+    normalized_role = _normalize_role(user.get('role'))
+    if normalized_role and normalized_role != user.get('role'):
+        user['role'] = normalized_role
     return user
 
 
@@ -195,21 +230,27 @@ async def get_current_gerant(
     """
     from core.database import get_db
     
-    token = credentials.credentials
-    payload = decode_token(token)
+    payload = _get_token_payload(credentials)
+    user_id = _extract_user_id(payload)
+    if not user_id:
+        logger.warning("Auth rejected: missing user_id in token payload")
+        raise HTTPException(status_code=401, detail="Invalid token payload")
     
     db = await get_db()
-    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
     
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.warning("Auth rejected: user not found for id %s", user_id)
+        raise HTTPException(status_code=401, detail="User not found")
     
-    if user['role'] not in ['gerant', 'gérant']:
+    normalized_role = _normalize_role(user.get('role'))
+    if normalized_role != 'gerant':
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
-    # Vérifier le statut du workspace
-    await _check_workspace_status(db, user)
-    
+    await _attach_space_context(db, user)
+
+    if normalized_role and normalized_role != user.get('role'):
+        user['role'] = normalized_role
     return user
 
 
@@ -230,21 +271,27 @@ async def get_current_manager(
     """
     from core.database import get_db
     
-    token = credentials.credentials
-    payload = decode_token(token)
+    payload = _get_token_payload(credentials)
+    user_id = _extract_user_id(payload)
+    if not user_id:
+        logger.warning("Auth rejected: missing user_id in token payload")
+        raise HTTPException(status_code=401, detail="Invalid token payload")
     
     db = await get_db()
-    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
     
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.warning("Auth rejected: user not found for id %s", user_id)
+        raise HTTPException(status_code=401, detail="User not found")
     
-    if user['role'] != 'manager':
+    normalized_role = _normalize_role(user.get('role'))
+    if normalized_role != 'manager':
         raise HTTPException(status_code=403, detail="Accès réservé aux managers")
     
-    # Vérifier le statut du workspace
-    await _check_workspace_status(db, user)
-    
+    await _attach_space_context(db, user)
+
+    if normalized_role and normalized_role != user.get('role'):
+        user['role'] = normalized_role
     return user
 
 
@@ -265,21 +312,27 @@ async def get_current_seller(
     """
     from core.database import get_db
     
-    token = credentials.credentials
-    payload = decode_token(token)
+    payload = _get_token_payload(credentials)
+    user_id = _extract_user_id(payload)
+    if not user_id:
+        logger.warning("Auth rejected: missing user_id in token payload")
+        raise HTTPException(status_code=401, detail="Invalid token payload")
     
     db = await get_db()
-    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
     
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.warning("Auth rejected: user not found for id %s", user_id)
+        raise HTTPException(status_code=401, detail="User not found")
     
-    if user['role'] != 'seller':
+    normalized_role = _normalize_role(user.get('role'))
+    if normalized_role != 'seller':
         raise HTTPException(status_code=403, detail="Accès réservé aux vendeurs")
     
-    # Vérifier le statut du workspace
-    await _check_workspace_status(db, user)
-    
+    await _attach_space_context(db, user)
+
+    if normalized_role and normalized_role != user.get('role'):
+        user['role'] = normalized_role
     return user
 
 
@@ -300,18 +353,25 @@ async def get_super_admin(
     """
     from core.database import get_db
     
-    token = credentials.credentials
-    payload = decode_token(token)
+    payload = _get_token_payload(credentials)
+    user_id = _extract_user_id(payload)
+    if not user_id:
+        logger.warning("Auth rejected: missing user_id in token payload")
+        raise HTTPException(status_code=401, detail="Invalid token payload")
     
     db = await get_db()
-    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
     
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.warning("Auth rejected: user not found for id %s", user_id)
+        raise HTTPException(status_code=401, detail="User not found")
     
-    if user['role'] != 'super_admin':
+    normalized_role = _normalize_role(user.get('role'))
+    if normalized_role != 'super_admin':
         raise HTTPException(status_code=403, detail="Super admin access required")
     
+    if normalized_role and normalized_role != user.get('role'):
+        user['role'] = normalized_role
     return user
 
 
@@ -334,22 +394,45 @@ async def get_gerant_or_manager(
     """
     from core.database import get_db
     
-    token = credentials.credentials
-    payload = decode_token(token)
+    payload = _get_token_payload(credentials)
+    user_id = _extract_user_id(payload)
+    if not user_id:
+        logger.warning("Auth rejected: missing user_id in token payload")
+        raise HTTPException(status_code=401, detail="Invalid token payload")
     
     db = await get_db()
-    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
     
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.warning("Auth rejected: user not found for id %s", user_id)
+        raise HTTPException(status_code=401, detail="User not found")
     
-    if user['role'] not in ['gerant', 'gérant', 'manager']:
+    normalized_role = _normalize_role(user.get('role'))
+    if normalized_role not in ['gerant', 'manager']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants et managers")
     
-    # Vérifier le statut du workspace
-    await _check_workspace_status(db, user)
-    
+    await _attach_space_context(db, user)
+
+    if normalized_role and normalized_role != user.get('role'):
+        user['role'] = normalized_role
     return user
+
+
+async def require_active_space(
+    current_user: dict = Depends(get_current_user)
+) -> dict:
+    """
+    Dependency to enforce active workspace for business routes.
+    Returns current_user if workspace is active.
+    """
+    space = current_user.get('space') or {}
+    status = space.get('status', 'unknown')
+    if status != 'active':
+        raise HTTPException(
+            status_code=403,
+            detail="Espace suspendu ou expiré : accès aux fonctionnalités bloqué"
+        )
+    return current_user
 
 
 # ===== STORE OWNERSHIP VERIFICATION =====

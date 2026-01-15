@@ -4,10 +4,14 @@ from typing import Dict, List, Union
 
 from services.ai_service import AIService, AIDataService
 from api.dependencies import get_ai_service, get_ai_data_service
-from core.security import get_current_user, get_current_seller
+from core.security import get_current_user, get_current_seller, require_active_space
 from models.diagnostics import DiagnosticResponse
 
-router = APIRouter(prefix="/ai", tags=["AI & Diagnostics"])
+router = APIRouter(
+    prefix="/ai",
+    tags=["AI & Diagnostics"],
+    dependencies=[Depends(require_active_space)]
+)
 
 
 @router.post("/diagnostic")

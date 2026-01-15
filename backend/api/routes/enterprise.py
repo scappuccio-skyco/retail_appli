@@ -11,9 +11,13 @@ from models.enterprise import (
 )
 from services.enterprise_service import EnterpriseService
 from api.dependencies import get_enterprise_service
-from core.security import get_current_user
+from core.security import get_current_user, require_active_space
 
-router = APIRouter(prefix="/enterprise", tags=["Enterprise"])
+router = APIRouter(
+    prefix="/enterprise",
+    tags=["Enterprise"],
+    dependencies=[Depends(require_active_space)]
+)
 
 
 # ============================================

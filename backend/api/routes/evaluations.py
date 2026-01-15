@@ -7,11 +7,15 @@ from typing import Dict, Optional
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
 
-from core.security import get_current_user
+from core.security import get_current_user, require_active_space
 from api.dependencies import get_db
 from services.ai_service import EvaluationGuideService
 
-router = APIRouter(prefix="/evaluations", tags=["Evaluation Guides"])
+router = APIRouter(
+    prefix="/evaluations",
+    tags=["Evaluation Guides"],
+    dependencies=[Depends(require_active_space)]
+)
 
 
 # ===== PYDANTIC MODELS =====

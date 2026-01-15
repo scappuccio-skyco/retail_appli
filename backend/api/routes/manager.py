@@ -7,13 +7,17 @@ from typing import Optional
 from datetime import datetime, timezone, timedelta
 import logging
 
-from core.security import get_current_user, verify_resource_store_access, verify_seller_store_access
+from core.security import get_current_user, verify_resource_store_access, verify_seller_store_access, require_active_space
 from services.manager_service import ManagerService, APIKeyService
 from api.dependencies import get_manager_service, get_api_key_service, get_db, get_seller_service, get_gerant_service
 from services.seller_service import SellerService
 from services.gerant_service import GerantService
 
-router = APIRouter(prefix="/manager", tags=["Manager"])
+router = APIRouter(
+    prefix="/manager",
+    tags=["Manager"],
+    dependencies=[Depends(require_active_space)]
+)
 logger = logging.getLogger(__name__)
 
 # Log router initialization

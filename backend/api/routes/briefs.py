@@ -10,10 +10,14 @@ from uuid import uuid4
 import logging
 
 from api.dependencies import get_db
-from core.security import get_current_user
+from core.security import get_current_user, require_active_space
 from services.ai_service import AIService
 
-router = APIRouter(prefix="/briefs", tags=["Morning Briefs"])
+router = APIRouter(
+    prefix="/briefs",
+    tags=["Morning Briefs"],
+    dependencies=[Depends(require_active_space)]
+)
 logger = logging.getLogger(__name__)
 
 

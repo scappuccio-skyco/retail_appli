@@ -8,10 +8,13 @@ from datetime import datetime, timezone
 from uuid import uuid4
 from pydantic import BaseModel
 
-from core.security import get_current_user
+from core.security import get_current_user, require_active_space
 from api.dependencies import get_db
 
-router = APIRouter(tags=["Debriefs"])
+router = APIRouter(
+    tags=["Debriefs"],
+    dependencies=[Depends(require_active_space)]
+)
 
 
 # ===== PYDANTIC MODELS =====

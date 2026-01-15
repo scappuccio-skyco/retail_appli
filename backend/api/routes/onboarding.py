@@ -5,11 +5,15 @@ User onboarding progress tracking
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict
 
-from core.security import get_current_user
+from core.security import get_current_user, require_active_space
 from services.onboarding_service import OnboardingService
 from api.dependencies import get_onboarding_service
 
-router = APIRouter(prefix="/onboarding", tags=["Onboarding"])
+router = APIRouter(
+    prefix="/onboarding",
+    tags=["Onboarding"],
+    dependencies=[Depends(require_active_space)]
+)
 
 
 @router.get("/progress")

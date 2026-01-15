@@ -12,13 +12,17 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from fastapi import Request
 
-from core.security import get_current_user
+from core.security import get_current_user, require_active_space
 from services.manager_service import DiagnosticService
 from api.dependencies import get_diagnostic_service, get_db
 from services.ai_service import AIService
 from api.routes.manager import get_store_context, verify_manager_or_gerant
 
-router = APIRouter(prefix="/manager-diagnostic", tags=["Diagnostics"])
+router = APIRouter(
+    prefix="/manager-diagnostic",
+    tags=["Diagnostics"],
+    dependencies=[Depends(require_active_space)]
+)
 
 
 class ManagerDiagnosticCreate(BaseModel):

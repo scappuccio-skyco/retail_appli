@@ -17,11 +17,14 @@ from services.gerant_service import GerantService
 from repositories.user_repository import UserRepository
 from api.dependencies import get_kpi_service, get_integration_service
 from core.database import get_db
-from core.security import get_current_gerant, get_password_hash
+from core.security import get_current_gerant, get_password_hash, require_active_space
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/integrations", tags=["Integrations"])
+router = APIRouter(
+    prefix="/integrations",
+    tags=["Integrations"]
+)
 
 
 # ===== API KEY MANAGEMENT =====
@@ -30,6 +33,7 @@ router = APIRouter(prefix="/integrations", tags=["Integrations"])
 async def create_api_key(
     key_data: APIKeyCreate,
     current_user: Dict = Depends(get_current_gerant),
+    _active_space: Dict = Depends(require_active_space),
     integration_service: IntegrationService = Depends(get_integration_service)
 ):
     """Create new API key for integrations"""
@@ -48,6 +52,7 @@ async def create_api_key(
 @router.get("/api-keys")
 async def list_api_keys(
     current_user: Dict = Depends(get_current_gerant),
+    _active_space: Dict = Depends(require_active_space),
     integration_service: IntegrationService = Depends(get_integration_service)
 ):
     """List all API keys for current user"""

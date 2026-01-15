@@ -8,10 +8,14 @@ from datetime import datetime, timezone, timedelta
 
 from services.seller_service import SellerService
 from api.dependencies import get_seller_service, get_db
-from core.security import get_current_seller, get_current_user, verify_resource_store_access
+from core.security import get_current_seller, get_current_user, verify_resource_store_access, require_active_space
 import logging
 
-router = APIRouter(prefix="/seller", tags=["Seller"])
+router = APIRouter(
+    prefix="/seller",
+    tags=["Seller"],
+    dependencies=[Depends(require_active_space)]
+)
 logger = logging.getLogger(__name__)
 
 
