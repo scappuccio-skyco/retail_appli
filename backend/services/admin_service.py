@@ -2,7 +2,7 @@
 Admin Service
 Business logic for SuperAdmin operations
 """
-from typing import List, Dict
+from typing import List, Dict, Optional
 from datetime import datetime, timezone, timedelta
 from repositories.admin_repository import AdminRepository
 
@@ -243,5 +243,66 @@ class AdminService:
             "timestamp": now.isoformat(),
             "available_actions": sorted(list(all_actions)),
             "available_admins": all_admins
+        }
+
+    async def get_admin_audit_logs(
+        self,
+        hours: int = 24,
+        limit: int = 100,
+        action: Optional[str] = None,
+        admin_emails: Optional[List[str]] = None
+    ) -> Dict:
+        """
+        Get admin audit logs filtered by time window
+        """
+        now = datetime.now(timezone.utc)
+        time_threshold = now - timedelta(hours=hours)
+
+        logs = await self.admin_repo.get_admin_logs(
+            time_threshold=time_threshold,
+            limit=limit,
+            action=action,
+            admin_emails=admin_emails
+        )
+
+        normalized_logs = []
+        for log in logs:
+            admin_email = log.get('admin_email') or log.get('email') or 'system@retailperformer.com'
+            admin_name = log.get('admin_name') or log.get('name') or 'System'
+            normalized_logs.append({
+                "id": log.get('id', str(len(normalized_logs))),
+                "timestamp": str(log.get('timestamp') or log.get('created_at') or now.isoformat()),
+                "action": str(log.get('action') or 'admin_event'),
+                "admin_email": str(admin_email),
+                "admin_name": str(admin_name),
+                "workspace_id": log.get('workspace_id'),
+                "details": log.get('details') or {},
+                "level": log.get('level', 'info'),
+                "message": log.get('message', '')
+            })
+
+        actions = await self.admin_repo.get_admin_actions(time_threshold)
+        admins = await self.admin_repo.get_admins_from_logs(time_threshold)
+
+        # Normalize admin list for UI
+        available_admins = []
+        seen_emails = set()
+        for admin in admins:
+            email = admin.get('email')
+            if not email or email in seen_emails:
+                continue
+            seen_emails.add(email)
+            available_admins.append({
+                "email": email,
+                "name": admin.get('name') or email
+            })
+
+        return {
+            "logs": normalized_logs,
+            "total": len(normalized_logs),
+            "period_hours": hours,
+            "timestamp": now.isoformat(),
+            "available_actions": sorted([a for a in actions if a]),
+            "available_admins": available_admins
         }
 

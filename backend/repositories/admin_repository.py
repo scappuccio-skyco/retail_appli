@@ -123,3 +123,49 @@ class AdminRepository:
             return logs
         except:
             return []
+
+    async def get_admin_logs(
+        self,
+        time_threshold: datetime,
+        limit: int,
+        action: Optional[str] = None,
+        admin_emails: Optional[List[str]] = None
+    ) -> List[Dict]:
+        """Get admin audit logs within time window"""
+        query: Dict = {"timestamp": {"$gte": time_threshold.isoformat()}}
+        if action:
+            query["action"] = action
+        if admin_emails:
+            query["admin_email"] = {"$in": admin_emails}
+        return await self.db.admin_logs.find(
+            query,
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(limit).to_list(limit)
+
+    async def get_admin_actions(self, time_threshold: datetime) -> List[str]:
+        """Get distinct admin actions within time window"""
+        return await self.db.admin_logs.distinct(
+            "action",
+            {"timestamp": {"$gte": time_threshold.isoformat()}}
+        )
+
+    async def get_admins_from_logs(self, time_threshold: datetime) -> List[Dict]:
+        """Get distinct admins from audit logs within time window"""
+        pipeline = [
+            {"$match": {
+                "timestamp": {"$gte": time_threshold.isoformat()},
+                "admin_email": {"$exists": True, "$ne": None, "$ne": ""}
+            }},
+            {"$group": {
+                "_id": {
+                    "admin_email": "$admin_email",
+                    "admin_name": "$admin_name"
+                }
+            }},
+            {"$project": {
+                "_id": 0,
+                "email": "$_id.admin_email",
+                "name": "$_id.admin_name"
+            }}
+        ]
+        return await self.db.admin_logs.aggregate(pipeline).to_list(length=1000)

@@ -68,15 +68,25 @@ async def get_all_workspaces(
 async def get_audit_logs(
     limit: int = Query(50, ge=1, le=1000, description="Nombre maximum de logs"),
     days: int = Query(7, ge=1, le=365, description="Nombre de jours à remonter"),
+    action: Optional[str] = Query(None, description="Filtrer par type d'action"),
+    admin_emails: Optional[str] = Query(None, description="Emails admin séparés par des virgules"),
     db: AsyncIOMotorDatabase = Depends(get_db),
     current_admin: dict = Depends(get_super_admin)
 ):
-    """Récupère les logs d'audit système"""
+    """Récupère les logs d'audit administrateur"""
     try:
         admin_repo = AdminRepository(db)
         admin_service = AdminService(admin_repo)
         hours = days * 24
-        logs_data = await admin_service.get_system_logs(hours=hours, limit=limit)
+        emails_list = None
+        if admin_emails:
+            emails_list = [email.strip() for email in admin_emails.split(",") if email.strip()]
+        logs_data = await admin_service.get_admin_audit_logs(
+            hours=hours,
+            limit=limit,
+            action=action,
+            admin_emails=emails_list
+        )
         return logs_data
     except Exception as e:
         logger.error(f"Error fetching audit logs: {str(e)}")
@@ -200,6 +210,7 @@ async def resolve_duplicates(
         await db.admin_logs.insert_one({
             "admin_id": current_admin.get('id'),
             "admin_email": current_admin.get('email'),
+                "admin_name": current_admin.get('name'),
             "action": "resolve_subscription_duplicates",
             "gerant_id": gerant_id,
             "apply": apply,
@@ -406,6 +417,7 @@ async def update_workspace_status(
             await db.admin_logs.insert_one({
                 "admin_id": current_admin.get('id'),
                 "admin_email": current_admin.get('email'),
+                "admin_name": current_admin.get('name'),
                 "action": "workspace_status_change",
                 "workspace_id": workspace_id,
                 "details": {
@@ -474,6 +486,7 @@ async def update_workspace_plan(
             await db.admin_logs.insert_one({
                 "admin_id": current_admin.get('id'),
                 "admin_email": current_admin.get('email'),
+                "admin_name": current_admin.get('name'),
                 "action": "workspace_plan_change",
                 "workspace_id": workspace_id,
                 "details": {
@@ -523,6 +536,7 @@ async def bulk_update_workspace_status(
             await db.admin_logs.insert_one({
                 "admin_id": current_admin.get('id'),
                 "admin_email": current_admin.get('email'),
+                "admin_name": current_admin.get('name'),
                 "action": "bulk_workspace_status_change",
                 "details": {
                     "workspace_ids": workspace_ids,
@@ -605,6 +619,7 @@ async def add_super_admin(
             await db.admin_logs.insert_one({
                 "admin_id": current_admin.get('id'),
                 "admin_email": current_admin.get('email'),
+                "admin_name": current_admin.get('name'),
                 "action": "add_super_admin",
                 "details": {
                     "new_admin_email": email,
@@ -655,6 +670,7 @@ async def remove_super_admin(
             await db.admin_logs.insert_one({
                 "admin_id": current_admin.get('id'),
                 "admin_email": current_admin.get('email'),
+                "admin_name": current_admin.get('name'),
                 "action": "remove_super_admin",
                 "details": {
                     "removed_admin_email": admin_to_remove.get('email'),
@@ -1042,6 +1058,7 @@ async def update_gerant_trial(
             await db.admin_logs.insert_one({
                 "admin_id": current_admin.get('id'),
                 "admin_email": current_admin.get('email'),
+                "admin_name": current_admin.get('name'),
                 "action": "update_gerant_trial",
                 "details": {
                     "gerant_id": gerant_id,
@@ -1364,6 +1381,7 @@ Pour obtenir de l'aide, vous pouvez :
             await db.admin_logs.insert_one({
                 "admin_id": current_admin.get('id'),
                 "admin_email": current_admin.get('email'),
+                "admin_name": current_admin.get('name'),
                 "action": "ai_assistant_query",
                 "details": {
                     "conversation_id": conversation_id,
