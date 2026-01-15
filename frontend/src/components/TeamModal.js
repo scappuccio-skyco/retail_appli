@@ -31,7 +31,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function TeamModal({ sellers, storeIdParam, onClose, onViewSellerDetail, onDataUpdate, storeName, managerName }) {
+export default function TeamModal({ sellers, storeIdParam, onClose, onViewSellerDetail, onDataUpdate, storeName, managerName, userRole }) {
   const [teamData, setTeamData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
@@ -54,6 +54,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   const [hiddenSellerIds, setHiddenSellerIds] = useState([]); // IDs des vendeurs à masquer temporairement
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
   const [selectedSellerForEval, setSelectedSellerForEval] = useState(null);
+  const isGerantWithoutStore = ['gerant', 'gérant'].includes(userRole) && !storeIdParam;
 
   // Initialize visible sellers only once when sellers change
   useEffect(() => {
@@ -823,9 +824,21 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                           <td className="px-0 sm:px-4 py-3 text-xs">
                             <div className="flex items-center gap-2 justify-center">
                               <button
-                                onClick={() => onViewSellerDetail(seller)}
-                                className="px-3 py-1.5 bg-[#1E40AF] text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
-                                title="Voir le détail"
+                                onClick={() => {
+                                  // Contrainte métier: un gérant doit être dans un magasin pour voir le détail
+                                  if (isGerantWithoutStore) {
+                                    toast.error('Veuillez sélectionner un magasin pour consulter le détail de ce vendeur.');
+                                    return;
+                                  }
+                                  onViewSellerDetail(seller);
+                                }}
+                                disabled={isGerantWithoutStore}
+                                className={`px-3 py-1.5 text-white text-xs font-medium rounded transition-colors ${
+                                  isGerantWithoutStore
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-[#1E40AF] hover:bg-blue-700'
+                                }`}
+                                title={isGerantWithoutStore ? 'Sélectionnez un magasin pour voir le détail' : 'Voir le détail'}
                               >
                                 Voir détail
                               </button>

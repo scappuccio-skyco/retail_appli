@@ -1175,6 +1175,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           }}
           storeName={storeName}
           managerName={user?.name}
+          userRole={user?.role}
         />
       )}
 
