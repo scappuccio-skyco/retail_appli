@@ -322,20 +322,38 @@ export default function TrialManagement() {
                           }}
                           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                         >
-                          Modifier l'essai
+                          Prolonger l'essai
                         </button>
                       ) : (
                         <div className="flex flex-col gap-2">
+                          <div className="text-xs text-gray-600">
+                            Fin d'essai actuelle :
+                            <span className="ml-1 font-semibold text-gray-800">
+                              {gerant.trial_end
+                                ? new Date(gerant.trial_end).toLocaleDateString('fr-FR')
+                                : 'Aucune'}
+                            </span>
+                          </div>
                           <div className="relative">
                             <input
                               type="date"
                               value={newTrialEnd}
                               onChange={(e) => setNewTrialEnd(e.target.value)}
-                              min={new Date().toISOString().split('T')[0]}
+                              min={(gerant.trial_end
+                                ? new Date(gerant.trial_end).toISOString().split('T')[0]
+                                : new Date().toISOString().split('T')[0])}
                               className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
                               onClick={(e) => e.target.showPicker && e.target.showPicker()}
                             />
                           </div>
+                          {newTrialEnd && (
+                            <div className="text-xs text-blue-700">
+                              Nouvelle fin d'essai :
+                              <span className="ml-1 font-semibold">
+                                {new Date(newTrialEnd).toLocaleDateString('fr-FR')}
+                              </span>
+                            </div>
+                          )}
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleUpdateTrial(gerant.id)}
@@ -370,8 +388,8 @@ export default function TrialManagement() {
         <div className="text-sm text-blue-800">
           <p className="font-semibold mb-1">Information</p>
           <ul className="list-disc list-inside space-y-1 text-blue-700">
-            <li>Vous pouvez modifier la date de fin d'essai pour rallonger ou raccourcir la période</li>
-            <li>Les gérants avec un abonnement actif ne peuvent pas être modifiés ici</li>
+            <li>Vous pouvez prolonger la date de fin d'essai pour rallonger la période</li>
+            <li>Les gérants avec un abonnement actif ne sont pas modifiables ici</li>
             <li>Un essai expiré est marqué en rouge, un essai proche de l'expiration en orange</li>
           </ul>
         </div>

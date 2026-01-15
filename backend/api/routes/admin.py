@@ -1000,40 +1000,39 @@ async def update_gerant_trial(
         except ValueError:
             raise HTTPException(status_code=400, detail="Format de date invalide")
         
-        # Récupérer le workspace du gérant
-        workspace = await db.workspaces.find_one({"gerant_id": gerant_id})
-        
-        if workspace:
-            # Mettre à jour le workspace (source de vérité pour les essais)
-            await db.workspaces.update_one(
-                {"gerant_id": gerant_id},
-                {"$set": {
-                    "trial_end": trial_end,
-                    "subscription_status": "trialing",
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
-            )
-        else:
-            # Créer un workspace si il n'existe pas
-            workspace_id = str(uuid.uuid4())
-            await db.workspaces.insert_one({
-                "id": workspace_id,
-                "name": gerant.get('name', 'Workspace'),
-                "gerant_id": gerant_id,
-                "subscription_status": "trialing",
+        # Récupérer le workspace du gérant (source de vérité pour les essais)
+        workspace = await db.workspaces.find_one({"gerant_id": gerant_id}, {"_id": 0, "trial_end": 1})
+        if not workspace:
+            raise HTTPException(status_code=404, detail="Workspace non trouvé pour ce gérant")
+
+        # Prolongation uniquement: interdire un raccourcissement
+        current_trial_end = workspace.get('trial_end')
+        if current_trial_end:
+            current_trial_dt = current_trial_end
+            if isinstance(current_trial_end, str):
+                current_trial_dt = datetime.fromisoformat(current_trial_end.replace('Z', '+00:00'))
+            if current_trial_dt.tzinfo is None:
+                current_trial_dt = current_trial_dt.replace(tzinfo=timezone.utc)
+
+            if trial_end_date < current_trial_dt:
+                raise HTTPException(status_code=400, detail="La nouvelle date doit prolonger l'essai")
+
+        # Mettre à jour uniquement trial_end (ne pas modifier subscription_status ni plan)
+        await db.workspaces.update_one(
+            {"gerant_id": gerant_id},
+            {"$set": {
                 "trial_end": trial_end,
-                "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
-            })
-        
-        # Mettre à jour aussi l'abonnement pour compatibilité (si existe)
+            }}
+        )
+
+        # Mettre à jour aussi l'abonnement pour compatibilité (si existe) - trial_end uniquement
         subscription = await db.subscriptions.find_one({"user_id": gerant_id})
         if subscription:
             await db.subscriptions.update_one(
                 {"user_id": gerant_id},
                 {"$set": {
                     "trial_end": trial_end,
-                    "status": "trialing",
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }}
             )

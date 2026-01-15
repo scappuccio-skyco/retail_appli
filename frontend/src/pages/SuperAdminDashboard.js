@@ -203,38 +203,6 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  const handleChangePlan = async (workspaceId, workspaceName) => {
-    const newPlan = prompt(
-      `Changer le plan pour "${workspaceName}":\n\n` +
-      `Options disponibles:\n` +
-      `- trial (Essai gratuit)\n` +
-      `- starter (Plan Starter)\n` +
-      `- professional (Plan Professional)\n` +
-      `- enterprise (Plan Enterprise)\n\n` +
-      `Entrez le nouveau plan:`
-    );
-
-    if (!newPlan) return;
-
-    const validPlans = ['trial', 'starter', 'professional', 'enterprise'];
-    if (!validPlans.includes(newPlan.toLowerCase())) {
-      toast.error('Plan invalide. Choisissez: trial, starter, professional ou enterprise');
-      return;
-    }
-
-    try {
-      // Endpoint à créer dans le backend
-      await api.patch(
-        `/superadmin/workspaces/${workspaceId}/plan`,
-        { plan: newPlan.toLowerCase() }
-      );
-      toast.success(`Plan changé en ${newPlan}`);
-      fetchData();
-    } catch (error) {
-      toast.error('Erreur lors du changement de plan');
-      logger.error('Error:', error);
-    }
-  };
 
   // ===== BULK SELECTION FUNCTIONS =====
   
@@ -883,13 +851,6 @@ export default function SuperAdminDashboard() {
                           }`}>
                             {workspace.subscription.plan}
                           </span>
-                          <button
-                            onClick={() => handleChangePlan(workspace.id, workspace.name)}
-                            className="text-xs text-purple-300 hover:text-purple-100 underline"
-                            title="Changer le plan"
-                          >
-                            modifier
-                          </button>
                         </div>
                       </td>
                       <td className="p-3">
