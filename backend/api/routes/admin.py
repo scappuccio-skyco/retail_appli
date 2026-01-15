@@ -346,16 +346,16 @@ async def resolve_duplicates(
 @router.patch("/workspaces/{workspace_id}/status")
 async def update_workspace_status(
     workspace_id: str,
-    status: str = Query(..., description="Nouveau statut (active, suspended, deleted)"),
+    status: str = Query(..., description="Nouveau statut (active, deleted)"),
     db: AsyncIOMotorDatabase = Depends(get_db),
     current_admin: dict = Depends(get_super_admin)
 ):
-    """Activer/désactiver un workspace"""
+    """Activer ou supprimer un workspace"""
     try:
         logger.info(f"🔧 Workspace status update request: workspace_id={workspace_id}, status={status}, admin={current_admin.get('email')}")
         
-        if status not in ['active', 'suspended', 'deleted']:
-            raise HTTPException(status_code=400, detail="Invalid status. Must be: active, suspended, or deleted")
+        if status not in ['active', 'deleted']:
+            raise HTTPException(status_code=400, detail="Invalid status. Must be: active or deleted")
         
         # Get current workspace status before update
         workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "name": 1, "status": 1})
@@ -506,8 +506,8 @@ async def bulk_update_workspace_status(
         status = bulk_data.status
         workspace_ids = bulk_data.workspace_ids
         
-        if status not in ['active', 'suspended', 'deleted']:
-            raise HTTPException(status_code=400, detail="Invalid status. Must be: active, suspended, or deleted")
+        if status not in ['active', 'deleted']:
+            raise HTTPException(status_code=400, detail="Invalid status. Must be: active or deleted")
         
         if not workspace_ids or len(workspace_ids) == 0:
             raise HTTPException(status_code=400, detail="No workspace IDs provided")

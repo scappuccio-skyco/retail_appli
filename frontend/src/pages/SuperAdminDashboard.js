@@ -11,7 +11,7 @@ import Select from 'react-select';
 import { 
   Users, Building2, TrendingUp, Database, Activity, 
   ShieldCheck, AlertCircle, CheckCircle, XCircle, Clock, Sparkles,
-  CheckSquare, Square, Trash2, PauseCircle, PlayCircle
+  CheckSquare, Square, Trash2, PlayCircle
 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -26,10 +26,35 @@ export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [logFilters, setLogFilters] = useState({ level: '', type: '', hours: 24 });
   const [auditFilters, setAuditFilters] = useState({ action: '', admin_emails: [], days: 7 });
-  const [workspaceFilter, setWorkspaceFilter] = useState('active'); // 'all', 'active', 'suspended', 'deleted'
+  const [workspaceFilter, setWorkspaceFilter] = useState('active'); // 'all', 'active', 'trial', 'expired', 'payment_failed', 'deleted'
   const [expandedWorkspaces, setExpandedWorkspaces] = useState({});
   const [selectedWorkspaces, setSelectedWorkspaces] = useState(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  const getSubscriptionStatus = (workspace) => {
+    return workspace?.subscription?.status || workspace?.subscription_status || 'inactive';
+  };
+
+  const getNormalizedSubscriptionStatus = (workspace) => {
+    const status = getSubscriptionStatus(workspace);
+    if (status === 'trialing') return 'trial';
+    if (status === 'past_due') return 'payment_failed';
+    if (['trial_expired', 'expired', 'inactive', 'canceled'].includes(status)) return 'expired';
+    return status || 'expired';
+  };
+
+  const getSubscriptionStatusLabel = (normalizedStatus) => {
+    if (normalizedStatus === 'active') return 'Actif';
+    if (normalizedStatus === 'trial') return 'Essai';
+    if (normalizedStatus === 'payment_failed') return 'Paiement échoué';
+    return 'Expiré';
+  };
+
+  const getSubscriptionStatusClasses = (normalizedStatus) => {
+    if (normalizedStatus === 'active') return 'bg-green-500/20 text-green-200';
+    if (normalizedStatus === 'trial') return 'bg-yellow-500/20 text-yellow-200';
+    if (normalizedStatus === 'payment_failed') return 'bg-red-500/20 text-red-200';
+    return 'bg-gray-500/20 text-gray-200';
+  };
 
   const toggleWorkspace = (workspaceId) => {
     setExpandedWorkspaces(prev => ({
@@ -153,7 +178,7 @@ export default function SuperAdminDashboard() {
       
       logger.info(`✅ Workspace status change response:`, response.data);
       
-      const statusMessage = newStatus === 'active' ? 'activé' : newStatus === 'suspended' ? 'suspendu' : 'supprimé';
+      const statusMessage = newStatus === 'active' ? 'activé' : 'supprimé';
       
       // Vérifier si le statut n'a pas changé (déjà à cette valeur)
       if (response.data?.status_unchanged) {
@@ -216,9 +241,11 @@ export default function SuperAdminDashboard() {
   // Get filtered workspaces for current view
   const getFilteredWorkspaces = () => {
     return workspaces.filter(workspace => {
-      const status = workspace.status || 'active';
       if (workspaceFilter === 'all') return true;
-      return status === workspaceFilter;
+      if (workspaceFilter === 'deleted') {
+        return (workspace.status || 'active') === 'deleted';
+      }
+      return getNormalizedSubscriptionStatus(workspace) === workspaceFilter;
     });
   };
 
@@ -262,7 +289,7 @@ export default function SuperAdminDashboard() {
       return;
     }
 
-    const statusLabel = newStatus === 'active' ? 'réactiver' : newStatus === 'suspended' ? 'suspendre' : 'supprimer';
+    const statusLabel = newStatus === 'active' ? 'réactiver' : 'supprimer';
     const confirmMessage = newStatus === 'deleted' 
       ? `⚠️ Êtes-vous sûr de vouloir SUPPRIMER ${selectedWorkspaces.size} workspace(s) ?\n\nCette action est IRRÉVERSIBLE !`
       : `Voulez-vous ${statusLabel} ${selectedWorkspaces.size} workspace(s) ?`;
@@ -311,7 +338,7 @@ export default function SuperAdminDashboard() {
     setSelectedWorkspaces(new Set());
     
     if (errorCount === 0) {
-      const action = newStatus === 'active' ? 'réactivé(s)' : newStatus === 'suspended' ? 'suspendu(s)' : 'supprimé(s)';
+      const action = newStatus === 'active' ? 'réactivé(s)' : 'supprimé(s)';
       toast.success(`${successCount} workspace(s) ${action} avec succès`);
     } else {
       toast.warning(`${successCount} réussi(s), ${errorCount} échec(s)`);
@@ -628,7 +655,7 @@ export default function SuperAdminDashboard() {
                   <div className="text-white">
                     • {stats?.workspaces.active} actifs<br/>
                     • {stats?.workspaces.trial} en essai<br/>
-                    • {stats?.workspaces.suspended} suspendus
+                    • {stats?.workspaces.total} total
                   </div>
                 </div>
                 <div>
@@ -677,17 +704,37 @@ export default function SuperAdminDashboard() {
                       : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
                   }`}
                 >
-                  🟢 Actifs ({workspaces.filter(w => (w.status || 'active') === 'active').length})
+                  🟢 Actifs ({workspaces.filter(w => getNormalizedSubscriptionStatus(w) === 'active').length})
                 </button>
                 <button
-                  onClick={() => setWorkspaceFilter('suspended')}
+                  onClick={() => setWorkspaceFilter('trial')}
                   className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                    workspaceFilter === 'suspended' 
-                      ? 'bg-amber-500 text-white' 
+                    workspaceFilter === 'trial' 
+                      ? 'bg-yellow-500 text-white' 
                       : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
                   }`}
                 >
-                  🟡 Suspendus ({workspaces.filter(w => w.status === 'suspended').length})
+                  🟡 Essais ({workspaces.filter(w => getNormalizedSubscriptionStatus(w) === 'trial').length})
+                </button>
+                <button
+                  onClick={() => setWorkspaceFilter('expired')}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                    workspaceFilter === 'expired' 
+                      ? 'bg-gray-500 text-white' 
+                      : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
+                  }`}
+                >
+                  ⚪ Expirés ({workspaces.filter(w => getNormalizedSubscriptionStatus(w) === 'expired').length})
+                </button>
+                <button
+                  onClick={() => setWorkspaceFilter('payment_failed')}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                    workspaceFilter === 'payment_failed' 
+                      ? 'bg-red-500 text-white' 
+                      : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
+                  }`}
+                >
+                  🔴 Paiement KO ({workspaces.filter(w => getNormalizedSubscriptionStatus(w) === 'payment_failed').length})
                 </button>
                 <button
                   onClick={() => setWorkspaceFilter('deleted')}
@@ -719,14 +766,6 @@ export default function SuperAdminDashboard() {
                   >
                     <PlayCircle className="w-4 h-4" />
                     Réactiver
-                  </button>
-                  <button
-                    onClick={() => handleBulkStatusChange('suspended')}
-                    disabled={bulkActionLoading}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 rounded-lg text-sm transition-all disabled:opacity-50"
-                  >
-                    <PauseCircle className="w-4 h-4" />
-                    Suspendre
                   </button>
                   <button
                     onClick={() => handleBulkStatusChange('deleted')}
@@ -773,13 +812,7 @@ export default function SuperAdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {workspaces
-                    .filter(workspace => {
-                      const status = workspace.status || 'active';
-                      if (workspaceFilter === 'all') return true;
-                      return status === workspaceFilter;
-                    })
-                    .map((workspace) => (
+                  {getFilteredWorkspaces().map((workspace) => (
                     <React.Fragment key={workspace.id}>
                       <tr className={`border-b border-white/10 hover:bg-white/5 cursor-pointer ${
                         selectedWorkspaces.has(workspace.id) ? 'bg-purple-600/20' : 'bg-purple-900/20'
@@ -860,49 +893,17 @@ export default function SuperAdminDashboard() {
                         </div>
                       </td>
                       <td className="p-3">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          workspace.status === 'active'
-                            ? 'bg-green-500/20 text-green-200'
-                            : workspace.status === 'suspended'
-                            ? 'bg-orange-500/20 text-orange-200'
-                            : 'bg-red-500/20 text-red-200'
-                        }`}>
-                          {workspace.status === 'active' ? 'Actif' : workspace.status === 'suspended' ? 'Suspendu' : 'Supprimé'}
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getSubscriptionStatusClasses(getNormalizedSubscriptionStatus(workspace))}`}>
+                          {getSubscriptionStatusLabel(getNormalizedSubscriptionStatus(workspace))}
                         </span>
                       </td>
                       <td className="p-3">
                         <div className="flex gap-2">
-                          {workspace.status === 'active' && (
+                          {workspace.status !== 'deleted' && (
                             <>
-                              <button
-                                onClick={() => handleWorkspaceStatusChange(workspace.id, 'suspended')}
-                                className="px-3 py-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 rounded text-sm transition-all"
-                              >
-                                Suspendre
-                              </button>
                               <button
                                 onClick={() => {
                                   if (window.confirm(`⚠️ Êtes-vous sûr de vouloir supprimer le workspace "${workspace.name}" ?\n\nCette action est IRRÉVERSIBLE et supprimera :\n- Le workspace\n- Tous les utilisateurs (manager + vendeurs)\n- Toutes les données (analyses, diagnostics, etc.)`)) {
-                                    handleWorkspaceStatusChange(workspace.id, 'deleted');
-                                  }
-                                }}
-                                className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded text-sm transition-all"
-                              >
-                                Supprimer
-                              </button>
-                            </>
-                          )}
-                          {workspace.status === 'suspended' && (
-                            <>
-                              <button
-                                onClick={() => handleWorkspaceStatusChange(workspace.id, 'active')}
-                                className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-200 rounded text-sm transition-all"
-                              >
-                                Réactiver
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (window.confirm(`⚠️ Êtes-vous sûr de vouloir supprimer le workspace "${workspace.name}" ?`)) {
                                     handleWorkspaceStatusChange(workspace.id, 'deleted');
                                   }
                                 }}

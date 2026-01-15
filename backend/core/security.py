@@ -141,12 +141,13 @@ async def _resolve_workspace(db, user: dict) -> Optional[dict]:
     user_id = user.get('id')
     user_role = _normalize_role(user.get('role'))
 
+    projection = {"_id": 0, "id": 1, "status": 1, "subscription_status": 1, "trial_end": 1}
     if workspace_id:
-        return await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "id": 1, "status": 1})
+        return await db.workspaces.find_one({"id": workspace_id}, projection)
     if gerant_id:
-        return await db.workspaces.find_one({"gerant_id": gerant_id}, {"_id": 0, "id": 1, "status": 1})
+        return await db.workspaces.find_one({"gerant_id": gerant_id}, projection)
     if user_role == 'gerant':
-        return await db.workspaces.find_one({"gerant_id": user_id}, {"_id": 0, "id": 1, "status": 1})
+        return await db.workspaces.find_one({"gerant_id": user_id}, projection)
     return None
 
 
@@ -158,7 +159,9 @@ async def _attach_space_context(db, user: dict) -> dict:
     status = workspace.get('status', 'active') if workspace else 'unknown'
     user['space'] = {
         "id": workspace.get('id') if workspace else None,
-        "status": status
+        "status": status,
+        "subscription_status": workspace.get('subscription_status') if workspace else None,
+        "trial_end": workspace.get('trial_end') if workspace else None
     }
     return user
 
@@ -183,7 +186,7 @@ async def get_current_user(
         
     Raises:
         HTTPException: If token invalid or user not found
-        HTTPException 403: If workspace is suspended
+        HTTPException 403: If subscription is inactive/expired
     """
     from core.database import get_db
     
@@ -422,16 +425,56 @@ async def require_active_space(
     current_user: dict = Depends(get_current_user)
 ) -> dict:
     """
-    Dependency to enforce active workspace for business routes.
-    Returns current_user if workspace is active.
+    Dependency to enforce active subscription for business routes.
+    Returns current_user if subscription is active or trialing (not expired).
     """
+    from core.database import get_db
+
     space = current_user.get('space') or {}
-    status = space.get('status', 'unknown')
-    if status != 'active':
+    space_status = space.get('status')
+    if space_status == 'deleted':
+        raise HTTPException(status_code=403, detail="Espace supprimé")
+
+    subscription_status = space.get('subscription_status') or 'inactive'
+    if subscription_status == 'active':
+        return current_user
+
+    if subscription_status == 'trialing':
+        trial_end = space.get('trial_end')
+        if trial_end:
+            if isinstance(trial_end, str):
+                trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+            else:
+                trial_end_dt = trial_end
+
+            now = datetime.now(timezone.utc)
+            if trial_end_dt.tzinfo is None:
+                trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
+
+            if now <= trial_end_dt:
+                return current_user
+
+        # Trial expired: update workspace status to reflect expiry
+        workspace_id = space.get('id')
+        if workspace_id:
+            db = await get_db()
+            await db.workspaces.update_one(
+                {"id": workspace_id},
+                {"$set": {
+                    "subscription_status": "trial_expired",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+
         raise HTTPException(
             status_code=403,
-            detail="Espace suspendu ou expiré : accès aux fonctionnalités bloqué"
+            detail="Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer."
         )
+
+    raise HTTPException(
+        status_code=403,
+        detail="Abonnement inactif ou paiement en échec : accès aux fonctionnalités bloqué"
+    )
     return current_user
 
 
