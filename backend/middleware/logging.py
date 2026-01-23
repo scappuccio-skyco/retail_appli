@@ -6,6 +6,7 @@ import uuid
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from core.logging import request_id_var, get_logger
+from middleware.log_sanitizer import sanitize_dict
 
 logger = get_logger(__name__)
 
@@ -27,17 +28,17 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             duration_ms = (time.time() - start_time) * 1000
             
-            # Log structuré
-            logger.info(
-                'Request completed',
-                extra={
-                    'request_id': request_id,
-                    'method': request.method,
-                    'endpoint': request.url.path,
-                    'status_code': response.status_code,
-                    'duration_ms': round(duration_ms, 2),
-                }
-            )
+            # Log structuré (avec sanitization automatique)
+            log_data = {
+                'request_id': request_id,
+                'method': request.method,
+                'endpoint': request.url.path,
+                'status_code': response.status_code,
+                'duration_ms': round(duration_ms, 2),
+            }
+            # ⚠️ SECURITY: Sanitize log data to mask sensitive fields
+            sanitized_log_data = sanitize_dict(log_data)
+            logger.info('Request completed', extra=sanitized_log_data)
             
             # Ajouter request_id au header de réponse
             response.headers['X-Request-ID'] = request_id
@@ -45,14 +46,14 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             
         except Exception as e:
             duration_ms = (time.time() - start_time) * 1000
-            logger.exception(
-                'Request failed',
-                extra={
-                    'request_id': request_id,
-                    'method': request.method,
-                    'endpoint': request.url.path,
-                    'duration_ms': round(duration_ms, 2),
-                }
-            )
+            # ⚠️ SECURITY: Sanitize log data to mask sensitive fields
+            log_data = {
+                'request_id': request_id,
+                'method': request.method,
+                'endpoint': request.url.path,
+                'duration_ms': round(duration_ms, 2),
+            }
+            sanitized_log_data = sanitize_dict(log_data)
+            logger.exception('Request failed', extra=sanitized_log_data)
             raise
 

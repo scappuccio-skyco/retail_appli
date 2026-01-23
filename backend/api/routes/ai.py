@@ -1,11 +1,18 @@
 """AI & Diagnostic Routes - Clean Architecture"""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import Dict, List, Union
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from services.ai_service import AIService, AIDataService
 from api.dependencies import get_ai_service, get_ai_data_service
+from api.dependencies_rate_limiting import get_rate_limiter
 from core.security import get_current_user, get_current_seller, require_active_space
 from models.diagnostics import DiagnosticResponse
+
+# Rate limiter instance (will be set from app.state in main.py)
+# Use IP-based limiting for AI endpoints (cost protection)
+limiter = get_rate_limiter()
 
 router = APIRouter(
     prefix="/ai",
@@ -15,7 +22,9 @@ router = APIRouter(
 
 
 @router.post("/diagnostic")
+@limiter.limit("10/minute")  # ⚠️ SECURITY: Rate limit 10 req/min to prevent cost abuse
 async def generate_diagnostic(
+    request: Request,
     responses: List[Union[DiagnosticResponse, Dict]],
     current_user: Dict = Depends(get_current_seller),
     ai_service: AIService = Depends(get_ai_service)
@@ -75,7 +84,9 @@ async def generate_diagnostic(
 
 
 @router.post("/daily-challenge")
+@limiter.limit("10/minute")  # ⚠️ SECURITY: Rate limit 10 req/min to prevent cost abuse
 async def generate_daily_challenge(
+    request: Request,
     current_user: Dict = Depends(get_current_seller),
     ai_data_service: AIDataService = Depends(get_ai_data_service)
 ):
@@ -99,7 +110,9 @@ async def generate_daily_challenge(
 
 
 @router.post("/seller-bilan")
+@limiter.limit("10/minute")  # ⚠️ SECURITY: Rate limit 10 req/min to prevent cost abuse
 async def generate_seller_bilan(
+    request: Request,
     current_user: Dict = Depends(get_current_seller),
     ai_data_service: AIDataService = Depends(get_ai_data_service)
 ):

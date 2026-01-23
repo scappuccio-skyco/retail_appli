@@ -10,8 +10,12 @@ import logging
 from core.security import get_current_user, verify_resource_store_access, verify_seller_store_access, require_active_space
 from services.manager_service import ManagerService, APIKeyService
 from api.dependencies import get_manager_service, get_api_key_service, get_db, get_seller_service, get_gerant_service
+from api.dependencies_rate_limiting import get_rate_limiter
 from services.seller_service import SellerService
 from services.gerant_service import GerantService
+
+# Rate limiter instance (will be set from app.state in main.py)
+limiter = get_rate_limiter()
 
 router = APIRouter(
     prefix="/manager",
@@ -435,7 +439,9 @@ async def get_available_years(
 
 
 @router.get("/sellers")
+@limiter.limit("100/minute")  # ⚠️ SECURITY: Rate limit 100 req/min to prevent scraping
 async def get_sellers(
+    request: Request,  # ⚠️ Required for rate limiting
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service)
@@ -2469,7 +2475,9 @@ Format : Markdown simple et concis."""
 # These endpoints require store context verification
 
 @router.get("/kpi-entries/{seller_id}")
+@limiter.limit("100/minute")  # ⚠️ SECURITY: Rate limit 100 req/min to prevent scraping
 async def get_seller_kpi_entries(
+    request: Request,  # ⚠️ Required for rate limiting
     seller_id: str,
     days: int = Query(30, description="Number of days to fetch"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
@@ -2532,7 +2540,9 @@ async def get_seller_kpi_entries(
 
 
 @router.get("/seller/{seller_id}/stats")
+@limiter.limit("100/minute")  # ⚠️ SECURITY: Rate limit 100 req/min to prevent scraping
 async def get_seller_stats(
+    request: Request,  # ⚠️ Required for rate limiting
     seller_id: str,
     days: int = Query(30, description="Number of days for stats calculation"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),

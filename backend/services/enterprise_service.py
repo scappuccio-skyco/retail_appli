@@ -327,9 +327,14 @@ class EnterpriseService:
             {"email": {"$in": emails}},
             {"_id": 0, "id": 1, "email": 1, "role": 1, "store_id": 1}
         )
+        # ⚠️ SECURITY: Limit to 1000 users max to prevent OOM during sync
+        MAX_USERS_SYNC = 1000
+        existing_users_list = await existing_users_cursor.limit(MAX_USERS_SYNC).to_list(MAX_USERS_SYNC)
+        if len(existing_users_list) == MAX_USERS_SYNC:
+            logger.warning(f"Users sync query hit limit of {MAX_USERS_SYNC}. Some users may not be matched correctly.")
         existing_users_map = {
             user['email']: user 
-            for user in await existing_users_cursor.to_list(length=None)
+            for user in existing_users_list
         }
         
         # PHASE 2: Build bulk operations list in memory
@@ -529,7 +534,12 @@ class EnterpriseService:
                 query,
                 {"_id": 0, "id": 1, "name": 1, "external_id": 1, "location": 1}
             )
-            for store in await existing_stores_cursor.to_list(length=None):
+            # ⚠️ SECURITY: Limit to 1000 stores max to prevent OOM during sync
+            MAX_STORES_SYNC = 1000
+            existing_stores_list = await existing_stores_cursor.limit(MAX_STORES_SYNC).to_list(MAX_STORES_SYNC)
+            if len(existing_stores_list) == MAX_STORES_SYNC:
+                logger.warning(f"Stores sync query hit limit of {MAX_STORES_SYNC}. Some stores may not be matched correctly.")
+            for store in existing_stores_list:
                 if store.get('external_id'):
                     existing_stores_map[store['external_id']] = store
                 else:

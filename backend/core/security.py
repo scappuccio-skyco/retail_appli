@@ -614,7 +614,12 @@ async def verify_seller_store_access(
     """
     Verify that a seller belongs to the user's store.
     
-    Prevents managers from accessing sellers from other stores.
+    ✅ SECURITY: Prevents IDOR attacks by verifying ownership hierarchy.
+    
+    Rules:
+    - Manager: Seller must have same store_id as manager
+    - Gérant: Seller's store must be owned by gérant (store.gerant_id = user_id)
+    - Seller: Can only access their own data (seller_id = user_id)
     
     Args:
         db: Database connection
@@ -630,22 +635,102 @@ async def verify_seller_store_access(
         HTTPException 403: If seller doesn't belong to user's store
         HTTPException 404: If seller not found
     """
-    # Build query with store_id filter (CRITICAL: prevents IDOR)
-    query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
+    # ✅ SECURITY: Role-based verification
     
-    seller = await db.users.find_one(query, {"_id": 0, "password": 0})
-    
-    if not seller:
-        # Check if seller exists but in different store (security: don't reveal existence)
-        exists_elsewhere = await db.users.find_one(
-            {"id": seller_id, "role": "seller"},
-            {"_id": 0, "store_id": 1}
-        )
-        if exists_elsewhere:
+    if user_role == 'seller':
+        # Seller can only access their own data
+        if seller_id != user_id:
             raise HTTPException(
                 status_code=403,
-                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
+                detail="Un vendeur ne peut accéder qu'à ses propres données"
             )
-        raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        seller = await db.users.find_one(
+            {"id": seller_id, "role": "seller"},
+            {"_id": 0, "password": 0}
+        )
+        if not seller:
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        return seller
     
-    return seller
+    elif user_role == 'manager':
+        # ✅ CRITICAL: Build query with store_id filter (prevents IDOR)
+        query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
+        
+        seller = await db.users.find_one(query, {"_id": 0, "password": 0})
+        
+        if not seller:
+            # Check if seller exists but in different store (security: don't reveal existence)
+            exists_elsewhere = await db.users.find_one(
+                {"id": seller_id, "role": "seller"},
+                {"_id": 0, "store_id": 1}
+            )
+            if exists_elsewhere:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
+                )
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        
+        return seller
+    
+    elif user_role in ['gerant', 'gérant']:
+        # ✅ CRITICAL: Gérant must verify ownership via store hierarchy
+        # Step 1: Get seller with store_id
+        seller = await db.users.find_one(
+            {"id": seller_id, "role": "seller"},
+            {"_id": 0, "password": 0, "store_id": 1}
+        )
+        
+        if not seller:
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        
+        seller_store_id = seller.get('store_id')
+        if not seller_store_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Vendeur sans magasin assigné"
+            )
+        
+        # Step 2: Verify store ownership (store.gerant_id = user_id)
+        # ✅ CRITICAL: Ownership check prevents IDOR
+        store = await db.stores.find_one(
+            {
+                "id": seller_store_id,
+                "gerant_id": user_id,  # ⚠️ FILTRE CRITIQUE : prévient IDOR
+                "active": True
+            },
+            {"_id": 0, "id": 1}
+        )
+        
+        if not store:
+            raise HTTPException(
+                status_code=403,
+                detail="Ce vendeur n'appartient pas à l'un de vos magasins"
+            )
+        
+        # Get full seller data now that ownership is verified
+        seller = await db.users.find_one(
+            {"id": seller_id, "role": "seller"},
+            {"_id": 0, "password": 0}
+        )
+        
+        return seller
+    
+    else:
+        # Default: Use store_id filter (for backward compatibility)
+        query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
+        seller = await db.users.find_one(query, {"_id": 0, "password": 0})
+        
+        if not seller:
+            exists_elsewhere = await db.users.find_one(
+                {"id": seller_id, "role": "seller"},
+                {"_id": 0, "store_id": 1}
+            )
+            if exists_elsewhere:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
+                )
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        
+        return seller

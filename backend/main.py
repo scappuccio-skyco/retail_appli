@@ -11,6 +11,9 @@ try:
     from fastapi.middleware.cors import CORSMiddleware
     from typing import Optional
     import logging
+    from slowapi import Limiter, _rate_limit_exceeded_handler
+    from slowapi.util import get_remote_address
+    from slowapi.errors import RateLimitExceeded
     print("[STARTUP] 2/10 - FastAPI imports done", flush=True)
 except Exception as e:
     print(f"[STARTUP] FATAL: FastAPI import failed: {e}", flush=True)
@@ -66,6 +69,28 @@ app = FastAPI(
 )
 print("[STARTUP] 8/10 - FastAPI app created", flush=True)
 
+# Initialize Rate Limiter (slowapi)
+print("[STARTUP] 8.1/10 - Initializing rate limiter...", flush=True)
+try:
+    limiter = Limiter(key_func=get_remote_address)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    
+    # Initialize rate limiter in core module for use in routes
+    from core.rate_limiting import init_rate_limiter
+    init_rate_limiter(limiter)
+    
+    # Initialize rate limiter in dependencies module for routes
+    from api.dependencies_rate_limiting import init_global_limiter
+    init_global_limiter(limiter)
+    
+    print("[STARTUP] 8.1/10 - Rate limiter initialized", flush=True)
+    logger.info("Rate limiter initialized with slowapi")
+except Exception as e:
+    logger.warning(f"Failed to initialize rate limiter: {e}")
+    print(f"[STARTUP] WARNING: Rate limiter not initialized: {e}", flush=True)
+    limiter = None
+
 # Configure CORS - CRITICAL for production
 # ⚠️ allow_credentials=True + "*" = ERREUR EN PROD
 # Force explicit list for production
@@ -103,6 +128,15 @@ try:
 except Exception as e:
     logger.warning(f"Failed to load LoggingMiddleware: {e}")
     print(f"[STARTUP] WARNING: LoggingMiddleware not loaded: {e}", flush=True)
+
+# Add security headers middleware
+try:
+    from middleware.security_headers import SecurityHeadersMiddleware
+    app.add_middleware(SecurityHeadersMiddleware)
+    print("[STARTUP] 8.6/10 - Security headers middleware added", flush=True)
+except Exception as e:
+    logger.warning(f"Failed to load SecurityHeadersMiddleware: {e}")
+    print(f"[STARTUP] WARNING: SecurityHeadersMiddleware not loaded: {e}", flush=True)
 
 app.add_middleware(
     CORSMiddleware,
@@ -152,6 +186,22 @@ for router in routers:
     app.include_router(router, prefix="/api")
     logger.info(f"Registered router: {router.prefix} ({len(router.routes)} routes)")
     print(f"[STARTUP] Registered router: {router.prefix} ({len(router.routes)} routes)", flush=True)
+
+# ⚠️ SECURITY: Initialize rate limiter in all routers after app is created
+# This allows routes to access app.state.limiter
+if hasattr(app.state, 'limiter') and app.state.limiter:
+    # Update limiter in route modules that need it
+    try:
+        from api.routes import ai, briefs, manager
+        if hasattr(ai, 'limiter'):
+            ai.limiter = app.state.limiter
+        if hasattr(briefs, 'limiter'):
+            briefs.limiter = app.state.limiter
+        if hasattr(manager, 'limiter'):
+            manager.limiter = app.state.limiter
+        logger.info("Rate limiter initialized in route modules")
+    except Exception as e:
+        logger.warning(f"Failed to initialize rate limiter in routes: {e}")
     if router.prefix == "/auth":
         logger.info(f"✅ Auth router registered: {[r.path for r in router.routes]}")
         print(f"[STARTUP] ✅ Auth router registered with routes: {[r.path for r in router.routes]}", flush=True)

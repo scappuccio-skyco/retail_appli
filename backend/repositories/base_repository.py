@@ -130,18 +130,24 @@ class BaseRepository:
     
     # ===== AGGREGATION =====
     
-    async def aggregate(self, pipeline: List[Dict]) -> List[Dict]:
+    async def aggregate(self, pipeline: List[Dict], max_results: int = 10000) -> List[Dict]:
         """
         Run aggregation pipeline
         
         Args:
             pipeline: MongoDB aggregation pipeline
+            max_results: Maximum number of results to return (default: 10000)
+                        Set to None to disable limit (use with caution)
             
         Returns:
-            List of aggregation results
+            List of aggregation results (limited to max_results)
         """
         cursor = self.collection.aggregate(pipeline)
-        return await cursor.to_list(None)
+        # ⚠️ SECURITY: Default limit to prevent OOM
+        # If you need more results, explicitly pass max_results=None (use with caution)
+        if max_results is None:
+            return await cursor.to_list(None)
+        return await cursor.to_list(max_results)
     
     # ===== BULK OPERATIONS =====
     

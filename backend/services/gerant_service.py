@@ -2203,7 +2203,12 @@ class GerantService:
                 query,
                 {"_id": 0, "id": 1, "name": 1, "external_id": 1, "location": 1}
             )
-            for store in await existing_stores_cursor.to_list(length=None):
+            # ⚠️ SECURITY: Limit to 1000 stores max to prevent OOM during sync
+            MAX_STORES_SYNC = 1000
+            existing_stores_list = await existing_stores_cursor.limit(MAX_STORES_SYNC).to_list(MAX_STORES_SYNC)
+            if len(existing_stores_list) == MAX_STORES_SYNC:
+                logger.warning(f"Stores sync query hit limit of {MAX_STORES_SYNC}. Some stores may not be matched correctly.")
+            for store in existing_stores_list:
                 if store.get('external_id'):
                     existing_stores_map[store['external_id']] = store
                 existing_stores_map[store['name']] = store

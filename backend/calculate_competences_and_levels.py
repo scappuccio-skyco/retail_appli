@@ -105,32 +105,57 @@ async def update_all_diagnostics():
     
     print(f"Found {len(diagnostics)} diagnostics with numeric answers")
     
+    if not diagnostics:
+        print("No diagnostics to update.")
+        return
+    
+    # ✅ OPTIMIZATION: Extract all seller_ids before the loop (batch query)
+    seller_ids = [diag['seller_id'] for diag in diagnostics if diag.get('seller_id')]
+    
+    # ✅ OPTIMIZATION: Single batch query to get all seller names at once
+    sellers = await db.users.find(
+        {"id": {"$in": seller_ids}},
+        {"_id": 0, "id": 1, "name": 1}
+    ).to_list(len(seller_ids))
+    
+    # ✅ OPTIMIZATION: Create lookup map for O(1) access
+    seller_map = {seller['id']: seller.get('name', 'Unknown') for seller in sellers}
+    
+    # ✅ OPTIMIZATION: Prepare all updates in memory, then bulk_write
+    from pymongo import UpdateOne
+    
+    bulk_operations = []
     updated_count = 0
     
     for diag in diagnostics:
-        seller_id = diag['seller_id']
+        seller_id = diag.get('seller_id')
+        if not seller_id:
+            continue
+            
         answers = diag.get('answers', {})
         
-        # Get seller name
-        seller = await db.users.find_one({"id": seller_id}, {"name": 1, "_id": 0})
-        seller_name = seller['name'] if seller else "Unknown"
+        # ✅ OPTIMIZATION: Use lookup map instead of DB query
+        seller_name = seller_map.get(seller_id, "Unknown")
         
-        # Calculate competence scores
+        # Calculate competence scores (business logic unchanged)
         competence_scores = calculate_competence_scores_from_numeric_answers(answers)
         
-        # Determine level badge
+        # Determine level badge (business logic unchanged)
         profile = diag.get('profile', 'equilibre')
         level = determine_level_from_scores(competence_scores, profile)
         
-        # Update diagnostic
+        # Prepare update data
         update_data = {
             **competence_scores,
             'level': level
         }
         
-        await db.diagnostics.update_one(
-            {"id": diag['id']},
-            {"$set": update_data}
+        # ✅ OPTIMIZATION: Add to bulk operations instead of individual update_one
+        bulk_operations.append(
+            UpdateOne(
+                {"id": diag['id']},
+                {"$set": update_data}
+            )
         )
         
         avg_score = (
@@ -144,7 +169,13 @@ async def update_all_diagnostics():
         print(f"✅ {seller_name}: Avg={avg_score:.1f} → {level} | Accueil={competence_scores['score_accueil']}, Découverte={competence_scores['score_decouverte']}, Argu={competence_scores['score_argumentation']}, Closing={competence_scores['score_closing']}, Fidé={competence_scores['score_fidelisation']}")
         updated_count += 1
     
-    print(f"\n🎉 Updated {updated_count} diagnostics with competence scores and levels!")
+    # ✅ OPTIMIZATION: Execute all updates in a single bulk_write (ordered=False for speed)
+    if bulk_operations:
+        await db.diagnostics.bulk_write(bulk_operations, ordered=False)
+        print(f"\n🎉 Updated {updated_count} diagnostics with competence scores and levels in a single bulk operation!")
+    else:
+        print("\n⚠️ No diagnostics to update.")
+    
     print("Radar charts and level badges should now display correctly!")
 
 if __name__ == "__main__":

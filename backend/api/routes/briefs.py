@@ -2,7 +2,7 @@
 Morning Brief Routes
 API endpoints for generating morning briefs for managers
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, Request
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, List
 from datetime import datetime, timedelta, timezone
@@ -10,8 +10,12 @@ from uuid import uuid4
 import logging
 
 from api.dependencies import get_db
+from api.dependencies_rate_limiting import get_rate_limiter
 from core.security import get_current_user, require_active_space
 from services.ai_service import AIService
+
+# Rate limiter instance (will be set from app.state in main.py)
+limiter = get_rate_limiter()
 
 router = APIRouter(
     prefix="/briefs",
@@ -104,7 +108,9 @@ class BriefHistoryItem(BaseModel):
 
 
 @router.post("/morning", response_model=MorningBriefResponse)
+@limiter.limit("10/minute")  # ⚠️ SECURITY: Rate limit 10 req/min to prevent cost abuse
 async def generate_morning_brief(
+    http_request: Request,  # ⚠️ Required for rate limiting
     store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
     request: MorningBriefRequest = Body(...),
     current_user: dict = Depends(get_current_user),

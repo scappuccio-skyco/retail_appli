@@ -702,51 +702,109 @@ async def get_subscriptions_overview(
     """
     try:
         # Récupérer tous les gérants
+        # ⚠️ SECURITY: Limit to 1000 gérants max to prevent OOM
+        MAX_GERANTS = 1000
         gerants = await db.users.find(
             {"role": "gerant"},
             {"_id": 0, "id": 1, "name": 1, "email": 1, "stripe_customer_id": 1, "created_at": 1}
-        ).to_list(None)
+        ).limit(MAX_GERANTS).to_list(MAX_GERANTS)
         
-        subscriptions_data = []
+        if len(gerants) == MAX_GERANTS:
+            logger.warning(f"Gérants query hit limit of {MAX_GERANTS}. Consider implementing pagination.")
         
-        for gerant in gerants:
-            # Récupérer l'abonnement
-            subscription = await db.subscriptions.find_one(
-                {"user_id": gerant['id']},
-                {"_id": 0}
-            )
-            
-            # Compter les vendeurs actifs
-            active_sellers_count = await db.users.count_documents({
-                "gerant_id": gerant['id'],
+        # ✅ OPTIMIZATION: Extract all gerant_ids for batch queries
+        gerant_ids = [gerant['id'] for gerant in gerants]
+        
+        # ✅ OPTIMIZATION: Batch query 1 - Get all subscriptions at once
+        subscriptions_list = await db.subscriptions.find(
+            {"user_id": {"$in": gerant_ids}},
+            {"_id": 0}
+        ).to_list(len(gerant_ids))
+        subscriptions_map = {sub['user_id']: sub for sub in subscriptions_list}
+        
+        # ✅ OPTIMIZATION: Batch query 2 - Get all active sellers counts using aggregation
+        sellers_count_pipeline = [
+            {"$match": {
+                "gerant_id": {"$in": gerant_ids},
                 "role": "seller",
                 "status": "active"
-            })
+            }},
+            {"$group": {
+                "_id": "$gerant_id",
+                "count": {"$sum": 1}
+            }}
+        ]
+        sellers_counts = await db.users.aggregate(sellers_count_pipeline).to_list(len(gerant_ids))
+        sellers_count_map = {item['_id']: item['count'] for item in sellers_counts}
+        
+        # ✅ OPTIMIZATION: Batch query 3 - Get all team members at once
+        MAX_TEAM_MEMBERS = 1000
+        all_team_members = await db.users.find(
+            {"gerant_id": {"$in": gerant_ids}},
+            {"_id": 0, "id": 1, "gerant_id": 1}
+        ).limit(MAX_TEAM_MEMBERS * len(gerant_ids)).to_list(MAX_TEAM_MEMBERS * len(gerant_ids))
+        
+        # ✅ OPTIMIZATION: Group team members by gerant_id
+        team_members_by_gerant = {}
+        for member in all_team_members:
+            gerant_id = member.get('gerant_id')
+            if gerant_id:
+                if gerant_id not in team_members_by_gerant:
+                    team_members_by_gerant[gerant_id] = []
+                team_members_by_gerant[gerant_id].append(member['id'])
+        
+        # ✅ OPTIMIZATION: Batch query 4 - Get all last transactions using aggregation
+        # Get the most recent transaction per gerant
+        transactions_pipeline = [
+            {"$match": {"user_id": {"$in": gerant_ids}}},
+            {"$sort": {"created_at": -1}},
+            {"$group": {
+                "_id": "$user_id",
+                "last_transaction": {"$first": "$$ROOT"}
+            }}
+        ]
+        transactions_list = await db.payment_transactions.aggregate(transactions_pipeline).to_list(len(gerant_ids))
+        transactions_map = {}
+        for item in transactions_list:
+            transaction = item.get('last_transaction', {})
+            transaction.pop('_id', None)  # Remove MongoDB _id
+            transactions_map[item['_id']] = transaction
+        
+        # ✅ OPTIMIZATION: Batch query 5 - Get all AI credits usage by team
+        all_team_ids = []
+        for team_ids in team_members_by_gerant.values():
+            all_team_ids.extend(team_ids[:MAX_TEAM_MEMBERS])  # Limit per gerant
+        
+        ai_credits_map = {}
+        if all_team_ids:
+            # Aggregate credits by gerant_id (via team members)
+            ai_credits_pipeline = [
+                {"$match": {"user_id": {"$in": all_team_ids}}},
+                {"$lookup": {
+                    "from": "users",
+                    "localField": "user_id",
+                    "foreignField": "id",
+                    "as": "user_info"
+                }},
+                {"$unwind": {"path": "$user_info", "preserveNullAndEmptyArrays": True}},
+                {"$group": {
+                    "_id": "$user_info.gerant_id",
+                    "total": {"$sum": "$credits_consumed"}
+                }}
+            ]
+            ai_credits_list = await db.ai_usage_logs.aggregate(ai_credits_pipeline).to_list(len(gerant_ids))
+            ai_credits_map = {item['_id']: item.get('total', 0) for item in ai_credits_list if item.get('_id')}
+        
+        # ✅ OPTIMIZATION: Build response in memory using lookup maps
+        subscriptions_data = []
+        for gerant in gerants:
+            gerant_id = gerant['id']
             
-            # Récupérer la dernière transaction
-            last_transaction = await db.payment_transactions.find_one(
-                {"user_id": gerant['id']},
-                {"_id": 0},
-                sort=[("created_at", -1)]
-            )
-            
-            # Récupérer l'utilisation des crédits IA
-            team_members = await db.users.find(
-                {"gerant_id": gerant['id']},
-                {"_id": 0, "id": 1}
-            ).to_list(None)
-            
-            team_ids = [member['id'] for member in team_members]
-            
-            ai_credits_total = 0
-            if team_ids:
-                pipeline = [
-                    {"$match": {"user_id": {"$in": team_ids}}},
-                    {"$group": {"_id": None, "total": {"$sum": "$credits_consumed"}}}
-                ]
-                result = await db.ai_usage_logs.aggregate(pipeline).to_list(None)
-                if result:
-                    ai_credits_total = result[0]['total']
+            # Use lookup maps instead of individual queries
+            subscription = subscriptions_map.get(gerant_id)
+            active_sellers_count = sellers_count_map.get(gerant_id, 0)
+            last_transaction = transactions_map.get(gerant_id)
+            ai_credits_total = ai_credits_map.get(gerant_id, 0)
             
             subscriptions_data.append({
                 "gerant": {
@@ -879,10 +937,15 @@ async def get_gerants_trials(
     """Récupérer tous les gérants avec leurs informations d'essai"""
     try:
         # Récupérer tous les gérants
+        # ⚠️ SECURITY: Limit to 1000 gérants max to prevent OOM
+        MAX_GERANTS = 1000
         gerants = await db.users.find(
             {"role": "gerant"},
             {"_id": 0, "password": 0}
-        ).to_list(length=None)
+        ).limit(MAX_GERANTS).to_list(MAX_GERANTS)
+        
+        if len(gerants) == MAX_GERANTS:
+            logger.warning(f"Gérants query hit limit of {MAX_GERANTS}. Consider implementing pagination.")
         
         result = []
         for gerant in gerants:

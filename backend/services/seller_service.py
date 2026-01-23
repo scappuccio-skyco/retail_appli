@@ -2,9 +2,12 @@
 Seller Service
 Business logic for seller-specific operations (tasks, objectives, challenges)
 """
+import logging
 from datetime import datetime, timezone
 from typing import List, Dict, Optional
 from uuid import uuid4
+
+logger = logging.getLogger(__name__)
 
 
 class SellerService:
@@ -895,7 +898,13 @@ class SellerService:
             kpi_query["store_id"] = store_id
         
         increment_db_op("db.kpi_entries.find (batch - objectives)")
-        all_kpi_entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).to_list(100000)
+        # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
+        # If more data is needed, use streaming/cursor approach
+        MAX_KPI_BATCH_SIZE = 10000
+        all_kpi_entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).limit(MAX_KPI_BATCH_SIZE).to_list(MAX_KPI_BATCH_SIZE)
+        
+        if len(all_kpi_entries) == MAX_KPI_BATCH_SIZE:
+            logger.warning(f"KPI entries query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
         
         # Preload all manager KPIs for the global date range (1 query)
         manager_kpi_query = {
@@ -906,7 +915,11 @@ class SellerService:
             manager_kpi_query["store_id"] = store_id
         
         increment_db_op("db.manager_kpis.find (batch - objectives)")
-        all_manager_kpis = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(100000)
+        # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
+        all_manager_kpis = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).limit(MAX_KPI_BATCH_SIZE).to_list(MAX_KPI_BATCH_SIZE)
+        
+        if len(all_manager_kpis) == MAX_KPI_BATCH_SIZE:
+            logger.warning(f"Manager KPIs query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
         
         # Group KPI entries by (seller_id, date) for fast lookup
         kpi_by_seller_date = {}
@@ -1261,7 +1274,12 @@ class SellerService:
             kpi_query["store_id"] = store_id
         
         increment_db_op("db.kpi_entries.find (batch - challenges)")
-        all_kpi_entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).to_list(100000)
+        # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
+        MAX_KPI_BATCH_SIZE = 10000
+        all_kpi_entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).limit(MAX_KPI_BATCH_SIZE).to_list(MAX_KPI_BATCH_SIZE)
+        
+        if len(all_kpi_entries) == MAX_KPI_BATCH_SIZE:
+            logger.warning(f"KPI entries query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
         
         # Preload all manager KPIs for the global date range (1 query)
         manager_kpi_query = {
@@ -1272,7 +1290,11 @@ class SellerService:
             manager_kpi_query["store_id"] = store_id
         
         increment_db_op("db.manager_kpis.find (batch - challenges)")
-        all_manager_kpis = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(100000)
+        # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
+        all_manager_kpis = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).limit(MAX_KPI_BATCH_SIZE).to_list(MAX_KPI_BATCH_SIZE)
+        
+        if len(all_manager_kpis) == MAX_KPI_BATCH_SIZE:
+            logger.warning(f"Manager KPIs query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
         
         # Calculate progress for each challenge using preloaded data
         updates = []
