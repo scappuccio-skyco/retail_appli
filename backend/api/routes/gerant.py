@@ -244,7 +244,7 @@ async def update_gerant_profile(
                         email=user_updates['email']
                     )
                     logger.info(f"Stripe customer {stripe_customer_id} email updated to {user_updates['email']}")
-                except stripe.error.InvalidRequestError as stripe_error:
+                except stripe.InvalidRequestError as stripe_error:
                     # Customer might not exist in Stripe, log but don't fail
                     logger.warning(f"Failed to update Stripe customer {stripe_customer_id} email: {str(stripe_error)}")
                 except Exception as stripe_error:
@@ -1708,7 +1708,7 @@ async def create_gerant_checkout_session(
                     if stripe_sub.status in ['active', 'trialing']:
                         active_count += 1
                         active_stripe_ids.append(stripe_sub_id)
-                except stripe.error.InvalidRequestError:
+                except stripe.InvalidRequestError:
                     # Abonnement n'existe plus dans Stripe, ignorer
                     logger.warning(f"Abonnement Stripe {stripe_sub_id} introuvable dans Stripe")
                 except Exception as e:
@@ -1738,7 +1738,7 @@ async def create_gerant_checkout_session(
                 if customer.get('deleted'):
                     stripe_customer_id = None
                 logger.info(f"Réutilisation du client Stripe: {stripe_customer_id}")
-            except stripe.error.InvalidRequestError:
+            except stripe.InvalidRequestError:
                 stripe_customer_id = None
                 logger.warning(f"Client Stripe introuvable, création d'un nouveau")
         
@@ -1826,13 +1826,13 @@ async def create_gerant_checkout_session(
                 }
             }
             )
-        except stripe.error.InvalidRequestError as e:
+        except stripe.InvalidRequestError as e:
             logger.error(f"❌ Erreur Stripe InvalidRequestError: {str(e)}")
             raise HTTPException(
                 status_code=400,
                 detail=f"Erreur lors de la création de la session Stripe: {str(e)}"
             )
-        except stripe.error.StripeError as e:
+        except stripe.StripeError as e:
             logger.error(f"❌ Erreur Stripe: {str(e)}")
             raise HTTPException(
                 status_code=500,
@@ -2568,7 +2568,7 @@ async def cancel_subscription(
                     "period_end": period_end
                 }
                 
-        except stripe.error.InvalidRequestError as e:
+        except stripe.InvalidRequestError as e:
             logger.error(f"❌ Stripe error canceling subscription: {str(e)}")
             raise HTTPException(status_code=400, detail=f"Erreur Stripe: {str(e)}")
         except stripe.StripeError as e:
@@ -2799,7 +2799,7 @@ async def reactivate_subscription(
                 reactivated_at=datetime.now(timezone.utc).isoformat()
             )
             
-        except stripe.error.InvalidRequestError as e:
+        except stripe.InvalidRequestError as e:
             logger.error(f"❌ Stripe error reactivating subscription: {str(e)}")
             raise HTTPException(status_code=400, detail=f"Erreur Stripe: {str(e)}")
         except stripe.StripeError as e:
@@ -3223,7 +3223,7 @@ async def create_billing_profile(
             else:
                 logger.warning(f"Gérant {gerant_id} n'a pas de customer Stripe, impossible de synchroniser")
         
-        except stripe.error.StripeError as e:
+        except stripe.StripeError as e:
             logger.error(f"Erreur lors de la mise à jour Stripe Customer: {str(e)}")
             # Ne pas bloquer la création du profil si Stripe échoue
             # Le profil sera créé et Stripe pourra être mis à jour plus tard
@@ -3370,7 +3370,7 @@ async def update_billing_profile(
                 stripe.Customer.modify(stripe_customer_id, **customer_update)
                 logger.info(f"Stripe Customer {stripe_customer_id} mis à jour")
         
-        except stripe.error.StripeError as e:
+        except stripe.StripeError as e:
             logger.error(f"Erreur Stripe lors de la mise à jour: {str(e)}")
         
         return {
