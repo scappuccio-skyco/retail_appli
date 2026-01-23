@@ -705,6 +705,7 @@ const GerantDashboard = ({ user, onLogout }) => {
             onOpenInviteModal={() => !isReadOnly && setShowInviteStaffModal(true)}
             onOpenCreateStoreModal={() => !isReadOnly && setShowCreateStoreModal(true)}
             isReadOnly={isReadOnly}
+            canManageStaff={true}
           />
         ) : activeView === 'profile' ? (
           <GerantProfile />

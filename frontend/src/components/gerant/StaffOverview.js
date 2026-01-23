@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import EditStaffModal from './EditStaffModal';
 
-export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCreateStoreModal, isReadOnly = false }) {
+export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCreateStoreModal, isReadOnly = false, canManageStaff = true }) {
   const [activeTab, setActiveTab] = useState('managers');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
@@ -425,22 +425,22 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                     <div className="relative">
                       <button
                         onClick={() => {
-                          if (isReadOnly) {
+                          if (!canManageStaff) {
                             toast.error("Période d'essai terminée. Contactez votre administrateur.");
                             return;
                           }
                           setActionMenuOpen(actionMenuOpen === user.id ? null : user.id);
                         }}
                         className={`p-2 rounded-lg transition-colors ${
-                          isReadOnly ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                          !canManageStaff ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
                         }`}
-                        title={isReadOnly ? "Période d'essai terminée" : "Actions"}
+                        title={!canManageStaff ? "Période d'essai terminée" : "Actions"}
                       >
                         <MoreVertical className="w-5 h-5 text-gray-600" />
-                        {isReadOnly && <Lock className="w-3 h-3 absolute -top-1 -right-1 text-gray-400" />}
+                        {!canManageStaff && <Lock className="w-3 h-3 absolute -top-1 -right-1 text-gray-400" />}
                       </button>
 
-                      {actionMenuOpen === user.id && !isReadOnly && (
+                      {actionMenuOpen === user.id && canManageStaff && (
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                           <button
                             onClick={() => {
