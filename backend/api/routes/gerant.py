@@ -1585,6 +1585,10 @@ async def create_gerant_checkout_session(
     - Le profil de facturation DOIT être complet avant tout paiement
     - Blocage si champs obligatoires manquants
     - Blocage si VAT number UE invalide
+    
+    ✅ ACCESSIBILITÉ:
+    - Cette route est accessible même si trial_expired (c'est pour souscrire)
+    - Pas de vérification require_active_space() car c'est justement pour créer un abonnement
     """
     try:
         if not settings.STRIPE_API_KEY:
