@@ -11,8 +11,9 @@ from api.dependencies import get_onboarding_service
 
 router = APIRouter(
     prefix="/onboarding",
-    tags=["Onboarding"],
-    dependencies=[Depends(require_active_space)]
+    tags=["Onboarding"]
+    # ✅ Note: require_active_space retiré pour permettre la lecture de progression même si trial_expired
+    # La sauvegarde (POST) reste protégée par require_active_space dans les routes individuelles
 )
 
 
@@ -23,6 +24,8 @@ async def get_onboarding_progress(
 ):
     """
     Get onboarding progress for current user
+    
+    ✅ AUTORISÉ même si trial_expired (lecture seule de la progression)
     
     Returns:
         Dict with user_id, current_step, completed_steps, is_completed
@@ -69,9 +72,15 @@ async def mark_onboarding_complete(
     """
     Mark onboarding as completed for current user
     
+    ⚠️ BLOQUÉ si trial_expired (écriture nécessite abonnement actif)
+    
     Returns:
         Success message
     """
+    from core.security import require_active_space
+    # ✅ Vérifier l'abonnement pour l'écriture
+    await require_active_space(current_user)
+    
     try:
         await onboarding_service.mark_complete(current_user['id'])
         return {"success": True, "message": "Onboarding marked as complete"}
