@@ -1590,17 +1590,25 @@ async def create_gerant_checkout_session(
     - Cette route est accessible même si trial_expired (c'est pour souscrire)
     - Pas de vérification require_active_space() car c'est justement pour créer un abonnement
     """
+    logger.info(f"🔵 [CHECKOUT] Début création session pour gérant {current_user.get('id')}, période: {checkout_data.billing_period}")
     try:
+        # ✅ LOGGING PRÉCOCE: Capturer toute erreur dès le début
+        logger.info(f"🔵 [CHECKOUT] Vérification STRIPE_API_KEY...")
         if not settings.STRIPE_API_KEY:
+            logger.error("❌ [CHECKOUT] STRIPE_API_KEY manquante")
             raise HTTPException(status_code=500, detail="Configuration Stripe manquante")
+        logger.info(f"✅ [CHECKOUT] STRIPE_API_KEY présente")
         
         # 🔒 VALIDATION FISCALE B2B: Vérifier que le profil de facturation est complet
+        logger.info(f"🔵 [CHECKOUT] Recherche profil de facturation pour gérant {current_user['id']}...")
         billing_profile = await db.billing_profiles.find_one(
             {"gerant_id": current_user['id']},
             {"_id": 0}
         )
+        logger.info(f"🔵 [CHECKOUT] Profil de facturation trouvé: {billing_profile is not None}")
         
         if not billing_profile or not billing_profile.get('billing_profile_completed'):
+            logger.warning(f"⚠️ [CHECKOUT] Profil de facturation incomplet pour gérant {current_user['id']}")
             raise HTTPException(
                 status_code=400,
                 detail=(
@@ -1658,9 +1666,11 @@ async def create_gerant_checkout_session(
             "role": "seller", 
             "status": "active"
         })
+        logger.info(f"✅ [CHECKOUT] Vendeurs actifs: {active_sellers_count}")
         
         # Utiliser la quantité fournie ou celle calculée
         quantity = checkout_data.quantity if checkout_data.quantity else active_sellers_count
+        logger.info(f"🔵 [CHECKOUT] Quantité finale: {quantity}")
         quantity = max(quantity, 1)  # Minimum 1 vendeur
         
         # 🔒 Validation des limites : bloquer si > 15 vendeurs
@@ -1839,10 +1849,13 @@ async def create_gerant_checkout_session(
             "billing_interval": billing_interval
         }
         
-    except HTTPException:
+    except HTTPException as he:
+        logger.error(f"❌ [CHECKOUT] HTTPException: {he.status_code} - {he.detail}")
         raise
     except Exception as e:
-        logger.error(f"❌ Erreur création session checkout: {str(e)}", exc_info=True)
+        logger.error(f"❌ [CHECKOUT] Exception non gérée: {type(e).__name__}: {str(e)}", exc_info=True)
+        import traceback
+        logger.error(f"❌ [CHECKOUT] Traceback complet:\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=500,
             detail=f"Erreur lors de la création de la session: {str(e)}"
