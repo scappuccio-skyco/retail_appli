@@ -70,6 +70,18 @@ if (!canManageStaff) {
 
 ## 🚨 SI LES CADENAS SONT TOUJOURS VISIBLES
 
+### ⚠️ SOLUTION RAPIDE : Déconnexion/Reconnexion
+
+**Si le hard refresh (`Ctrl + Shift + R`) ne fonctionne pas**, le problème vient probablement de l'état de session/token en cache :
+
+1. **Se déconnecter** de l'application
+2. **Se reconnecter**
+3. Les cadenas devraient disparaître ✅
+
+**Pourquoi ?** Le frontend stocke `isReadOnly` dans le token JWT ou l'état React. La reconnexion réinitialise cet état avec les nouvelles permissions.
+
+---
+
 ### Étape 1 : Vider le cache du navigateur
 
 **Méthode rapide**:
