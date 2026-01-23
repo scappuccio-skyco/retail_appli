@@ -1,8 +1,6 @@
 """AI & Diagnostic Routes - Clean Architecture"""
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import Dict, List, Union
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from services.ai_service import AIService, AIDataService
 from api.dependencies import get_ai_service, get_ai_data_service
@@ -12,6 +10,7 @@ from models.diagnostics import DiagnosticResponse
 
 # Rate limiter instance (will be set from app.state in main.py)
 # Use IP-based limiting for AI endpoints (cost protection)
+# Note: Returns dummy limiter if slowapi not available (graceful degradation)
 limiter = get_rate_limiter()
 
 router = APIRouter(

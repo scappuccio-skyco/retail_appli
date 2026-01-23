@@ -11,13 +11,78 @@ try:
     from fastapi.middleware.cors import CORSMiddleware
     from typing import Optional
     import logging
-    from slowapi import Limiter, _rate_limit_exceeded_handler
-    from slowapi.util import get_remote_address
-    from slowapi.errors import RateLimitExceeded
     print("[STARTUP] 2/10 - FastAPI imports done", flush=True)
 except Exception as e:
     print(f"[STARTUP] FATAL: FastAPI import failed: {e}", flush=True)
     raise
+
+# Initialize logger early for slowapi check
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
+
+# ⚠️ CRITICAL: Check if slowapi is available BEFORE importing it
+# This allows us to log the error at CRITICAL level
+try:
+    import slowapi
+    SLOWAPI_AVAILABLE = True
+except ImportError:
+    SLOWAPI_AVAILABLE = False
+    logger.critical(
+        "SECURITY WARNING: slowapi module not found. "
+        "Rate limiting protection will be DISABLED. "
+        "Application is vulnerable to cost abuse (OpenAI) and scraping attacks. "
+        "Please ensure slowapi==0.1.9 is in requirements.txt"
+    )
+
+# Optional: slowapi for rate limiting (graceful degradation if not installed)
+try:
+    from slowapi import Limiter, _rate_limit_exceeded_handler
+    from slowapi.util import get_remote_address
+    from slowapi.errors import RateLimitExceeded
+    if not SLOWAPI_AVAILABLE:
+        SLOWAPI_AVAILABLE = True  # Override if import succeeds
+    print("[STARTUP] 2.1/10 - slowapi imported (rate limiting enabled)", flush=True)
+    logger.info("Rate limiting enabled: slowapi imported successfully")
+except ImportError as e:
+    SLOWAPI_AVAILABLE = False
+    # ⚠️ CRITICAL: Rate limiting protection is DISABLED
+    logger.critical(
+        "SECURITY WARNING: slowapi import failed - Rate limiting DISABLED. "
+        "Application is vulnerable to cost abuse (OpenAI) and scraping attacks. "
+        f"ImportError: {e}",
+        exc_info=True
+    )
+    print("[STARTUP] 2.1/10 - CRITICAL: slowapi not available (rate limiting disabled)", flush=True)
+    print(f"[STARTUP] ERROR: {e}", flush=True)
+    
+    # Create dummy classes for graceful degradation
+    # ✅ Validation: Dummy Limiter has .limit() method to avoid AttributeError
+    class Limiter:
+        def __init__(self, *args, **kwargs):
+            pass
+        
+        def limit(self, *args, **kwargs):
+            """
+            Dummy decorator that does nothing.
+            Returns the function unchanged to avoid AttributeError.
+            ✅ Validated: This method exists to prevent AttributeError on @limiter.limit()
+            """
+            def decorator(func):
+                return func
+            return decorator
+    
+    class RateLimitExceeded(Exception):
+        pass
+    
+    def _rate_limit_exceeded_handler(*args, **kwargs):
+        pass
+    
+    def get_remote_address(*args, **kwargs):
+        return "unknown"
 
 try:
     from core.config import settings
@@ -48,12 +113,13 @@ except Exception as e:
     print(f"[STARTUP] FATAL: Routers import failed: {e}", flush=True)
     routers = []
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stdout  # Force logs to stdout
-)
+# Configure logging (if not already configured)
+if not logging.getLogger().handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        stream=sys.stdout  # Force logs to stdout
+    )
 logger = logging.getLogger(__name__)
 print("[STARTUP] 6/10 - Logging configured", flush=True)
 
@@ -69,27 +135,43 @@ app = FastAPI(
 )
 print("[STARTUP] 8/10 - FastAPI app created", flush=True)
 
-# Initialize Rate Limiter (slowapi)
+# Initialize Rate Limiter (slowapi) - Optional
 print("[STARTUP] 8.1/10 - Initializing rate limiter...", flush=True)
-try:
-    limiter = Limiter(key_func=get_remote_address)
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-    
-    # Initialize rate limiter in core module for use in routes
-    from core.rate_limiting import init_rate_limiter
-    init_rate_limiter(limiter)
-    
-    # Initialize rate limiter in dependencies module for routes
+limiter = None
+if SLOWAPI_AVAILABLE:
+    try:
+        limiter = Limiter(key_func=get_remote_address)
+        app.state.limiter = limiter
+        app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+        
+        # Initialize rate limiter in core module for use in routes (if available)
+        try:
+            from core.rate_limiting import init_rate_limiter
+            init_rate_limiter(limiter)
+        except ImportError:
+            # core.rate_limiting might not be available, skip
+            pass
+        
+        # Initialize rate limiter in dependencies module for routes
+        from api.dependencies_rate_limiting import init_global_limiter
+        init_global_limiter(limiter)
+        
+        print("[STARTUP] 8.1/10 - Rate limiter initialized", flush=True)
+        logger.info("Rate limiter initialized with slowapi")
+    except Exception as e:
+        logger.warning(f"Failed to initialize rate limiter: {e}")
+        print(f"[STARTUP] WARNING: Rate limiter not initialized: {e}", flush=True)
+        limiter = None
+else:
+    # ⚠️ CRITICAL: Rate limiting protection is DISABLED
+    logger.critical(
+        "SECURITY WARNING: Rate limiting DISABLED - slowapi not installed. "
+        "Application is vulnerable to cost abuse (OpenAI) and scraping attacks."
+    )
+    print("[STARTUP] 8.1/10 - CRITICAL: Rate limiter skipped (slowapi not available)", flush=True)
+    # Initialize dummy limiter for routes (prevents AttributeError on @limiter.limit())
     from api.dependencies_rate_limiting import init_global_limiter
-    init_global_limiter(limiter)
-    
-    print("[STARTUP] 8.1/10 - Rate limiter initialized", flush=True)
-    logger.info("Rate limiter initialized with slowapi")
-except Exception as e:
-    logger.warning(f"Failed to initialize rate limiter: {e}")
-    print(f"[STARTUP] WARNING: Rate limiter not initialized: {e}", flush=True)
-    limiter = None
+    init_global_limiter(Limiter(key_func=get_remote_address))
 
 # Configure CORS - CRITICAL for production
 # ⚠️ allow_credentials=True + "*" = ERREUR EN PROD

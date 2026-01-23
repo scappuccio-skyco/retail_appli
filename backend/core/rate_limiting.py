@@ -2,10 +2,27 @@
 Rate Limiting Utilities
 Helper functions for role-based rate limiting
 """
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from fastapi import Request
-from typing import Callable
+from typing import Callable, Optional
+
+# Optional: slowapi for rate limiting
+try:
+    from slowapi import Limiter
+    from slowapi.util import get_remote_address
+    SLOWAPI_AVAILABLE = True
+except ImportError:
+    SLOWAPI_AVAILABLE = False
+    # Create dummy classes for graceful degradation
+    class Limiter:
+        def __init__(self, *args, **kwargs):
+            pass
+        def limit(self, *args, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+    
+    def get_remote_address(*args, **kwargs):
+        return "unknown"
 
 
 def get_rate_limit_key_func_by_role() -> Callable:
@@ -48,7 +65,7 @@ def get_rate_limit_by_role(role: str) -> str:
 
 
 # Global rate limiter instance (will be initialized in main.py)
-limiter: Limiter = None
+limiter: Optional[Limiter] = None
 
 
 def init_rate_limiter(app_limiter: Limiter):

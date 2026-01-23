@@ -192,10 +192,21 @@ class ManagerService:
             }
         }
     
-    async def get_active_objectives(self, manager_id: str, store_id: str) -> List[Dict]:
-        """Get active objectives for manager's team"""
-        from services.seller_service import SellerService
-        seller_service = SellerService(self.db)
+    async def get_active_objectives(
+        self, 
+        manager_id: str, 
+        store_id: str,
+        notification_service=None
+    ) -> List[Dict]:
+        """
+        Get active objectives for manager's team
+        
+        ✅ ÉTAPE C : Utilise NotificationService injecté (découplage)
+        """
+        # ✅ ÉTAPE C : Utiliser NotificationService au lieu de SellerService
+        if notification_service is None:
+            from services.notification_service import NotificationService
+            notification_service = NotificationService(self.db)
         
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         objectives = await self.db.objectives.find(
@@ -209,15 +220,26 @@ class ManagerService:
             {"_id": 0}
         ).to_list(100)
         
-        # Add achievement notification flags
-        await seller_service.add_achievement_notification_flag(objectives, manager_id, "objective")
+        # Add achievement notification flags via NotificationService
+        await notification_service.add_achievement_notification_flag(objectives, manager_id, "objective")
         
         return objectives
     
-    async def get_active_challenges(self, manager_id: str, store_id: str) -> List[Dict]:
-        """Get active challenges for manager's team"""
-        from services.seller_service import SellerService
-        seller_service = SellerService(self.db)
+    async def get_active_challenges(
+        self, 
+        manager_id: str, 
+        store_id: str,
+        notification_service=None
+    ) -> List[Dict]:
+        """
+        Get active challenges for manager's team
+        
+        ✅ ÉTAPE C : Utilise NotificationService injecté (découplage)
+        """
+        # ✅ ÉTAPE C : Utiliser NotificationService au lieu de SellerService
+        if notification_service is None:
+            from services.notification_service import NotificationService
+            notification_service = NotificationService(self.db)
         
         challenges = await self.db.challenges.find(
             {
@@ -228,8 +250,8 @@ class ManagerService:
             {"_id": 0}
         ).to_list(100)
         
-        # Add achievement notification flags
-        await seller_service.add_achievement_notification_flag(challenges, manager_id, "challenge")
+        # Add achievement notification flags via NotificationService
+        await notification_service.add_achievement_notification_flag(challenges, manager_id, "challenge")
         
         return challenges
 

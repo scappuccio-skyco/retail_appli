@@ -9,10 +9,18 @@ import logging
 
 from core.security import get_current_user, verify_resource_store_access, verify_seller_store_access, require_active_space
 from services.manager_service import ManagerService, APIKeyService
-from api.dependencies import get_manager_service, get_api_key_service, get_db, get_seller_service, get_gerant_service
+from api.dependencies import (
+    get_manager_service, get_api_key_service, get_db, get_seller_service, 
+    get_gerant_service, get_ai_service, get_notification_service,
+    get_conflict_service, get_relationship_service
+)
 from api.dependencies_rate_limiting import get_rate_limiter
 from services.seller_service import SellerService
 from services.gerant_service import GerantService
+from services.notification_service import NotificationService
+from services.conflict_service import ConflictService
+from services.relationship_service import RelationshipService
+from services.ai_service import AIService
 
 # Rate limiter instance (will be set from app.state in main.py)
 limiter = get_rate_limiter()
@@ -1254,6 +1262,7 @@ async def delete_api_key_permanent(
 async def get_all_objectives(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    seller_service: SellerService = Depends(get_seller_service),  # ✅ ÉTAPE A: Injection de dépendance
     db = Depends(get_db)
 ):
     """
@@ -1280,8 +1289,7 @@ async def get_all_objectives(
         ).sort("created_at", -1).to_list(100)
         
         # Calculate progress for all objectives in batch (optimized)
-        from services.seller_service import SellerService
-        seller_service = SellerService(db)
+        # ✅ ÉTAPE A: seller_service injecté via Depends()
         
         # Use batch processing instead of N individual calls
         objectives = await seller_service.calculate_objectives_progress_batch(
@@ -1382,6 +1390,7 @@ async def create_objective(
     objective_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    seller_service: SellerService = Depends(get_seller_service),  # ✅ ÉTAPE A: Injection
     db = Depends(get_db)
 ):
     """Create a new team objective"""
@@ -1441,8 +1450,7 @@ async def create_objective(
         
         # Compute initial status using centralized helper
         # At creation, current_value is always 0, so status should be "active"
-        from services.seller_service import SellerService
-        seller_service = SellerService(db)
+        # ✅ ÉTAPE A: seller_service injecté via Depends()
         
         # Ensure status is "active" at creation (current_value = 0)
         objective['status'] = seller_service.compute_status(
@@ -1758,9 +1766,8 @@ async def update_objective_progress(
                 updated_objective['just_achieved'] = True
                 
                 # Add has_unseen_achievement flag for immediate frontend use
-                from services.seller_service import SellerService
-                seller_service = SellerService(db)
-                await seller_service.add_achievement_notification_flag(
+                # ✅ ÉTAPE C: Utiliser NotificationService injecté
+                await notification_service.add_achievement_notification_flag(
                     [updated_objective], 
                     manager_id, 
                     'objective'
@@ -1789,6 +1796,7 @@ async def update_objective_progress(
 async def get_all_challenges(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    seller_service: SellerService = Depends(get_seller_service),  # ✅ ÉTAPE A: Injection
     db = Depends(get_db)
 ):
     """
@@ -1815,8 +1823,7 @@ async def get_all_challenges(
         ).sort("created_at", -1).to_list(100)
         
         # Calculate progress for all challenges in batch (optimized)
-        from services.seller_service import SellerService
-        seller_service = SellerService(db)
+        # ✅ ÉTAPE A: seller_service injecté via Depends()
         
         # Use batch processing instead of N individual calls
         challenges = await seller_service.calculate_challenges_progress_batch(
@@ -2215,9 +2222,8 @@ async def update_challenge_progress(
                 updated_challenge['just_achieved'] = True
                 
                 # Add has_unseen_achievement flag for immediate frontend use
-                from services.seller_service import SellerService
-                seller_service = SellerService(db)
-                await seller_service.add_achievement_notification_flag(
+                # ✅ ÉTAPE C: Utiliser NotificationService injecté
+                await notification_service.add_achievement_notification_flag(
                     [updated_challenge], 
                     manager_id, 
                     'challenge'
@@ -2245,6 +2251,7 @@ async def analyze_store_kpis(
     analysis_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    ai_service: AIService = Depends(get_ai_service),  # ✅ ÉTAPE A: Injection de dépendance
     db = Depends(get_db)
 ):
     """
@@ -2257,8 +2264,6 @@ async def analyze_store_kpis(
     - Transformation des visiteurs en acheteurs
     - Actionnable insights for retail
     """
-    from services.ai_service import AIService
-    
     try:
         resolved_store_id = context.get('resolved_store_id') or store_id
         user_id = context.get('id')
@@ -2394,9 +2399,7 @@ Fournis une analyse en 2 parties courtes :
 
 Format : Markdown simple et concis."""
 
-        # Initialize AI service and use the generate_store_kpi_analysis method
-        ai_service = AIService()
-        
+        # Use AI service (injecté via Depends dans la signature de fonction)
         if not ai_service.available:
             # Return fallback analysis if AI not available
             return {
@@ -2862,6 +2865,7 @@ async def analyze_team(
     analysis_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    ai_service: AIService = Depends(get_ai_service),  # ✅ ÉTAPE A: Injection de dépendance
     db = Depends(get_db)
 ):
     """
@@ -2872,7 +2876,6 @@ async def analyze_team(
     Analyzes seller KPIs, identifies top performers, areas for improvement,
     and provides actionable recommendations.
     """
-    from services.ai_service import AIService
     from uuid import uuid4
     
     try:
@@ -3008,6 +3011,7 @@ async def get_relationship_advice(
     request: RelationshipAdviceRequest,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    relationship_service: RelationshipService = Depends(get_relationship_service),  # ✅ ÉTAPE B: Injection
     db = Depends(get_db)
 ):
     """
@@ -3015,14 +3019,12 @@ async def get_relationship_advice(
     
     Uses RelationshipService for centralized logic.
     """
-    from services.relationship_service import RelationshipService
-    
     try:
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
         manager_name = context.get('name', 'Manager')
         
-        relationship_service = RelationshipService(db)
+        # ✅ ÉTAPE B: relationship_service injecté via Depends()
         
         # Generate recommendation
         advice_result = await relationship_service.generate_recommendation(
@@ -3121,6 +3123,7 @@ async def create_conflict_resolution(
     request: ConflictResolutionRequest,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    conflict_service: ConflictService = Depends(get_conflict_service),  # ✅ ÉTAPE B: Injection
     db = Depends(get_db)
 ):
     """
@@ -3129,14 +3132,12 @@ async def create_conflict_resolution(
     Uses manager profile, seller profile, and conflict details
     to provide personalized conflict resolution recommendations.
     """
-    from services.conflict_service import ConflictService
-    
     try:
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
         manager_name = context.get('name', 'Manager')
         
-        conflict_service = ConflictService(db)
+        # ✅ ÉTAPE B: conflict_service injecté via Depends()
         
         # Generate conflict advice
         advice_result = await conflict_service.generate_conflict_advice(
@@ -3201,6 +3202,7 @@ async def get_conflict_history(
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    conflict_service: ConflictService = Depends(get_conflict_service),  # ✅ ÉTAPE B: Injection
     db = Depends(get_db)
 ):
     """
@@ -3208,13 +3210,11 @@ async def get_conflict_history(
     
     Returns: {"consultations": [...], "total": N}
     """
-    from services.conflict_service import ConflictService
-    
     try:
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
         
-        conflict_service = ConflictService(db)
+        # ✅ ÉTAPE B: conflict_service injecté via Depends()
         
         # Get conflicts for this seller and manager
         conflicts = await conflict_service.list_conflicts(

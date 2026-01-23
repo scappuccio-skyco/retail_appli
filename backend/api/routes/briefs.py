@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 import logging
 
-from api.dependencies import get_db
+from api.dependencies import get_db, get_ai_service
 from api.dependencies_rate_limiting import get_rate_limiter
 from core.security import get_current_user, require_active_space
 from services.ai_service import AIService
@@ -114,6 +114,7 @@ async def generate_morning_brief(
     store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
     request: MorningBriefRequest = Body(...),
     current_user: dict = Depends(get_current_user),
+    ai_service: AIService = Depends(get_ai_service),  # ✅ ÉTAPE A: Injection de dépendance
     db = Depends(get_db)
 ):
     """
@@ -176,9 +177,8 @@ async def generate_morning_brief(
     # Extraire la date des données (dernier jour actif)
     data_date = stats.get("data_date")
     
-    # Générer le brief via le service IA
+    # Générer le brief via le service IA (ai_service injecté via Depends)
     try:
-        ai_service = AIService()
         result = await ai_service.generate_morning_brief(
             stats=stats,
             manager_name=manager_name,

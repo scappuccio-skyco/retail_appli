@@ -2,6 +2,8 @@
 Conflict Resolution Service
 Centralized service for generating AI-powered conflict resolution advice.
 Used by both manager and seller routes.
+
+✅ ÉTAPE B : Découplage - AIService injecté via constructeur
 """
 from typing import Dict, List, Optional
 from datetime import datetime, timezone
@@ -9,17 +11,29 @@ from uuid import uuid4
 import json
 import logging
 
-from services.ai_service import AIService
-
 logger = logging.getLogger(__name__)
 
 
 class ConflictService:
     """Service for conflict resolution advice generation"""
     
-    def __init__(self, db):
+    def __init__(self, db, ai_service=None):
+        """
+        Initialize ConflictService with injected AIService
+        
+        ✅ ÉTAPE B : Injection de dépendance pour découplage
+        
+        Args:
+            db: Database connection
+            ai_service: AIService instance (injected, optional for backward compatibility)
+        """
         self.db = db
-        self.ai_service = AIService()
+        # ✅ ÉTAPE B : Injection de dépendance (fallback pour compatibilité)
+        if ai_service is None:
+            from services.ai_service import AIService
+            self.ai_service = AIService()
+        else:
+            self.ai_service = ai_service
     
     async def generate_conflict_advice(
         self,

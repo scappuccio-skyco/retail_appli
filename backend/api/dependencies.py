@@ -194,6 +194,65 @@ def get_api_key_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> APIKeySer
     return APIKeyService(db)
 
 
+# Notification Service
+def get_notification_service(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> NotificationService:
+    """
+    Get NotificationService instance with database dependency
+    
+    ✅ ÉTAPE C : Service partagé pour notifications (découplage)
+    
+    Usage in routes:
+        @router.get("/objectives")
+        async def get_objectives(
+            notification_service: NotificationService = Depends(get_notification_service)
+        ):
+            await notification_service.add_achievement_notification_flag(...)
+    """
+    return NotificationService(db)
+
+
+# Conflict Service (with injected AIService)
+def get_conflict_service(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    ai_service: AIService = Depends(get_ai_service)
+) -> ConflictService:
+    """
+    Get ConflictService with injected AIService
+    
+    ✅ ÉTAPE B : Injection de dépendance pour découplage
+    
+    Usage in routes:
+        @router.post("/conflict")
+        async def create_conflict(
+            conflict_service: ConflictService = Depends(get_conflict_service)
+        ):
+            ...
+    """
+    return ConflictService(db, ai_service)
+
+
+# Relationship Service (with injected AIService)
+def get_relationship_service(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    ai_service: AIService = Depends(get_ai_service)
+) -> RelationshipService:
+    """
+    Get RelationshipService with injected AIService
+    
+    ✅ ÉTAPE B : Injection de dépendance pour découplage
+    
+    Usage in routes:
+        @router.post("/relationship")
+        async def create_relationship(
+            relationship_service: RelationshipService = Depends(get_relationship_service)
+        ):
+            ...
+    """
+    return RelationshipService(db, ai_service)
+
+
 # Note: Add more service dependencies here as needed:
 # - get_challenge_service()
 # etc.

@@ -9,7 +9,8 @@ from uuid import uuid4
 from pydantic import BaseModel
 
 from core.security import get_current_user, require_active_space
-from api.dependencies import get_db
+from api.dependencies import get_db, get_ai_service
+from services.ai_service import AIService
 
 router = APIRouter(
     tags=["Debriefs"],
@@ -36,14 +37,13 @@ class DebriefCreate(BaseModel):
 async def create_debrief(
     debrief_data: DebriefCreate,
     current_user: Dict = Depends(get_current_user),
+    ai_service: AIService = Depends(get_ai_service),  # ✅ ÉTAPE A: Injection de dépendance
     db = Depends(get_db)
 ):
     """
     Create a new debrief (post-sale analysis).
     Uses AI to generate coaching feedback.
     """
-    from services.ai_service import AIService
-    
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can create debriefs")
     
@@ -75,8 +75,7 @@ async def create_debrief(
         if today_kpi:
             kpi_context = f"\n\nKPIs du jour: CA {today_kpi.get('ca_journalier', 0):.0f}€, {today_kpi.get('nb_ventes', 0)} ventes"
         
-        # Generate AI feedback
-        ai_service = AIService()
+        # Generate AI feedback (ai_service injected via Depends)
         new_scores = current_scores.copy()
         
         # Initialize AI fields at root level (legacy format for frontend compatibility)

@@ -2,9 +2,26 @@
 Dependency helpers for rate limiting
 Allows routes to access the rate limiter from app.state
 """
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from typing import Optional
+
+# Optional: slowapi for rate limiting
+try:
+    from slowapi import Limiter
+    from slowapi.util import get_remote_address
+    SLOWAPI_AVAILABLE = True
+except ImportError:
+    SLOWAPI_AVAILABLE = False
+    # Create dummy classes for graceful degradation
+    class Limiter:
+        def __init__(self, *args, **kwargs):
+            pass
+        def limit(self, *args, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+    
+    def get_remote_address(*args, **kwargs):
+        return "unknown"
 
 
 # Global limiter instance (will be set from app.state in main.py)
@@ -30,5 +47,8 @@ def get_rate_limiter() -> Limiter:
     if _global_limiter is not None:
         return _global_limiter
     
-    # Fallback: create new limiter (should not happen in production)
-    return Limiter(key_func=get_remote_address)
+    # Fallback: create new limiter (or dummy if slowapi not available)
+    if SLOWAPI_AVAILABLE:
+        return Limiter(key_func=get_remote_address)
+    else:
+        return Limiter()  # Dummy limiter that does nothing
