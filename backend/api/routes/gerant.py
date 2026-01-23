@@ -1668,6 +1668,12 @@ async def create_gerant_checkout_session(
         
         # Vérifier si le gérant a déjà un customer ID Stripe
         gerant = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        if not gerant:
+            logger.error(f"❌ Gérant {current_user['id']} non trouvé dans la base de données")
+            raise HTTPException(
+                status_code=404,
+                detail="Gérant non trouvé"
+            )
         stripe_customer_id = gerant.get('stripe_customer_id')
         
         # 🔍 CRITIQUE: Vérifier les abonnements existants AVANT de créer un nouveau checkout
@@ -1750,14 +1756,31 @@ async def create_gerant_checkout_session(
         else:
             price_id = settings.STRIPE_PRICE_ID_YEARLY
         
+        # ✅ VALIDATION: Vérifier que le price_id est défini
+        if not price_id:
+            logger.error(f"❌ STRIPE_PRICE_ID_{'MONTHLY' if checkout_data.billing_period == 'monthly' else 'YEARLY'} non configuré")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Configuration Stripe incomplète: Price ID manquant pour la période {checkout_data.billing_period}"
+            )
+        
         billing_interval = 'month' if checkout_data.billing_period == 'monthly' else 'year'
+        
+        # ✅ VALIDATION: Vérifier que origin_url est fourni
+        if not checkout_data.origin_url or not checkout_data.origin_url.strip():
+            logger.error("❌ origin_url manquant dans checkout_data")
+            raise HTTPException(
+                status_code=400,
+                detail="URL d'origine requise pour créer la session de checkout"
+            )
         
         # Generate correlation_id (unique per checkout attempt)
         import uuid
         correlation_id = str(uuid.uuid4())
         
         # Créer la session de checkout avec metadata complète
-        session = stripe.checkout.Session.create(
+        try:
+            session = stripe.checkout.Session.create(
             customer=stripe_customer_id,
             client_reference_id=f"gerant_{current_user['id']}_{correlation_id}",  # For correlation
             payment_method_types=['card'],
@@ -1788,7 +1811,19 @@ async def create_gerant_checkout_session(
                     'quantity': str(quantity)
                 }
             }
-        )
+            )
+        except stripe.error.InvalidRequestError as e:
+            logger.error(f"❌ Erreur Stripe InvalidRequestError: {str(e)}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Erreur lors de la création de la session Stripe: {str(e)}"
+            )
+        except stripe.error.StripeError as e:
+            logger.error(f"❌ Erreur Stripe: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur Stripe: {str(e)}"
+            )
         
         logger.info(f"Session checkout créée {session.id} pour {current_user['name']} avec {quantity} vendeur(s)")
         
@@ -1803,8 +1838,11 @@ async def create_gerant_checkout_session(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Erreur création session checkout: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la création de la session: {str(e)}")
+        logger.error(f"❌ Erreur création session checkout: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la création de la session: {str(e)}"
+        )
 
 
 
