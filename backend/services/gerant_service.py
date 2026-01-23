@@ -22,14 +22,20 @@ class GerantService:
         self.user_repo = UserRepository(db)
         self.store_repo = StoreRepository(db)
     
-    async def check_gerant_active_access(self, gerant_id: str) -> bool:
+    async def check_gerant_active_access(
+        self, 
+        gerant_id: str, 
+        allow_user_management: bool = False
+    ) -> bool:
         """
         Guard clause: Check if gérant has active subscription for write operations.
         Raises HTTPException 403 if trial expired or no active subscription.
         
         Args:
             gerant_id: Gérant user ID
-            
+            allow_user_management: If True, allows suspend/reactivate/delete even if trial_expired.
+                                  ⚠️ SECURITY: Only bypasses subscription check, still verifies gérant exists.
+        
         Returns:
             True if access is granted
             
@@ -44,6 +50,14 @@ class GerantService:
         
         if not gerant:
             raise HTTPException(status_code=403, detail="Utilisateur non trouvé")
+        
+        # ✅ EXCEPTION: Si allow_user_management=True, on autorise même si trial_expired
+        # Mais on vérifie toujours que le gérant existe et n'est pas supprimé
+        if allow_user_management:
+            if gerant.get('status') == 'deleted':
+                raise HTTPException(status_code=403, detail="Gérant supprimé")
+            # ✅ Autorise l'action même si trial_expired (pour gestion personnel uniquement)
+            return True
         
         workspace_id = gerant.get('workspace_id')
         
@@ -2032,13 +2046,17 @@ class GerantService:
         """
         Suspend a manager or seller
         
+        ✅ AUTORISÉ même si trial_expired pour permettre l'ajustement d'abonnement.
+        Le calcul d'abonnement exclut automatiquement les vendeurs suspendus.
+        
         Args:
             user_id: User ID to suspend
             gerant_id: Gérant ID for authorization
             role: 'manager' or 'seller'
         """
         # === GUARD CLAUSE: Check subscription access ===
-        await self.check_gerant_active_access(gerant_id)
+        # ✅ Exception: allow_user_management=True pour bypasser le blocage trial_expired
+        await self.check_gerant_active_access(gerant_id, allow_user_management=True)
         
         user = await self.user_repo.find_one({
             "id": user_id,
@@ -2071,13 +2089,16 @@ class GerantService:
         """
         Reactivate a suspended manager or seller
         
+        ✅ AUTORISÉ même si trial_expired pour permettre l'ajustement d'abonnement.
+        
         Args:
             user_id: User ID to reactivate
             gerant_id: Gérant ID for authorization
             role: 'manager' or 'seller'
         """
         # === GUARD CLAUSE: Check subscription access ===
-        await self.check_gerant_active_access(gerant_id)
+        # ✅ Exception: allow_user_management=True pour bypasser le blocage trial_expired
+        await self.check_gerant_active_access(gerant_id, allow_user_management=True)
         
         user = await self.user_repo.find_one({
             "id": user_id,
@@ -2113,13 +2134,16 @@ class GerantService:
         """
         Soft delete a manager or seller (set status to 'deleted')
         
+        ✅ AUTORISÉ même si trial_expired pour permettre l'ajustement d'abonnement.
+        
         Args:
             user_id: User ID to delete
             gerant_id: Gérant ID for authorization
             role: 'manager' or 'seller'
         """
         # === GUARD CLAUSE: Check subscription access ===
-        await self.check_gerant_active_access(gerant_id)
+        # ✅ Exception: allow_user_management=True pour bypasser le blocage trial_expired
+        await self.check_gerant_active_access(gerant_id, allow_user_management=True)
         
         user = await self.user_repo.find_one({
             "id": user_id,
