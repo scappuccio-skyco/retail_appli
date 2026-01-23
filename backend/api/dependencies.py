@@ -15,6 +15,9 @@ from services.onboarding_service import OnboardingService
 from services.enterprise_service import EnterpriseService
 from services.manager_service import ManagerService, DiagnosticService
 from services.seller_service import SellerService
+from services.notification_service import NotificationService
+from services.conflict_service import ConflictService
+from services.relationship_service import RelationshipService
 
 
 # ===== SERVICE DEPENDENCIES =====
