@@ -1100,7 +1100,7 @@ async def update_gerant_trial(
             raise HTTPException(status_code=400, detail=f"Format de date invalide: {trial_end_str}")
         
         # Récupérer le workspace du gérant (source de vérité pour les essais)
-        workspace = await db.workspaces.find_one({"gerant_id": gerant_id}, {"_id": 0, "trial_end": 1})
+        workspace = await db.workspaces.find_one({"gerant_id": gerant_id}, {"_id": 0})
         if not workspace:
             raise HTTPException(status_code=404, detail="Workspace non trouvé pour ce gérant")
 
@@ -1116,24 +1116,44 @@ async def update_gerant_trial(
             if trial_end_date < current_trial_dt:
                 raise HTTPException(status_code=400, detail="La nouvelle date doit prolonger l'essai")
 
-        # Mettre à jour uniquement trial_end (ne pas modifier subscription_status ni plan)
+        # Mettre à jour trial_end et subscription_status si nécessaire
+        # Si trial_end est dans le futur et subscription_status n'est pas 'active',
+        # mettre subscription_status à 'trialing'
+        now = datetime.now(timezone.utc)
+        update_data = {
+            "trial_end": trial_end,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Si la nouvelle date est dans le futur, s'assurer que subscription_status est 'trialing'
+        # (sauf si déjà 'active')
+        if trial_end_date > now:
+            current_status = workspace.get('subscription_status', 'inactive')
+            if current_status != 'active':
+                update_data["subscription_status"] = "trialing"
+                logger.info(f"Setting subscription_status to 'trialing' for gerant {gerant_id} (was: {current_status})")
+        
         await db.workspaces.update_one(
             {"gerant_id": gerant_id},
-            {"$set": {
-                "trial_end": trial_end,
-                "updated_at": datetime.now(timezone.utc).isoformat()
-            }}
+            {"$set": update_data}
         )
 
-        # Mettre à jour aussi l'abonnement pour compatibilité (si existe) - trial_end uniquement
+        # Mettre à jour aussi l'abonnement pour compatibilité (si existe)
         subscription = await db.subscriptions.find_one({"user_id": gerant_id})
         if subscription:
+            subscription_update = {
+                "trial_end": trial_end,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            # Mettre à jour le statut aussi si nécessaire
+            if trial_end_date > now:
+                current_sub_status = subscription.get('status', 'inactive')
+                if current_sub_status != 'active':
+                    subscription_update["status"] = "trialing"
+            
             await db.subscriptions.update_one(
                 {"user_id": gerant_id},
-                {"$set": {
-                    "trial_end": trial_end,
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
+                {"$set": subscription_update}
             )
         
         # Log admin action
