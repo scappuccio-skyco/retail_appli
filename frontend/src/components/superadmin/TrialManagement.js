@@ -37,8 +37,9 @@ export default function TrialManagement() {
     }
 
     try {
-      // Convertir la date YYYY-MM-DD en format ISO avec heure à minuit UTC
-      const trialEndDate = new Date(newTrialEnd + 'T00:00:00.000Z');
+      // Convertir la date YYYY-MM-DD en format ISO avec heure à la fin de la journée (23:59:59 UTC)
+      // Cela garantit que l'essai est valide pendant toute la journée
+      const trialEndDate = new Date(newTrialEnd + 'T23:59:59.999Z');
       const trialEndISO = trialEndDate.toISOString();
       
       await api.patch(
@@ -70,9 +71,22 @@ export default function TrialManagement() {
     if (!trialEnd) return null;
     const now = new Date();
     const end = new Date(trialEnd);
-    // Utiliser Math.floor pour être cohérent avec le backend
-    // et éviter les différences d'un jour selon l'heure
-    const diff = Math.floor((end - now) / (1000 * 60 * 60 * 24));
+    
+    // Calculer la différence en jours calendaires (pas en heures)
+    // Utiliser les dates (sans heures) pour un calcul plus précis
+    const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Calculer la différence en jours
+    const diffTime = endDate - nowDate;
+    let diff = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Si diff est 0 mais que la date est aujourd'hui ou dans le futur,
+    // ajuster à 1 jour pour garantir que l'essai est valide aujourd'hui
+    if (diff === 0 && end >= now) {
+      diff = 1;
+    }
+    
     return diff;
   };
 

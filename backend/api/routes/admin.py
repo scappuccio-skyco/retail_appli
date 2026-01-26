@@ -1003,13 +1003,22 @@ async def get_gerants_trials(
                     if trial_end_dt.tzinfo is None:
                         trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
                     
-                    # Utiliser le même calcul que le frontend (Math.floor)
-                    # pour garantir la cohérence entre backend et frontend
-                    delta = trial_end_dt - now
-                    days_left = max(0, int(delta.total_seconds() / 86400))
+                    # Calculer la différence en jours calendaires (pas en heures)
+                    # Utiliser les dates (sans heures) pour un calcul plus précis
+                    trial_end_date = trial_end_dt.date()
+                    now_date = now.date()
                     
-                    # Log pour débogage
-                    logger.debug(f"Gerant {gerant_id}: trial_end={trial_end}, now={now.isoformat()}, days_left={days_left}")
+                    # Calculer la différence en jours
+                    days_delta = (trial_end_date - now_date).days
+                    days_left = max(0, days_delta)
+                    
+                    # Si days_left est 0 mais que trial_end est dans le futur (même jour),
+                    # ajuster à 1 jour pour garantir que l'essai est valide aujourd'hui
+                    if days_left == 0 and trial_end_dt >= now:
+                        days_left = 1
+                    
+                    # Log pour débogage (INFO pour faciliter le diagnostic)
+                    logger.info(f"Gerant {gerant_id}: trial_end={trial_end} ({trial_end_dt.isoformat()}), now={now.isoformat()}, trial_end_date={trial_end_date}, now_date={now_date}, days_left={days_left}")
                 except Exception as e:
                     logger.warning(f"Error calculating days_left for gerant {gerant_id}: {e}")
             
@@ -1079,9 +1088,10 @@ async def update_gerant_trial(
         try:
             # Gérer différents formats de date
             if isinstance(trial_end_str, str):
-                # Si c'est au format YYYY-MM-DD, ajouter l'heure à minuit UTC
+                # Si c'est au format YYYY-MM-DD, ajouter l'heure à la fin de la journée (23:59:59 UTC)
+                # Cela garantit que l'essai est valide pendant toute la journée
                 if len(trial_end_str) == 10 and trial_end_str.count('-') == 2:
-                    trial_end_str = f"{trial_end_str}T00:00:00.000Z"
+                    trial_end_str = f"{trial_end_str}T23:59:59.999Z"
                 
                 # Normaliser le format Z en +00:00 pour fromisoformat
                 trial_end_str_normalized = trial_end_str.replace('Z', '+00:00')
