@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Sparkles, Copy, Check, FileText, Calendar, Loader2, CheckCircle, AlertTriangle, Target, MessageSquare, Star, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
@@ -16,7 +16,7 @@ import { logger } from '../utils/logger';
  * @param {string} employeeName - Nom du vendeur
  * @param {string} role - 'manager' ou 'seller' (détermine le type de guide généré)
  */
-export default function EvaluationGenerator({ isOpen, onClose, employeeId, employeeName, role }) {
+export default function EvaluationGenerator({ isOpen, onClose, employeeId, employeeName, role, interviewNotes = [] }) {
   // Dates par défaut : 1er janvier de l'année en cours -> aujourd'hui
   const currentYear = new Date().getFullYear();
   const defaultStartDate = `${currentYear}-01-01`;
@@ -31,9 +31,39 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
   const [exportingPDF, setExportingPDF] = useState(false);
+  const [interviewNotes, setInterviewNotes] = useState([]);
+  const [loadingNotes, setLoadingNotes] = useState(false);
 
   // Ref pour le container du guide (source unique pour le PDF - DOM snapshot)
   const guideContentRef = useRef(null);
+
+  // Charger les notes d'entretien si vendeur
+  useEffect(() => {
+    if (isOpen && role === 'seller' && employeeId) {
+      loadInterviewNotes();
+    }
+  }, [isOpen, role, employeeId, startDate, endDate]);
+
+  const loadInterviewNotes = async () => {
+    try {
+      setLoadingNotes(true);
+      const response = await api.get('/seller/interview-notes');
+      const allNotes = response.data.notes || [];
+      
+      // Filtrer les notes dans la période sélectionnée
+      const notesInPeriod = allNotes.filter(note => {
+        return startDate <= note.date && note.date <= endDate;
+      });
+      
+      setInterviewNotes(notesInPeriod);
+    } catch (error) {
+      logger.error('Error loading interview notes:', error);
+      // Ne pas bloquer si les notes ne peuvent pas être chargées
+      setInterviewNotes([]);
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -281,7 +311,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     : "✨ Générer le Guide d&apos;Évaluation";
 
   const commentsPlaceholder = role === 'seller'
-    ? "Ajoute tes notes personnelles (ex: 'J'ai géré seul(e) le magasin en août', 'J'ai formé 2 nouveaux vendeurs')..."
+    ? "Notes supplémentaires (optionnel) - Tes notes du bloc-notes seront automatiquement incluses dans la synthèse"
     : "Ajoutez vos observations spécifiques (ex: 'Très bon sur l'accueil, mais retards fréquents', 'A progressé sur le closing')...";
 
   // Force l'ouverture du date picker au clic
@@ -353,12 +383,43 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
             </div>
           </div>
 
+          {/* Notes Info (Seller) */}
+          {!guideData && !loading && role === 'seller' && (
+            <div className="bg-pink-50 rounded-xl p-4 mb-4 border-2 border-pink-100">
+              <h3 className="text-sm font-semibold text-pink-800 mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Notes du bloc-notes
+              </h3>
+              {loadingNotes ? (
+                <p className="text-sm text-pink-600">Chargement des notes...</p>
+              ) : interviewNotes.length > 0 ? (
+                <div>
+                  <p className="text-sm text-pink-700 mb-2">
+                    ✅ {interviewNotes.length} note{interviewNotes.length > 1 ? 's' : ''} trouvée{interviewNotes.length > 1 ? 's' : ''} dans cette période
+                  </p>
+                  <p className="text-xs text-pink-600">
+                    💡 Ces notes seront automatiquement incluses dans la synthèse avec tes chiffres
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-pink-700 mb-2">
+                    📝 Aucune note dans cette période
+                  </p>
+                  <p className="text-xs text-pink-600">
+                    💡 Utilise le bloc-notes pour prendre des notes quotidiennes. Elles seront utilisées pour créer ta synthèse.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Comments / Context Field - NEW */}
           {!guideData && !loading && (
             <div className="bg-purple-50 rounded-xl p-4 mb-4 border-2 border-purple-100">
               <h3 className="text-sm font-semibold text-purple-800 mb-2 flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
-                {role === 'seller' ? 'Tes notes personnelles (optionnel)' : 'Vos observations (optionnel)'}
+                {role === 'seller' ? 'Notes supplémentaires (optionnel)' : 'Vos observations (optionnel)'}
               </h3>
               <textarea
                 value={comments}
@@ -368,7 +429,9 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                 className="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:border-purple-400 focus:ring-1 focus:ring-purple-400 text-sm resize-none placeholder:text-purple-300"
               />
               <p className="text-xs text-purple-600 mt-1">
-                💡 L&apos;IA prendra en compte ces informations pour personnaliser le guide
+                {role === 'seller' 
+                  ? "💡 Ces notes supplémentaires seront ajoutées aux notes de ton bloc-notes"
+                  : "💡 L'IA prendra en compte ces informations pour personnaliser le guide"}
               </p>
             </div>
           )}

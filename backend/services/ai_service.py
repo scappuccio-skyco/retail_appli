@@ -1576,27 +1576,29 @@ Réponds UNIQUEMENT avec cet objet JSON (sans markdown, sans texte avant/après)
   "questions_coaching": ["Question ouverte 1", "Question ouverte 2", "Question ouverte 3"]
 }}"""
 
-EVALUATION_SELLER_SYSTEM_PROMPT = """Tu es un Coach Carrière spécialisé Retail.
-Tu aides un vendeur à préparer son entretien annuel pour défendre son bilan.
+EVALUATION_SELLER_SYSTEM_PROMPT = """Tu es un Assistant de Synthèse pour préparation d'entretien annuel.
+Tu aides un vendeur à synthétiser ses notes et ses chiffres pour préparer son entretien.
 
-TON ET STYLE :
-- Motivant, Lucide, Orienté Solutions.
-- Tu t'adresses au Vendeur (tu le tutoies).
-- Aide-le à transformer ses points faibles en opportunités d'apprentissage.
+RÈGLE FONDAMENTALE :
+⛔ TU NE DONNES AUCUN AVIS, AUCUN CONSEIL, AUCUNE RECOMMANDATION.
+✅ TU FAIS UNIQUEMENT UNE SYNTHÈSE FACTUELLE basée sur :
+   - Les chiffres de performance fournis
+   - Les notes que le vendeur a écrites dans son bloc-notes
 
-RÈGLES D'ANALYSE :
-1. ⛔ Pas d'excuses bidons (ex: "c'est la faute du trafic" ou "il pleuvait").
-2. ✅ Mets en avant la réussite individuelle (Panier Moyen, Indice de Vente).
-3. ✅ Si les résultats sont bas : Suggère de demander de la formation ou du coaching.
+TON RÔLE :
+- Organiser et structurer les informations (chiffres + notes)
+- Mettre en évidence les éléments clés que le vendeur a notés
+- Créer une synthèse claire et organisée pour l'entretien
+- NE PAS interpréter, juger ou conseiller
 
 FORMAT DE RÉPONSE OBLIGATOIRE (JSON ONLY) :
 Réponds UNIQUEMENT avec cet objet JSON (sans markdown, sans texte avant/après) :
 {
-  "synthese": "Bilan honnête de ta période (Positif + Axes de travail).",
-  "victoires": ["Ma réussite 1", "Ma réussite 2"],
-  "axes_progres": ["Je dois progresser sur...", "J'ai identifié que..."],
-  "souhaits": ["Je souhaite une formation sur...", "J'aimerais avoir plus de responsabilités sur..."],
-  "questions_manager": ["Question à poser à mon manager 1", "Question 2"]
+  "synthese": "Synthèse factuelle organisant les chiffres clés et les notes du vendeur (sans avis, sans conseil)",
+  "victoires": ["Élément positif noté par le vendeur ou visible dans les chiffres", "Autre élément positif"],
+  "axes_progres": ["Point noté par le vendeur dans ses notes", "Autre point mentionné"],
+  "souhaits": ["Souhait exprimé dans les notes", "Autre souhait noté"],
+  "questions_manager": ["Question préparée par le vendeur dans ses notes", "Autre question"]
 }"""
 
 
@@ -1618,7 +1620,8 @@ class EvaluationGuideService:
         employee_name: str,
         period: str,
         comments: Optional[str] = None,
-        disc_profile: Optional[Dict] = None
+        disc_profile: Optional[Dict] = None,
+        interview_notes: Optional[List[Dict]] = None
     ) -> Dict:
         """
         Génère un guide d'entretien adapté au rôle de l'appelant.
@@ -1636,6 +1639,32 @@ class EvaluationGuideService:
         """
         # Formatage des stats pour le prompt
         stats_text = self._format_stats(stats)
+        
+        # Formatage des notes d'entretien (si vendeur et notes disponibles)
+        notes_section = ""
+        if role == 'seller' and interview_notes:
+            notes_list = []
+            for note in interview_notes:
+                date = note.get('date', '')
+                content = note.get('content', '').strip()
+                if content:
+                    # Formater la date en français
+                    try:
+                        date_obj = datetime.strptime(date, "%Y-%m-%d")
+                        date_fr = date_obj.strftime("%d/%m/%Y")
+                        notes_list.append(f"- {date_fr} : {content}")
+                    except:
+                        notes_list.append(f"- {date} : {content}")
+            
+            if notes_list:
+                notes_section = f"""
+
+📝 NOTES DU BLOC-NOTES DU VENDEUR :
+{chr(10).join(notes_list)}
+
+→ Utilise ces notes pour créer la synthèse. Organise les informations notées par le vendeur.
+→ Ne donne pas ton avis, ne conseille pas. Synthétise simplement ce que le vendeur a écrit.
+"""
         
         # Ajout du contexte utilisateur si fourni
         context_section = ""
@@ -1676,20 +1705,28 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
 }}"""
         else:  # seller
             system_prompt = EVALUATION_SELLER_SYSTEM_PROMPT
-            user_prompt = f"""Prépare une fiche d'auto-bilan pour {employee_name}.
+            user_prompt = f"""Synthétise les informations pour préparer l'entretien de {employee_name}.
 
 📅 Période analysée : {period}
-📊 Tes chiffres :
+📊 Chiffres de performance :
 {stats_text}
+{notes_section}
 {context_section}
 {disc_section}
+
+⚠️ IMPORTANT : 
+- Synthétise UNIQUEMENT les informations (chiffres + notes)
+- NE DONNE PAS ton avis, NE CONSEILLE PAS
+- Organise les informations de manière claire pour l'entretien
+- Utilise les notes du vendeur pour identifier ses victoires, axes de progrès, souhaits et questions
+
 Réponds avec ce JSON EXACT (pas de texte avant/après) :
 {{
-  "synthese": "Bilan honnête de ta période (Positif + Axes de travail).",
-  "victoires": ["Ma réussite 1 (avec chiffre)", "Ma réussite 2"],
-  "axes_progres": ["Je dois progresser sur...", "J'ai identifié que..."],
-  "souhaits": ["Je souhaite une formation sur...", "J'aimerais avoir plus de responsabilités sur..."],
-  "questions_manager": ["Question à poser à mon manager 1", "Question 2"]
+  "synthese": "Synthèse factuelle organisant les chiffres clés et les notes (sans avis, sans conseil)",
+  "victoires": ["Élément positif noté par le vendeur ou visible dans les chiffres", "Autre élément positif"],
+  "axes_progres": ["Point noté par le vendeur dans ses notes", "Autre point mentionné"],
+  "souhaits": ["Souhait exprimé dans les notes", "Autre souhait noté"],
+  "questions_manager": ["Question préparée par le vendeur dans ses notes", "Autre question"]
 }}"""
         
         # Appel à l'IA avec OpenAI

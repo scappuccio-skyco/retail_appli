@@ -110,13 +110,22 @@ class BriefHistoryItem(BaseModel):
 @router.post("/morning", response_model=MorningBriefResponse)
 @limiter.limit("10/minute")  # ⚠️ SECURITY: Rate limit 10 req/min to prevent cost abuse
 async def generate_morning_brief(
-    http_request: Request,  # ⚠️ Required for rate limiting
+    request: Request,  # ⚠️ Required for rate limiting (slowapi expects 'request')
     store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
-    request: MorningBriefRequest = Body(...),
+    brief_request: MorningBriefRequest = Body(...),  # Renamed from 'request' to avoid conflict
     current_user: dict = Depends(get_current_user),
     ai_service: AIService = Depends(get_ai_service),  # ✅ ÉTAPE A: Injection de dépendance
     db = Depends(get_db)
 ):
+    """
+    Génère le brief matinal pour le manager.
+    
+    - **comments**: Consigne spécifique du manager (optionnel)
+    - **store_id**: ID du magasin (optionnel, pour gérant visualisant un magasin spécifique)
+    - Récupère automatiquement les stats du magasin d'hier
+    - Retourne un brief formaté en Markdown
+    """
+    try:
     """
     Génère le brief matinal pour le manager.
     
@@ -157,7 +166,7 @@ async def generate_morning_brief(
     final_store_id = store.get("id") if store else effective_store_id
     
     # ⭐ Sauvegarder l'objectif CA du jour dans le document du magasin
-    if request.objective_daily is not None and final_store_id:
+    if brief_request.objective_daily is not None and final_store_id:
         try:
             await db.stores.update_one(
                 {"id": final_store_id},
@@ -169,8 +178,8 @@ async def generate_morning_brief(
             # Ne pas bloquer la génération du brief si la sauvegarde échoue
     
     # Récupérer les statistiques du dernier jour avec données
-    if request.stats:
-        stats = request.stats
+    if brief_request.stats:
+        stats = brief_request.stats
     else:
         stats = await _fetch_yesterday_stats(db, final_store_id, user_id)
     
@@ -183,9 +192,9 @@ async def generate_morning_brief(
             stats=stats,
             manager_name=manager_name,
             store_name=store_name,
-            context=request.comments,
+            context=brief_request.comments,
             data_date=data_date,  # Passer la date du dernier jour avec des données
-            objective_daily=request.objective_daily  # ⭐ Passer l'objectif CA du jour
+            objective_daily=brief_request.objective_daily  # ⭐ Passer l'objectif CA du jour
         )
         
         # Sauvegarder le brief dans l'historique
@@ -214,6 +223,8 @@ async def generate_morning_brief(
                 logger.error(f"Error saving brief to history: {e}")
         
         return result
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception(
             "Morning brief generation failed",

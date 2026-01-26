@@ -4,7 +4,7 @@ import { logger } from '../../utils/logger';
 import { toast } from 'sonner';
 import { Calendar, Clock, Users, Search, AlertCircle, CheckCircle } from 'lucide-react';
 
-export default function TrialManagement() {
+export default function TrialManagement({ onTrialUpdated }) {
   const [gerants, setGerants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,10 +56,22 @@ export default function TrialManagement() {
       await fetchGerants();
       setRefreshKey(prev => prev + 1); // Force re-render
       
+      // Notifier le dashboard parent pour rafraîchir les stats
+      if (onTrialUpdated) {
+        // Attendre un peu pour que le backend ait bien mis à jour
+        setTimeout(() => {
+          onTrialUpdated();
+        }, 300);
+      }
+      
       // Second rafraîchissement après un délai pour garantir la mise à jour
       setTimeout(async () => {
         await fetchGerants();
         setRefreshKey(prev => prev + 1);
+        // Second appel au callback pour s'assurer que les stats sont à jour
+        if (onTrialUpdated) {
+          onTrialUpdated();
+        }
       }, 500);
     } catch (error) {
       logger.error('Error updating trial:', error);

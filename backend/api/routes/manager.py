@@ -467,7 +467,8 @@ async def get_sellers(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/invitations")
@@ -1587,7 +1588,8 @@ async def update_objective(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.delete("/objectives/{objective_id}")
@@ -1620,7 +1622,8 @@ async def delete_objective(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.post("/objectives/{objective_id}")
@@ -2054,7 +2057,8 @@ async def update_challenge(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.delete("/challenges/{challenge_id}")
@@ -2087,7 +2091,8 @@ async def delete_challenge(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.post("/challenges/{challenge_id}")
@@ -2503,10 +2508,19 @@ async def get_seller_kpi_entries(
             raise HTTPException(status_code=400, detail="store_id requis")
         
         # SECURITY: Verify seller belongs to user's store (prevents IDOR)
-        seller = await verify_seller_store_access(
-            db, seller_id, resolved_store_id,
-            context.get('role'), context.get('id')
-        )
+        try:
+            seller = await verify_seller_store_access(
+                db, seller_id, resolved_store_id,
+                context.get('role'), context.get('id')
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error in verify_seller_store_access for seller {seller_id}: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur lors de la vérification d'accès: {str(e)}"
+            )
         
         if not seller:
             raise HTTPException(
@@ -2539,7 +2553,8 @@ async def get_seller_kpi_entries(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/seller/{seller_id}/stats")
@@ -2582,7 +2597,7 @@ async def get_seller_stats(
             }},
             {"$group": {
                 "_id": None,
-                "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
+                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
                 "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
                 "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
                 "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
@@ -2633,7 +2648,8 @@ async def get_seller_stats(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/seller/{seller_id}/diagnostic")
@@ -2688,7 +2704,8 @@ async def get_seller_diagnostic(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/sellers/archived")
@@ -2778,7 +2795,8 @@ async def get_seller_kpi_history(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/seller/{seller_id}/profile")
@@ -2829,7 +2847,8 @@ async def get_seller_profile(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 
@@ -2981,7 +3000,8 @@ async def delete_team_analysis(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 
@@ -3258,7 +3278,8 @@ async def delete_relationship_consultation(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 
@@ -3320,7 +3341,8 @@ async def get_seller_debriefs(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/competences-history/{seller_id}")
@@ -3403,4 +3425,5 @@ async def get_seller_competences_history(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")

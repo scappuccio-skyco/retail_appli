@@ -1276,6 +1276,26 @@ class GerantService:
             update_operation
         )
         
+        # ⭐ IMPORTANT: Update all existing KPI entries for this seller with the new store_id
+        # This ensures that when the seller returns to their original store, their KPI data is still accessible
+        if not is_same_store and transfer.new_store_id:
+            # Get seller's gerant_id for updating KPI entries
+            seller_gerant_id = seller.get('gerant_id')
+            
+            # Update all KPI entries for this seller
+            kpi_update_result = await self.db.kpi_entries.update_many(
+                {"seller_id": seller_id},
+                {"$set": {
+                    "store_id": transfer.new_store_id,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            logger.info(
+                f"Updated {kpi_update_result.modified_count} KPI entries for seller {seller_id} "
+                f"from store {seller.get('store_id')} to store {transfer.new_store_id}"
+            )
+        
         # Build response message
         if is_same_store:
             message = f"Manager changé avec succès : {seller.get('name')} est maintenant sous la responsabilité de {new_manager['name']}"

@@ -5,6 +5,7 @@ API endpoints for seller-specific features (tasks, objectives, challenges)
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Dict, List, Optional, Union
 from datetime import datetime, timezone, timedelta
+import uuid
 
 from services.seller_service import SellerService
 from api.dependencies import get_seller_service, get_db
@@ -2594,3 +2595,244 @@ async def refresh_daily_challenge(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error refreshing challenge: {str(e)}")
+
+
+# ===== INTERVIEW NOTES (Bloc-notes pour préparation entretien) =====
+
+@router.get("/interview-notes")
+async def get_interview_notes(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Récupère toutes les notes d'entretien du vendeur.
+    Retourne les notes triées par date (plus récentes en premier).
+    """
+    try:
+        seller_id = current_user['id']
+        
+        notes = await db.interview_notes.find(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        ).sort("date", -1).to_list(1000)
+        
+        return {
+            "notes": notes,
+            "total": len(notes)
+        }
+    except Exception as e:
+        logger.error(f"Error fetching interview notes: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des notes: {str(e)}")
+
+
+@router.get("/interview-notes/{date}")
+async def get_interview_note_by_date(
+    date: str,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Récupère la note d'entretien pour une date spécifique.
+    """
+    try:
+        seller_id = current_user['id']
+        
+        note = await db.interview_notes.find_one(
+            {"seller_id": seller_id, "date": date},
+            {"_id": 0}
+        )
+        
+        if not note:
+            return {"note": None}
+        
+        return {"note": note}
+    except Exception as e:
+        logger.error(f"Error fetching interview note for date {date}: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération de la note: {str(e)}")
+
+
+@router.post("/interview-notes")
+async def create_interview_note(
+    note_data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Crée ou met à jour une note d'entretien pour une date donnée.
+    Si une note existe déjà pour cette date, elle est mise à jour.
+    """
+    try:
+        seller_id = current_user['id']
+        date = note_data.get('date')
+        content = note_data.get('content', '').strip()
+        
+        if not date:
+            raise HTTPException(status_code=400, detail="La date est requise")
+        
+        # Valider le format de date
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Format de date invalide. Utilisez YYYY-MM-DD")
+        
+        now = datetime.now(timezone.utc)
+        
+        # Vérifier si une note existe déjà pour cette date
+        existing_note = await db.interview_notes.find_one(
+            {"seller_id": seller_id, "date": date}
+        )
+        
+        if existing_note:
+            # Mettre à jour la note existante
+            await db.interview_notes.update_one(
+                {"seller_id": seller_id, "date": date},
+                {"$set": {
+                    "content": content,
+                    "updated_at": now.isoformat()
+                }}
+            )
+            note_id = existing_note.get('id')
+            message = "Note mise à jour avec succès"
+        else:
+            # Créer une nouvelle note
+            note = {
+                "id": str(uuid.uuid4()),
+                "seller_id": seller_id,
+                "date": date,
+                "content": content,
+                "created_at": now.isoformat(),
+                "updated_at": now.isoformat()
+            }
+            await db.interview_notes.insert_one(note)
+            note_id = note["id"]
+            message = "Note créée avec succès"
+        
+        return {
+            "success": True,
+            "message": message,
+            "note_id": note_id,
+            "date": date
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating/updating interview note: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la sauvegarde de la note: {str(e)}")
+
+
+@router.put("/interview-notes/{note_id}")
+async def update_interview_note(
+    note_id: str,
+    note_data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Met à jour une note d'entretien existante.
+    """
+    try:
+        seller_id = current_user['id']
+        content = note_data.get('content', '').strip()
+        
+        # Vérifier que la note appartient au vendeur
+        note = await db.interview_notes.find_one(
+            {"id": note_id, "seller_id": seller_id}
+        )
+        
+        if not note:
+            raise HTTPException(status_code=404, detail="Note non trouvée")
+        
+        # Mettre à jour
+        await db.interview_notes.update_one(
+            {"id": note_id, "seller_id": seller_id},
+            {"$set": {
+                "content": content,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {
+            "success": True,
+            "message": "Note mise à jour avec succès"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating interview note: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
+
+
+@router.delete("/interview-notes/{note_id}")
+async def delete_interview_note(
+    note_id: str,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Supprime une note d'entretien.
+    """
+    try:
+        seller_id = current_user['id']
+        
+        # Vérifier que la note appartient au vendeur
+        note = await db.interview_notes.find_one(
+            {"id": note_id, "seller_id": seller_id}
+        )
+        
+        if not note:
+            raise HTTPException(status_code=404, detail="Note non trouvée")
+        
+        # Supprimer
+        result = await db.interview_notes.delete_one(
+            {"id": note_id, "seller_id": seller_id}
+        )
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Note non trouvée")
+        
+        return {
+            "success": True,
+            "message": "Note supprimée avec succès"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting interview note: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression: {str(e)}")
+
+
+@router.delete("/interview-notes/date/{date}")
+async def delete_interview_note_by_date(
+    date: str,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Supprime une note d'entretien par date.
+    """
+    try:
+        seller_id = current_user['id']
+        
+        # Valider le format de date
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Format de date invalide. Utilisez YYYY-MM-DD")
+        
+        # Supprimer
+        result = await db.interview_notes.delete_one(
+            {"seller_id": seller_id, "date": date}
+        )
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Note non trouvée pour cette date")
+        
+        return {
+            "success": True,
+            "message": "Note supprimée avec succès"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting interview note by date: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression: {str(e)}")

@@ -100,3 +100,30 @@ class DebriefCreate(BaseModel):
     raisons_echec: str
     amelioration_pensee: str
 
+# ===== INTERVIEW NOTES MODELS =====
+
+
+class InterviewNote(BaseModel):
+    """
+    Note d'entretien pour un vendeur.
+    Permet au vendeur de prendre des notes quotidiennes pour préparer son entretien annuel.
+    """
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    seller_id: str
+    date: str = Field(..., description="Date de la note au format YYYY-MM-DD")
+    content: str = Field(..., description="Contenu de la note")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class InterviewNoteCreate(BaseModel):
+    """Modèle pour créer une note d'entretien"""
+    date: str = Field(..., description="Date de la note au format YYYY-MM-DD")
+    content: str = Field(..., description="Contenu de la note")
+
+
+class InterviewNoteUpdate(BaseModel):
+    """Modèle pour mettre à jour une note d'entretien"""
+    content: str = Field(..., description="Contenu de la note")
+

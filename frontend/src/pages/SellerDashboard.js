@@ -21,6 +21,7 @@ import DailyChallengeModal from '../components/DailyChallengeModal';
 import CoachingModal from '../components/CoachingModal';
 import SupportModal from '../components/SupportModal';
 import EvaluationGenerator from '../components/EvaluationGenerator';
+import EvaluationNotesNotebook from '../components/EvaluationNotesNotebook';
 import TutorialButton from '../components/onboarding/TutorialButton';
 import OnboardingModal from '../components/onboarding/OnboardingModal';
 import { getSellerSteps } from '../components/onboarding/sellerSteps';
@@ -125,6 +126,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showDiagnosticFormModal, setShowDiagnosticFormModal] = useState(false);
   // Entretien annuel
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
+  const [showNotesNotebook, setShowNotesNotebook] = useState(false);
   const [showCompetencesModal, setShowCompetencesModal] = useState(false);
   // States for Bilan Individuel
   const [bilanIndividuel, setBilanIndividuel] = useState(null);
@@ -1217,7 +1219,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               return (
                 <div 
                   key="preparation"
-                  onClick={() => setShowEvaluationModal(true)}
+                  onClick={() => setShowNotesNotebook(true)}
                   className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-pink-400"
                 >
                   <div className="relative h-48 overflow-hidden">
@@ -1234,7 +1236,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                           <FileText className="w-8 h-8" />
                         </div>
                         <h2 className="text-2xl font-bold">🎯 Préparer mon Entretien</h2>
-                        <p className="text-sm mt-2 opacity-90">Fiche de préparation IA pour ton bilan annuel →</p>
+                        <p className="text-sm mt-2 opacity-90">Bloc-notes et synthèse IA pour ton bilan annuel →</p>
                       </div>
                     </div>
                   </div>
@@ -1571,6 +1573,18 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         onGoTo={onboarding.goTo}
         onSkip={onboarding.skip}
         completedSteps={onboarding.completedSteps}
+      />
+
+      {/* Notes Notebook Modal */}
+      <EvaluationNotesNotebook
+        isOpen={showNotesNotebook}
+        onClose={() => setShowNotesNotebook(false)}
+        sellerId={user?.id}
+        sellerName={user?.name}
+        onGenerateSynthesis={() => {
+          setShowNotesNotebook(false);
+          setShowEvaluationModal(true);
+        }}
       />
 
       {/* Evaluation Generator Modal (Entretien Annuel) */}

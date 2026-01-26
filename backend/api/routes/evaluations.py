@@ -251,7 +251,22 @@ async def generate_evaluation_guide(
     # 5. 🎨 Récupérer le profil DISC de l'employé pour personnalisation
     disc_profile = await get_disc_profile(db, request.employee_id)
     
-    # 6. Générer le guide IA avec le profil DISC
+    # 6. 📝 Récupérer les notes d'entretien du vendeur (si vendeur)
+    interview_notes = []
+    if role_perspective == 'seller':
+        notes = await db.interview_notes.find(
+            {"seller_id": request.employee_id},
+            {"_id": 0}
+        ).sort("date", 1).to_list(1000)  # Tri par date croissante
+        
+        # Filtrer les notes dans la période
+        notes_in_period = [
+            note for note in notes
+            if request.start_date <= note.get('date', '') <= request.end_date
+        ]
+        interview_notes = notes_in_period
+    
+    # 7. Générer le guide IA avec le profil DISC et les notes
     evaluation_service = EvaluationGuideService()
     guide_content = await evaluation_service.generate_evaluation_guide(
         role=role_perspective,
@@ -259,7 +274,8 @@ async def generate_evaluation_guide(
         employee_name=employee_name,
         period=period,
         comments=request.comments,
-        disc_profile=disc_profile
+        disc_profile=disc_profile,
+        interview_notes=interview_notes  # ✅ Ajout des notes
     )
     
     return EvaluationGuideResponse(

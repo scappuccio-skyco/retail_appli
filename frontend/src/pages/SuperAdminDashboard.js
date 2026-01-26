@@ -70,6 +70,14 @@ export default function SuperAdminDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Rafraîchir les stats et workspaces quand on revient sur l'onglet overview
+  useEffect(() => {
+    if (activeTab === 'overview') {
+      fetchStats();
+      fetchWorkspaces();
+    }
+  }, [activeTab]);
+
   // Refetch workspaces when showDeletedWorkspaces changes
   useEffect(() => {
     const fetchWorkspaces = async () => {
@@ -92,6 +100,26 @@ export default function SuperAdminDashboard() {
       fetchAuditLogs();
     }
   }, [activeTab, logFilters, auditFilters]);
+
+  const fetchStats = async () => {
+    try {
+      const statsRes = await api.get('/superadmin/stats');
+      setStats(statsRes.data);
+    } catch (error) {
+      logger.error('Error fetching stats:', error);
+    }
+  };
+
+  const fetchWorkspaces = async () => {
+    try {
+      const workspacesRes = await api.get('/superadmin/workspaces', { 
+        params: { include_deleted: true } 
+      });
+      setWorkspaces(workspacesRes.data);
+    } catch (error) {
+      logger.error('Error fetching workspaces:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -1288,7 +1316,15 @@ export default function SuperAdminDashboard() {
 
         {activeTab === 'ai-assistant' && <AIAssistant />}
 
-        {activeTab === 'trials' && <TrialManagement />}
+        {activeTab === 'trials' && (
+          <TrialManagement 
+            onTrialUpdated={() => {
+              // Rafraîchir les stats et workspaces après mise à jour de l'essai
+              fetchStats();
+              fetchWorkspaces();
+            }}
+          />
+        )}
 
         {activeTab === 'subscriptions' && <StripeSubscriptionsView />}
       </div>
