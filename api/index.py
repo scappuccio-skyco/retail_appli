@@ -17,5 +17,6 @@ from backend.main import app
 
 # Create Mangum handler for AWS Lambda/Vercel
 # Vercel expects the handler to be named 'handler'
+# Note: Mangum automatically handles CORS headers from FastAPI's CORSMiddleware
 handler = Mangum(app, lifespan="off")
 
