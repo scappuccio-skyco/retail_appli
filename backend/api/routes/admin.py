@@ -1003,7 +1003,10 @@ async def get_gerants_trials(
                     if trial_end_dt.tzinfo is None:
                         trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
                     
-                    days_left = max(0, (trial_end_dt - now).days)
+                    # Utiliser le même calcul que le frontend (Math.floor)
+                    # pour garantir la cohérence entre backend et frontend
+                    delta = trial_end_dt - now
+                    days_left = max(0, int(delta.total_seconds() / 86400))
                 except Exception as e:
                     logger.warning(f"Error calculating days_left for gerant {gerant_id}: {e}")
             

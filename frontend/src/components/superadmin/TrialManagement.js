@@ -231,7 +231,11 @@ export default function TrialManagement() {
             </div>
           ) : (
             filteredGerants.map((gerant) => {
-              const daysRemaining = calculateDaysRemaining(gerant.trial_end);
+              // Utiliser days_left du backend en priorité pour garantir la cohérence
+              // Ne calculer que si days_left n'est pas disponible
+              const daysRemaining = gerant.days_left !== undefined 
+                ? gerant.days_left 
+                : calculateDaysRemaining(gerant.trial_end);
               const isExpired = daysRemaining !== null && daysRemaining < 0;
               const isExpiringSoon = daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 7;
               const isEditing = editingTrial === gerant.id;
@@ -292,7 +296,7 @@ export default function TrialManagement() {
                             <Calendar className="w-4 h-4" />
                             <span>
                               {isExpired ? 'Expiré depuis ' : 'Expire dans '}
-                              {Math.abs(gerant.days_left !== undefined ? gerant.days_left : daysRemaining)} jour{Math.abs(gerant.days_left !== undefined ? gerant.days_left : daysRemaining) > 1 ? 's' : ''}
+                              {Math.abs(daysRemaining)} jour{Math.abs(daysRemaining) > 1 ? 's' : ''}
                             </span>
                           </div>
                         )}
