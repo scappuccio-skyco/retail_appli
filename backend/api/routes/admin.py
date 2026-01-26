@@ -1007,6 +1007,9 @@ async def get_gerants_trials(
                     # pour garantir la cohérence entre backend et frontend
                     delta = trial_end_dt - now
                     days_left = max(0, int(delta.total_seconds() / 86400))
+                    
+                    # Log pour débogage
+                    logger.debug(f"Gerant {gerant_id}: trial_end={trial_end}, now={now.isoformat()}, days_left={days_left}")
                 except Exception as e:
                     logger.warning(f"Error calculating days_left for gerant {gerant_id}: {e}")
             
@@ -1074,13 +1077,27 @@ async def update_gerant_trial(
         
         # Parser et valider la date
         try:
-            trial_end_date = datetime.fromisoformat(trial_end_str.replace('Z', '+00:00'))
+            # Gérer différents formats de date
+            if isinstance(trial_end_str, str):
+                # Si c'est au format YYYY-MM-DD, ajouter l'heure à minuit UTC
+                if len(trial_end_str) == 10 and trial_end_str.count('-') == 2:
+                    trial_end_str = f"{trial_end_str}T00:00:00.000Z"
+                
+                # Normaliser le format Z en +00:00 pour fromisoformat
+                trial_end_str_normalized = trial_end_str.replace('Z', '+00:00')
+                trial_end_date = datetime.fromisoformat(trial_end_str_normalized)
+            else:
+                trial_end_date = trial_end_str
+            
             # S'assurer que c'est en UTC
             if trial_end_date.tzinfo is None:
                 trial_end_date = trial_end_date.replace(tzinfo=timezone.utc)
             trial_end = trial_end_date.isoformat()
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Format de date invalide")
+            
+            logger.info(f"Parsed trial_end for gerant {gerant_id}: {trial_end}")
+        except (ValueError, AttributeError) as e:
+            logger.error(f"Error parsing trial_end date '{trial_end_str}': {e}")
+            raise HTTPException(status_code=400, detail=f"Format de date invalide: {trial_end_str}")
         
         # Récupérer le workspace du gérant (source de vérité pour les essais)
         workspace = await db.workspaces.find_one({"gerant_id": gerant_id}, {"_id": 0, "trial_end": 1})

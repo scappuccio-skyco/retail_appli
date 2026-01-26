@@ -11,6 +11,7 @@ export default function TrialManagement() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [editingTrial, setEditingTrial] = useState(null);
   const [newTrialEnd, setNewTrialEnd] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0); // Force re-render après mise à jour
 
   useEffect(() => {
     fetchGerants();
@@ -36,15 +37,29 @@ export default function TrialManagement() {
     }
 
     try {
+      // Convertir la date YYYY-MM-DD en format ISO avec heure à minuit UTC
+      const trialEndDate = new Date(newTrialEnd + 'T00:00:00.000Z');
+      const trialEndISO = trialEndDate.toISOString();
+      
       await api.patch(
         `/superadmin/gerants/${gerantId}/trial`,
-        { trial_end: newTrialEnd }
+        { trial_end: trialEndISO }
       );
       
       toast.success('Période d\'essai mise à jour avec succès');
       setEditingTrial(null);
       setNewTrialEnd('');
-      fetchGerants();
+      
+      // Forcer un rafraîchissement immédiat puis un second après un court délai
+      // pour s'assurer que le backend a bien mis à jour
+      await fetchGerants();
+      setRefreshKey(prev => prev + 1); // Force re-render
+      
+      // Second rafraîchissement après un délai pour garantir la mise à jour
+      setTimeout(async () => {
+        await fetchGerants();
+        setRefreshKey(prev => prev + 1);
+      }, 500);
     } catch (error) {
       logger.error('Error updating trial:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
@@ -223,7 +238,7 @@ export default function TrialManagement() {
         </div>
 
         {/* Gerants List */}
-        <div className="space-y-4">
+        <div key={refreshKey} className="space-y-4">
           {filteredGerants.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
