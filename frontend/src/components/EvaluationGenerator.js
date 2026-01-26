@@ -16,7 +16,7 @@ import { logger } from '../utils/logger';
  * @param {string} employeeName - Nom du vendeur
  * @param {string} role - 'manager' ou 'seller' (détermine le type de guide généré)
  */
-export default function EvaluationGenerator({ isOpen, onClose, employeeId, employeeName, role, interviewNotes = [] }) {
+export default function EvaluationGenerator({ isOpen, onClose, employeeId, employeeName, role }) {
   // Dates par défaut : 1er janvier de l'année en cours -> aujourd'hui
   const currentYear = new Date().getFullYear();
   const defaultStartDate = `${currentYear}-01-01`;
