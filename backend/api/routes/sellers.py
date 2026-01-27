@@ -10,6 +10,11 @@ import uuid
 from services.seller_service import SellerService
 from api.dependencies import get_seller_service, get_db
 from core.security import get_current_seller, get_current_user, verify_resource_store_access, require_active_space
+from repositories.objective_repository import ObjectiveRepository
+from repositories.challenge_repository import ChallengeRepository
+from repositories.kpi_repository import KPIRepository
+from models.pagination import PaginatedResponse, PaginationParams
+from utils.pagination import paginate, paginate_with_params
 import logging
 
 router = APIRouter(
@@ -820,8 +825,11 @@ async def update_seller_objective_progress(
             "total_after": new_value
         }
         
-        await db.objectives.update_one(
-            {"id": objective_id},
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        objective_repo = ObjectiveRepository(db)
+        # Utiliser update_one de base_repository qui supporte $push
+        await objective_repo.update_one(
+            {"id": objective_id, "store_id": seller_store_id},
             {
                 "$set": update_data,
                 "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}}
@@ -829,9 +837,10 @@ async def update_seller_objective_progress(
         )
         
         # Fetch and return the complete updated objective
-        updated_objective = await db.objectives.find_one(
-            {"id": objective_id},
-            {"_id": 0}
+        updated_objective = await objective_repo.find_by_id(
+            objective_id=objective_id,
+            store_id=seller_store_id,
+            projection={"_id": 0}
         )
         
         if updated_objective:
@@ -984,8 +993,11 @@ async def update_seller_challenge_progress(
             "total_after": new_value
         }
 
-        await db.challenges.update_one(
-            {"id": challenge_id},
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        challenge_repo = ChallengeRepository(db)
+        # Utiliser update_one de base_repository qui supporte $push
+        await challenge_repo.update_one(
+            {"id": challenge_id, "store_id": seller_store_id},
             {
                 "$set": update_data,
                 "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}}
@@ -993,9 +1005,10 @@ async def update_seller_challenge_progress(
         )
         
         # Fetch and return the complete updated challenge
-        updated_challenge = await db.challenges.find_one(
-            {"id": challenge_id},
-            {"_id": 0}
+        updated_challenge = await challenge_repo.find_by_id(
+            challenge_id=challenge_id,
+            store_id=seller_store_id,
+            projection={"_id": 0}
         )
         
         if updated_challenge:
@@ -1170,35 +1183,39 @@ async def get_seller_kpi_config(
 @router.get("/kpi-entries")
 async def get_my_kpi_entries(
     days: int = Query(None, description="Number of days to fetch"),
+    pagination: PaginationParams = Depends(),
     current_user: Dict = Depends(get_current_seller),
     db = Depends(get_db)
 ):
     """
     Get seller's KPI entries.
     Returns KPI data for the seller.
+    ✅ MIGRÉ: Pagination avec PaginatedResponse
     """
     try:
         seller_id = current_user['id']
         
-        if days:
-            entries = await db.kpi_entries.find(
-                {"seller_id": seller_id},
-                {"_id": 0}
-            ).sort("date", -1).limit(days).to_list(days)
-        else:
-            entries = await db.kpi_entries.find(
-                {"seller_id": seller_id},
-                {"_id": 0}
-            ).sort("date", -1).limit(365).to_list(365)
+        # ✅ MIGRÉ: Utilisation du repository avec pagination
+        kpi_repo = KPIRepository(db)
+        
+        # Si days est spécifié, limiter à ce nombre, sinon utiliser pagination
+        size = days if days and days <= 365 else pagination.size
+        
+        result = await paginate(
+            collection=kpi_repo.collection,
+            query={"seller_id": seller_id},
+            page=pagination.page,
+            size=min(size, 365),  # Max 365 jours
+            projection={"_id": 0},
+            sort=[("date", -1)]
+        )
         
         # Log for debugging
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"Fetched {len(entries)} KPI entries for seller {seller_id}")
-        if entries:
-            logger.info(f"Date range: {entries[-1].get('date')} to {entries[0].get('date')}")
+        logger.info(f"Fetched {len(result.items)} KPI entries for seller {seller_id} (total: {result.total})")
+        if result.items:
+            logger.info(f"Date range: {result.items[-1].get('date')} to {result.items[0].get('date')}")
         
-        return entries
+        return result
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching KPI entries: {str(e)}")
@@ -1250,12 +1267,16 @@ async def get_daily_challenge(
             "seller_id": seller_id
         }, {"_id": 0})
         
-        # Get recent challenges to avoid repetition
-        recent = await db.daily_challenges.find(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        ).sort("date", -1).limit(5).to_list(5)
-        
+        # ✅ MIGRÉ: Pagination avec limite 5
+        recent_result = await paginate(
+            collection=db.daily_challenges,
+            query={"seller_id": seller_id},
+            page=1,
+            size=5,
+            projection={"_id": 0},
+            sort=[("date", -1)]
+        )
+        recent = recent_result.items
         recent_competences = [ch.get('competence') for ch in recent if ch.get('competence')]
         
         # Select competence
@@ -1663,14 +1684,19 @@ async def get_daily_challenge_stats(
     try:
         seller_id = current_user['id']
         
-        # Get all challenges for this seller
-        challenges = await db.daily_challenges.find(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        ).to_list(1000)
+        # ✅ MIGRÉ: Pagination avec limite par défaut (pour stats, on peut limiter)
+        challenges_result = await paginate(
+            collection=db.daily_challenges,
+            query={"seller_id": seller_id},
+            page=1,
+            size=50,  # Limite par défaut pour éviter chargement massif
+            projection={"_id": 0},
+            sort=[("date", -1)]
+        )
+        challenges = challenges_result.items
         
         # Calculate stats
-        total = len(challenges)
+        total = challenges_result.total  # Utiliser total du résultat paginé
         completed = len([c for c in challenges if c.get('completed')])
         
         # Stats by competence
@@ -1720,12 +1746,25 @@ async def get_daily_challenge_history(
 ):
     """Get all past daily challenges for the seller."""
     try:
-        challenges = await db.daily_challenges.find(
-            {"seller_id": current_user['id']},
-            {"_id": 0}
-        ).sort("date", -1).to_list(100)
+        # ✅ MIGRÉ: Pagination avec limite par défaut
+        challenges_result = await paginate(
+            collection=db.daily_challenges,
+            query={"seller_id": current_user['id']},
+            page=1,
+            size=50,  # Limite par défaut
+            projection={"_id": 0},
+            sort=[("date", -1)]
+        )
         
-        return challenges
+        return {
+            "challenges": challenges_result.items,
+            "pagination": {
+                "total": challenges_result.total,
+                "page": challenges_result.page,
+                "size": challenges_result.size,
+                "pages": challenges_result.pages
+            }
+        }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1740,14 +1779,25 @@ async def get_all_bilans_individuels(
 ):
     """Get all individual performance reports (bilans) for seller."""
     try:
-        bilans = await db.seller_bilans.find(
-            {"seller_id": current_user['id']},
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(100)
+        # ✅ MIGRÉ: Pagination avec limite par défaut
+        bilans_result = await paginate(
+            collection=db.seller_bilans,
+            query={"seller_id": current_user['id']},
+            page=1,
+            size=50,  # Limite par défaut
+            projection={"_id": 0},
+            sort=[("created_at", -1)]
+        )
         
         return {
             "status": "success",
-            "bilans": bilans
+            "bilans": bilans_result.items,
+            "pagination": {
+                "total": bilans_result.total,
+                "page": bilans_result.page,
+                "size": bilans_result.size,
+                "pages": bilans_result.pages
+            }
         }
         
     except Exception as e:
@@ -1774,14 +1824,39 @@ async def generate_bilan_individuel(
         if start_date and end_date:
             query["date"] = {"$gte": start_date, "$lte": end_date}
         
-        kpis = await db.kpi_entries.find(query, {"_id": 0}).to_list(1000)
+        # ✅ MIGRÉ: Utilisation d'agrégation MongoDB pour calculs optimisés
+        kpi_repo = KPIRepository(db)
         
-        # Calculate summary
-        total_ca = sum(k.get('ca_journalier') or k.get('seller_ca') or 0 for k in kpis)
-        total_ventes = sum(k.get('nb_ventes') or 0 for k in kpis)
-        total_clients = sum(k.get('nb_clients') or 0 for k in kpis)
+        # Use aggregation for efficient summary calculation
+        aggregate_pipeline = [
+            {"$match": query},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}}
+            }}
+        ]
+        
+        aggregate_result = await kpi_repo.aggregate(aggregate_pipeline, max_results=1)
+        summary = aggregate_result[0] if aggregate_result else {}
+        
+        total_ca = summary.get('total_ca', 0) or 0
+        total_ventes = summary.get('total_ventes', 0) or 0
+        total_clients = summary.get('total_clients', 0) or 0
         
         panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+        
+        # Get limited KPIs for AI context (max 50)
+        kpis = await paginate(
+            collection=kpi_repo.collection,
+            query=query,
+            page=1,
+            size=50,  # Limite pour contexte AI
+            projection={"_id": 0},
+            sort=[("date", -1)]
+        )
+        kpis_list = kpis.items
         
         # Try to generate AI bilan with structured format
         ai_service = AIService()
@@ -1794,7 +1869,7 @@ async def generate_bilan_individuel(
         points_attention = []
         recommandations = []
         
-        if ai_service.available and len(kpis) > 0:
+        if ai_service.available and len(kpis_list) > 0:
             try:
                 # 🛑 STRICT SELLER PROMPT V3 - No marketing, no traffic, no promotions
                 prompt = f"""Génère un bilan de performance pour {seller_name}.
@@ -1803,7 +1878,7 @@ async def generate_bilan_individuel(
 - CA total: {total_ca:.0f}€
 - Nombre de ventes: {total_ventes}
 - Panier moyen: {panier_moyen:.2f}€
-- Jours travaillés: {len(kpis)}
+- Jours travaillés: {len(kpis_list)}
 
 ⚠️ RAPPEL STRICT : Ne parle PAS de trafic, promotions, réseaux sociaux ou marketing.
 Si le CA est bon, félicite simplement. Focus sur accueil, vente additionnelle, closing.
@@ -1850,7 +1925,7 @@ Génère un bilan structuré au format JSON:
         
         # If no AI, generate basic bilan
         if not synthese:
-            if len(kpis) > 0:
+            if len(kpis_list) > 0:
                 synthese = f"Cette semaine, tu as réalisé {total_ventes} ventes pour un CA de {total_ca:.0f}€. Continue comme ça !"
                 points_forts = ["Assiduité dans la saisie des KPIs"]
                 points_attention = ["Continue à développer tes compétences"]
@@ -1874,7 +1949,7 @@ Génère un bilan structuré au format JSON:
                 "ventes": total_ventes,
                 "clients": total_clients,
                 "panier_moyen": round(panier_moyen, 2),
-                "jours": len(kpis)
+                "jours": len(kpis_list)
             },
             "synthese": synthese,
             "points_forts": points_forts,
@@ -2504,12 +2579,16 @@ async def refresh_daily_challenge(
             "seller_id": seller_id
         }, {"_id": 0})
         
-        # Get recent challenges to avoid repetition
-        recent = await db.daily_challenges.find(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        ).sort("date", -1).limit(5).to_list(5)
-        
+        # ✅ MIGRÉ: Pagination avec limite 5
+        recent_result = await paginate(
+            collection=db.daily_challenges,
+            query={"seller_id": seller_id},
+            page=1,
+            size=5,
+            projection={"_id": 0},
+            sort=[("date", -1)]
+        )
+        recent = recent_result.items
         recent_competences = [ch.get('competence') for ch in recent if ch.get('competence')]
         
         # Select competence
@@ -2611,14 +2690,24 @@ async def get_interview_notes(
     try:
         seller_id = current_user['id']
         
-        notes = await db.interview_notes.find(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        ).sort("date", -1).to_list(1000)
+        # ✅ MIGRÉ: Pagination avec limite par défaut
+        notes_result = await paginate(
+            collection=db.interview_notes,
+            query={"seller_id": seller_id},
+            page=1,
+            size=50,  # Limite par défaut pour éviter chargement massif
+            projection={"_id": 0},
+            sort=[("date", -1)]
+        )
         
         return {
-            "notes": notes,
-            "total": len(notes)
+            "notes": notes_result.items,
+            "pagination": {
+                "total": notes_result.total,
+                "page": notes_result.page,
+                "size": notes_result.size,
+                "pages": notes_result.pages
+            }
         }
     except Exception as e:
         logger.error(f"Error fetching interview notes: {e}")

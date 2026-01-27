@@ -5,7 +5,9 @@ from repositories.store_repository import StoreRepository, WorkspaceRepository
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.subscription_repository import SubscriptionRepository
 from repositories.diagnostic_repository import DiagnosticRepository
-from repositories.challenge_repository import ChallengeRepository, DailyChallengeRepository
+from repositories.challenge_repository import ChallengeRepository
+from repositories.objective_repository import ObjectiveRepository
+from repositories.debrief_repository import DebriefRepository
 
 __all__ = [
     'BaseRepository',
@@ -17,5 +19,6 @@ __all__ = [
     'SubscriptionRepository',
     'DiagnosticRepository',
     'ChallengeRepository',
-    'DailyChallengeRepository',
+    'ObjectiveRepository',
+    'DebriefRepository',
 ]

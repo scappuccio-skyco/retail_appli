@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from core.security import get_current_user, require_active_space
 from api.dependencies import get_db, get_ai_service
 from services.ai_service import AIService
+from repositories.debrief_repository import DebriefRepository
 
 router = APIRouter(
     tags=["Debriefs"],
@@ -137,7 +138,12 @@ async def create_debrief(
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.debriefs.insert_one(debrief)
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        debrief_repo = DebriefRepository(db)
+        debrief_id = await debrief_repo.create_debrief(
+            debrief_data=debrief,
+            seller_id=seller_id
+        )
         
         # Update diagnostic scores if changed
         if new_scores != current_scores:
@@ -176,24 +182,38 @@ async def get_debriefs(
 ):
     """Get debriefs for current user (seller sees own, manager sees shared)."""
     try:
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        debrief_repo = DebriefRepository(db)
+        
         if current_user['role'] == 'seller':
-            debriefs = await db.debriefs.find(
-                {"seller_id": current_user['id']},
-                {"_id": 0}
-            ).sort("created_at", -1).to_list(100)
+            debriefs = await debrief_repo.find_by_seller(
+                seller_id=current_user['id'],
+                projection={"_id": 0},
+                limit=100,
+                sort=[("created_at", -1)]
+            )
         else:
             # Manager sees shared debriefs from their team
             store_id = current_user.get('store_id')
             if store_id:
-                sellers = await db.users.find(
+                # Get seller IDs for the store (still need db.users for this)
+                from repositories.user_repository import UserRepository
+                user_repo = UserRepository(db)
+                sellers = await user_repo.find_many(
                     {"store_id": store_id, "role": "seller"},
-                    {"_id": 0, "id": 1}
-                ).to_list(1000)
+                    projection={"_id": 0, "id": 1},
+                    limit=1000
+                )
                 seller_ids = [s['id'] for s in sellers]
-                debriefs = await db.debriefs.find(
-                    {"seller_id": {"$in": seller_ids}, "shared_with_manager": True},
-                    {"_id": 0}
-                ).sort("created_at", -1).to_list(100)
+                
+                debriefs = await debrief_repo.find_by_store(
+                    store_id=store_id,
+                    seller_ids=seller_ids,
+                    visible_to_manager=True,
+                    projection={"_id": 0},
+                    limit=100,
+                    sort=[("created_at", -1)]
+                )
             else:
                 debriefs = []
         
@@ -220,12 +240,15 @@ async def toggle_debrief_visibility(
         # Accept both field names for compatibility (visible_to_manager or shared_with_manager)
         shared = data.get('shared_with_manager', data.get('visible_to_manager', False))
         
-        result = await db.debriefs.update_one(
-            {"id": debrief_id, "seller_id": current_user['id']},
-            {"$set": {"shared_with_manager": shared}}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        debrief_repo = DebriefRepository(db)
+        result = await debrief_repo.update_debrief(
+            debrief_id=debrief_id,
+            update_data={"shared_with_manager": shared},
+            seller_id=current_user['id']
         )
         
-        if result.modified_count == 0:
+        if not result:
             raise HTTPException(status_code=404, detail="Debrief not found")
         
         return {"success": True, "shared_with_manager": shared, "visible_to_manager": shared}
@@ -244,11 +267,14 @@ async def delete_debrief(
 ):
     """Delete a debrief."""
     try:
-        result = await db.debriefs.delete_one(
-            {"id": debrief_id, "seller_id": current_user['id']}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        debrief_repo = DebriefRepository(db)
+        result = await debrief_repo.delete_debrief(
+            debrief_id=debrief_id,
+            seller_id=current_user['id']
         )
         
-        if result.deleted_count == 0:
+        if not result:
             raise HTTPException(status_code=404, detail="Debrief not found")
         
         return {"success": True}

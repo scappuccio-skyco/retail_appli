@@ -274,6 +274,55 @@ def get_competence_service(
     return CompetenceService(db)
 
 
-# Note: Add more service dependencies here as needed:
-# - get_challenge_service()
-# etc.
+# ===== REPOSITORY DEPENDENCIES =====
+
+from repositories.objective_repository import ObjectiveRepository
+from repositories.challenge_repository import ChallengeRepository
+from repositories.debrief_repository import DebriefRepository
+
+def get_objective_repository(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> ObjectiveRepository:
+    """
+    Get ObjectiveRepository instance with database dependency
+    
+    Usage in routes:
+        @router.get("/objectives")
+        async def get_objectives(
+            objective_repo: ObjectiveRepository = Depends(get_objective_repository)
+        ):
+            return await objective_repo.find_by_store(store_id=store_id)
+    """
+    return ObjectiveRepository(db)
+
+
+def get_challenge_repository(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> ChallengeRepository:
+    """
+    Get ChallengeRepository instance with database dependency
+    
+    Usage in routes:
+        @router.get("/challenges")
+        async def get_challenges(
+            challenge_repo: ChallengeRepository = Depends(get_challenge_repository)
+        ):
+            return await challenge_repo.find_by_store(store_id=store_id)
+    """
+    return ChallengeRepository(db)
+
+
+def get_debrief_repository(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> DebriefRepository:
+    """
+    Get DebriefRepository instance with database dependency
+    
+    Usage in routes:
+        @router.get("/debriefs")
+        async def get_debriefs(
+            debrief_repo: DebriefRepository = Depends(get_debrief_repository)
+        ):
+            return await debrief_repo.find_by_seller(seller_id=seller_id)
+    """
+    return DebriefRepository(db)

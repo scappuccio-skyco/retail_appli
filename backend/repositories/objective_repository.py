@@ -1,16 +1,16 @@
 """
-Challenge Repository - Data access for manager challenges
+Objective Repository - Data access for manager objectives
 Security: All methods require store_id or manager_id to prevent IDOR
 """
 from typing import Optional, List, Dict, Any
 from repositories.base_repository import BaseRepository
 
 
-class ChallengeRepository(BaseRepository):
-    """Repository for challenges collection with security filters"""
+class ObjectiveRepository(BaseRepository):
+    """Repository for objectives collection with security filters"""
     
     def __init__(self, db):
-        super().__init__(db, "challenges")
+        super().__init__(db, "objectives")
     
     # ===== SECURE READ OPERATIONS (with store_id/manager_id filter) =====
     
@@ -23,7 +23,7 @@ class ChallengeRepository(BaseRepository):
         sort: Optional[List[tuple]] = None
     ) -> List[Dict]:
         """
-        Find challenges for a store (SECURITY: requires store_id)
+        Find objectives for a store (SECURITY: requires store_id)
         
         Args:
             store_id: Store ID (required for security)
@@ -49,7 +49,7 @@ class ChallengeRepository(BaseRepository):
         sort: Optional[List[tuple]] = None
     ) -> List[Dict]:
         """
-        Find challenges for a manager (SECURITY: requires manager_id)
+        Find objectives for a manager (SECURITY: requires manager_id)
         
         Args:
             manager_id: Manager ID (required for security)
@@ -79,7 +79,7 @@ class ChallengeRepository(BaseRepository):
         sort: Optional[List[tuple]] = None
     ) -> List[Dict]:
         """
-        Find challenges visible to a seller (SECURITY: requires seller_id and store_id)
+        Find objectives visible to a seller (SECURITY: requires seller_id and store_id)
         
         Args:
             seller_id: Seller ID
@@ -95,8 +95,8 @@ class ChallengeRepository(BaseRepository):
         filters = {
             "store_id": store_id,
             "$or": [
-                {"seller_id": seller_id},  # Individual challenge
-                {"type": "collective", "visible": True}  # Collective visible challenge
+                {"seller_id": seller_id},  # Individual objective
+                {"type": "collective", "visible": True}  # Collective visible objective
             ]
         }
         sort = sort or [("created_at", -1)]
@@ -104,24 +104,24 @@ class ChallengeRepository(BaseRepository):
     
     async def find_by_id(
         self,
-        challenge_id: str,
+        objective_id: str,
         store_id: Optional[str] = None,
         manager_id: Optional[str] = None,
         projection: Optional[Dict[str, int]] = None
     ) -> Optional[Dict]:
         """
-        Find challenge by ID (SECURITY: requires store_id or manager_id)
+        Find objective by ID (SECURITY: requires store_id or manager_id)
         
         Args:
-            challenge_id: Challenge ID
+            objective_id: Objective ID
             store_id: Store ID (for security verification)
             manager_id: Manager ID (for security verification)
             projection: MongoDB projection
         """
-        if not challenge_id:
-            raise ValueError("challenge_id is required")
+        if not objective_id:
+            raise ValueError("objective_id is required")
         
-        filters = {"id": challenge_id}
+        filters = {"id": objective_id}
         
         # Security: Require at least one filter
         if store_id:
@@ -143,11 +143,11 @@ class ChallengeRepository(BaseRepository):
         sort: Optional[List[tuple]] = None
     ) -> List[Dict]:
         """
-        Find challenges by store and status (SECURITY: requires store_id)
+        Find objectives by store and status (SECURITY: requires store_id)
         
         Args:
             store_id: Store ID (required for security)
-            status: Challenge status (active, achieved, failed)
+            status: Objective status (active, achieved, failed)
             projection: MongoDB projection
             limit: Maximum number of results
             skip: Number of results to skip
@@ -162,17 +162,17 @@ class ChallengeRepository(BaseRepository):
     
     # ===== WRITE OPERATIONS (with security validation) =====
     
-    async def create_challenge(
+    async def create_objective(
         self,
-        challenge_data: Dict[str, Any],
+        objective_data: Dict[str, Any],
         store_id: str,
         manager_id: str
     ) -> str:
         """
-        Create a new challenge (SECURITY: validates store_id and manager_id)
+        Create a new objective (SECURITY: validates store_id and manager_id)
         
         Args:
-            challenge_data: Challenge data
+            objective_data: Objective data
             store_id: Store ID (required for security)
             manager_id: Manager ID (required for security)
         """
@@ -180,31 +180,31 @@ class ChallengeRepository(BaseRepository):
             raise ValueError("store_id and manager_id are required for security")
         
         # Ensure security fields are set
-        challenge_data["store_id"] = store_id
-        challenge_data["manager_id"] = manager_id
+        objective_data["store_id"] = store_id
+        objective_data["manager_id"] = manager_id
         
-        return await self.insert_one(challenge_data)
+        return await self.insert_one(objective_data)
     
-    async def update_challenge(
+    async def update_objective(
         self,
-        challenge_id: str,
+        objective_id: str,
         update_data: Dict[str, Any],
         store_id: Optional[str] = None,
         manager_id: Optional[str] = None
     ) -> bool:
         """
-        Update a challenge (SECURITY: requires store_id or manager_id)
+        Update an objective (SECURITY: requires store_id or manager_id)
         
         Args:
-            challenge_id: Challenge ID
+            objective_id: Objective ID
             update_data: Update data
             store_id: Store ID (for security verification)
             manager_id: Manager ID (for security verification)
         """
-        if not challenge_id:
-            raise ValueError("challenge_id is required")
+        if not objective_id:
+            raise ValueError("objective_id is required")
         
-        filters = {"id": challenge_id}
+        filters = {"id": objective_id}
         
         # Security: Require at least one filter
         if store_id:
@@ -216,24 +216,24 @@ class ChallengeRepository(BaseRepository):
         
         return await self.update_one(filters, {"$set": update_data})
     
-    async def delete_challenge(
+    async def delete_objective(
         self,
-        challenge_id: str,
+        objective_id: str,
         store_id: Optional[str] = None,
         manager_id: Optional[str] = None
     ) -> bool:
         """
-        Delete a challenge (SECURITY: requires store_id or manager_id)
+        Delete an objective (SECURITY: requires store_id or manager_id)
         
         Args:
-            challenge_id: Challenge ID
+            objective_id: Objective ID
             store_id: Store ID (for security verification)
             manager_id: Manager ID (for security verification)
         """
-        if not challenge_id:
-            raise ValueError("challenge_id is required")
+        if not objective_id:
+            raise ValueError("objective_id is required")
         
-        filters = {"id": challenge_id}
+        filters = {"id": objective_id}
         
         # Security: Require at least one filter
         if store_id:
@@ -248,13 +248,13 @@ class ChallengeRepository(BaseRepository):
     # ===== COUNT OPERATIONS =====
     
     async def count_by_store(self, store_id: str) -> int:
-        """Count challenges for a store (SECURITY: requires store_id)"""
+        """Count objectives for a store (SECURITY: requires store_id)"""
         if not store_id:
             raise ValueError("store_id is required for security")
         return await self.count({"store_id": store_id})
     
     async def count_by_manager(self, manager_id: str, store_id: Optional[str] = None) -> int:
-        """Count challenges for a manager (SECURITY: requires manager_id)"""
+        """Count objectives for a manager (SECURITY: requires manager_id)"""
         if not manager_id:
             raise ValueError("manager_id is required for security")
         filters = {"manager_id": manager_id}

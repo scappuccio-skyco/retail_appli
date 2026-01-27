@@ -16,6 +16,9 @@ from services.vat_service import validate_vat_number, calculate_vat_rate, is_eu_
 from models.billing import BillingProfileCreate, BillingProfileUpdate, BillingProfile, BillingProfileResponse
 from api.dependencies import get_gerant_service, get_db
 from email_service import send_staff_email_update_confirmation, send_staff_email_update_alert
+from models.pagination import PaginatedResponse, PaginationParams
+from utils.pagination import paginate, paginate_with_params
+from repositories.kpi_repository import KPIRepository
 import logging
 
 logger = logging.getLogger(__name__)
@@ -1300,7 +1303,9 @@ async def get_store_kpi_dates(
             {"$limit": 365}  # Last year of dates
         ]
         
-        results = await db.kpi_entries.aggregate(pipeline).to_list(365)
+        # ✅ MIGRÉ: Limite à 365 jours (agrégation, pas besoin de pagination)
+        kpi_repo = KPIRepository(db)
+        results = await kpi_repo.aggregate(pipeline, max_results=365)
         dates = [r['_id'] for r in results if r['_id']]
         
         return {"dates": dates}
@@ -1690,12 +1695,14 @@ async def create_gerant_checkout_session(
             )
         stripe_customer_id = gerant.get('stripe_customer_id')
         
-        # 🔍 CRITIQUE: Vérifier les abonnements existants AVANT de créer un nouveau checkout
-        # Utiliser find().to_list() pour détecter les abonnements multiples
-        existing_subscriptions = await db.subscriptions.find(
+        # ✅ MIGRÉ: Limite à 10 pour validation (pas besoin de pagination complète)
+        from repositories.subscription_repository import SubscriptionRepository
+        subscription_repo = SubscriptionRepository(db)
+        existing_subscriptions = await subscription_repo.find_many(
             {"user_id": current_user['id'], "status": {"$in": ["active", "trialing"]}},
-            {"_id": 0}
-        ).to_list(length=10)
+            projection={"_id": 0},
+            limit=10
+        )
         
         # Vérifier dans Stripe si les abonnements existent encore et sont actifs
         active_count = 0
@@ -2380,11 +2387,14 @@ async def cancel_subscription(
         gerant_id = current_user['id']
         cancel_immediately = request.cancel_immediately
         
-        # Get ALL active subscriptions (detect multiples)
-        active_subscriptions = await db.subscriptions.find(
+        # ✅ MIGRÉ: Limite à 10 pour validation (pas besoin de pagination complète)
+        from repositories.subscription_repository import SubscriptionRepository
+        subscription_repo = SubscriptionRepository(db)
+        active_subscriptions = await subscription_repo.find_many(
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
-            {"_id": 0}
-        ).to_list(length=10)
+            projection={"_id": 0},
+            limit=10
+        )
         
         if not active_subscriptions:
             raise HTTPException(status_code=404, detail="Aucun abonnement actif trouvé")
@@ -2621,11 +2631,14 @@ async def reactivate_subscription(
     try:
         gerant_id = current_user['id']
         
-        # Get ALL active subscriptions (detect multiples)
-        active_subscriptions = await db.subscriptions.find(
+        # ✅ MIGRÉ: Limite à 10 pour validation (pas besoin de pagination complète)
+        from repositories.subscription_repository import SubscriptionRepository
+        subscription_repo = SubscriptionRepository(db)
+        active_subscriptions = await subscription_repo.find_many(
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
-            {"_id": 0}
-        ).to_list(length=10)
+            projection={"_id": 0},
+            limit=10
+        )
         
         if not active_subscriptions:
             raise HTTPException(status_code=404, detail="Aucun abonnement actif trouvé")
@@ -2832,11 +2845,18 @@ async def get_all_subscriptions(
     try:
         gerant_id = current_user['id']
         
-        # Get all subscriptions (not just active ones)
-        subscriptions = await db.subscriptions.find(
-            {"user_id": gerant_id},
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(length=50)  # Most recent first
+        # ✅ MIGRÉ: Pagination avec limite par défaut
+        from repositories.subscription_repository import SubscriptionRepository
+        subscription_repo = SubscriptionRepository(db)
+        subscriptions_result = await paginate(
+            collection=subscription_repo.collection,
+            query={"user_id": gerant_id},
+            page=1,
+            size=50,  # Limite par défaut
+            projection={"_id": 0},
+            sort=[("created_at", -1)]
+        )
+        subscriptions = subscriptions_result.items
         
         # Count active subscriptions
         active_count = sum(1 for s in subscriptions if s.get('status') in ['active', 'trialing'])
@@ -2895,17 +2915,30 @@ async def audit_subscription(
     try:
         gerant_id = current_user['id']
         
-        # Get all active subscriptions
-        active_subscriptions = await db.subscriptions.find(
-            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
-            {"_id": 0}
-        ).to_list(length=20)
+        # ✅ MIGRÉ: Pagination avec limite par défaut
+        from repositories.subscription_repository import SubscriptionRepository
+        subscription_repo = SubscriptionRepository(db)
+        
+        active_subscriptions_result = await paginate(
+            collection=subscription_repo.collection,
+            query={"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            page=1,
+            size=20,  # Limite par défaut
+            projection={"_id": 0},
+            sort=[("created_at", -1)]
+        )
+        active_subscriptions = active_subscriptions_result.items
         
         # Get all subscriptions (for history)
-        all_subscriptions = await db.subscriptions.find(
-            {"user_id": gerant_id},
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(length=50)
+        all_subscriptions_result = await paginate(
+            collection=subscription_repo.collection,
+            query={"user_id": gerant_id},
+            page=1,
+            size=50,  # Limite par défaut
+            projection={"_id": 0},
+            sort=[("created_at", -1)]
+        )
+        all_subscriptions = all_subscriptions_result.items
         
         # Format active subscriptions with audit details
         active_list = []

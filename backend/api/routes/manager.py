@@ -9,14 +9,20 @@ import logging
 
 from core.security import get_current_user, verify_resource_store_access, verify_seller_store_access, require_active_space
 from models.pagination import PaginatedResponse, PaginationParams
-from utils.pagination import paginate_with_params
+from utils.pagination import paginate_with_params, paginate
 from exceptions.custom_exceptions import NotFoundError, ValidationError
+from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from services.manager_service import ManagerService, APIKeyService
 from api.dependencies import (
     get_manager_service, get_api_key_service, get_db, get_seller_service, 
     get_gerant_service, get_ai_service, get_notification_service,
-    get_conflict_service, get_relationship_service
+    get_conflict_service, get_relationship_service,
+    get_objective_repository, get_challenge_repository, get_debrief_repository,
+    get_competence_service
 )
+from repositories.objective_repository import ObjectiveRepository
+from repositories.challenge_repository import ChallengeRepository
+from repositories.debrief_repository import DebriefRepository
 from api.dependencies_rate_limiting import get_rate_limiter
 from services.seller_service import SellerService
 from services.gerant_service import GerantService
@@ -24,6 +30,7 @@ from services.notification_service import NotificationService
 from services.conflict_service import ConflictService
 from services.relationship_service import RelationshipService
 from services.ai_service import AIService
+from services.competence_service import CompetenceService
 
 # Rate limiter instance (will be set from app.state in main.py)
 limiter = get_rate_limiter()
@@ -721,18 +728,20 @@ async def get_manager_kpis(
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
     db = Depends(get_db)
 ):
     """
     Get manager KPI entries for a date range.
     Used to fetch KPIs entered by the manager (not sellers).
+    ✅ MIGRÉ: Pagination avec PaginatedResponse
     """
     try:
         resolved_store_id = context.get('resolved_store_id') or store_id
         
         if not resolved_store_id:
-            return []
+            return PaginatedResponse(items=[], total=0, page=1, size=pagination.size, pages=0)
         
         # Default to last 30 days if no dates provided
         if not start_date or not end_date:
@@ -745,15 +754,22 @@ async def get_manager_kpis(
             "date": {"$gte": start_date, "$lte": end_date}
         }
         
-        kpis = await db.manager_kpis.find(query, {"_id": 0}).sort("date", -1).to_list(500)
+        # ✅ MIGRÉ: Utilisation du repository avec pagination
+        manager_kpi_repo = ManagerKPIRepository(db)
+        result = await paginate(
+            collection=manager_kpi_repo.collection,
+            query=query,
+            page=pagination.page,
+            size=pagination.size,
+            projection={"_id": 0},
+            sort=[("date", -1)]
+        )
         
-        return kpis
-        
-        return kpis
+        return result
         
     except Exception as e:
         logger.error(f"Error fetching manager KPIs: {e}")
-        return []
+        return PaginatedResponse(items=[], total=0, page=1, size=pagination.size, pages=0)
 
 
 @router.post("/manager-kpi")
@@ -889,10 +905,14 @@ async def save_manager_kpi(
                 )
             
             if seller_ids:
-                sellers = await db.users.find(
+                # ✅ MIGRÉ: Limite à 50 pour éviter chargement massif (validation de seller_ids)
+                from repositories.user_repository import UserRepository
+                user_repo = UserRepository(db)
+                sellers = await user_repo.find_many(
                     {"id": {"$in": seller_ids}, "store_id": resolved_store_id, "role": "seller"},
-                    {"_id": 0, "id": 1, "name": 1}
-                ).to_list(100)
+                    projection={"_id": 0, "id": 1, "name": 1},
+                    limit=50  # Limite raisonnable pour validation
+                )
                 
                 valid_seller_ids = {s['id'] for s in sellers}
                 invalid_seller_ids = set(seller_ids) - valid_seller_ids
@@ -1328,11 +1348,14 @@ async def get_all_objectives(
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
         
-        increment_db_op("db.objectives.find")
-        objectives = await db.objectives.find(
-            {"store_id": resolved_store_id},
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(100)
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        objective_repo = ObjectiveRepository(db)
+        objectives = await objective_repo.find_by_store(
+            store_id=resolved_store_id,
+            projection={"_id": 0},
+            limit=100,
+            sort=[("created_at", -1)]
+        )
         
         # Calculate progress for all objectives in batch (optimized)
         # ✅ ÉTAPE A: seller_service injecté via Depends()
@@ -1512,7 +1535,13 @@ async def create_objective(
                 detail="Impossible de créer un objectif sans store_id. Vérifiez que le store_id est bien passé en paramètre."
             )
         
-        await db.objectives.insert_one(objective)
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        objective_repo = ObjectiveRepository(db)
+        objective_id = await objective_repo.create_objective(
+            objective_data=objective,
+            store_id=resolved_store_id,
+            manager_id=manager_id
+        )
         objective.pop("_id", None)
         
         # Calculate initial progress based on existing KPI data
@@ -1547,10 +1576,11 @@ async def create_objective(
                 end_date=objective.get('period_end')
             )
             
-            # Update in database with calculated values (including correct status)
-            await db.objectives.update_one(
-                {"id": objective["id"]},
-                {"$set": {
+            # ✅ MIGRÉ: Utilisation du repository avec sécurité
+            objective_repo = ObjectiveRepository(db)
+            await objective_repo.update_objective(
+                objective_id=objective["id"],
+                update_data={
                     "current_value": current_value,
                     "progress_percentage": objective['progress_percentage'],
                     "status": objective['status'],  # Use computed status
@@ -1559,7 +1589,8 @@ async def create_objective(
                     "progress_articles": objective.get('progress_articles', 0),
                     "progress_panier_moyen": objective.get('progress_panier_moyen', 0),
                     "progress_indice_vente": objective.get('progress_indice_vente', 0)
-                }}
+                },
+                store_id=resolved_store_id
             )
         else:
             objective['progress_percentage'] = 0
@@ -1569,9 +1600,12 @@ async def create_objective(
                 target_value=0,
                 end_date=objective.get('period_end')
             )
-            await db.objectives.update_one(
-                {"id": objective["id"]},
-                {"$set": {"status": objective['status']}}
+            # ✅ MIGRÉ: Utilisation du repository avec sécurité
+            objective_repo = ObjectiveRepository(db)
+            await objective_repo.update_objective(
+                objective_id=objective["id"],
+                update_data={"status": objective['status']},
+                store_id=resolved_store_id
             )
         
         return objective
@@ -1591,9 +1625,11 @@ async def update_objective(
     try:
         resolved_store_id = context.get('resolved_store_id')
         
-        # Verify objective belongs to this store
-        existing = await db.objectives.find_one(
-            {"id": objective_id, "store_id": resolved_store_id}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        objective_repo = ObjectiveRepository(db)
+        existing = await objective_repo.find_by_id(
+            objective_id=objective_id,
+            store_id=resolved_store_id
         )
         
         if not existing:
@@ -1624,9 +1660,11 @@ async def update_objective(
             "unit": objective_data.get("unit") if "unit" in objective_data else existing.get("unit")
         }
         
-        await db.objectives.update_one(
-            {"id": objective_id},
-            {"$set": update_fields}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        await objective_repo.update_objective(
+            objective_id=objective_id,
+            update_data=update_fields,
+            store_id=resolved_store_id
         )
         
         return {"success": True, "message": "Objectif mis à jour", "id": objective_id}
@@ -1656,8 +1694,11 @@ async def delete_objective(
             context.get('role'), context.get('id')
         )
         
-        result = await db.objectives.delete_one(
-            {"id": objective_id, "store_id": resolved_store_id}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        objective_repo = ObjectiveRepository(db)
+        result = await objective_repo.delete_objective(
+            objective_id=objective_id,
+            store_id=resolved_store_id
         )
         
         if result.deleted_count == 0:
@@ -1715,9 +1756,11 @@ async def update_objective_progress(
         if not resolved_store_id:
             raise HTTPException(status_code=400, detail="Impossible de déterminer le magasin")
         
-        # Get objective
-        existing = await db.objectives.find_one(
-            {"id": objective_id, "store_id": resolved_store_id}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        objective_repo = ObjectiveRepository(db)
+        existing = await objective_repo.find_by_id(
+            objective_id=objective_id,
+            store_id=resolved_store_id
         )
         
         if not existing:
@@ -1793,18 +1836,22 @@ async def update_objective_progress(
             "total_after": new_value
         }
 
-        await db.objectives.update_one(
-            {"id": objective_id},
-            {
-                "$set": update_data,
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        await objective_repo.update_objective(
+            objective_id=objective_id,
+            update_data=update_data,
+            store_id=resolved_store_id
+        )
                 "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}}
             }
         )
         
         # Fetch and return the complete updated objective
-        updated_objective = await db.objectives.find_one(
-            {"id": objective_id},
-            {"_id": 0}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        updated_objective = await objective_repo.find_by_id(
+            objective_id=objective_id,
+            store_id=resolved_store_id,
+            projection={"_id": 0}
         )
         
         if updated_objective:
@@ -1864,11 +1911,14 @@ async def get_all_challenges(
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
         
-        increment_db_op("db.challenges.find")
-        challenges = await db.challenges.find(
-            {"store_id": resolved_store_id},
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(100)
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        challenge_repo = ChallengeRepository(db)
+        challenges = await challenge_repo.find_by_store(
+            store_id=resolved_store_id,
+            projection={"_id": 0},
+            limit=100,
+            sort=[("created_at", -1)]
+        )
         
         # Calculate progress for all challenges in batch (optimized)
         # ✅ ÉTAPE A: seller_service injecté via Depends()
@@ -2038,7 +2088,13 @@ async def create_challenge(
         }
         
         
-        await db.challenges.insert_one(challenge)
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        challenge_repo = ChallengeRepository(db)
+        challenge_id = await challenge_repo.create_challenge(
+            challenge_data=challenge,
+            store_id=resolved_store_id,
+            manager_id=manager_id
+        )
         challenge.pop("_id", None)
         
         return challenge
@@ -2093,9 +2149,12 @@ async def update_challenge(
             "unit": challenge_data.get("unit") if "unit" in challenge_data else existing.get("unit")
         }
         
-        await db.challenges.update_one(
-            {"id": challenge_id},
-            {"$set": update_fields}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        challenge_repo = ChallengeRepository(db)
+        await challenge_repo.update_challenge(
+            challenge_id=challenge_id,
+            update_data=update_fields,
+            store_id=resolved_store_id
         )
         
         return {"success": True, "message": "Challenge mis à jour", "id": challenge_id}
@@ -2125,8 +2184,11 @@ async def delete_challenge(
             context.get('role'), context.get('id')
         )
         
-        result = await db.challenges.delete_one(
-            {"id": challenge_id, "store_id": resolved_store_id}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        challenge_repo = ChallengeRepository(db)
+        result = await challenge_repo.delete_challenge(
+            challenge_id=challenge_id,
+            store_id=resolved_store_id
         )
         
         if result.deleted_count == 0:
@@ -2251,18 +2313,23 @@ async def update_challenge_progress(
             "total_after": new_value
         }
 
-        await db.challenges.update_one(
-            {"id": challenge_id},
-            {
-                "$set": update_data,
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        challenge_repo = ChallengeRepository(db)
+        await challenge_repo.update_challenge(
+            challenge_id=challenge_id,
+            update_data=update_data,
+            store_id=resolved_store_id
+        )
                 "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}}
             }
         )
         
         # Fetch and return the complete updated challenge
-        updated_challenge = await db.challenges.find_one(
-            {"id": challenge_id},
-            {"_id": 0}
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        updated_challenge = await challenge_repo.find_by_id(
+            challenge_id=challenge_id,
+            store_id=resolved_store_id,
+            projection={"_id": 0}
         )
         
         if updated_challenge:
@@ -2360,36 +2427,59 @@ async def analyze_store_kpis(
         else:
             period_text = f"la période du {start_date} au {end_date}"
         
-        # Fetch KPI data for the period
-        kpi_entries = await db.kpi_entries.find({
-            "store_id": resolved_store_id,
-            "date": {"$gte": start_date, "$lte": end_date}
-        }, {"_id": 0}).to_list(1000)
+        # ✅ MIGRÉ: Utilisation d'agrégations MongoDB pour calculs optimisés (évite de charger tous les documents)
+        kpi_repo = KPIRepository(db)
+        manager_kpi_repo = ManagerKPIRepository(db)
         
-        # Also get manager KPIs
-        manager_kpis = await db.manager_kpis.find({
-            "store_id": resolved_store_id,
-            "date": {"$gte": start_date, "$lte": end_date}
-        }, {"_id": 0}).to_list(100)
+        # Aggregate KPIs using MongoDB aggregation pipeline (much more efficient)
+        kpi_aggregate_pipeline = [
+            {"$match": {
+                "store_id": resolved_store_id,
+                "date": {"$gte": start_date, "$lte": end_date}
+            }},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
+                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
+                "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}},
+                "unique_sellers": {"$addToSet": "$seller_id"},
+                "unique_dates": {"$addToSet": "$date"}
+            }}
+        ]
         
-        # Calculate aggregates
-        total_ca = sum(e.get('ca_journalier') or e.get('seller_ca') or 0 for e in kpi_entries)
-        total_ca += sum(k.get('ca_journalier') or 0 for k in manager_kpis)
+        manager_kpi_aggregate_pipeline = [
+            {"$match": {
+                "store_id": resolved_store_id,
+                "date": {"$gte": start_date, "$lte": end_date}
+            }},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}}
+            }}
+        ]
         
-        total_ventes = sum(e.get('nb_ventes') or 0 for e in kpi_entries)
-        total_ventes += sum(k.get('nb_ventes') or 0 for k in manager_kpis)
+        kpi_result = await kpi_repo.aggregate(kpi_aggregate_pipeline, max_results=1)
+        manager_kpi_result = await manager_kpi_repo.aggregate(manager_kpi_aggregate_pipeline, max_results=1)
         
-        total_clients = sum(e.get('nb_clients') or 0 for e in kpi_entries)
-        total_articles = sum(e.get('nb_articles') or 0 for e in kpi_entries)
-        total_prospects = sum(e.get('nb_prospects') or 0 for e in kpi_entries)
+        # Extract aggregated values
+        kpi_data = kpi_result[0] if kpi_result else {}
+        manager_kpi_data = manager_kpi_result[0] if manager_kpi_result else {}
+        
+        total_ca = (kpi_data.get('total_ca', 0) or 0) + (manager_kpi_data.get('total_ca', 0) or 0)
+        total_ventes = (kpi_data.get('total_ventes', 0) or 0) + (manager_kpi_data.get('total_ventes', 0) or 0)
+        total_clients = kpi_data.get('total_clients', 0) or 0
+        total_articles = kpi_data.get('total_articles', 0) or 0
+        total_prospects = kpi_data.get('total_prospects', 0) or 0
+        
+        sellers_count = len(kpi_data.get('unique_sellers', []))
+        days_count = len(kpi_data.get('unique_dates', []))
         
         panier_moyen = (total_ca / total_ventes) if total_ventes > 0 else 0
         taux_transformation = (total_ventes / total_prospects * 100) if total_prospects > 0 else 0
         indice_vente = (total_articles / total_ventes) if total_ventes > 0 else 0
-        
-        # Get seller count
-        sellers_count = len(set(e.get('seller_id') for e in kpi_entries if e.get('seller_id')))
-        days_count = len(set(e.get('date') for e in kpi_entries))
         
         # 🏺 LEGACY PROMPT RESTORED - Build context with only available data
         available_kpis = []
@@ -2648,7 +2738,9 @@ async def get_seller_stats(
         }}
     ]
     
-    result = await db.kpi_entries.aggregate(pipeline).to_list(1)
+    # ✅ MIGRÉ: Agrégation retourne 1 résultat (pas besoin de pagination)
+    kpi_repo = KPIRepository(db)
+    result = await kpi_repo.aggregate(pipeline, max_results=1)
     
     # ✅ REFACTORED: Use CompetenceService instead of inline logic
     # Get diagnostic and debriefs
@@ -2657,10 +2749,14 @@ async def get_seller_stats(
         {"_id": 0}
     )
     
-    debriefs = await db.debriefs.find(
-        {"seller_id": seller_id},
-        {"_id": 0}
-    ).sort("created_at", -1).limit(5).to_list(5)
+    # ✅ MIGRÉ: Utilisation du repository avec sécurité
+    debrief_repo = DebriefRepository(db)
+    debriefs = await debrief_repo.find_by_seller(
+        seller_id=seller_id,
+        projection={"_id": 0},
+        limit=5,
+        sort=[("created_at", -1)]
+    )
     
     # Calculate competence scores using service (business logic extracted)
     avg_radar_scores = await competence_service.calculate_seller_performance_scores(
@@ -2781,17 +2877,31 @@ async def get_archived_sellers(
     try:
         resolved_store_id = context.get('resolved_store_id')
         
-        # Fetch only suspended sellers (en veille), NOT deleted ones
-        suspended_sellers = await db.users.find(
-            {
+        # ✅ MIGRÉ: Pagination avec limite par défaut
+        from repositories.user_repository import UserRepository
+        user_repo = UserRepository(db)
+        suspended_sellers_result = await paginate(
+            collection=user_repo.collection,
+            query={
                 "store_id": resolved_store_id,
                 "role": "seller",
                 "status": "suspended"  # Only suspended, not deleted or archived
             },
-            {"_id": 0, "password": 0}
-        ).sort("updated_at", -1).to_list(100)
+            page=1,
+            size=50,  # Limite par défaut
+            projection={"_id": 0, "password": 0},
+            sort=[("updated_at", -1)]
+        )
         
-        return suspended_sellers
+        return {
+            "sellers": suspended_sellers_result.items,
+            "pagination": {
+                "total": suspended_sellers_result.total,
+                "page": suspended_sellers_result.page,
+                "size": suspended_sellers_result.size,
+                "pages": suspended_sellers_result.pages
+            }
+        }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -2826,17 +2936,22 @@ async def get_seller_kpi_history(
         end_dt = datetime.now(timezone.utc)
         start_dt = end_dt - timedelta(days=days)
         
-        # Fetch daily KPIs
-        entries = await db.kpi_entries.find(
-            {
+        # ✅ MIGRÉ: Utilisation du repository avec pagination (limite à 50 par défaut si pas de pagination frontend)
+        kpi_repo = KPIRepository(db)
+        entries = await paginate(
+            collection=kpi_repo.collection,
+            query={
                 "seller_id": seller_id,
                 "date": {
                     "$gte": start_dt.strftime('%Y-%m-%d'),
                     "$lte": end_dt.strftime('%Y-%m-%d')
                 }
             },
-            {"_id": 0}
-        ).sort("date", 1).to_list(1000)
+            page=1,
+            size=50,  # Limite par défaut pour éviter chargement massif
+            projection={"_id": 0},
+            sort=[("date", 1)]
+        )
         
         return {
             "seller_id": seller_id,
@@ -2846,7 +2961,13 @@ async def get_seller_kpi_history(
                 "end": end_dt.strftime('%Y-%m-%d'),
                 "days": days
             },
-            "entries": entries,
+            "entries": entries.items if isinstance(entries, PaginatedResponse) else entries,
+            "pagination": {
+                "total": entries.total if isinstance(entries, PaginatedResponse) else len(entries),
+                "page": entries.page if isinstance(entries, PaginatedResponse) else 1,
+                "size": entries.size if isinstance(entries, PaginatedResponse) else len(entries),
+                "pages": entries.pages if isinstance(entries, PaginatedResponse) else 1
+            } if isinstance(entries, PaginatedResponse) else None,
             "entries_count": len(entries)
         }
         
@@ -2888,13 +3009,20 @@ async def get_seller_profile(
         end_dt = datetime.now(timezone.utc)
         start_dt = end_dt - timedelta(days=7)
         
-        recent_kpis = await db.kpi_entries.find(
-            {
+        # ✅ MIGRÉ: Utilisation du repository avec pagination
+        kpi_repo = KPIRepository(db)
+        recent_kpis_result = await paginate(
+            collection=kpi_repo.collection,
+            query={
                 "seller_id": seller_id,
                 "date": {"$gte": start_dt.strftime('%Y-%m-%d')}
             },
-            {"_id": 0}
-        ).sort("date", -1).to_list(7)
+            page=1,
+            size=7,  # Limite à 7 jours récents
+            projection={"_id": 0},
+            sort=[("date", -1)]
+        )
+        recent_kpis = recent_kpis_result.items
         
         return {
             **seller,
@@ -2924,13 +3052,25 @@ async def get_team_analyses_history(
     try:
         resolved_store_id = context.get('resolved_store_id')
         
-        # Fetch analyses history
-        analyses = await db.team_analyses.find(
-            {"store_id": resolved_store_id},
-            {"_id": 0}
-        ).sort("generated_at", -1).to_list(50)
+        # ✅ MIGRÉ: Pagination avec limite par défaut
+        analyses_result = await paginate(
+            collection=db.team_analyses,
+            query={"store_id": resolved_store_id},
+            page=1,
+            size=50,  # Limite par défaut
+            projection={"_id": 0},
+            sort=[("generated_at", -1)]
+        )
         
-        return {"analyses": analyses}
+        return {
+            "analyses": analyses_result.items,
+            "pagination": {
+                "total": analyses_result.total,
+                "page": analyses_result.page,
+                "size": analyses_result.size,
+                "pages": analyses_result.pages
+            }
+        }
         
     except Exception as e:
         logger.error(f"Error loading team analyses history: {e}")
@@ -3183,13 +3323,25 @@ async def get_relationship_history(
         if seller_id:
             query["seller_id"] = seller_id
         
-        # Get consultations
-        consultations = await db.relationship_consultations.find(
-            query,
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(100)
+        # ✅ MIGRÉ: Pagination avec limite par défaut
+        consultations_result = await paginate(
+            collection=db.relationship_consultations,
+            query=query,
+            page=1,
+            size=50,  # Limite par défaut pour éviter chargement massif
+            projection={"_id": 0},
+            sort=[("created_at", -1)]
+        )
         
-        return {"consultations": consultations}
+        return {
+            "consultations": consultations_result.items,
+            "pagination": {
+                "total": consultations_result.total,
+                "page": consultations_result.page,
+                "size": consultations_result.size,
+                "pages": consultations_result.pages
+            }
+        }
         
     except Exception as e:
         logger.error(f"Error fetching relationship history: {e}")
@@ -3389,10 +3541,14 @@ async def get_seller_debriefs(
             raise HTTPException(status_code=403, detail="Accès non autorisé à ce vendeur")
         
         # Get all debriefs for this seller
-        debriefs = await db.debriefs.find(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(1000)
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        debrief_repo = DebriefRepository(db)
+        debriefs = await debrief_repo.find_by_seller(
+            seller_id=seller_id,
+            projection={"_id": 0},
+            limit=1000,
+            sort=[("created_at", -1)]
+        )
         
         return debriefs
         
@@ -3462,10 +3618,14 @@ async def get_seller_competences_history(
             })
         
         # Get all debriefs (evolution over time)
-        debriefs = await db.debriefs.find(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        ).sort("created_at", 1).to_list(1000)
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        debrief_repo = DebriefRepository(db)
+        debriefs = await debrief_repo.find_by_seller(
+            seller_id=seller_id,
+            projection={"_id": 0},
+            limit=1000,
+            sort=[("created_at", 1)]
+        )
         
         for debrief in debriefs:
             history.append({
