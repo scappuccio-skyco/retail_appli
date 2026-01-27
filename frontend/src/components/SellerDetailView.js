@@ -39,29 +39,46 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
     fetchSellerData();
   }, [seller.id, storeIdParam]);
 
-  // Re-fetch KPI data when filter changes
+  // Re-fetch KPI data when filter changes (but not on initial load, as fetchSellerData will call it)
   useEffect(() => {
-    fetchKPIData();
-  }, [kpiFilter, seller.id, storeIdParam]);
+    // Only fetch if we already have initial data loaded (to avoid double fetch on mount)
+    if (seller?.id && !loading) {
+      fetchKPIData();
+    }
+  }, [kpiFilter]);
 
   const fetchKPIData = async () => {
+    if (!seller?.id) {
+      console.warn('[SellerDetailView] Cannot fetch KPI data: seller.id is missing');
+      return;
+    }
+    
     try {
       // Determine days parameter based on filter
       const days = kpiFilter === '7j' ? 7 : kpiFilter === '30j' ? 30 : 365; // 'tout' = 365 days
-      const kpiRes = await api.get(`/manager/kpi-entries/${seller.id}?days=${days}${storeParamAnd}`);
-      setKpiEntries(kpiRes.data || []);
+      const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
+      const url = `/manager/kpi-entries/${seller.id}?days=${days}${storeParamAnd}`;
+      
+      console.log(`[SellerDetailView] Fetching KPI data: ${url}`);
+      
+      const kpiRes = await api.get(url);
+      const entries = kpiRes.data || [];
+      setKpiEntries(entries);
       
       // Debug logging
-      if (kpiRes.data && kpiRes.data.length > 0) {
-        console.log(`[SellerDetailView] ${kpiRes.data.length} KPI entries loaded for filter ${kpiFilter} (${days} days)`);
-        console.log(`[SellerDetailView] First entry:`, kpiRes.data[0]);
-        console.log(`[SellerDetailView] Last entry:`, kpiRes.data[kpiRes.data.length - 1]);
+      if (entries.length > 0) {
+        console.log(`[SellerDetailView] ✅ ${entries.length} KPI entries loaded for filter ${kpiFilter} (${days} days)`);
+        console.log(`[SellerDetailView] First entry:`, entries[0]);
+        console.log(`[SellerDetailView] Last entry:`, entries[entries.length - 1]);
       } else {
-        console.warn(`[SellerDetailView] No KPI entries found for filter ${kpiFilter} (${days} days)`);
+        console.warn(`[SellerDetailView] ⚠️ No KPI entries found for filter ${kpiFilter} (${days} days)`);
+        console.warn(`[SellerDetailView] URL used: ${url}`);
       }
     } catch (err) {
+      console.error('[SellerDetailView] ❌ Error loading KPI data:', err);
       logger.error('Error loading KPI data:', err);
       setKpiEntries([]);
+      toast.error(`Erreur de chargement des KPI: ${err.response?.data?.detail || err.message}`);
     }
   };
 
@@ -78,6 +95,8 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
 
       // Extract LIVE scores from stats endpoint (harmonized with manager overview)
       const statsData = statsRes.data;
+      console.log('[SellerDetailView] Stats data received:', statsData);
+      
       const liveScores = statsData.avg_radar_scores || {
         accueil: 0,
         decouverte: 0,
@@ -86,24 +105,38 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
         fidelisation: 0
       };
       
+      console.log('[SellerDetailView] Live scores extracted:', liveScores);
+      
       // Set live scores for current radar chart (consistent with manager overview)
       setLiveCompetences({
         type: "live",
         date: new Date().toISOString(),
-        score_accueil: liveScores.accueil,
-        score_decouverte: liveScores.decouverte,
-        score_argumentation: liveScores.argumentation,
-        score_closing: liveScores.closing,
-        score_fidelisation: liveScores.fidelisation
+        score_accueil: liveScores.accueil || 0,
+        score_decouverte: liveScores.decouverte || 0,
+        score_argumentation: liveScores.argumentation || 0,
+        score_closing: liveScores.closing || 0,
+        score_fidelisation: liveScores.fidelisation || 0
       });
+      
+      console.log('[SellerDetailView] Diagnostic data:', diagRes.data);
+      console.log('[SellerDetailView] Competences history:', competencesRes.data);
       
       setDiagnostic(diagRes.data);
       setDebriefs(debriefsRes.data);
-      setCompetencesHistory(competencesRes.data); // Keep historical data for evolution chart
+      setCompetencesHistory(competencesRes.data || []); // Keep historical data for evolution chart
       setKpiConfig(kpiConfigRes.data); // Store manager's KPI configuration
       
-      // Initial KPI load (will be reloaded when filter changes)
-      await fetchKPIData();
+      // Initial KPI load with default filter (7j)
+      const initialDays = kpiFilter === '7j' ? 7 : kpiFilter === '30j' ? 30 : 365;
+      const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
+      try {
+        const kpiRes = await api.get(`/manager/kpi-entries/${seller.id}?days=${initialDays}${storeParamAnd}`);
+        setKpiEntries(kpiRes.data || []);
+        console.log(`[SellerDetailView] Initial load: ${(kpiRes.data || []).length} KPI entries`);
+      } catch (err) {
+        console.error('[SellerDetailView] Error in initial KPI load:', err);
+        setKpiEntries([]);
+      }
     } catch (err) {
       logger.error('Error loading seller data:', err);
       toast.error('Erreur de chargement des données du vendeur');
