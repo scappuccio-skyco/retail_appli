@@ -14,8 +14,10 @@ class BaseResponse(BaseModel):
     data: Optional[dict] = None
 
 
+# ⚠️ DEPRECATED: Use models.pagination.PaginationParams instead
+# This is kept for backward compatibility but will be removed in future versions
 class PaginationParams(BaseModel):
-    """Pagination parameters for list endpoints"""
+    """Pagination parameters for list endpoints (DEPRECATED - use models.pagination.PaginationParams)"""
     skip: int = Field(default=0, ge=0)
     limit: int = Field(default=100, le=1000)
 

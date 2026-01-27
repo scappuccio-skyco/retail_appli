@@ -18,6 +18,7 @@ from services.seller_service import SellerService
 from services.notification_service import NotificationService
 from services.conflict_service import ConflictService
 from services.relationship_service import RelationshipService
+from services.competence_service import CompetenceService
 
 
 # ===== SERVICE DEPENDENCIES =====
@@ -254,6 +255,23 @@ def get_relationship_service(
             ...
     """
     return RelationshipService(db, ai_service)
+
+
+# Competence Service
+def get_competence_service(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> CompetenceService:
+    """
+    Get CompetenceService instance with database dependency
+    
+    Usage in routes:
+        @router.get("/seller/{seller_id}/stats")
+        async def get_stats(
+            competence_service: CompetenceService = Depends(get_competence_service)
+        ):
+            scores = await competence_service.calculate_seller_performance_scores(...)
+    """
+    return CompetenceService(db)
 
 
 # Note: Add more service dependencies here as needed:

@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     # Database
     MONGO_URL: str = Field(..., description="MongoDB connection URL")
     DB_NAME: str = Field(default="retail_coach", description="Database name")
+    MONGO_MAX_POOL_SIZE: int = Field(default=50, description="Maximum MongoDB connection pool size (production: 50-100)")
+    MONGO_MIN_POOL_SIZE: int = Field(default=1, description="Minimum MongoDB connection pool size")
+    MONGO_CONNECT_TIMEOUT_MS: int = Field(default=5000, description="MongoDB connection timeout in milliseconds")
+    MONGO_SOCKET_TIMEOUT_MS: int = Field(default=30000, description="MongoDB socket timeout in milliseconds")
+    MONGO_SERVER_SELECTION_TIMEOUT_MS: int = Field(default=5000, description="MongoDB server selection timeout in milliseconds")
     
     # Security
     JWT_SECRET: str = Field(..., description="JWT secret key for token signing")
@@ -96,6 +101,11 @@ def get_settings() -> Settings:
             CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*")
             MONGO_URL = os.environ.get("MONGO_URL", "")
             DB_NAME = os.environ.get("DB_NAME", "retail_coach")
+            MONGO_MAX_POOL_SIZE = int(os.environ.get("MONGO_MAX_POOL_SIZE", "50"))
+            MONGO_MIN_POOL_SIZE = int(os.environ.get("MONGO_MIN_POOL_SIZE", "1"))
+            MONGO_CONNECT_TIMEOUT_MS = int(os.environ.get("MONGO_CONNECT_TIMEOUT_MS", "5000"))
+            MONGO_SOCKET_TIMEOUT_MS = int(os.environ.get("MONGO_SOCKET_TIMEOUT_MS", "30000"))
+            MONGO_SERVER_SELECTION_TIMEOUT_MS = int(os.environ.get("MONGO_SERVER_SELECTION_TIMEOUT_MS", "5000"))
             JWT_SECRET = os.environ.get("JWT_SECRET", "")
             API_RATE_LIMIT = int(os.environ.get("API_RATE_LIMIT", "60"))
 

@@ -8,6 +8,9 @@ from datetime import datetime, timezone, timedelta
 import logging
 
 from core.security import get_current_user, verify_resource_store_access, verify_seller_store_access, require_active_space
+from models.pagination import PaginatedResponse, PaginationParams
+from utils.pagination import paginate_with_params
+from exceptions.custom_exceptions import NotFoundError, ValidationError
 from services.manager_service import ManagerService, APIKeyService
 from api.dependencies import (
     get_manager_service, get_api_key_service, get_db, get_seller_service, 
@@ -2533,79 +2536,65 @@ async def get_seller_kpi_entries(
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
     db = Depends(get_db)
-):
+) -> PaginatedResponse[dict]:
     """
-    Get KPI entries for a specific seller.
+    Get paginated KPI entries for a specific seller.
     
     Accessible by both Manager and Gérant roles.
     Gérant must provide store_id and seller must belong to that store.
     
-    Returns list of KPI entries sorted by date descending.
+    Returns paginated list of KPI entries sorted by date descending.
+    Uses asyncio.gather for parallel execution of count and find operations.
     """
-    try:
-        resolved_store_id = context.get('resolved_store_id')
-        if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
-        
-        # SECURITY: Verify seller belongs to user's store (prevents IDOR)
-        try:
-            seller = await verify_seller_store_access(
-                db, seller_id, resolved_store_id,
-                context.get('role'), context.get('id')
-            )
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error in verify_seller_store_access for seller {seller_id}: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=500,
-                detail=f"Erreur lors de la vérification d'accès: {str(e)}"
-            )
-        
-        if not seller:
-            raise HTTPException(
-                status_code=404, 
-                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
-            )
-        
-        # Build date filter
-        query = {"seller_id": seller_id}
-        
-        if start_date and end_date:
-            query["date"] = {"$gte": start_date, "$lte": end_date}
-            logger.debug(f"[get_kpi_entries] Using custom date range: {start_date} to {end_date} for seller {seller_id}")
-        else:
-            # Use days parameter
-            end_dt = datetime.now(timezone.utc)
-            start_dt = end_dt - timedelta(days=days)
-            start_date_str = start_dt.strftime('%Y-%m-%d')
-            end_date_str = end_dt.strftime('%Y-%m-%d')
-            query["date"] = {
-                "$gte": start_date_str,
-                "$lte": end_date_str
-            }
-            logger.debug(f"[get_kpi_entries] Using days={days} range: {start_date_str} to {end_date_str} for seller {seller_id}")
-        
-        # Fetch KPI entries
-        entries = await db.kpi_entries.find(
-            query,
-            {"_id": 0}
-        ).sort("date", -1).to_list(1000)
-        
-        logger.info(f"[get_kpi_entries] Found {len(entries)} KPI entries for seller {seller_id} in date range {query.get('date', 'all')}")
-        if len(entries) > 0:
-            logger.debug(f"[get_kpi_entries] First entry date: {entries[0].get('date')}, Last entry date: {entries[-1].get('date')}")
-            logger.debug(f"[get_kpi_entries] Sample entry store_id: {entries[0].get('store_id')}, resolved_store_id: {resolved_store_id}")
-        
-        return entries
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
+    resolved_store_id = context.get('resolved_store_id')
+    if not resolved_store_id:
+        raise ValidationError("store_id requis")
+    
+    # SECURITY: Verify seller belongs to user's store (prevents IDOR)
+    seller = await verify_seller_store_access(
+        db, seller_id, resolved_store_id,
+        context.get('role'), context.get('id')
+    )
+    
+    if not seller:
+        raise NotFoundError("Vendeur non trouvé ou n'appartient pas à ce magasin")
+    
+    # Build date filter
+    query = {"seller_id": seller_id}
+    
+    if start_date and end_date:
+        query["date"] = {"$gte": start_date, "$lte": end_date}
+        logger.debug(f"[get_kpi_entries] Using custom date range: {start_date} to {end_date} for seller {seller_id}")
+    else:
+        # Use days parameter
+        end_dt = datetime.now(timezone.utc)
+        start_dt = end_dt - timedelta(days=days)
+        start_date_str = start_dt.strftime('%Y-%m-%d')
+        end_date_str = end_dt.strftime('%Y-%m-%d')
+        query["date"] = {
+            "$gte": start_date_str,
+            "$lte": end_date_str
+        }
+        logger.debug(f"[get_kpi_entries] Using days={days} range: {start_date_str} to {end_date_str} for seller {seller_id}")
+    
+    # Fetch KPI entries with pagination (uses asyncio.gather for parallel execution)
+    result = await paginate_with_params(
+        collection=db.kpi_entries,
+        query=query,
+        pagination=pagination,
+        projection={"_id": 0},
+        sort=[("date", -1)]
+    )
+    
+    logger.info(
+        f"[get_kpi_entries] Found {result.total} total KPI entries for seller {seller_id} "
+        f"(page {result.page}/{result.pages}, {len(result.items)} items)"
+    )
+    
+    return result
 
 
 @router.get("/seller/{seller_id}/stats")
@@ -2616,219 +2605,109 @@ async def get_seller_stats(
     days: int = Query(30, description="Number of days for stats calculation"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    competence_service: CompetenceService = Depends(get_competence_service),
     db = Depends(get_db)
 ):
     """
     Get aggregated statistics for a specific seller.
     
-    Returns: total CA, total sales, average basket, conversion rate, etc.
+    Returns: total CA, total sales, average basket, conversion rate, and competence scores.
+    
+    ✅ REFACTORED (Phase 3): Business logic extracted to CompetenceService
     """
-    try:
-        resolved_store_id = context.get('resolved_store_id')
-        if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
+    resolved_store_id = context.get('resolved_store_id')
+    if not resolved_store_id:
+        raise ValidationError("store_id requis")
+    
+    # SECURITY: Verify seller belongs to user's store (prevents IDOR)
+    seller = await verify_seller_store_access(
+        db, seller_id, resolved_store_id,
+        context.get('role'), context.get('id')
+    )
+    
+    # Calculate date range
+    end_dt = datetime.now(timezone.utc)
+    start_dt = end_dt - timedelta(days=days)
+    start_date = start_dt.strftime('%Y-%m-%d')
+    end_date = end_dt.strftime('%Y-%m-%d')
+    
+    # Aggregate KPIs
+    pipeline = [
+        {"$match": {
+            "seller_id": seller_id,
+            "date": {"$gte": start_date, "$lte": end_date}
+        }},
+        {"$group": {
+            "_id": None,
+            "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
+            "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+            "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
+            "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
+            "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}},
+            "entries_count": {"$sum": 1}
+        }}
+    ]
+    
+    result = await db.kpi_entries.aggregate(pipeline).to_list(1)
+    
+    # ✅ REFACTORED: Use CompetenceService instead of inline logic
+    # Get diagnostic and debriefs
+    diagnostic = await db.diagnostics.find_one(
+        {"seller_id": seller_id},
+        {"_id": 0}
+    )
+    
+    debriefs = await db.debriefs.find(
+        {"seller_id": seller_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(5).to_list(5)
+    
+    # Calculate competence scores using service (business logic extracted)
+    avg_radar_scores = await competence_service.calculate_seller_performance_scores(
+        seller_id=seller_id,
+        diagnostic=diagnostic,
+        debriefs=debriefs
+    )
+    
+    # Build response
+    if result:
+        stats = result[0]
+        total_ca = stats.get("total_ca", 0)
+        total_ventes = stats.get("total_ventes", 0)
+        total_clients = stats.get("total_clients", 0)
+        total_articles = stats.get("total_articles", 0)
         
-        # SECURITY: Verify seller belongs to user's store (prevents IDOR)
-        seller = await verify_seller_store_access(
-            db, seller_id, resolved_store_id,
-            context.get('role'), context.get('id')
-        )
-        
-        # Calculate date range
-        end_dt = datetime.now(timezone.utc)
-        start_dt = end_dt - timedelta(days=days)
-        start_date = start_dt.strftime('%Y-%m-%d')
-        end_date = end_dt.strftime('%Y-%m-%d')
-        
-        # Aggregate KPIs
-        pipeline = [
-            {"$match": {
-                "seller_id": seller_id,
-                "date": {"$gte": start_date, "$lte": end_date}
-            }},
-            {"$group": {
-                "_id": None,
-                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
-                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
-                "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
-                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
-                "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}},
-                "entries_count": {"$sum": 1}
-            }}
-        ]
-        
-        result = await db.kpi_entries.aggregate(pipeline).to_list(1)
-        
-        # Calculate competence scores from diagnostic and debriefs
-        avg_radar_scores = {
-            "accueil": 0,
-            "decouverte": 0,
-            "argumentation": 0,
-            "closing": 0,
-            "fidelisation": 0
+        return {
+            "seller_id": seller_id,
+            "seller_name": seller.get("name", "Unknown"),
+            "period": {"start": start_date, "end": end_date, "days": days},
+            "total_ca": total_ca,
+            "total_ventes": total_ventes,
+            "total_clients": total_clients,
+            "total_articles": total_articles,
+            "total_prospects": stats.get("total_prospects", 0),
+            "entries_count": stats.get("entries_count", 0),
+            "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else 0,
+            "taux_transformation": round((total_ventes / total_clients * 100), 1) if total_clients > 0 else 0,
+            "uvc": round(total_articles / total_ventes, 2) if total_ventes > 0 else 0,
+            "avg_radar_scores": avg_radar_scores
         }
-        
-        # Get diagnostic
-        diagnostic = await db.diagnostics.find_one(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        )
-        
-        # Get recent debriefs (last 5)
-        debriefs = await db.debriefs.find(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        ).sort("created_at", -1).limit(5).to_list(5)
-        
-        # Calculate average competences from diagnostic and debriefs
-        logger.info(f"[get_seller_stats] Checking competences for seller {seller_id}")
-        logger.info(f"[get_seller_stats] Diagnostic found: {diagnostic is not None}")
-        logger.info(f"[get_seller_stats] Debriefs found: {len(debriefs) if debriefs else 0}")
-        
-        if diagnostic:
-            logger.info(f"[get_seller_stats] Diagnostic keys: {list(diagnostic.keys())}")
-            logger.info(f"[get_seller_stats] Diagnostic scores: accueil={diagnostic.get('score_accueil')}, decouverte={diagnostic.get('score_decouverte')}, argumentation={diagnostic.get('score_argumentation')}, closing={diagnostic.get('score_closing')}, fidelisation={diagnostic.get('score_fidelisation')}")
-            logger.info(f"[get_seller_stats] Diagnostic has answers: {bool(diagnostic.get('answers'))}")
-            if diagnostic.get('answers'):
-                logger.info(f"[get_seller_stats] Answers keys: {list(diagnostic.get('answers', {}).keys())}")
-        
-        if diagnostic or debriefs:
-            all_scores = {
-                'accueil': [],
-                'decouverte': [],
-                'argumentation': [],
-                'closing': [],
-                'fidelisation': []
-            }
-            
-            # Add diagnostic scores (if exists)
-            if diagnostic:
-                score_accueil = diagnostic.get('score_accueil')
-                score_decouverte = diagnostic.get('score_decouverte')
-                score_argumentation = diagnostic.get('score_argumentation')
-                score_closing = diagnostic.get('score_closing')
-                score_fidelisation = diagnostic.get('score_fidelisation')
-                
-                # Only add scores that are > 0 (to avoid adding default 0 values)
-                if score_accueil and score_accueil > 0:
-                    all_scores['accueil'].append(score_accueil)
-                if score_decouverte and score_decouverte > 0:
-                    all_scores['decouverte'].append(score_decouverte)
-                if score_argumentation and score_argumentation > 0:
-                    all_scores['argumentation'].append(score_argumentation)
-                if score_closing and score_closing > 0:
-                    all_scores['closing'].append(score_closing)
-                if score_fidelisation and score_fidelisation > 0:
-                    all_scores['fidelisation'].append(score_fidelisation)
-                
-                # If no pre-calculated scores, try to calculate from answers
-                if not any([score_accueil, score_decouverte, score_argumentation, score_closing, score_fidelisation]):
-                    answers = diagnostic.get('answers', {})
-                    if answers:
-                        # Calculate scores from numeric answers (0-3 scale)
-                        competence_mapping = {
-                            'accueil': [1, 2, 3],
-                            'decouverte': [4, 5, 6],
-                            'argumentation': [7, 8, 9],
-                            'closing': [10, 11, 12],
-                            'fidelisation': [13, 14, 15]
-                        }
-                        
-                        for competence, question_ids in competence_mapping.items():
-                            competence_scores = []
-                            for q_id in question_ids:
-                                q_key = f"q{q_id}"
-                                if q_key in answers:
-                                    numeric_value = answers[q_key]
-                                    # Convert 0-3 scale to 1-5 scale: 0->1, 1->2.33, 2->3.67, 3->5
-                                    scaled_score = 1 + (numeric_value * 4 / 3)
-                                    competence_scores.append(round(scaled_score, 1))
-                            
-                            if competence_scores:
-                                avg_score = round(sum(competence_scores) / len(competence_scores), 1)
-                                if avg_score > 0:
-                                    all_scores[competence].append(avg_score)
-                                    logger.info(f"[get_seller_stats] Calculated {competence} from answers: {avg_score}")
-                
-                logger.debug(f"[get_seller_stats] Added diagnostic scores: {all_scores}")
-            
-            # Add debrief scores
-            for debrief in debriefs:
-                score_accueil = debrief.get('score_accueil')
-                score_decouverte = debrief.get('score_decouverte')
-                score_argumentation = debrief.get('score_argumentation')
-                score_closing = debrief.get('score_closing')
-                score_fidelisation = debrief.get('score_fidelisation')
-                
-                # Only add scores that are > 0
-                if score_accueil and score_accueil > 0:
-                    all_scores['accueil'].append(score_accueil)
-                if score_decouverte and score_decouverte > 0:
-                    all_scores['decouverte'].append(score_decouverte)
-                if score_argumentation and score_argumentation > 0:
-                    all_scores['argumentation'].append(score_argumentation)
-                if score_closing and score_closing > 0:
-                    all_scores['closing'].append(score_closing)
-                if score_fidelisation and score_fidelisation > 0:
-                    all_scores['fidelisation'].append(score_fidelisation)
-            
-            logger.debug(f"[get_seller_stats] All scores collected: {all_scores}")
-            
-            # Calculate average for each competence (filter out zeros)
-            for competence in ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']:
-                scores = [s for s in all_scores[competence] if s > 0]
-                if scores:
-                    avg_radar_scores[competence] = round(sum(scores) / len(scores), 1)
-                    logger.debug(f"[get_seller_stats] {competence}: {scores} -> avg={avg_radar_scores[competence]}")
-                else:
-                    logger.debug(f"[get_seller_stats] {competence}: No valid scores found")
-        
-        logger.info(f"[get_seller_stats] Final avg_radar_scores for seller {seller_id}: {avg_radar_scores}")
-        
-        if result:
-            stats = result[0]
-            total_ca = stats.get("total_ca", 0)
-            total_ventes = stats.get("total_ventes", 0)
-            total_clients = stats.get("total_clients", 0)
-            total_articles = stats.get("total_articles", 0)
-            
-            return {
-                "seller_id": seller_id,
-                "seller_name": seller.get("name", "Unknown"),
-                "period": {"start": start_date, "end": end_date, "days": days},
-                "total_ca": total_ca,
-                "total_ventes": total_ventes,
-                "total_clients": total_clients,
-                "total_articles": total_articles,
-                "total_prospects": stats.get("total_prospects", 0),
-                "entries_count": stats.get("entries_count", 0),
-                "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else 0,
-                "taux_transformation": round((total_ventes / total_clients * 100), 1) if total_clients > 0 else 0,
-                "uvc": round(total_articles / total_ventes, 2) if total_ventes > 0 else 0,
-                "avg_radar_scores": avg_radar_scores  # Add competence scores
-            }
-        else:
-            return {
-                "seller_id": seller_id,
-                "seller_name": seller.get("name", "Unknown"),
-                "period": {"start": start_date, "end": end_date, "days": days},
-                "total_ca": 0,
-                "total_ventes": 0,
-                "total_clients": 0,
-                "total_articles": 0,
-                "total_prospects": 0,
-                "entries_count": 0,
-                "panier_moyen": 0,
-                "taux_transformation": 0,
-                "uvc": 0,
-                "avg_radar_scores": avg_radar_scores  # Add competence scores even if no KPI data
-            }
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
+    else:
+        return {
+            "seller_id": seller_id,
+            "seller_name": seller.get("name", "Unknown"),
+            "period": {"start": start_date, "end": end_date, "days": days},
+            "total_ca": 0,
+            "total_ventes": 0,
+            "total_clients": 0,
+            "total_articles": 0,
+            "total_prospects": 0,
+            "entries_count": 0,
+            "panier_moyen": 0,
+            "taux_transformation": 0,
+            "uvc": 0,
+            "avg_radar_scores": avg_radar_scores
+        }
 
 
 @router.get("/seller/{seller_id}/diagnostic")

@@ -202,7 +202,17 @@ for origin in production_origins:
 logger.info(f"CORS allowed origins: {allowed_origins}")
 print(f"[STARTUP] CORS origins: {allowed_origins}", flush=True)
 
-# Add logging middleware FIRST (before CORS to capture all requests)
+# Add error handler middleware FIRST (before other middlewares to catch all errors)
+try:
+    from api.middleware.error_handler import ErrorHandlerMiddleware
+    app.add_middleware(ErrorHandlerMiddleware)
+    print("[STARTUP] 8.4/10 - Error handler middleware added", flush=True)
+    logger.info("Error handler middleware initialized")
+except Exception as e:
+    logger.error(f"Failed to load ErrorHandlerMiddleware: {e}")
+    print(f"[STARTUP] ERROR: ErrorHandlerMiddleware not loaded: {e}", flush=True)
+
+# Add logging middleware (after error handler to capture all requests)
 try:
     from middleware.logging import LoggingMiddleware
     app.add_middleware(LoggingMiddleware)

@@ -15,6 +15,7 @@ from core.security import (
 )
 from repositories.user_repository import UserRepository
 from repositories.store_repository import WorkspaceRepository
+from exceptions.custom_exceptions import UnauthorizedError, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -48,11 +49,11 @@ class AuthService:
         )
         
         if not user:
-            raise Exception("Identifiants invalides")
+            raise UnauthorizedError("Identifiants invalides")
         
         # Verify password
         if not verify_password(password, user['password']):
-            raise Exception("Identifiants invalides")
+            raise UnauthorizedError("Identifiants invalides")
         
         # Generate token
         token = create_token(user['id'], user['email'], user['role'])

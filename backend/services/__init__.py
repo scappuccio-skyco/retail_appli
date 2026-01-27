@@ -3,10 +3,12 @@ from services.auth_service import AuthService
 from services.kpi_service import KPIService
 from services.ai_service import AIService
 from services.store_service import StoreService
+from services.competence_service import CompetenceService
 
 __all__ = [
     'AuthService',
     'KPIService',
     'AIService',
     'StoreService',
+    'CompetenceService',
 ]

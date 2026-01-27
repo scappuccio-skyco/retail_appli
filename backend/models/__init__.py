@@ -4,7 +4,8 @@ Centralized exports for easy imports
 """
 
 # Common models
-from models.common import BaseResponse, PaginationParams, DateRangeFilter
+from models.common import BaseResponse, DateRangeFilter
+from models.pagination import PaginatedResponse, PaginationParams
 
 # User models
 from models.users import (

@@ -14,6 +14,11 @@ from models.users import (
 from services.auth_service import AuthService
 from api.dependencies import get_auth_service, get_db
 from core.security import get_current_user
+from exceptions.custom_exceptions import (
+    NotFoundError,
+    ValidationError,
+    UnauthorizedError
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -83,16 +88,14 @@ async def login(
         Dict with token and user info
         
     Raises:
-        HTTPException 401: Invalid credentials
+        UnauthorizedError: Invalid credentials
     """
-    try:
-        result = await auth_service.login(
-            email=credentials.email,
-            password=credentials.password
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
+    # Le middleware s'occupe automatiquement de la gestion d'erreurs
+    result = await auth_service.login(
+        email=credentials.email,
+        password=credentials.password
+    )
+    return result
 
 
 @router.post("/register")

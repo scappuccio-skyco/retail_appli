@@ -1,0 +1,550 @@
+# 📋 CURSOR RULES - RETAIL PERFORMER AI
+## Source de Vérité pour le Développement
+
+**⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
+**Dernière mise à jour**: 27 Janvier 2026
+
+---
+
+## 🎯 RÈGLE FONDAMENTALE
+
+**NE JAMAIS DUPLIQUER** du code, des fonctions, ou des patterns déjà existants. Toujours vérifier ce document et le codebase avant d'ajouter du nouveau code.
+
+---
+
+## 📐 ARCHITECTURE ACTUELLE
+
+### Structure Backend (Clean Architecture)
+
+```
+backend/
+├── main.py                    # Entrypoint FastAPI (version 2.0.0)
+├── core/                      # Infrastructure layer
+│   ├── config.py             # Pydantic Settings (singleton)
+│   ├── database.py           # MongoDB connection pool (maxPoolSize=50 ✅ Production-ready)
+│   └── security.py           # JWT, bcrypt, RBAC dependencies
+├── models/                    # Domain layer (73 modèles Pydantic)
+│   ├── users.py              # User, Seller, Manager, Gérant
+│   ├── kpis.py               # KPIEntry, ManagerKPI, StoreKPI
+│   ├── stores.py             # Store, Workspace
+│   ├── subscriptions.py      # Subscription, PaymentTransaction
+│   ├── diagnostics.py        # DiagnosticResult, ManagerDiagnosticResult
+│   ├── challenges.py         # Challenge, DailyChallenge
+│   ├── objectives.py         # ManagerObjectives
+│   ├── sales.py              # Sale, Evaluation, Debrief
+│   ├── integrations.py       # APIKey, KPISyncRequest
+│   └── ...
+├── repositories/              # Data Access layer (11 repositories)
+│   ├── base_repository.py    # BaseRepository pattern (CRUD commun)
+│   ├── user_repository.py
+│   ├── kpi_repository.py
+│   ├── store_repository.py
+│   └── ...
+├── services/                  # Business Logic layer (16 services)
+│   ├── auth_service.py
+│   ├── kpi_service.py
+│   ├── ai_service.py         # OpenAI integration
+│   ├── gerant_service.py
+│   ├── manager_service.py
+│   ├── seller_service.py
+│   ├── payment_service.py     # Stripe integration
+│   └── ...
+└── api/routes/                # Presentation layer (21 routers)
+    ├── auth.py               # 8 routes
+    ├── manager.py            # 53 routes ⚠️ Le plus volumineux
+    ├── gerant.py             # 45 routes
+    ├── sellers.py            # 38 routes
+    ├── stores.py             # 4 routes
+    └── ...
+```
+
+### Design Patterns Implémentés
+
+1. **Clean Architecture** (Robert C. Martin)
+   - Routes → Services → Repositories → Database
+   - Dépendances unidirectionnelles (extérieur → intérieur)
+
+2. **Repository Pattern**
+   - `BaseRepository` pour CRUD commun
+   - Tous les repositories héritent de `BaseRepository`
+
+3. **Dependency Injection**
+   - FastAPI `Depends()` pour services
+   - `api/dependencies.py` pour factory functions
+
+4. **Service Layer Pattern**
+   - Logique métier dans services, pas dans routes
+   - Services utilisent repositories pour accès DB
+
+---
+
+## 🗄️ COLLECTIONS MONGODB
+
+### Collections Principales
+
+| Collection | Usage | Indexes Critiques |
+|------------|-------|-------------------|
+| `users` | Utilisateurs (gerant, manager, seller) | `id` (unique) |
+| `stores` | Magasins | `id`, `gerant_id`, `active` |
+| `workspaces` | Espaces gérants (abonnements) | `id`, `gerant_id`, `stripe_subscription_id` |
+| `kpi_entries` | KPIs vendeurs | `seller_id`, `date` (composé) |
+| `manager_kpis` | KPIs managers | `manager_id`, `date`, `store_id` (composé) |
+| `diagnostics` | Diagnostics DISC vendeurs | `seller_id` |
+| `debriefs` | Debriefs vendeurs | `seller_id`, `created_at` |
+| `objectives` | Objectifs managers | `store_id`, `manager_id` |
+| `challenges` | Défis managers | `store_id`, `manager_id` |
+| `subscriptions` | Abonnements Stripe | `user_id`, `stripe_subscription_id` (unique) |
+| `api_keys` | Clés API entreprise | `key_hash` (unique) |
+
+### ⚠️ Indexes MongoDB (Vérifiés)
+
+- ✅ `manager_kpis.manager_date_store_idx`: `(manager_id, date, store_id)`
+- ✅ `kpi_entries.seller_date_idx`: `(seller_id, date)`
+- ✅ `subscriptions.stripe_subscription_id_idx`: `(stripe_subscription_id)` unique
+
+**⚠️ À VÉRIFIER**: Indexes sur `debriefs(seller_id, created_at)` et autres collections fréquentes
+
+---
+
+## 🔐 SÉCURITÉ & AUTHENTIFICATION
+
+### Système d'Authentification
+
+- **JWT**: Token avec expiration 24h
+- **Secret**: `JWT_SECRET` depuis `core.config.settings`
+- **Algorithm**: HS256
+
+### Dependencies d'Authentification
+
+**NE PAS CRÉER DE NOUVELLES** - Utiliser celles existantes:
+
+```python
+# backend/core/security.py
+from core.security import (
+    get_current_user,        # User authentifié (tous rôles)
+    get_current_manager,     # Manager uniquement
+    get_current_gerant,      # Gérant uniquement
+    get_current_seller,      # Seller uniquement
+    require_active_space     # Vérifie abonnement actif
+)
+```
+
+### Vérifications de Sécurité
+
+**Fonctions existantes** (NE PAS DUPLIQUER):
+
+```python
+# backend/core/security.py
+verify_seller_store_access()      # Vérifie accès vendeur au magasin
+verify_resource_store_access()    # Vérifie accès ressource (objectif/challenge)
+verify_store_ownership()          # Vérifie propriété magasin
+```
+
+**Pattern à suivre**: Toujours filtrer par `store_id` dans la requête MongoDB pour prévenir IDOR.
+
+---
+
+## 📊 SERVICES EXISTANTS
+
+### Services Disponibles (via Dependency Injection)
+
+**NE PAS CRÉER DE NOUVEAUX SERVICES** sans vérifier d'abord si la logique existe déjà:
+
+```python
+# backend/api/dependencies.py
+from api.dependencies import (
+    get_auth_service,           # AuthService
+    get_kpi_service,            # KPIService
+    get_ai_service,             # AIService (sans DB)
+    get_ai_data_service,        # AIDataService (avec DB)
+    get_store_service,           # StoreService
+    get_gerant_service,          # GerantService
+    get_manager_service,         # ManagerService
+    get_seller_service,          # SellerService
+    get_payment_service,         # PaymentService
+    get_integration_service,     # IntegrationService
+    get_notification_service,    # NotificationService
+    get_conflict_service,        # ConflictService
+    get_relationship_service,    # RelationshipService
+    get_competence_service       # CompetenceService (Phase 3)
+)
+```
+
+### Calculs de Compétences
+
+**⚠️ EXISTE DÉJÀ** - NE PAS DUPLIQUER:
+
+- `backend/calculate_competences_and_levels.py` - Fonction `calculate_competence_scores_from_numeric_answers()`
+- Utilisée dans: `backend/api/routes/manager.py:2724-2751` (inline - À REFACTORER)
+
+**Pattern à suivre**: Créer `services/competence_service.py` pour centraliser tous les calculs.
+
+---
+
+## 🚫 ANTI-PATTERNS À ÉVITER
+
+### ❌ NE JAMAIS FAIRE
+
+1. **Business Logic dans Routes**
+   - ❌ Calculs métier directement dans `@router.get()`
+   - ❌ Logique de calcul dans les routes (ex: calculs de compétences)
+   - ✅ **ZÉRO logique de calcul dans les routes** - Tout dans les services
+   - ✅ Routes = validation input → appel service → retour résultat
+
+2. **Requêtes sans Pagination**
+   - ❌ `.to_list(1000)` sans pagination
+   - ✅ Utiliser `paginate_with_params()` ou `paginate()` (max 100 items par page)
+
+3. **Magic Numbers**
+   - ❌ `.limit(5)`, `.to_list(100)`
+   - ✅ Constantes dans `config/limits.py`
+
+4. **Duplication de Vérifications Sécurité**
+   - ❌ Nouvelle fonction `verify_*()` similaire
+   - ✅ Réutiliser fonctions existantes dans `core/security.py`
+
+5. **Requêtes MongoDB sans Index**
+   - ❌ `find()` sur champs non indexés
+   - ✅ Vérifier indexes avant requête
+
+6. **Gestion d'Erreurs Incohérente**
+   - ❌ `except Exception: raise HTTPException(500)`
+   - ✅ Utiliser exceptions custom (`AppException` subclasses) + `ErrorHandlerMiddleware`
+
+---
+
+## 📝 PATTERNS À SUIVRE
+
+### 1. Création d'un Nouvel Endpoint
+
+```python
+# ✅ BON PATTERN
+@router.get("/new-endpoint")
+@limiter.limit("100/minute")  # ⚠️ Rate limiting obligatoire
+async def new_endpoint(
+    request: Request,  # ⚠️ Requis pour rate limiting
+    current_user: dict = Depends(get_current_user),
+    service: Service = Depends(get_service),
+    db = Depends(get_db)
+):
+    try:
+        # 1. Vérification sécurité
+        await verify_access(...)
+        
+        # 2. Appel service (logique métier)
+        result = await service.do_something(...)
+        
+        # 3. Retour réponse
+        return result
+    except CustomException as e:
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=e.status_code, detail=str(e))
+```
+
+### 2. Pagination Standardisée
+
+```python
+# ✅ À IMPLÉMENTER (Phase 1)
+from utils.pagination import PaginatedResponse
+
+@router.get("/items")
+async def get_items(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),  # Max 100
+    db = Depends(get_db)
+):
+    skip = (page - 1) * limit
+    items = await db.collection.find({}).skip(skip).limit(limit).to_list(limit)
+    total = await db.collection.count_documents({})
+    
+    return PaginatedResponse(
+        items=items,
+        page=page,
+        limit=limit,
+        total=total,
+        pages=(total + limit - 1) // limit
+    )
+```
+
+### 3. Gestion d'Erreurs
+
+```python
+# ✅ IMPLÉMENTÉ (Phase 1 - 27 Jan 2026)
+from exceptions.custom_exceptions import (
+    NotFoundError,
+    ForbiddenError,
+    ValidationError,
+    UnauthorizedError,
+    BusinessLogicError
+)
+
+# Dans le code
+if not resource:
+    raise NotFoundError("Resource not found")
+
+# Middleware global (ErrorHandlerMiddleware) gère automatiquement:
+# - Le logging structuré
+# - La conversion en réponse HTTP avec le bon status_code
+# - Le formatage de la réponse JSON
+```
+
+---
+
+## 🔧 CONFIGURATION
+
+### Variables d'Environnement Requises
+
+```python
+# backend/core/config.py - Settings
+MONGO_URL              # MongoDB connection string
+DB_NAME                # Database name (default: "retail_coach")
+JWT_SECRET             # Secret pour JWT
+OPENAI_API_KEY         # Clé API OpenAI
+STRIPE_API_KEY         # Clé API Stripe
+STRIPE_WEBHOOK_SECRET  # Secret webhook Stripe
+BREVO_API_KEY          # Clé API Brevo (email)
+FRONTEND_URL           # URL frontend (CORS)
+```
+
+### Limites Actuelles (À Externaliser)
+
+```python
+# ⚠️ MAGIC NUMBERS - À DÉPLACER DANS config/limits.py
+maxPoolSize=10              # MongoDB pool (⚠️ TROP FAIBLE)
+JWT_EXPIRATION=24           # heures
+PAGINATION_MAX=100          # items par page
+RATE_LIMIT_IA=10            # req/min (endpoints IA)
+RATE_LIMIT_READ=100         # req/min (endpoints lecture)
+DEBRIEFS_LIMIT=5            # derniers debriefs
+```
+
+---
+
+## 🗂️ ORGANISATION DES DOCUMENTS
+
+### Structure des Docs
+
+```
+docs/
+├── archive/              # Documents archivés par date
+│   ├── 2024-12/         # Décembre 2024
+│   ├── 2025-01/         # Janvier 2025
+│   └── 2025-02/         # Février 2025
+└── [docs actifs]        # Documents de référence actuels
+```
+
+### Documents de Référence (À GARDER À JOUR)
+
+- `AUDIT_ARCHITECTURAL_CRITIQUE.md` - Audit complet (27 Jan 2026)
+- `SYNTHESE_ARCHITECTURE_POST_REFACTORING.md` - Architecture actuelle
+- `REFACTORING_SUMMARY.md` - Résumé refactoring
+- `CHANGELOG.md` - Historique des changements
+- `.cursorrules` - **CE DOCUMENT** (source de vérité)
+
+### Documents à Archiver
+
+- Tous les `AUDIT_*.md` (sauf le dernier)
+- Tous les `VAGUE_*.md` (optimisations terminées)
+- Tous les `CORRECTION_*.md` (corrections appliquées)
+- Tous les `RESUME_*.md` (résumés de tâches terminées)
+
+---
+
+## 🚀 DÉPLOIEMENT
+
+### Configuration Production
+
+- **Backend**: FastAPI sur port 8080
+- **Frontend**: React build sur Vercel
+- **Database**: MongoDB (connection pool: 50 ✅ Production-ready, configurable via MONGO_MAX_POOL_SIZE)
+- **Rate Limiting**: slowapi (10/min IA, 100/min lecture)
+- **Timeouts**: connectTimeoutMS=5000ms, socketTimeoutMS=30000ms ✅ Production-ready
+
+### Endpoints Critiques
+
+- `POST /api/ai/*` - Rate limit 10/min (coût OpenAI)
+- `GET /api/manager/*` - Rate limit 100/min (scraping)
+- `POST /api/webhooks/stripe` - ⚠️ Synchrone (À déplacer en background)
+
+---
+
+## ⚠️ PROBLÈMES CONNUS À RÉSOUDRE
+
+### Phase 1 (Critique) - ✅ TERMINÉ
+
+1. ✅ **Error Handling**: Middleware global + exceptions custom (TERMINÉ)
+2. ✅ **Pagination**: Système standardisé créé (en cours d'extension)
+3. ✅ **Extraction Services**: `get_seller_stats()` refactoré (TERMINÉ)
+
+### Phase 1 (Critique) - EN COURS
+
+4. **Pagination**: Étendre à toutes les routes (76 occurrences restantes)
+5. **Pool MongoDB**: `maxPoolSize=10` → `50-100`
+
+### Phase 2 (Majeur) - Cette Semaine
+
+7. **Cache Redis**: User lookups, diagnostics, stats
+8. **Rate Limiting**: Étendre à tous les endpoints
+9. ✅ **Indexes MongoDB**: Script `ensure_indexes.py` créé (à exécuter lors du déploiement)
+
+### Phase 3 (Amélioration) - Mois Prochain
+
+8. **Background Tasks**: Celery pour webhooks Stripe
+9. **Monitoring**: Prometheus + structured logging
+10. **Tests**: Couverture >60%
+
+---
+
+## 📚 RÉFÉRENCES IMPORTANTES
+
+### Fichiers Clés à Consulter
+
+- `backend/main.py` - Configuration FastAPI, middlewares
+- `backend/core/security.py` - Authentification, RBAC
+- `backend/core/database.py` - Connection MongoDB
+- `backend/api/dependencies.py` - Dependency injection
+- `backend/services/` - Logique métier
+- `backend/repositories/` - Accès données
+
+### Documentation Externe
+
+- FastAPI: https://fastapi.tiangolo.com/
+- Motor (MongoDB async): https://motor.readthedocs.io/
+- Pydantic: https://docs.pydantic.dev/
+- OpenAI SDK: https://github.com/openai/openai-python
+
+---
+
+## ✅ CHECKLIST AVANT COMMIT
+
+Avant chaque commit, vérifier:
+
+- [ ] Pas de duplication de code (vérifier services/repositories existants)
+- [ ] Pagination implémentée (pas de `.to_list(1000)`)
+- [ ] Rate limiting ajouté sur nouveaux endpoints
+- [ ] Gestion d'erreurs cohérente (exceptions custom)
+- [ ] Logging structuré ajouté
+- [ ] Tests unitaires pour nouvelle logique métier
+- [ ] Documentation mise à jour si nécessaire
+- [ ] **`.cursorrules` mis à jour** si changement architectural
+
+---
+
+## 🔄 PROCESSUS DE MISE À JOUR
+
+### Quand Mettre à Jour `.cursorrules`
+
+**OBLIGATOIRE** lors de:
+- ✅ Ajout d'un nouveau service
+- ✅ Ajout d'une nouvelle collection MongoDB
+- ✅ Changement d'architecture (nouveau pattern)
+- ✅ Ajout d'un nouveau système d'authentification
+- ✅ Modification des indexes MongoDB
+- ✅ Changement de configuration critique
+
+**Format de mise à jour**:
+```markdown
+## [Date] - [Type de changement]
+- Ajouté: [description]
+- Modifié: [description]
+- Supprimé: [description]
+```
+
+---
+
+## 🎯 RÈGLES DE DÉVELOPPEMENT
+
+### 1. Principe DRY (Don't Repeat Yourself)
+
+**AVANT d'écrire du code**:
+1. Chercher dans `services/` si la logique existe
+2. Chercher dans `repositories/` si l'accès DB existe
+3. Chercher dans `core/security.py` si la vérification existe
+4. Si trouvé → **RÉUTILISER**, sinon créer
+
+### 2. Principe Single Responsibility
+
+- **Routes**: Uniquement validation input/output, appels services
+- **Services**: Logique métier pure
+- **Repositories**: Accès données uniquement
+- **Models**: Validation données uniquement
+
+### 3. Principe Open/Closed
+
+- **Extension**: Ajouter nouvelles routes/services sans modifier existants
+- **Modification**: Utiliser héritage ou composition, pas modification directe
+
+### 4. Tests Obligatoires
+
+- **Services**: Tests unitaires (mock repositories)
+- **Repositories**: Tests d'intégration (test DB)
+- **Routes**: Tests E2E (test HTTP)
+
+---
+
+## 📊 MÉTRIQUES DE QUALITÉ
+
+### Objectifs Actuels
+
+- **Temps de réponse moyen**: <200ms (actuellement ~800ms)
+- **Temps de réponse P95**: <1s (actuellement ~3.5s)
+- **Mémoire par requête**: <2MB (actuellement ~15MB)
+- **Requêtes DB par endpoint**: 1-2 (actuellement 5-10)
+- **Code dupliqué**: <5% (actuellement ~30%)
+- **Couverture tests**: >80% (actuellement ~20%)
+
+---
+
+## 🚨 ALERTES CRITIQUES
+
+### ⚠️ NE JAMAIS
+
+1. **Modifier `core/security.py`** sans vérifier tous les endpoints qui l'utilisent
+2. **Changer les indexes MongoDB** sans migration planifiée
+3. **Supprimer un service** sans vérifier toutes les dépendances
+4. **Modifier les modèles Pydantic** sans vérifier la compatibilité DB
+5. **Ajouter une dépendance** sans mettre à jour `requirements.txt` ET `vercel.json`
+
+### ✅ TOUJOURS
+
+1. **Vérifier les indexes** avant requête MongoDB complexe
+2. **Ajouter rate limiting** sur nouveaux endpoints
+3. **Utiliser pagination** pour listes
+4. **Logger les erreurs** avec contexte
+5. **Tester localement** avant commit
+
+---
+
+---
+
+## 📝 HISTORIQUE DES MODIFICATIONS
+
+### [27 Janvier 2026] - Phase 1: Centralisation Gestion d'Erreurs
+- ✅ Ajouté: `backend/exceptions/custom_exceptions.py` - Exceptions personnalisées
+- ✅ Ajouté: `backend/api/middleware/error_handler.py` - Middleware global de gestion d'erreurs
+- ✅ Modifié: `backend/main.py` - Enregistrement du middleware ErrorHandlerMiddleware
+- ✅ Modifié: `backend/api/routes/auth.py` - Refactoring routes avec nouvelles exceptions
+- ✅ Modifié: `backend/services/auth_service.py` - Utilisation UnauthorizedError au lieu de Exception générique
+
+### [27 Janvier 2026] - Phase 2: Pagination Standardisée
+- ✅ Ajouté: `backend/models/pagination.py` - Modèle `PaginatedResponse` générique
+- ✅ Ajouté: `backend/utils/pagination.py` - Fonction `paginate()` avec `asyncio.gather` pour performance
+- ✅ Ajouté: `backend/config/limits.py` - Constantes centralisées (DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, etc.)
+- ✅ Modifié: `backend/api/routes/manager.py` - Refactoring `get_seller_kpi_entries()` avec pagination
+- ✅ Modifié: `backend/models/__init__.py` - Export de `PaginatedResponse` et `PaginationParams`
+
+### [27 Janvier 2026] - Phase 3: Extraction Logique Métier
+- ✅ Ajouté: `backend/services/competence_service.py` - Service centralisé pour calculs de compétences
+- ✅ Modifié: `backend/api/routes/manager.py` - Refactoring `get_seller_stats()` (175 lignes → ~60 lignes)
+- ✅ Modifié: `backend/api/dependencies.py` - Ajout `get_competence_service()`
+- ✅ Modifié: `backend/services/__init__.py` - Export de `CompetenceService`
+
+### [27 Janvier 2026] - Phase 4: Optimisation Infrastructure
+- ✅ Modifié: `backend/core/config.py` - Ajout variables MongoDB (MONGO_MAX_POOL_SIZE, timeouts)
+- ✅ Modifié: `backend/core/database.py` - Pool size augmenté à 50, timeouts optimisés (production-ready)
+- ✅ Ajouté: `backend/scripts/ensure_indexes.py` - Script d'indexation pour déploiement
+- ✅ Modifié: `.cursorrules` - Documentation configuration production-ready
+
+---
+
+*Document créé le 27 Janvier 2026 - À mettre à jour à chaque modification significative*
