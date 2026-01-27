@@ -39,15 +39,40 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
     fetchSellerData();
   }, [seller.id, storeIdParam]);
 
+  // Re-fetch KPI data when filter changes
+  useEffect(() => {
+    fetchKPIData();
+  }, [kpiFilter, seller.id, storeIdParam]);
+
+  const fetchKPIData = async () => {
+    try {
+      // Determine days parameter based on filter
+      const days = kpiFilter === '7j' ? 7 : kpiFilter === '30j' ? 30 : 365; // 'tout' = 365 days
+      const kpiRes = await api.get(`/manager/kpi-entries/${seller.id}?days=${days}${storeParamAnd}`);
+      setKpiEntries(kpiRes.data || []);
+      
+      // Debug logging
+      if (kpiRes.data && kpiRes.data.length > 0) {
+        console.log(`[SellerDetailView] ${kpiRes.data.length} KPI entries loaded for filter ${kpiFilter} (${days} days)`);
+        console.log(`[SellerDetailView] First entry:`, kpiRes.data[0]);
+        console.log(`[SellerDetailView] Last entry:`, kpiRes.data[kpiRes.data.length - 1]);
+      } else {
+        console.warn(`[SellerDetailView] No KPI entries found for filter ${kpiFilter} (${days} days)`);
+      }
+    } catch (err) {
+      logger.error('Error loading KPI data:', err);
+      setKpiEntries([]);
+    }
+  };
+
   const fetchSellerData = async () => {
     setLoading(true);
     try {
-      const [statsRes, diagRes, debriefsRes, competencesRes, kpiRes, kpiConfigRes] = await Promise.all([
+      const [statsRes, diagRes, debriefsRes, competencesRes, kpiConfigRes] = await Promise.all([
         api.get(`/manager/seller/${seller.id}/stats${storeParam}`),
         api.get(`/manager-diagnostic/seller/${seller.id}${storeParam}`),
         api.get(`/manager/debriefs/${seller.id}${storeParam}`),
         api.get(`/manager/competences-history/${seller.id}${storeParam}`),
-        api.get(`/manager/kpi-entries/${seller.id}?days=30${storeParamAnd}`),
         api.get(`/manager/kpi-config${storeParam}`)
       ]);
 
@@ -75,8 +100,10 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
       setDiagnostic(diagRes.data);
       setDebriefs(debriefsRes.data);
       setCompetencesHistory(competencesRes.data); // Keep historical data for evolution chart
-      setKpiEntries(kpiRes.data);
       setKpiConfig(kpiConfigRes.data); // Store manager's KPI configuration
+      
+      // Initial KPI load (will be reloaded when filter changes)
+      await fetchKPIData();
     } catch (err) {
       logger.error('Error loading seller data:', err);
       toast.error('Erreur de chargement des données du vendeur');
@@ -95,15 +122,22 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
   // Calculate current competences (use LIVE scores for consistency with overview)
   const currentCompetences = liveCompetences;
 
-  const radarData = currentCompetences
-    ? [
-        { skill: 'Accueil', value: currentCompetences.score_accueil },
-        { skill: 'Découverte', value: currentCompetences.score_decouverte },
-        { skill: 'Argumentation', value: currentCompetences.score_argumentation },
-        { skill: 'Closing', value: currentCompetences.score_closing },
-        { skill: 'Fidélisation', value: currentCompetences.score_fidelisation }
-      ]
-    : [];
+  // Always create radar data structure (even if scores are 0) for consistent display
+  const radarData = [
+    { skill: 'Accueil', value: currentCompetences?.score_accueil || 0 },
+    { skill: 'Découverte', value: currentCompetences?.score_decouverte || 0 },
+    { skill: 'Argumentation', value: currentCompetences?.score_argumentation || 0 },
+    { skill: 'Closing', value: currentCompetences?.score_closing || 0 },
+    { skill: 'Fidélisation', value: currentCompetences?.score_fidelisation || 0 }
+  ];
+  
+  // Check if all scores are zero (no evaluation)
+  const hasAnyScore = radarData.some(d => d.value > 0);
+  
+  // Debug logging for competences
+  console.log('[SellerDetailView] Live competences:', currentCompetences);
+  console.log('[SellerDetailView] Radar data:', radarData);
+  console.log('[SellerDetailView] Has any score > 0:', hasAnyScore);
 
   // Calculate evolution data (score global sur 25)
   const evolutionData = competencesHistory.map((entry) => {
@@ -322,7 +356,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
         {/* Radar Chart */}
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
           <h2 className="text-sm font-bold text-gray-800 mb-3">Compétences actuelles</h2>
-          {radarData.length > 0 ? (
+          {hasAnyScore ? (
             <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#cbd5e1" />
@@ -332,7 +366,11 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
               </RadarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="text-center py-8 text-gray-500 text-sm">Aucune donnée disponible</div>
+            <div className="text-center py-8 text-gray-500 text-sm">
+              {currentCompetences ? 
+                "Aucune compétence évaluée (tous les scores sont à 0). Le vendeur doit compléter son diagnostic ou avoir des debriefs pour voir ses compétences." : 
+                "Aucune donnée disponible. Le vendeur doit compléter son diagnostic pour voir ses compétences."}
+            </div>
           )}
         </div>
 

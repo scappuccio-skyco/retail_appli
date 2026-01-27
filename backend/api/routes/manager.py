@@ -2629,6 +2629,59 @@ async def get_seller_stats(
         
         result = await db.kpi_entries.aggregate(pipeline).to_list(1)
         
+        # Calculate competence scores from diagnostic and debriefs
+        avg_radar_scores = {
+            "accueil": 0,
+            "decouverte": 0,
+            "argumentation": 0,
+            "closing": 0,
+            "fidelisation": 0
+        }
+        
+        # Get diagnostic
+        diagnostic = await db.diagnostics.find_one(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        )
+        
+        # Get recent debriefs (last 5)
+        debriefs = await db.debriefs.find(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(5).to_list(5)
+        
+        # Calculate average competences from diagnostic and debriefs
+        if diagnostic or debriefs:
+            all_scores = {
+                'accueil': [],
+                'decouverte': [],
+                'argumentation': [],
+                'closing': [],
+                'fidelisation': []
+            }
+            
+            # Add diagnostic scores (if exists)
+            if diagnostic:
+                all_scores['accueil'].append(diagnostic.get('score_accueil', 0))
+                all_scores['decouverte'].append(diagnostic.get('score_decouverte', 0))
+                all_scores['argumentation'].append(diagnostic.get('score_argumentation', 0))
+                all_scores['closing'].append(diagnostic.get('score_closing', 0))
+                all_scores['fidelisation'].append(diagnostic.get('score_fidelisation', 0))
+            
+            # Add debrief scores
+            for debrief in debriefs:
+                all_scores['accueil'].append(debrief.get('score_accueil', 0))
+                all_scores['decouverte'].append(debrief.get('score_decouverte', 0))
+                all_scores['argumentation'].append(debrief.get('score_argumentation', 0))
+                all_scores['closing'].append(debrief.get('score_closing', 0))
+                all_scores['fidelisation'].append(debrief.get('score_fidelisation', 0))
+            
+            # Calculate average for each competence (filter out zeros)
+            for competence in ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']:
+                scores = [s for s in all_scores[competence] if s > 0]
+                if scores:
+                    avg_radar_scores[competence] = round(sum(scores) / len(scores), 1)
+        
         if result:
             stats = result[0]
             total_ca = stats.get("total_ca", 0)
@@ -2648,7 +2701,8 @@ async def get_seller_stats(
                 "entries_count": stats.get("entries_count", 0),
                 "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else 0,
                 "taux_transformation": round((total_ventes / total_clients * 100), 1) if total_clients > 0 else 0,
-                "uvc": round(total_articles / total_ventes, 2) if total_ventes > 0 else 0
+                "uvc": round(total_articles / total_ventes, 2) if total_ventes > 0 else 0,
+                "avg_radar_scores": avg_radar_scores  # Add competence scores
             }
         else:
             return {
@@ -2663,7 +2717,8 @@ async def get_seller_stats(
                 "entries_count": 0,
                 "panier_moyen": 0,
                 "taux_transformation": 0,
-                "uvc": 0
+                "uvc": 0,
+                "avg_radar_scores": avg_radar_scores  # Add competence scores even if no KPI data
             }
             
     except HTTPException:
