@@ -4,6 +4,8 @@ from repositories.user_repository import UserRepository
 from repositories.store_repository import StoreRepository, WorkspaceRepository
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.subscription_repository import SubscriptionRepository
+from repositories.billing_repository import BillingProfileRepository
+from repositories.system_log_repository import SystemLogRepository
 from repositories.diagnostic_repository import DiagnosticRepository
 from repositories.challenge_repository import ChallengeRepository
 from repositories.objective_repository import ObjectiveRepository
@@ -26,6 +28,8 @@ __all__ = [
     'KPIRepository',
     'ManagerKPIRepository',
     'SubscriptionRepository',
+    'BillingProfileRepository',
+    'SystemLogRepository',
     'DiagnosticRepository',
     'ChallengeRepository',
     'ObjectiveRepository',

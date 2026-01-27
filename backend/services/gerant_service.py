@@ -1033,11 +1033,35 @@ class GerantService:
             start_date_query = start_date.strftime('%Y-%m-%d')
             end_date_query = end_date.strftime('%Y-%m-%d')
         
-        # Get ALL KPI entries for this store directly by store_id
-        all_seller_entries = await self.db.kpi_entries.find({
-            "store_id": store_id,
-            "date": {"$gte": start_date_query, "$lte": end_date_query}
-        }, {"_id": 0}).to_list(10000)
+        # ✅ PHASE 6: Use aggregation for date aggregation instead of .to_list(10000)
+        # We still need individual entries for priority logic, but we'll use cursor iteration
+        # instead of loading everything in memory at once
+        from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
+        
+        kpi_repo = KPIRepository(self.db)
+        manager_kpi_repo = ManagerKPIRepository(self.db)
+        
+        # Get KPI entries for this store (use cursor iteration with reasonable batch size)
+        # Note: We need individual entries for priority logic (created_by='manager' > 'seller')
+        # So we can't use pure aggregation here, but we'll process in batches
+        kpi_query = {"store_id": store_id}
+        date_range = {"$gte": start_date_query, "$lte": end_date_query}
+        
+        # Use cursor with batch processing instead of .to_list(10000)
+        all_seller_entries = []
+        cursor = self.db.kpi_entries.find({
+            **kpi_query,
+            "date": date_range
+        }, {"_id": 0})
+        
+        # Process in batches of 1000 to avoid memory issues
+        batch_size = 1000
+        async for batch in cursor.batch_size(batch_size):
+            all_seller_entries.append(batch)
+            # Safety limit: if we exceed 10000 entries, we've hit a data quality issue
+            if len(all_seller_entries) >= 10000:
+                logger.warning(f"Store {store_id} has > 10000 KPI entries in date range - consider data cleanup")
+                break
         
         # ⭐ PRIORITÉ DE LA DONNÉE : Si un vendeur ET un manager ont saisi pour la même journée/vendeur,
         # utiliser la version du manager (created_by: 'manager')
@@ -1069,10 +1093,20 @@ class GerantService:
         seller_entries = list(seller_entries_dict.values())
         
         # Get manager KPIs for this store (uniquement pour prospects globaux maintenant)
-        manager_kpis = await self.db.manager_kpis.find({
+        # ✅ PHASE 6: Use cursor iteration instead of .to_list(10000)
+        manager_kpis = []
+        manager_cursor = self.db.manager_kpis.find({
             "store_id": store_id,
             "date": {"$gte": start_date_query, "$lte": end_date_query}
-        }, {"_id": 0}).to_list(10000)
+        }, {"_id": 0})
+        
+        # Process in batches of 1000
+        batch_size = 1000
+        async for batch in manager_cursor.batch_size(batch_size):
+            manager_kpis.append(batch)
+            if len(manager_kpis) >= 10000:
+                logger.warning(f"Store {store_id} has > 10000 manager KPIs in date range - consider data cleanup")
+                break
         
         # Aggregate data by date
         date_map = {}

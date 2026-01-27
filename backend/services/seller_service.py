@@ -720,41 +720,41 @@ class SellerService:
         ).to_list(1000)
         seller_ids = [s['id'] for s in sellers]
         
+        # ✅ PHASE 6: Use aggregation instead of .to_list(10000) for memory efficiency
+        from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
+        
+        kpi_repo = KPIRepository(self.db)
+        manager_kpi_repo = ManagerKPIRepository(self.db)
+        
         # Build KPI query with store_id filter if available
         kpi_query = {
-            "seller_id": {"$in": seller_ids},
-            "date": {"$gte": start_date, "$lte": end_date}
+            "seller_id": {"$in": seller_ids}
         }
         if store_id:
             kpi_query["store_id"] = store_id
         
-        # Get KPI entries for all sellers in date range
-        entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).to_list(10000)
+        # Use aggregation to calculate totals (optimized - no .to_list(10000))
+        date_range = {"$gte": start_date, "$lte": end_date}
+        seller_totals = await kpi_repo.aggregate_totals(kpi_query, date_range)
         
-        # Calculate totals from seller entries
-        total_ca = sum(e.get('ca_journalier', 0) for e in entries)
-        total_ventes = sum(e.get('nb_ventes', 0) for e in entries)
-        total_articles = sum(e.get('nb_articles', 0) for e in entries)
+        total_ca = seller_totals["total_ca"]
+        total_ventes = seller_totals["total_ventes"]
+        total_articles = seller_totals["total_articles"]
         
         # Fallback to manager KPIs if seller data is missing (only if manager_id is available)
-        manager_entries = []
-        if manager_id:
-            manager_kpi_query = {
-                "manager_id": manager_id,
-                "date": {"$gte": start_date, "$lte": end_date}
-            }
+        if manager_id and (total_ca == 0 or total_ventes == 0 or total_articles == 0):
+            manager_kpi_query = {"manager_id": manager_id}
             if store_id:
                 manager_kpi_query["store_id"] = store_id
             
-            manager_entries = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(10000)
-        
-        if manager_entries:
+            manager_totals = await manager_kpi_repo.aggregate_totals(manager_kpi_query, date_range)
+            
             if total_ca == 0:
-                total_ca = sum(e.get('ca_journalier', 0) for e in manager_entries if e.get('ca_journalier'))
+                total_ca = manager_totals["total_ca"]
             if total_ventes == 0:
-                total_ventes = sum(e.get('nb_ventes', 0) for e in manager_entries if e.get('nb_ventes'))
+                total_ventes = manager_totals["total_ventes"]
             if total_articles == 0:
-                total_articles = sum(e.get('nb_articles', 0) for e in manager_entries if e.get('nb_articles'))
+                total_articles = manager_totals["total_articles"]
         
         # Calculate averages
         panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
@@ -1110,45 +1110,58 @@ class SellerService:
             ).to_list(1000)
             seller_ids = [s['id'] for s in sellers]
             
+            # ✅ PHASE 6: Use aggregation instead of .to_list(10000) for memory efficiency
+            from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
+            
+            kpi_repo = KPIRepository(self.db)
+            manager_kpi_repo = ManagerKPIRepository(self.db)
+            
             # Get KPI entries for all sellers in date range
             kpi_query = {
-                "seller_id": {"$in": seller_ids},
-                "date": {"$gte": start_date, "$lte": end_date}
+                "seller_id": {"$in": seller_ids}
             }
             if store_id:
                 kpi_query["store_id"] = store_id
             
-            entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).to_list(10000)
+            date_range = {"$gte": start_date, "$lte": end_date}
+            seller_totals = await kpi_repo.aggregate_totals(kpi_query, date_range)
+            
+            total_ca = seller_totals["total_ca"]
+            total_ventes = seller_totals["total_ventes"]
+            total_articles = seller_totals["total_articles"]
         else:
             # Individual challenge
+            from repositories.kpi_repository import KPIRepository
+            
+            kpi_repo = KPIRepository(self.db)
             target_seller_id = seller_id or challenge.get('seller_id')
-            entries = await self.db.kpi_entries.find({
-                "seller_id": target_seller_id,
-                "date": {"$gte": start_date, "$lte": end_date}
-            }, {"_id": 0}).to_list(10000)
-        
-        # Calculate totals from seller entries
-        total_ca = sum(e.get('ca_journalier', 0) for e in entries)
-        total_ventes = sum(e.get('nb_ventes', 0) for e in entries)
-        total_articles = sum(e.get('nb_articles', 0) for e in entries)
+            
+            kpi_query = {"seller_id": target_seller_id}
+            date_range = {"$gte": start_date, "$lte": end_date}
+            seller_totals = await kpi_repo.aggregate_totals(kpi_query, date_range)
+            
+            total_ca = seller_totals["total_ca"]
+            total_ventes = seller_totals["total_ventes"]
+            total_articles = seller_totals["total_articles"]
         
         # Fallback to manager KPIs if seller data is missing
-        manager_kpi_query = {
-            "manager_id": manager_id,
-            "date": {"$gte": start_date, "$lte": end_date}
-        }
-        if store_id:
-            manager_kpi_query["store_id"] = store_id
-        
-        manager_entries = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(10000)
-        
-        if manager_entries:
+        if manager_id and (total_ca == 0 or total_ventes == 0 or total_articles == 0):
+            from repositories.kpi_repository import ManagerKPIRepository
+            
+            manager_kpi_repo = ManagerKPIRepository(self.db)
+            manager_kpi_query = {"manager_id": manager_id}
+            if store_id:
+                manager_kpi_query["store_id"] = store_id
+            
+            date_range = {"$gte": start_date, "$lte": end_date}
+            manager_totals = await manager_kpi_repo.aggregate_totals(manager_kpi_query, date_range)
+            
             if total_ca == 0:
-                total_ca = sum(e.get('ca_journalier', 0) for e in manager_entries if e.get('ca_journalier'))
+                total_ca = manager_totals["total_ca"]
             if total_ventes == 0:
-                total_ventes = sum(e.get('nb_ventes', 0) for e in manager_entries if e.get('nb_ventes'))
+                total_ventes = manager_totals["total_ventes"]
             if total_articles == 0:
-                total_articles = sum(e.get('nb_articles', 0) for e in manager_entries if e.get('nb_articles'))
+                total_articles = manager_totals["total_articles"]
         
         # Calculate averages
         panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0

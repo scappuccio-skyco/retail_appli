@@ -57,6 +57,60 @@ class KPIRepository(BaseRepository):
             List of distinct date strings for locked entries
         """
         return await self.distinct_dates(query)
+    
+    async def aggregate_totals(
+        self,
+        query: Dict,
+        date_range: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Aggregate KPI totals using MongoDB aggregation (optimized - no .to_list(10000))
+        
+        Args:
+            query: Base query filter (e.g., {"seller_id": {"$in": [...]}})
+            date_range: Optional date range filter {"$gte": start_date, "$lte": end_date}
+        
+        Returns:
+            Dict with aggregated totals: {
+                "total_ca": float,
+                "total_ventes": int,
+                "total_articles": int,
+                "total_clients": int,
+                "total_prospects": int
+            }
+        """
+        match_stage = {**query}
+        if date_range:
+            match_stage["date"] = date_range
+        
+        pipeline = [
+            {"$match": match_stage},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
+                "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
+                "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}}
+            }}
+        ]
+        
+        result = await self.collection.aggregate(pipeline).to_list(1)
+        if result and result[0]:
+            return {
+                "total_ca": result[0].get("total_ca", 0),
+                "total_ventes": result[0].get("total_ventes", 0),
+                "total_articles": result[0].get("total_articles", 0),
+                "total_clients": result[0].get("total_clients", 0),
+                "total_prospects": result[0].get("total_prospects", 0)
+            }
+        return {
+            "total_ca": 0,
+            "total_ventes": 0,
+            "total_articles": 0,
+            "total_clients": 0,
+            "total_prospects": 0
+        }
 
 
 class ManagerKPIRepository(BaseRepository):
@@ -125,3 +179,53 @@ class ManagerKPIRepository(BaseRepository):
                 entry_data["created_at"] = datetime.now(timezone.utc).isoformat()
             
             return await self.insert_one(entry_data)
+    
+    async def aggregate_totals(
+        self,
+        query: Dict,
+        date_range: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Aggregate manager KPI totals using MongoDB aggregation (optimized - no .to_list(10000))
+        
+        Args:
+            query: Base query filter (e.g., {"manager_id": manager_id})
+            date_range: Optional date range filter {"$gte": start_date, "$lte": end_date}
+        
+        Returns:
+            Dict with aggregated totals: {
+                "total_ca": float,
+                "total_ventes": int,
+                "total_articles": int,
+                "total_prospects": int
+            }
+        """
+        match_stage = {**query}
+        if date_range:
+            match_stage["date"] = date_range
+        
+        pipeline = [
+            {"$match": match_stage},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
+                "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}}
+            }}
+        ]
+        
+        result = await self.collection.aggregate(pipeline).to_list(1)
+        if result and result[0]:
+            return {
+                "total_ca": result[0].get("total_ca", 0),
+                "total_ventes": result[0].get("total_ventes", 0),
+                "total_articles": result[0].get("total_articles", 0),
+                "total_prospects": result[0].get("total_prospects", 0)
+            }
+        return {
+            "total_ca": 0,
+            "total_ventes": 0,
+            "total_articles": 0,
+            "total_prospects": 0
+        }
