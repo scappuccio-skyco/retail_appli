@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && yarn install && yarn build",
+  "buildCommand": "cd frontend && yarn install --network-timeout 100000 --network-concurrency 1 && yarn build",
   "outputDirectory": "frontend/build",
   "rewrites": [
     {
