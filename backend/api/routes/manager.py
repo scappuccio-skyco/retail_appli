@@ -2681,6 +2681,13 @@ async def get_seller_stats(
         ).sort("created_at", -1).limit(5).to_list(5)
         
         # Calculate average competences from diagnostic and debriefs
+        logger.debug(f"[get_seller_stats] Checking competences for seller {seller_id}")
+        logger.debug(f"[get_seller_stats] Diagnostic found: {diagnostic is not None}")
+        logger.debug(f"[get_seller_stats] Debriefs found: {len(debriefs) if debriefs else 0}")
+        
+        if diagnostic:
+            logger.debug(f"[get_seller_stats] Diagnostic scores: accueil={diagnostic.get('score_accueil')}, decouverte={diagnostic.get('score_decouverte')}, argumentation={diagnostic.get('score_argumentation')}, closing={diagnostic.get('score_closing')}, fidelisation={diagnostic.get('score_fidelisation')}")
+        
         if diagnostic or debriefs:
             all_scores = {
                 'accueil': [],
@@ -2692,25 +2699,87 @@ async def get_seller_stats(
             
             # Add diagnostic scores (if exists)
             if diagnostic:
-                all_scores['accueil'].append(diagnostic.get('score_accueil', 0))
-                all_scores['decouverte'].append(diagnostic.get('score_decouverte', 0))
-                all_scores['argumentation'].append(diagnostic.get('score_argumentation', 0))
-                all_scores['closing'].append(diagnostic.get('score_closing', 0))
-                all_scores['fidelisation'].append(diagnostic.get('score_fidelisation', 0))
+                score_accueil = diagnostic.get('score_accueil')
+                score_decouverte = diagnostic.get('score_decouverte')
+                score_argumentation = diagnostic.get('score_argumentation')
+                score_closing = diagnostic.get('score_closing')
+                score_fidelisation = diagnostic.get('score_fidelisation')
+                
+                # Only add scores that are > 0 (to avoid adding default 0 values)
+                if score_accueil and score_accueil > 0:
+                    all_scores['accueil'].append(score_accueil)
+                if score_decouverte and score_decouverte > 0:
+                    all_scores['decouverte'].append(score_decouverte)
+                if score_argumentation and score_argumentation > 0:
+                    all_scores['argumentation'].append(score_argumentation)
+                if score_closing and score_closing > 0:
+                    all_scores['closing'].append(score_closing)
+                if score_fidelisation and score_fidelisation > 0:
+                    all_scores['fidelisation'].append(score_fidelisation)
+                
+                # If no pre-calculated scores, try to calculate from answers
+                if not any([score_accueil, score_decouverte, score_argumentation, score_closing, score_fidelisation]):
+                    answers = diagnostic.get('answers', {})
+                    if answers:
+                        # Calculate scores from numeric answers (0-3 scale)
+                        competence_mapping = {
+                            'accueil': [1, 2, 3],
+                            'decouverte': [4, 5, 6],
+                            'argumentation': [7, 8, 9],
+                            'closing': [10, 11, 12],
+                            'fidelisation': [13, 14, 15]
+                        }
+                        
+                        for competence, question_ids in competence_mapping.items():
+                            competence_scores = []
+                            for q_id in question_ids:
+                                q_key = f"q{q_id}"
+                                if q_key in answers:
+                                    numeric_value = answers[q_key]
+                                    # Convert 0-3 scale to 1-5 scale: 0->1, 1->2.33, 2->3.67, 3->5
+                                    scaled_score = 1 + (numeric_value * 4 / 3)
+                                    competence_scores.append(round(scaled_score, 1))
+                            
+                            if competence_scores:
+                                avg_score = round(sum(competence_scores) / len(competence_scores), 1)
+                                if avg_score > 0:
+                                    all_scores[competence].append(avg_score)
+                                    logger.info(f"[get_seller_stats] Calculated {competence} from answers: {avg_score}")
+                
+                logger.debug(f"[get_seller_stats] Added diagnostic scores: {all_scores}")
             
             # Add debrief scores
             for debrief in debriefs:
-                all_scores['accueil'].append(debrief.get('score_accueil', 0))
-                all_scores['decouverte'].append(debrief.get('score_decouverte', 0))
-                all_scores['argumentation'].append(debrief.get('score_argumentation', 0))
-                all_scores['closing'].append(debrief.get('score_closing', 0))
-                all_scores['fidelisation'].append(debrief.get('score_fidelisation', 0))
+                score_accueil = debrief.get('score_accueil')
+                score_decouverte = debrief.get('score_decouverte')
+                score_argumentation = debrief.get('score_argumentation')
+                score_closing = debrief.get('score_closing')
+                score_fidelisation = debrief.get('score_fidelisation')
+                
+                # Only add scores that are > 0
+                if score_accueil and score_accueil > 0:
+                    all_scores['accueil'].append(score_accueil)
+                if score_decouverte and score_decouverte > 0:
+                    all_scores['decouverte'].append(score_decouverte)
+                if score_argumentation and score_argumentation > 0:
+                    all_scores['argumentation'].append(score_argumentation)
+                if score_closing and score_closing > 0:
+                    all_scores['closing'].append(score_closing)
+                if score_fidelisation and score_fidelisation > 0:
+                    all_scores['fidelisation'].append(score_fidelisation)
+            
+            logger.debug(f"[get_seller_stats] All scores collected: {all_scores}")
             
             # Calculate average for each competence (filter out zeros)
             for competence in ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']:
                 scores = [s for s in all_scores[competence] if s > 0]
                 if scores:
                     avg_radar_scores[competence] = round(sum(scores) / len(scores), 1)
+                    logger.debug(f"[get_seller_stats] {competence}: {scores} -> avg={avg_radar_scores[competence]}")
+                else:
+                    logger.debug(f"[get_seller_stats] {competence}: No valid scores found")
+        
+        logger.info(f"[get_seller_stats] Final avg_radar_scores for seller {seller_id}: {avg_radar_scores}")
         
         if result:
             stats = result[0]

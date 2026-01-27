@@ -62,10 +62,17 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
       console.log(`[SellerDetailView] Fetching KPI data: ${url}`);
       
       const kpiRes = await api.get(url);
-      const entries = kpiRes.data || [];
+      const entries = Array.isArray(kpiRes.data) ? kpiRes.data : [];
       setKpiEntries(entries);
       
       // Debug logging
+      console.log(`[SellerDetailView] KPI API response:`, {
+        status: kpiRes.status,
+        dataType: Array.isArray(kpiRes.data) ? 'array' : typeof kpiRes.data,
+        dataLength: Array.isArray(kpiRes.data) ? kpiRes.data.length : 'N/A',
+        firstEntry: entries[0] || null
+      });
+      
       if (entries.length > 0) {
         console.log(`[SellerDetailView] ✅ ${entries.length} KPI entries loaded for filter ${kpiFilter} (${days} days)`);
         console.log(`[SellerDetailView] First entry:`, entries[0]);
@@ -73,6 +80,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
       } else {
         console.warn(`[SellerDetailView] ⚠️ No KPI entries found for filter ${kpiFilter} (${days} days)`);
         console.warn(`[SellerDetailView] URL used: ${url}`);
+        console.warn(`[SellerDetailView] Response data:`, kpiRes.data);
       }
     } catch (err) {
       console.error('[SellerDetailView] ❌ Error loading KPI data:', err);
@@ -130,11 +138,24 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
       const initialDays = kpiFilter === '7j' ? 7 : kpiFilter === '30j' ? 30 : 365;
       const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
       try {
-        const kpiRes = await api.get(`/manager/kpi-entries/${seller.id}?days=${initialDays}${storeParamAnd}`);
-        setKpiEntries(kpiRes.data || []);
-        console.log(`[SellerDetailView] Initial load: ${(kpiRes.data || []).length} KPI entries`);
+        const initialUrl = `/manager/kpi-entries/${seller.id}?days=${initialDays}${storeParamAnd}`;
+        console.log(`[SellerDetailView] Initial KPI load URL: ${initialUrl}`);
+        const kpiRes = await api.get(initialUrl);
+        const initialEntries = Array.isArray(kpiRes.data) ? kpiRes.data : [];
+        setKpiEntries(initialEntries);
+        console.log(`[SellerDetailView] Initial load: ${initialEntries.length} KPI entries`);
+        if (initialEntries.length > 0) {
+          console.log(`[SellerDetailView] Initial first entry:`, initialEntries[0]);
+        } else {
+          console.warn(`[SellerDetailView] Initial load returned empty array. Response:`, kpiRes.data);
+        }
       } catch (err) {
         console.error('[SellerDetailView] Error in initial KPI load:', err);
+        console.error('[SellerDetailView] Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status
+        });
         setKpiEntries([]);
       }
     } catch (err) {
