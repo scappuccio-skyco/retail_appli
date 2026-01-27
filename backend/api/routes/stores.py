@@ -152,8 +152,15 @@ async def get_store_info(
         
         # Gérant: must own the store
         if user_role in ['gerant', 'gérant']:
-            if store.get('gerant_id') != current_user['id']:
-                raise HTTPException(status_code=403, detail="Access denied: not your store")
+            store_gerant_id = store.get('gerant_id')
+            user_id = current_user.get('id')
+            
+            if store_gerant_id != user_id:
+                logger.warning(f"Gérant {user_id} attempted to access store {store_id} owned by {store_gerant_id}")
+                raise HTTPException(
+                    status_code=403, 
+                    detail=f"Accès refusé: ce magasin appartient à un autre gérant (store_id: {store_id}, your_id: {user_id}, store_gerant_id: {store_gerant_id})"
+                )
         
         # Manager: must be assigned to this store
         elif user_role == 'manager':

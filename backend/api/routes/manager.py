@@ -187,15 +187,45 @@ async def get_store_context_with_seller(
             )
         
         # Security: Verify the gérant owns this store
-        store = await db.stores.find_one(
-            {"id": store_id, "gerant_id": current_user['id'], "active": True},
-            {"_id": 0, "id": 1, "name": 1}
-        )
-        
-        if not store:
+        try:
+            store = await db.stores.find_one(
+                {"id": store_id, "gerant_id": current_user['id'], "active": True},
+                {"_id": 0, "id": 1, "name": 1}
+            )
+            
+            if not store:
+                # Check if store exists but doesn't belong to gérant or is inactive
+                store_exists = await db.stores.find_one(
+                    {"id": store_id},
+                    {"_id": 0, "id": 1, "gerant_id": 1, "active": 1}
+                )
+                
+                if store_exists:
+                    if store_exists.get('gerant_id') != current_user['id']:
+                        logger.warning(f"Gérant {current_user['id']} attempted to access store {store_id} owned by {store_exists.get('gerant_id')}")
+                        raise HTTPException(
+                            status_code=403, 
+                            detail="Ce magasin ne vous appartient pas"
+                        )
+                    elif not store_exists.get('active', True):
+                        logger.warning(f"Gérant {current_user['id']} attempted to access inactive store {store_id}")
+                        raise HTTPException(
+                            status_code=403, 
+                            detail="Ce magasin est inactif"
+                        )
+                else:
+                    logger.warning(f"Gérant {current_user['id']} attempted to access non-existent store {store_id}")
+                    raise HTTPException(
+                        status_code=404, 
+                        detail="Magasin non trouvé"
+                    )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error verifying store ownership for gérant {current_user['id']} and store {store_id}: {e}", exc_info=True)
             raise HTTPException(
-                status_code=403, 
-                detail="Ce magasin n'existe pas ou ne vous appartient pas"
+                status_code=500,
+                detail=f"Erreur lors de la vérification du magasin: {str(e)}"
             )
         
         return {
