@@ -500,9 +500,21 @@ async def get_sync_mode(
     """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            # Return default config if no store_id resolved
+            return {
+                "sync_mode": "manual",
+                "external_sync_enabled": False,
+                "is_enterprise": False,
+                "can_edit_kpi": True,
+                "can_edit_objectives": True
+            }
         config = await manager_service.get_sync_mode(resolved_store_id)
         return config
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Error fetching sync mode: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -2533,20 +2545,29 @@ async def get_seller_kpi_entries(
         
         if start_date and end_date:
             query["date"] = {"$gte": start_date, "$lte": end_date}
+            logger.debug(f"[get_kpi_entries] Using custom date range: {start_date} to {end_date} for seller {seller_id}")
         else:
             # Use days parameter
             end_dt = datetime.now(timezone.utc)
             start_dt = end_dt - timedelta(days=days)
+            start_date_str = start_dt.strftime('%Y-%m-%d')
+            end_date_str = end_dt.strftime('%Y-%m-%d')
             query["date"] = {
-                "$gte": start_dt.strftime('%Y-%m-%d'),
-                "$lte": end_dt.strftime('%Y-%m-%d')
+                "$gte": start_date_str,
+                "$lte": end_date_str
             }
+            logger.debug(f"[get_kpi_entries] Using days={days} range: {start_date_str} to {end_date_str} for seller {seller_id}")
         
         # Fetch KPI entries
         entries = await db.kpi_entries.find(
             query,
             {"_id": 0}
         ).sort("date", -1).to_list(1000)
+        
+        logger.info(f"[get_kpi_entries] Found {len(entries)} KPI entries for seller {seller_id} in date range {query.get('date', 'all')}")
+        if len(entries) > 0:
+            logger.debug(f"[get_kpi_entries] First entry date: {entries[0].get('date')}, Last entry date: {entries[-1].get('date')}")
+            logger.debug(f"[get_kpi_entries] Sample entry store_id: {entries[0].get('store_id')}, resolved_store_id: {resolved_store_id}")
         
         return entries
         

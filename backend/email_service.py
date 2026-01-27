@@ -317,7 +317,7 @@ def send_password_reset_email(recipient_email: str, recipient_name: str, reset_t
             
             <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
                 <p style="margin: 0; font-size: 14px; color: #856404;">
-                    ⚠️ <strong>Important :</strong> Ce lien est valable pendant <strong>10 minutes</strong> seulement.
+                    ⚠️ <strong>Important :</strong> Ce lien est valable pendant <strong>15 minutes</strong> seulement.
                 </p>
             </div>
             
@@ -374,12 +374,39 @@ def send_password_reset_email(recipient_email: str, recipient_name: str, reset_t
     )
     
     try:
+        # Check if BREVO_API_KEY is configured
+        brevo_api_key = os.environ.get('BREVO_API_KEY')
+        if not brevo_api_key:
+            logger.error("❌ BREVO_API_KEY is not configured in environment variables - Email NOT sent")
+            return False
+        
+        logger.info(f"📧 Tentative d'envoi d'email de réinitialisation à {recipient_email} via Brevo...")
+        logger.debug(f"   - Sender: {SENDER_EMAIL} ({SENDER_NAME})")
+        logger.debug(f"   - Recipient: {recipient_email} ({recipient_name})")
+        logger.debug(f"   - Frontend URL: {get_frontend_url()}")
+        
         api_instance = get_brevo_api_instance()
         api_response = api_instance.send_transac_email(send_email)
-        logger.info(f"Email de réinitialisation envoyé à {recipient_email}: {api_response}")
+        
+        message_id = api_response.message_id if hasattr(api_response, 'message_id') else 'N/A'
+        logger.info(f"✅ Email de réinitialisation envoyé avec succès à {recipient_email}: Message ID = {message_id}")
         return True
     except ApiException as e:
-        logger.error(f"Erreur lors de l'envoi de l'email de réinitialisation: {e}")
+        error_details = {
+            'status': getattr(e, 'status', 'N/A'),
+            'reason': getattr(e, 'reason', 'N/A'),
+            'body': getattr(e, 'body', 'N/A')
+        }
+        logger.error(
+            f"❌ Erreur Brevo API lors de l'envoi de l'email de réinitialisation à {recipient_email}: "
+            f"Status={error_details['status']}, Reason={error_details['reason']}, Body={error_details['body']}"
+        )
+        return False
+    except Exception as e:
+        logger.error(
+            f"❌ Erreur inattendue lors de l'envoi de l'email de réinitialisation à {recipient_email}: {str(e)}",
+            exc_info=True
+        )
         return False
 
 

@@ -11,15 +11,26 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!email || !email.includes('@')) {
+      toast.error('Veuillez entrer une adresse email valide');
+      return;
+    }
+    
     setLoading(true);
 
     try {
       await api.post('/auth/forgot-password', { email });
       setEmailSent(true);
-      toast.success('Email envoyé !');
+      toast.success('Email envoyé ! Vérifiez votre boîte de réception.');
     } catch (error) {
       // L'API retourne toujours un succès pour éviter l'énumération d'emails
+      // Mais on affiche quand même le message de succès pour l'UX
       setEmailSent(true);
+      // Ne pas afficher d'erreur pour éviter l'énumération d'emails
+      if (error.response?.status !== 200) {
+        console.error('Error sending password reset email:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -93,7 +104,7 @@ export default function ForgotPassword() {
               </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
-                <p className="font-medium mb-1">⏱️ Le lien expire dans 10 minutes</p>
+                <p className="font-medium mb-1">⏱️ Le lien expire dans 15 minutes</p>
                 <p>Vérifiez également vos spams si vous ne voyez pas l'email.</p>
               </div>
 

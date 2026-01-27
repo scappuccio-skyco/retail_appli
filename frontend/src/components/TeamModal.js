@@ -126,8 +126,21 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           const kpiEntries = kpiRes.data;
           const diagnostic = diagRes.data;
 
-          // Calculate period totals
-          const monthlyCA = kpiEntries.reduce((sum, entry) => sum + (entry.ca_journalier || 0), 0);
+          // Debug logging
+          if (kpiEntries.length === 0) {
+            console.warn(`[TeamModal] Aucun KPI trouvé pour vendeur ${seller.id} (${seller.name}) sur ${daysParam} jours`);
+            console.warn(`[TeamModal] URL utilisée: ${kpiUrl}`);
+          } else {
+            console.log(`[TeamModal] ${kpiEntries.length} KPI trouvés pour vendeur ${seller.id} (${seller.name})`);
+            console.log(`[TeamModal] Première entrée:`, kpiEntries[0]);
+            console.log(`[TeamModal] Dernière entrée:`, kpiEntries[kpiEntries.length - 1]);
+          }
+
+          // Calculate period totals - Support both ca_journalier and seller_ca for compatibility
+          const monthlyCA = kpiEntries.reduce((sum, entry) => {
+            const ca = entry.ca_journalier || entry.seller_ca || entry.ca || 0;
+            return sum + (typeof ca === 'number' ? ca : 0);
+          }, 0);
           const monthlyVentes = kpiEntries.reduce((sum, entry) => sum + (entry.nb_ventes || 0), 0);
           const panierMoyen = monthlyVentes > 0 ? monthlyCA / monthlyVentes : 0;
 

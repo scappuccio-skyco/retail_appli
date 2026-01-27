@@ -143,6 +143,10 @@ async def get_store_info(
         if not store:
             raise HTTPException(status_code=404, detail="Store not found")
         
+        # Check if store is active
+        if not store.get('active', True):
+            raise HTTPException(status_code=403, detail="Store is inactive")
+        
         # Verify access rights
         user_role = current_user.get('role')
         
@@ -153,13 +157,21 @@ async def get_store_info(
         
         # Manager: must be assigned to this store
         elif user_role == 'manager':
-            if current_user.get('store_id') != store_id:
-                raise HTTPException(status_code=403, detail="Access denied: not your store")
+            user_store_id = current_user.get('store_id')
+            if user_store_id != store_id:
+                raise HTTPException(
+                    status_code=403, 
+                    detail=f"Access denied: manager is assigned to store {user_store_id}, not {store_id}"
+                )
         
         # Seller: must be assigned to this store (return limited info)
         elif user_role == 'seller':
-            if current_user.get('store_id') != store_id:
-                raise HTTPException(status_code=403, detail="Access denied: not your store")
+            user_store_id = current_user.get('store_id')
+            if user_store_id != store_id:
+                raise HTTPException(
+                    status_code=403, 
+                    detail=f"Access denied: seller is assigned to store {user_store_id}, not {store_id}"
+                )
             # Return only basic info for sellers
             return {
                 "id": store.get('id'),
@@ -168,10 +180,13 @@ async def get_store_info(
             }
         
         else:
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(status_code=403, detail="Access denied: invalid role")
         
         return store
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching store info: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))

@@ -187,11 +187,20 @@ async def forgot_password(
         Success message
     """
     try:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"📧 Demande de réinitialisation de mot de passe pour: {request.email}")
+        
         await auth_service.request_password_reset(email=request.email)
+        
+        logger.info(f"✅ Processus de réinitialisation terminé pour: {request.email}")
         return {
             "message": "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation dans quelques instants."
         }
     except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"❌ Erreur lors de la demande de réinitialisation pour {request.email}: {e}", exc_info=True)
         # Don't reveal if email exists for security
         return {
             "message": "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation dans quelques instants."

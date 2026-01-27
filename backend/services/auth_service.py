@@ -6,6 +6,7 @@ from typing import Optional, Dict
 from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 import secrets
+import logging
 
 from core.security import (
     get_password_hash, 
@@ -14,6 +15,8 @@ from core.security import (
 )
 from repositories.user_repository import UserRepository
 from repositories.store_repository import WorkspaceRepository
+
+logger = logging.getLogger(__name__)
 
 
 class AuthService:
@@ -347,25 +350,33 @@ class AuthService:
         
         # Save token to database (CRITICAL: All dates in UTC ISO format for consistency)
         now_utc = datetime.now(timezone.utc)
-        expires_at_utc = now_utc + timedelta(hours=1)
+        expires_at_utc = now_utc + timedelta(minutes=15)  # 15 minutes expiration for security
         
         await self.db.password_resets.insert_one({
             "email": email,
             "token": reset_token,
             "created_at": now_utc.isoformat(),
-            "expires_at": expires_at_utc.isoformat()  # 1 hour from now
+            "expires_at": expires_at_utc.isoformat()  # 15 minutes from now
         })
         
         # CRITICAL: Send password reset email
+        logger.info(f"🔄 Début de l'envoi de l'email de réinitialisation pour {email}")
         try:
             from email_service import send_password_reset_email
             recipient_name = user.get('name', 'Utilisateur')
-            send_password_reset_email(email, recipient_name, reset_token)
+            logger.debug(f"   - Nom du destinataire: {recipient_name}")
+            logger.debug(f"   - Token généré: {reset_token[:10]}...")
+            
+            email_sent = send_password_reset_email(email, recipient_name, reset_token)
+            if not email_sent:
+                logger.error(f"❌ ÉCHEC: L'envoi de l'email de réinitialisation à {email} a retourné False")
+                logger.error(f"   - Vérifiez les logs Brevo ci-dessus pour plus de détails")
+                logger.error(f"   - Vérifiez que BREVO_API_KEY est configurée dans les variables d'environnement")
+            else:
+                logger.info(f"✅ SUCCÈS: Email de réinitialisation envoyé avec succès à {email}")
         except Exception as e:
-            # Log error but don't fail the request
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Failed to send password reset email to {email}: {e}")
+            # Log error but don't fail the request (security: don't reveal if email exists)
+            logger.error(f"❌ EXCEPTION lors de l'envoi de l'email de réinitialisation à {email}: {str(e)}", exc_info=True)
         
         return reset_token
     

@@ -590,7 +590,7 @@ async def verify_resource_store_access(
     
     if not resource:
         # Check if resource exists but in different store (security: don't reveal existence)
-        exists_elsewhere = await collection.find_one({"id": resource_id}, {"_id": 0, "store_id": 1})
+        exists_elsewhere = await collection.find_one({"id": resource_id}, {"_id": 0})  # Exclude _id, include all other fields (including store_id)
         if exists_elsewhere:
             raise HTTPException(
                 status_code=403,
@@ -635,6 +635,19 @@ async def verify_seller_store_access(
         HTTPException 403: If seller doesn't belong to user's store
         HTTPException 404: If seller not found
     """
+    # ✅ SECURITY: Validate inputs
+    if not user_store_id:
+        raise HTTPException(
+            status_code=400,
+            detail="store_id requis pour vérifier l'accès au vendeur"
+        )
+    
+    if not user_role:
+        raise HTTPException(
+            status_code=400,
+            detail="role requis pour vérifier l'accès au vendeur"
+        )
+    
     # ✅ SECURITY: Role-based verification
     
     if user_role == 'seller':
@@ -662,7 +675,7 @@ async def verify_seller_store_access(
             # Check if seller exists but in different store (security: don't reveal existence)
             exists_elsewhere = await db.users.find_one(
                 {"id": seller_id, "role": "seller"},
-                {"_id": 0, "store_id": 1}
+                {"_id": 0}  # Exclude _id, include all other fields (including store_id)
             )
             if exists_elsewhere:
                 raise HTTPException(
@@ -674,11 +687,18 @@ async def verify_seller_store_access(
         return seller
     
     elif user_role in ['gerant', 'gérant']:
+        # ✅ CRITICAL: Validate user_id for gérant
+        if not user_id:
+            raise HTTPException(
+                status_code=400,
+                detail="user_id requis pour vérifier l'accès gérant"
+            )
+        
         # ✅ CRITICAL: Gérant must verify ownership via store hierarchy
         # Step 1: Get seller with store_id
         seller = await db.users.find_one(
             {"id": seller_id, "role": "seller"},
-            {"_id": 0, "password": 0, "store_id": 1}
+            {"_id": 0, "password": 0}  # Exclude _id and password, include all other fields (including store_id)
         )
         
         if not seller:
