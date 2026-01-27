@@ -279,6 +279,9 @@ def get_competence_service(
 from repositories.objective_repository import ObjectiveRepository
 from repositories.challenge_repository import ChallengeRepository
 from repositories.debrief_repository import DebriefRepository
+from repositories.sale_repository import SaleRepository
+from repositories.evaluation_repository import EvaluationRepository
+from repositories.morning_brief_repository import MorningBriefRepository
 
 def get_objective_repository(
     db: AsyncIOMotorDatabase = Depends(get_db)
@@ -326,3 +329,51 @@ def get_debrief_repository(
             return await debrief_repo.find_by_seller(seller_id=seller_id)
     """
     return DebriefRepository(db)
+
+
+def get_sale_repository(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> SaleRepository:
+    """
+    Get SaleRepository instance with database dependency
+    
+    Usage in routes:
+        @router.get("/sales")
+        async def get_sales(
+            sale_repo: SaleRepository = Depends(get_sale_repository)
+        ):
+            return await sale_repo.find_by_seller(seller_id=seller_id)
+    """
+    return SaleRepository(db)
+
+
+def get_evaluation_repository(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> EvaluationRepository:
+    """
+    Get EvaluationRepository instance with database dependency
+    
+    Usage in routes:
+        @router.get("/evaluations")
+        async def get_evaluations(
+            eval_repo: EvaluationRepository = Depends(get_evaluation_repository)
+        ):
+            return await eval_repo.find_by_seller(seller_id=seller_id)
+    """
+    return EvaluationRepository(db)
+
+
+def get_morning_brief_repository(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> MorningBriefRepository:
+    """
+    Get MorningBriefRepository instance with database dependency
+    
+    Usage in routes:
+        @router.get("/briefs/history")
+        async def get_briefs(
+            brief_repo: MorningBriefRepository = Depends(get_morning_brief_repository)
+        ):
+            return await brief_repo.find_by_store(store_id=store_id)
+    """
+    return MorningBriefRepository(db)

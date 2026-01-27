@@ -132,7 +132,11 @@ async def _resolve_workspace(db, user: dict) -> Optional[dict]:
     """
     Resolve workspace for a user without enforcing access rules.
     Returns minimal workspace info or None.
+    
+    ✅ CACHED: Workspace lookups are cached for 2 minutes.
     """
+    from core.cache import get_cache_service, CacheKeys
+    
     if _normalize_role(user.get('role')) == 'super_admin':
         return None
 
@@ -141,14 +145,34 @@ async def _resolve_workspace(db, user: dict) -> Optional[dict]:
     user_id = user.get('id')
     user_role = _normalize_role(user.get('role'))
 
-    projection = {"_id": 0, "id": 1, "status": 1, "subscription_status": 1, "trial_end": 1}
+    # ✅ CACHE: Try to get workspace from cache
+    cache = await get_cache_service()
+    workspace = None
+    
     if workspace_id:
-        return await db.workspaces.find_one({"id": workspace_id}, projection)
-    if gerant_id:
-        return await db.workspaces.find_one({"gerant_id": gerant_id}, projection)
-    if user_role == 'gerant':
-        return await db.workspaces.find_one({"gerant_id": user_id}, projection)
-    return None
+        cache_key = CacheKeys.workspace(workspace_id)
+        workspace = await cache.get(cache_key)
+        if workspace is None:
+            projection = {"_id": 0, "id": 1, "status": 1, "subscription_status": 1, "trial_end": 1}
+            workspace = await db.workspaces.find_one({"id": workspace_id}, projection)
+            if workspace:
+                await cache.set(cache_key, workspace, ttl=120)  # 2 minutes
+    elif gerant_id:
+        # For gerant lookup, we can't cache easily by gerant_id, so skip cache
+        projection = {"_id": 0, "id": 1, "status": 1, "subscription_status": 1, "trial_end": 1}
+        workspace = await db.workspaces.find_one({"gerant_id": gerant_id}, projection)
+        if workspace:
+            # Cache by workspace_id once we have it
+            cache_key = CacheKeys.workspace(workspace.get('id'))
+            await cache.set(cache_key, workspace, ttl=120)
+    elif user_role == 'gerant':
+        projection = {"_id": 0, "id": 1, "status": 1, "subscription_status": 1, "trial_end": 1}
+        workspace = await db.workspaces.find_one({"gerant_id": user_id}, projection)
+        if workspace:
+            cache_key = CacheKeys.workspace(workspace.get('id'))
+            await cache.set(cache_key, workspace, ttl=120)
+    
+    return workspace
 
 
 async def _attach_space_context(db, user: dict) -> dict:
@@ -173,6 +197,9 @@ async def get_current_user(
     Dependency to get current authenticated user
     Injects user data into route handlers
     
+    ✅ CACHED: User lookups are cached for 5 minutes to reduce MongoDB load.
+    Cache is automatically invalidated on user updates.
+    
     Usage:
         @router.get("/me")
         async def get_me(current_user: dict = Depends(get_current_user)):
@@ -189,6 +216,7 @@ async def get_current_user(
         HTTPException 403: If subscription is inactive/expired
     """
     from core.database import get_db
+    from core.cache import get_cache_service, CacheKeys
     
     payload = _get_token_payload(credentials)
     user_id = _extract_user_id(payload)
@@ -196,13 +224,26 @@ async def get_current_user(
         logger.warning("Auth rejected: missing user_id in token payload")
         raise HTTPException(status_code=401, detail="Invalid token payload")
     
+    # ✅ CACHE: Try to get user from cache first
+    cache = await get_cache_service()
+    cache_key = CacheKeys.user(user_id)
+    user = await cache.get(cache_key)
+    
+    if user is None:
+        # Cache miss - fetch from MongoDB
+        db = await get_db()
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+        
+        if not user:
+            logger.warning("Auth rejected: user not found for id %s", user_id)
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        # ✅ CACHE: Store in cache for 5 minutes (300 seconds)
+        await cache.set(cache_key, user, ttl=300)
+    else:
+        logger.debug(f"Cache hit for user {user_id}")
+    
     db = await get_db()
-    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
-    
-    if not user:
-        logger.warning("Auth rejected: user not found for id %s", user_id)
-        raise HTTPException(status_code=401, detail="User not found")
-    
     await _attach_space_context(db, user)
 
     normalized_role = _normalize_role(user.get('role'))

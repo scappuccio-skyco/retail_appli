@@ -334,6 +334,7 @@ async def startup_event():
     """
     Initialize application on startup
     - Connect to MongoDB (with retry for Atlas)
+    - Connect to Redis cache (graceful fallback if unavailable)
     """
     import asyncio
     worker_id = os.getpid()
@@ -367,6 +368,21 @@ async def startup_event():
                     print("[STARTUP-EVENT] ⚠️ Starting without DB - endpoints will fail gracefully", flush=True)
                     # Don't raise - let the app start anyway, endpoints will fail gracefully
                     logger.warning("Application starting without database connection - endpoints will return errors")
+        
+        # ✅ CACHE: Connect to Redis (graceful fallback if unavailable)
+        try:
+            from core.cache import get_cache_service
+            cache = await get_cache_service()
+            if cache.enabled:
+                print("[STARTUP-EVENT] ✅ Redis cache connected", flush=True)
+                logger.info("✅ Redis cache connected")
+            else:
+                print("[STARTUP-EVENT] ⚠️ Redis cache disabled (graceful fallback)", flush=True)
+                logger.info("⚠️ Redis cache disabled - application will continue without cache")
+        except Exception as e:
+            print(f"[STARTUP-EVENT] ⚠️ Redis cache initialization failed (non-critical): {e}", flush=True)
+            logger.warning(f"Redis cache initialization failed (non-critical): {e}")
+            # Don't raise - cache is optional
         
         print(f"[STARTUP-EVENT] 🚀 Startup complete (worker PID: {worker_id})", flush=True)
         logger.info(f"🚀 Application startup complete (worker PID: {worker_id})")
@@ -491,12 +507,22 @@ async def shutdown_event():
     """
     Cleanup on application shutdown
     - Close MongoDB connection
+    - Close Redis cache connection
     """
     try:
         await database.disconnect()
         logger.info("MongoDB connection closed")
     except Exception as e:
         logger.error(f"Error during shutdown: {e}")
+    
+    # ✅ CACHE: Disconnect Redis
+    try:
+        from core.cache import get_cache_service
+        cache = await get_cache_service()
+        await cache.disconnect()
+        logger.info("Redis cache disconnected")
+    except Exception as e:
+        logger.warning(f"Error disconnecting Redis cache: {e}")
 
 # Health check endpoint - at /health for local testing
 @app.get("/health")

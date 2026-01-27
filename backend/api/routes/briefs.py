@@ -11,8 +11,13 @@ import logging
 
 from api.dependencies import get_db, get_ai_service
 from api.dependencies_rate_limiting import get_rate_limiter
-from core.security import get_current_user, require_active_space
+from core.security import get_current_user, require_active_space, verify_store_ownership
 from services.ai_service import AIService
+from repositories.store_repository import StoreRepository
+from repositories.kpi_repository import KPIRepository
+from repositories.user_repository import UserRepository
+from models.pagination import PaginatedResponse, PaginationParams
+from utils.pagination import paginate
 
 # Rate limiter instance (will be set from app.state in main.py)
 limiter = get_rate_limiter()
@@ -127,11 +132,11 @@ async def generate_morning_brief(
     """
     try:
         # Vérifier que l'utilisateur est manager
-    if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
-        raise HTTPException(
-            status_code=403, 
-            detail="Seuls les managers peuvent générer des briefs matinaux"
-        )
+        if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
+            raise HTTPException(
+                status_code=403, 
+                detail="Seuls les managers peuvent générer des briefs matinaux"
+            )
     
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
@@ -143,16 +148,31 @@ async def generate_morning_brief(
     # Récupérer le magasin
     store = None
     
+    # ✅ MIGRÉ: Utilisation du repository avec vérification de sécurité
+    store_repo = StoreRepository(db)
+    
     # 1. D'abord par effective_store_id (store_id passé en param ou store_id de l'utilisateur)
     if effective_store_id:
-        store = await db.stores.find_one({"id": effective_store_id}, {"_id": 0})
+        store = await store_repo.find_by_id(effective_store_id)
+        
+        # ✅ SÉCURITÉ: Vérifier que l'utilisateur a accès à ce store
+        if store:
+            if current_user.get("role") == "manager":
+                if store.get("manager_id") != user_id and store.get("id") != user_store_id:
+                    raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
+            elif current_user.get("role") == "gerant":
+                if store.get("gerant_id") != user_id:
+                    raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
     
     # 2. Si pas trouvé, chercher par manager_id ou gerant_id (premier store trouvé)
     if not store:
-        store = await db.stores.find_one(
-            {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
-            {"_id": 0}
-        )
+        # Chercher dans les stores du gérant ou manager
+        if current_user.get("role") == "gerant":
+            stores = await store_repo.find_by_gerant(user_id)
+            store = stores[0] if stores else None
+        elif current_user.get("role") == "manager":
+            if user_store_id:
+                store = await store_repo.find_by_id(user_store_id)
     
     store_name = store.get("name", "Mon Magasin") if store else "Mon Magasin"
     final_store_id = store.get("id") if store else effective_store_id
@@ -160,9 +180,10 @@ async def generate_morning_brief(
     # ⭐ Sauvegarder l'objectif CA du jour dans le document du magasin
     if brief_request.objective_daily is not None and final_store_id:
         try:
-            await db.stores.update_one(
+            # ✅ MIGRÉ: Utilisation du repository
+            await store_repo.update_one(
                 {"id": final_store_id},
-                {"$set": {"objective_daily": request.objective_daily, "updated_at": datetime.now(timezone.utc).isoformat()}}
+                {"$set": {"objective_daily": brief_request.objective_daily, "updated_at": datetime.now(timezone.utc).isoformat()}}
             )
             logger.info(f"Objectif CA du jour mis à jour pour le magasin {final_store_id}: {request.objective_daily}€")
         except Exception as e:
@@ -203,13 +224,19 @@ async def generate_morning_brief(
                 "date": result.get("date"),
                 "data_date": result.get("data_date"),
                 "has_context": result.get("has_context", False),
-                "context": request.comments,
+                "context": brief_request.comments,
                 "generated_at": datetime.now(timezone.utc).isoformat(),
                 "fallback": result.get("fallback", False)
             }
             
+            # ✅ MIGRÉ: Utilisation du repository avec sécurité
             try:
-                await db.morning_briefs.insert_one(brief_record)
+                brief_repo = MorningBriefRepository(db)
+                await brief_repo.create_brief(
+                    brief_data=brief_record,
+                    store_id=final_store_id,
+                    manager_id=user_id
+                )
                 result["brief_id"] = brief_id
             except Exception as e:
                 logger.error(f"Error saving brief to history: {e}")
@@ -257,16 +284,30 @@ async def preview_morning_brief_data(
     # Récupérer le magasin
     store = None
     
+    # ✅ MIGRÉ: Utilisation du repository avec vérification de sécurité
+    store_repo = StoreRepository(db)
+    
     # 1. D'abord par effective_store_id
     if effective_store_id:
-        store = await db.stores.find_one({"id": effective_store_id}, {"_id": 0})
+        store = await store_repo.find_by_id(effective_store_id)
+        
+        # ✅ SÉCURITÉ: Vérifier que l'utilisateur a accès à ce store
+        if store:
+            if current_user.get("role") == "manager":
+                if store.get("manager_id") != user_id and store.get("id") != user_store_id:
+                    raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
+            elif current_user.get("role") == "gerant":
+                if store.get("gerant_id") != user_id:
+                    raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
     
     # 2. Si pas trouvé, chercher par manager_id ou gerant_id
     if not store:
-        store = await db.stores.find_one(
-            {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
-            {"_id": 0}
-        )
+        if current_user.get("role") == "gerant":
+            stores = await store_repo.find_by_gerant(user_id)
+            store = stores[0] if stores else None
+        elif current_user.get("role") == "manager":
+            if user_store_id:
+                store = await store_repo.find_by_id(user_store_id)
     
     final_store_id = store.get("id") if store else effective_store_id
     stats = await _fetch_yesterday_stats(db, final_store_id, user_id)
@@ -313,7 +354,11 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
             check_date = today - timedelta(days=days_back)
             check_date_str = check_date.strftime("%Y-%m-%d")
             
+            # ✅ MIGRÉ: Utilisation du repository
+            kpi_repo = KPIRepository(db)
+            
             # Vérifier si des KPIs existent pour ce jour avec du CA > 0
+            # Note: collection 'kpis' n'a pas de repository, on garde l'accès direct pour l'instant
             kpi_check = await db.kpis.find_one({
                 "store_id": store_id,
                 "date": check_date_str,
@@ -322,7 +367,7 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
             
             # Si pas dans kpis, vérifier kpi_entries (vendeurs)
             if not kpi_check:
-                kpi_check = await db.kpi_entries.find_one({
+                kpi_check = await kpi_repo.find_one({
                     "store_id": store_id,
                     "date": check_date_str,
                     "ca_journalier": {"$gt": 0}
@@ -338,19 +383,32 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         
         stats["data_date"] = last_data_date
         
+        # ✅ MIGRÉ: Utilisation du repository avec pagination
+        kpi_repo = KPIRepository(db)
+        
         # Récupérer les KPIs du dernier jour avec données
-        # D'abord essayer la collection kpis (données magasin)
-        kpis_yesterday = await db.kpis.find({
-            "store_id": store_id,
-            "date": last_data_date
-        }, {"_id": 0}).to_list(100)
+        # D'abord essayer la collection kpis (données magasin) - pas de repository pour kpis
+        kpis_yesterday_result = await paginate(
+            collection=db.kpis,
+            query={"store_id": store_id, "date": last_data_date},
+            page=1,
+            size=50,  # Limite par défaut
+            projection={"_id": 0},
+            sort=None
+        )
+        kpis_yesterday = kpis_yesterday_result.items
         
         # Si pas de données dans kpis, chercher dans kpi_entries (données vendeurs)
         if not kpis_yesterday:
-            kpi_entries = await db.kpi_entries.find({
-                "store_id": store_id,
-                "date": last_data_date
-            }, {"_id": 0}).to_list(100)
+            kpi_entries_result = await paginate(
+                collection=kpi_repo.collection,
+                query={"store_id": store_id, "date": last_data_date},
+                page=1,
+                size=50,  # Limite par défaut
+                projection={"_id": 0},
+                sort=None
+            )
+            kpi_entries = kpi_entries_result.items
             
             if kpi_entries:
                 # Adapter les champs de kpi_entries vers le format attendu
@@ -374,7 +432,9 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
                     sorted_sellers = sorted(kpi_entries, key=lambda x: x.get("ca_journalier", 0) or 0, reverse=True)
                     if sorted_sellers:
                         top_kpi = sorted_sellers[0]
-                        top_seller = await db.users.find_one(
+                        # ✅ MIGRÉ: Utilisation du repository
+                        user_repo = UserRepository(db)
+                        top_seller = await user_repo.find_one(
                             {"id": top_kpi.get("seller_id")},
                             {"_id": 0, "name": 1}
                         )
@@ -402,16 +462,18 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
                 sorted_sellers = sorted(kpis_yesterday, key=lambda x: x.get("ca", 0) or 0, reverse=True)
                 if sorted_sellers:
                     top_kpi = sorted_sellers[0]
-                    top_seller = await db.users.find_one(
+                    # ✅ MIGRÉ: Utilisation du repository
+                    user_repo = UserRepository(db)
+                    top_seller = await user_repo.find_one(
                         {"id": top_kpi.get("seller_id")},
                         {"_id": 0, "name": 1}
                     )
                     if top_seller:
                         stats["top_seller_yesterday"] = f"{top_seller.get('name')} ({top_kpi.get('ca', 0):,.0f}€)"
         
-        # Récupérer l'objectif du magasin
-        store_obj = await db.stores.find_one(
-            {"id": store_id},
+        # ✅ MIGRÉ: Utilisation du repository
+        store_obj = await store_repo.find_by_id(
+            store_id,
             {"_id": 0, "objective_daily": 1, "objective_weekly": 1}
         )
         
@@ -419,31 +481,55 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
             stats["objectif_yesterday"] = store_obj.get("objective_daily", 0) or 0
             stats["objectif_week"] = store_obj.get("objective_weekly", 0) or 0
         
-        # CA de la semaine (chercher dans les 2 collections)
+        # ✅ MIGRÉ: Utilisation d'agrégation MongoDB pour calculs optimisés
         week_start_str = start_of_week.strftime("%Y-%m-%d")
-        kpis_week = await db.kpis.find({
-            "store_id": store_id,
-            "date": {"$gte": week_start_str, "$lte": last_data_date}
-        }, {"_id": 0, "ca": 1}).to_list(500)
         
-        if kpis_week:
-            stats["ca_week"] = sum(k.get("ca", 0) or 0 for k in kpis_week)
-        else:
-            # Chercher dans kpi_entries si pas dans kpis
-            kpi_entries_week = await db.kpi_entries.find({
+        # Utiliser agrégation pour calculer CA de la semaine (plus efficace)
+        kpi_week_aggregate = [
+            {"$match": {
                 "store_id": store_id,
                 "date": {"$gte": week_start_str, "$lte": last_data_date}
-            }, {"_id": 0, "ca_journalier": 1}).to_list(500)
-            
-            if kpi_entries_week:
-                stats["ca_week"] = sum(k.get("ca_journalier", 0) or 0 for k in kpi_entries_week)
+            }},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}}
+            }}
+        ]
         
-        # Équipe du magasin
-        sellers = await db.users.find({
-            "store_id": store_id,
-            "role": "seller",
-            "status": "active"
-        }, {"_id": 0, "name": 1}).to_list(50)
+        kpi_week_result = await kpi_repo.aggregate(kpi_week_aggregate, max_results=1)
+        if kpi_week_result:
+            stats["ca_week"] = kpi_week_result[0].get("total_ca", 0) or 0
+        else:
+            # Fallback: chercher dans kpis (collection legacy)
+            kpis_week_result = await paginate(
+                collection=db.kpis,
+                query={
+                    "store_id": store_id,
+                    "date": {"$gte": week_start_str, "$lte": last_data_date}
+                },
+                page=1,
+                size=50,  # Limite par défaut
+                projection={"_id": 0, "ca": 1},
+                sort=None
+            )
+            if kpis_week_result.items:
+                stats["ca_week"] = sum(k.get("ca", 0) or 0 for k in kpis_week_result.items)
+        
+        # ✅ MIGRÉ: Utilisation du repository pour équipe
+        user_repo = UserRepository(db)
+        sellers_result = await paginate(
+            collection=user_repo.collection,
+            query={
+                "store_id": store_id,
+                "role": "seller",
+                "status": "active"
+            },
+            page=1,
+            size=50,  # Limite par défaut
+            projection={"_id": 0, "name": 1},
+            sort=None
+        )
+        sellers = sellers_result.items
         
         if sellers:
             names = [s.get("name", "").split()[0] for s in sellers[:5]]  # Prénoms des 5 premiers
@@ -478,24 +564,55 @@ async def get_morning_briefs_history(
     # Déterminer le store_id effectif
     effective_store_id = store_id if store_id else user_store_id
     
+    # ✅ MIGRÉ: Utilisation du repository avec vérification de sécurité
+    store_repo = StoreRepository(db)
+    
     # Si pas de store_id direct, chercher par manager/gerant
     if not effective_store_id:
-        store = await db.stores.find_one(
-            {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
-            {"_id": 0, "id": 1}
-        )
+        if current_user.get("role") == "gerant":
+            stores = await store_repo.find_by_gerant(user_id)
+            store = stores[0] if stores else None
+        elif current_user.get("role") == "manager":
+            if user_store_id:
+                store = await store_repo.find_by_id(user_store_id)
+            else:
+                store = None
+        else:
+            store = None
         effective_store_id = store.get("id") if store else None
     
     if not effective_store_id:
         return {"briefs": [], "total": 0}
     
+    # ✅ SÉCURITÉ: Vérifier que l'utilisateur a accès à ce store
+    if current_user.get("role") == "manager":
+        if store.get("manager_id") != user_id and store.get("id") != user_store_id:
+            raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
+    elif current_user.get("role") == "gerant":
+        if store.get("gerant_id") != user_id:
+            raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
+    
     try:
-        briefs = await db.morning_briefs.find(
-            {"store_id": effective_store_id},
-            {"_id": 0}
-        ).sort("generated_at", -1).to_list(30)
+        # ✅ MIGRÉ: Utilisation du repository avec pagination
+        brief_repo = MorningBriefRepository(db)
+        briefs_result = await paginate(
+            collection=brief_repo.collection,
+            query={"store_id": effective_store_id},
+            page=1,
+            size=30,  # Limite par défaut
+            projection={"_id": 0},
+            sort=[("generated_at", -1)]
+        )
         
-        return {"briefs": briefs, "total": len(briefs)}
+        return {
+            "briefs": briefs_result.items,
+            "total": briefs_result.total,
+            "pagination": {
+                "page": briefs_result.page,
+                "size": briefs_result.size,
+                "pages": briefs_result.pages
+            }
+        }
         
     except Exception as e:
         logger.error(f"Error loading briefs history: {e}")
@@ -521,20 +638,43 @@ async def delete_morning_brief(
     # Déterminer le store_id effectif
     effective_store_id = store_id if store_id else user_store_id
     
+    # ✅ MIGRÉ: Utilisation du repository avec vérification de sécurité
+    store_repo = StoreRepository(db)
+    
     if not effective_store_id:
-        store = await db.stores.find_one(
-            {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
-            {"_id": 0, "id": 1}
-        )
+        if current_user.get("role") == "gerant":
+            stores = await store_repo.find_by_gerant(user_id)
+            store = stores[0] if stores else None
+        elif current_user.get("role") == "manager":
+            if user_store_id:
+                store = await store_repo.find_by_id(user_store_id)
+            else:
+                store = None
+        else:
+            store = None
         effective_store_id = store.get("id") if store else None
     
+    if not effective_store_id:
+        raise HTTPException(status_code=400, detail="Impossible de déterminer le magasin")
+    
+    # ✅ SÉCURITÉ: Vérifier que l'utilisateur a accès à ce store
+    if store:
+        if current_user.get("role") == "manager":
+            if store.get("manager_id") != user_id and store.get("id") != user_store_id:
+                raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
+        elif current_user.get("role") == "gerant":
+            if store.get("gerant_id") != user_id:
+                raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
+    
     try:
-        result = await db.morning_briefs.delete_one({
-            "brief_id": brief_id,
-            "store_id": effective_store_id
-        })
+        # ✅ MIGRÉ: Utilisation du repository avec sécurité
+        brief_repo = MorningBriefRepository(db)
+        result = await brief_repo.delete_brief(
+            brief_id=brief_id,
+            store_id=effective_store_id
+        )
         
-        if result.deleted_count == 0:
+        if not result:
             raise HTTPException(status_code=404, detail="Brief non trouvé")
         
         return {"success": True, "message": "Brief supprimé"}

@@ -10,6 +10,11 @@ from pydantic import BaseModel
 
 from core.security import get_current_user, require_active_space
 from api.dependencies import get_db
+from repositories.sale_repository import SaleRepository
+from repositories.evaluation_repository import EvaluationRepository
+from repositories.user_repository import UserRepository
+from models.pagination import PaginatedResponse, PaginationParams
+from utils.pagination import paginate
 
 router = APIRouter(
     tags=["Sales & Evaluations"],
@@ -57,7 +62,12 @@ async def create_sale(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
-    await db.sales.insert_one(sale)
+    # ✅ MIGRÉ: Utilisation du repository avec sécurité
+    sale_repo = SaleRepository(db)
+    sale_id = await sale_repo.create_sale(
+        sale_data=sale,
+        seller_id=current_user['id']
+    )
     if '_id' in sale:
         del sale['_id']
     
@@ -66,33 +76,56 @@ async def create_sale(
 
 @router.get("/sales")
 async def get_sales(
+    pagination: PaginationParams = Depends(),
     current_user: Dict = Depends(get_current_user),
     db = Depends(get_db)
 ):
-    """Get sales for current user (seller sees own, manager sees team)."""
+    """
+    Get sales for current user (seller sees own, manager sees team).
+    ✅ MIGRÉ: Pagination avec PaginatedResponse
+    """
     try:
+        sale_repo = SaleRepository(db)
+        
         if current_user['role'] == 'seller':
-            sales = await db.sales.find(
-                {"seller_id": current_user['id']},
-                {"_id": 0}
-            ).sort("date", -1).to_list(1000)
+            # ✅ MIGRÉ: Utilisation du repository avec pagination
+            result = await paginate(
+                collection=sale_repo.collection,
+                query={"seller_id": current_user['id']},
+                page=pagination.page,
+                size=pagination.size,
+                projection={"_id": 0},
+                sort=[("date", -1)]
+            )
+            return result
         else:
             # Manager sees all sellers in their store
             store_id = current_user.get('store_id')
             if store_id:
-                sellers = await db.users.find(
+                # ✅ MIGRÉ: Utilisation du repository pour récupérer seller_ids
+                user_repo = UserRepository(db)
+                sellers = await user_repo.find_many(
                     {"store_id": store_id, "role": "seller"},
-                    {"_id": 0, "id": 1}
-                ).to_list(1000)
+                    projection={"_id": 0, "id": 1},
+                    limit=100  # Limite raisonnable
+                )
                 seller_ids = [s['id'] for s in sellers]
-                sales = await db.sales.find(
-                    {"seller_id": {"$in": seller_ids}},
-                    {"_id": 0}
-                ).sort("date", -1).to_list(1000)
+                
+                if seller_ids:
+                    # ✅ MIGRÉ: Utilisation du repository avec pagination
+                    result = await paginate(
+                        collection=sale_repo.collection,
+                        query={"seller_id": {"$in": seller_ids}},
+                        page=pagination.page,
+                        size=pagination.size,
+                        projection={"_id": 0},
+                        sort=[("date", -1)]
+                    )
+                    return result
+                else:
+                    return PaginatedResponse(items=[], total=0, page=1, size=pagination.size, pages=0)
             else:
-                sales = []
-        
-        return sales
+                return PaginatedResponse(items=[], total=0, page=1, size=pagination.size, pages=0)
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -110,10 +143,12 @@ async def create_evaluation(
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can create evaluations")
     
-    # Verify sale exists and belongs to seller
-    sale = await db.sales.find_one(
-        {"id": eval_data.sale_id, "seller_id": current_user['id']},
-        {"_id": 0}
+    # ✅ MIGRÉ: Utilisation du repository avec sécurité
+    sale_repo = SaleRepository(db)
+    sale = await sale_repo.find_by_id(
+        sale_id=eval_data.sale_id,
+        seller_id=current_user['id'],
+        projection={"_id": 0}
     )
     
     if not sale:
@@ -147,7 +182,12 @@ async def create_evaluation(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
-    await db.evaluations.insert_one(evaluation)
+    # ✅ MIGRÉ: Utilisation du repository avec sécurité
+    eval_repo = EvaluationRepository(db)
+    eval_id = await eval_repo.create_evaluation(
+        evaluation_data=evaluation,
+        seller_id=current_user['id']
+    )
     if '_id' in evaluation:
         del evaluation['_id']
     
@@ -156,33 +196,56 @@ async def create_evaluation(
 
 @router.get("/evaluations")
 async def get_evaluations(
+    pagination: PaginationParams = Depends(),
     current_user: Dict = Depends(get_current_user),
     db = Depends(get_db)
 ):
-    """Get evaluations for current user."""
+    """
+    Get evaluations for current user.
+    ✅ MIGRÉ: Pagination avec PaginatedResponse
+    """
     try:
+        eval_repo = EvaluationRepository(db)
+        
         if current_user['role'] == 'seller':
-            evals = await db.evaluations.find(
-                {"seller_id": current_user['id']},
-                {"_id": 0}
-            ).sort("created_at", -1).to_list(1000)
+            # ✅ MIGRÉ: Utilisation du repository avec pagination
+            result = await paginate(
+                collection=eval_repo.collection,
+                query={"seller_id": current_user['id']},
+                page=pagination.page,
+                size=pagination.size,
+                projection={"_id": 0},
+                sort=[("created_at", -1)]
+            )
+            return result
         else:
             # Manager sees all sellers in their store
             store_id = current_user.get('store_id')
             if store_id:
-                sellers = await db.users.find(
+                # ✅ MIGRÉ: Utilisation du repository pour récupérer seller_ids
+                user_repo = UserRepository(db)
+                sellers = await user_repo.find_many(
                     {"store_id": store_id, "role": "seller"},
-                    {"_id": 0, "id": 1}
-                ).to_list(1000)
+                    projection={"_id": 0, "id": 1},
+                    limit=100  # Limite raisonnable
+                )
                 seller_ids = [s['id'] for s in sellers]
-                evals = await db.evaluations.find(
-                    {"seller_id": {"$in": seller_ids}},
-                    {"_id": 0}
-                ).sort("created_at", -1).to_list(1000)
+                
+                if seller_ids:
+                    # ✅ MIGRÉ: Utilisation du repository avec pagination
+                    result = await paginate(
+                        collection=eval_repo.collection,
+                        query={"seller_id": {"$in": seller_ids}},
+                        page=pagination.page,
+                        size=pagination.size,
+                        projection={"_id": 0},
+                        sort=[("created_at", -1)]
+                    )
+                    return result
+                else:
+                    return PaginatedResponse(items=[], total=0, page=1, size=pagination.size, pages=0)
             else:
-                evals = []
-        
-        return evals
+                return PaginatedResponse(items=[], total=0, page=1, size=pagination.size, pages=0)
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

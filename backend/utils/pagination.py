@@ -150,3 +150,82 @@ async def paginate_with_params(
         projection=projection,
         sort=sort
     )
+
+
+async def paginate_aggregation(
+    collection: AsyncIOMotorCollection,
+    pipeline: List[Dict[str, Any]],
+    page: int = 1,
+    size: Optional[int] = None
+) -> PaginatedResponse[Dict[str, Any]]:
+    """
+    Paginate a MongoDB aggregation pipeline.
+    
+    For aggregations, we need to:
+    1. Create a count pipeline to get total
+    2. Add $skip and $limit stages to the main pipeline
+    
+    Args:
+        collection: MongoDB collection to query
+        pipeline: Aggregation pipeline (without $skip/$limit)
+        page: Page number (1-indexed, default: 1)
+        size: Number of items per page (default: DEFAULT_PAGE_SIZE, max: MAX_PAGE_SIZE)
+        
+    Returns:
+        PaginatedResponse with items, total, page, size, and pages
+        
+    Example:
+        ```python
+        pipeline = [
+            {"$match": {"status": "active"}},
+            {"$group": {"_id": "$category", "count": {"$sum": 1}}}
+        ]
+        result = await paginate_aggregation(db.items, pipeline, page=1, size=20)
+        ```
+    """
+    # Validate and set defaults
+    if page < 1:
+        raise ValidationError(f"Page must be >= 1, got {page}")
+    
+    if size is None:
+        size = DEFAULT_PAGE_SIZE
+    elif size > MAX_PAGE_SIZE:
+        raise ValidationError(f"Page size cannot exceed {MAX_PAGE_SIZE}, got {size}")
+    elif size < 1:
+        raise ValidationError(f"Page size must be >= 1, got {size}")
+    
+    # Calculate skip
+    skip = (page - 1) * size
+    
+    # Create count pipeline (same as main pipeline but with $count at the end)
+    count_pipeline = pipeline + [{"$count": "total"}]
+    
+    # Create paginated pipeline (add $skip and $limit)
+    paginated_pipeline = pipeline + [
+        {"$skip": skip},
+        {"$limit": size}
+    ]
+    
+    # Execute count and aggregation in parallel
+    count_task = collection.aggregate(count_pipeline).to_list(1)
+    items_task = collection.aggregate(paginated_pipeline).to_list(size)
+    
+    count_result, items = await asyncio.gather(count_task, items_task)
+    
+    # Extract total from count result
+    total = count_result[0]["total"] if count_result and count_result[0].get("total") else 0
+    
+    # Calculate total pages
+    pages = (total + size - 1) // size if total > 0 else 0
+    
+    logger.debug(
+        f"Paginated aggregation: page={page}, size={size}, total={total}, pages={pages}, items_returned={len(items)}"
+    )
+    
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        size=size,
+        pages=pages
+    )

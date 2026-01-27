@@ -11,6 +11,9 @@ from core.security import get_super_admin
 from services.admin_service import AdminService
 from repositories.admin_repository import AdminRepository
 from models.chat import ChatRequest
+from utils.pagination import paginate, paginate_aggregation
+from models.pagination import PaginationParams
+from config.limits import MAX_PAGE_SIZE
 import logging
 import uuid
 import bcrypt
@@ -225,11 +228,15 @@ async def resolve_duplicates(
         logger.error(f"Failed to log admin action: {e}")
     
     try:
-        # Get all active subscriptions for this gerant
-        active_subscriptions = await db.subscriptions.find(
+        # Get all active subscriptions for this gerant (paginated, max 100)
+        subscriptions_result = await paginate(
+            db.subscriptions,
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
-            {"_id": 0}
-        ).to_list(length=20)
+            page=1,
+            size=100,  # Max 100 per audit report
+            projection={"_id": 0}
+        )
+        active_subscriptions = subscriptions_result.items
         
         if len(active_subscriptions) <= 1:
             return {
@@ -563,17 +570,22 @@ async def bulk_update_workspace_status(
 
 @router.get("/admins")
 async def get_super_admins(
+    page: int = Query(1, ge=1),
+    size: int = Query(50, ge=1, le=100),
     db: AsyncIOMotorDatabase = Depends(get_db),
     current_admin: dict = Depends(get_super_admin)
 ):
     """Get list of super admins"""
     try:
-        admins = await db.users.find(
+        result = await paginate(
+            db.users,
             {"role": "super_admin"},
-            {"_id": 0, "password": 0}
-        ).to_list(100)
+            page=page,
+            size=size,
+            projection={"_id": 0, "password": 0}
+        )
         
-        return {"admins": admins}
+        return {"admins": result.items, "total": result.total, "page": result.page, "pages": result.pages}
     except Exception as e:
         logger.error(f"Error fetching admins: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -693,33 +705,56 @@ async def remove_super_admin(
 
 @router.get("/subscriptions/overview")
 async def get_subscriptions_overview(
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(100, ge=1, le=100, description="Items per page (max 100)"),
     db: AsyncIOMotorDatabase = Depends(get_db),
     current_admin: dict = Depends(get_super_admin)
 ):
     """
     Vue d'ensemble de tous les abonnements Stripe des gérants.
     Affiche statuts, paiements, prorations, etc.
+    ✅ PAGINÉ: Max 100 gérants par page pour éviter OOM
     """
     try:
-        # Récupérer tous les gérants
-        # ⚠️ SECURITY: Limit to 1000 gérants max to prevent OOM
-        MAX_GERANTS = 1000
-        gerants = await db.users.find(
+        # ✅ PAGINATION: Récupérer les gérants avec pagination (max 100 par page)
+        gerants_result = await paginate(
+            db.users,
             {"role": "gerant"},
-            {"_id": 0, "id": 1, "name": 1, "email": 1, "stripe_customer_id": 1, "created_at": 1}
-        ).limit(MAX_GERANTS).to_list(MAX_GERANTS)
-        
-        if len(gerants) == MAX_GERANTS:
-            logger.warning(f"Gérants query hit limit of {MAX_GERANTS}. Consider implementing pagination.")
+            page=page,
+            size=size,
+            projection={"_id": 0, "id": 1, "name": 1, "email": 1, "stripe_customer_id": 1, "created_at": 1}
+        )
+        gerants = gerants_result.items
         
         # ✅ OPTIMIZATION: Extract all gerant_ids for batch queries
         gerant_ids = [gerant['id'] for gerant in gerants]
         
-        # ✅ OPTIMIZATION: Batch query 1 - Get all subscriptions at once
-        subscriptions_list = await db.subscriptions.find(
+        if not gerant_ids:
+            return {
+                "summary": {
+                    "total_gerants": 0,
+                    "active_subscriptions": 0,
+                    "trialing_subscriptions": 0,
+                    "total_mrr": 0
+                },
+                "subscriptions": [],
+                "pagination": {
+                    "page": page,
+                    "size": size,
+                    "total": 0,
+                    "pages": 0
+                }
+            }
+        
+        # ✅ OPTIMIZATION: Batch query 1 - Get all subscriptions at once (limited to current page gerants)
+        subscriptions_result = await paginate(
+            db.subscriptions,
             {"user_id": {"$in": gerant_ids}},
-            {"_id": 0}
-        ).to_list(len(gerant_ids))
+            page=1,
+            size=1000,  # Max subscriptions for current page gerants
+            projection={"_id": 0}
+        )
+        subscriptions_list = subscriptions_result.items
         subscriptions_map = {sub['user_id']: sub for sub in subscriptions_list}
         
         # ✅ OPTIMIZATION: Batch query 2 - Get all active sellers counts using aggregation
@@ -734,15 +769,24 @@ async def get_subscriptions_overview(
                 "count": {"$sum": 1}
             }}
         ]
-        sellers_counts = await db.users.aggregate(sellers_count_pipeline).to_list(len(gerant_ids))
+        sellers_counts_result = await paginate_aggregation(
+            db.users,
+            sellers_count_pipeline,
+            page=1,
+            size=1000  # Max counts for current page
+        )
+        sellers_counts = sellers_counts_result.items
         sellers_count_map = {item['_id']: item['count'] for item in sellers_counts}
         
-        # ✅ OPTIMIZATION: Batch query 3 - Get all team members at once
-        MAX_TEAM_MEMBERS = 1000
-        all_team_members = await db.users.find(
+        # ✅ OPTIMIZATION: Batch query 3 - Get all team members at once (paginated)
+        team_members_result = await paginate(
+            db.users,
             {"gerant_id": {"$in": gerant_ids}},
-            {"_id": 0, "id": 1, "gerant_id": 1}
-        ).limit(MAX_TEAM_MEMBERS * len(gerant_ids)).to_list(MAX_TEAM_MEMBERS * len(gerant_ids))
+            page=1,
+            size=1000,  # Max team members for current page
+            projection={"_id": 0, "id": 1, "gerant_id": 1}
+        )
+        all_team_members = team_members_result.items
         
         # ✅ OPTIMIZATION: Group team members by gerant_id
         team_members_by_gerant = {}
@@ -753,7 +797,7 @@ async def get_subscriptions_overview(
                     team_members_by_gerant[gerant_id] = []
                 team_members_by_gerant[gerant_id].append(member['id'])
         
-        # ✅ OPTIMIZATION: Batch query 4 - Get all last transactions using aggregation
+        # ✅ OPTIMIZATION: Batch query 4 - Get all last transactions using aggregation (paginated)
         # Get the most recent transaction per gerant
         transactions_pipeline = [
             {"$match": {"user_id": {"$in": gerant_ids}}},
@@ -763,7 +807,13 @@ async def get_subscriptions_overview(
                 "last_transaction": {"$first": "$$ROOT"}
             }}
         ]
-        transactions_list = await db.payment_transactions.aggregate(transactions_pipeline).to_list(len(gerant_ids))
+        transactions_result = await paginate_aggregation(
+            db.payment_transactions,
+            transactions_pipeline,
+            page=1,
+            size=1000  # Max transactions for current page
+        )
+        transactions_list = transactions_result.items
         transactions_map = {}
         for item in transactions_list:
             transaction = item.get('last_transaction', {})
@@ -772,12 +822,13 @@ async def get_subscriptions_overview(
         
         # ✅ OPTIMIZATION: Batch query 5 - Get all AI credits usage by team
         all_team_ids = []
+        MAX_TEAM_MEMBERS = 1000
         for team_ids in team_members_by_gerant.values():
             all_team_ids.extend(team_ids[:MAX_TEAM_MEMBERS])  # Limit per gerant
         
         ai_credits_map = {}
         if all_team_ids:
-            # Aggregate credits by gerant_id (via team members)
+            # Aggregate credits by gerant_id (via team members) - paginated
             ai_credits_pipeline = [
                 {"$match": {"user_id": {"$in": all_team_ids}}},
                 {"$lookup": {
@@ -792,7 +843,13 @@ async def get_subscriptions_overview(
                     "total": {"$sum": "$credits_consumed"}
                 }}
             ]
-            ai_credits_list = await db.ai_usage_logs.aggregate(ai_credits_pipeline).to_list(len(gerant_ids))
+            ai_credits_result = await paginate_aggregation(
+                db.ai_usage_logs,
+                ai_credits_pipeline,
+                page=1,
+                size=1000  # Max credits for current page
+            )
+            ai_credits_list = ai_credits_result.items
             ai_credits_map = {item['_id']: item.get('total', 0) for item in ai_credits_list if item.get('_id')}
         
         # ✅ OPTIMIZATION: Build response in memory using lookup maps
@@ -836,7 +893,13 @@ async def get_subscriptions_overview(
                 "trialing_subscriptions": trialing_subscriptions,
                 "total_mrr": round(total_mrr, 2)
             },
-            "subscriptions": subscriptions_data
+            "subscriptions": subscriptions_data,
+            "pagination": {
+                "page": page,
+                "size": size,
+                "total": gerants_result.total,
+                "pages": gerants_result.pages
+            }
         }
         
     except Exception as e:
@@ -876,16 +939,22 @@ async def get_subscription_details(
             {"_id": 0}
         )
         
-        # Récupérer toutes les transactions
-        transactions = await db.payment_transactions.find(
+        # Récupérer toutes les transactions (paginées)
+        transactions_result = await paginate(
+            db.payment_transactions,
             {"user_id": gerant_id},
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(100)
+            page=1,
+            size=100,
+            projection={"_id": 0},
+            sort=[("created_at", -1)]
+        )
+        transactions = transactions_result.items
         
-        # Récupérer les événements webhook liés
+        # Récupérer les événements webhook liés (paginated, max 100)
         webhook_events = []
         if subscription and subscription.get('stripe_subscription_id'):
-            webhook_events = await db.stripe_events.find(
+            webhook_events_result = await paginate(
+                db.stripe_events,
                 {
                     "$or": [
                         {"data.object.id": subscription['stripe_subscription_id']},
@@ -893,8 +962,12 @@ async def get_subscription_details(
                         {"data.object.customer": gerant.get('stripe_customer_id')}
                     ]
                 },
-                {"_id": 0}
-            ).sort("created_at", -1).limit(50).to_list(50)
+                page=1,
+                size=100,  # Max 100 webhook events
+                projection={"_id": 0},
+                sort=[("created_at", -1)]
+            )
+            webhook_events = webhook_events_result.items
         
         # Compter les vendeurs
         active_sellers = await db.users.count_documents({
@@ -931,21 +1004,22 @@ async def get_subscription_details(
 
 @router.get("/gerants/trials")
 async def get_gerants_trials(
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(100, ge=1, le=100, description="Items per page (max 100)"),
     db: AsyncIOMotorDatabase = Depends(get_db),
     current_admin: dict = Depends(get_super_admin)
 ):
-    """Récupérer tous les gérants avec leurs informations d'essai"""
+    """Récupérer tous les gérants avec leurs informations d'essai (paginated, max 100 par page)"""
     try:
-        # Récupérer tous les gérants
-        # ⚠️ SECURITY: Limit to 1000 gérants max to prevent OOM
-        MAX_GERANTS = 1000
-        gerants = await db.users.find(
+        # ✅ PAGINATION: Récupérer les gérants avec pagination (max 100 par page)
+        gerants_result = await paginate(
+            db.users,
             {"role": "gerant"},
-            {"_id": 0, "password": 0}
-        ).limit(MAX_GERANTS).to_list(MAX_GERANTS)
-        
-        if len(gerants) == MAX_GERANTS:
-            logger.warning(f"Gérants query hit limit of {MAX_GERANTS}. Consider implementing pagination.")
+            page=page,
+            size=size,
+            projection={"_id": 0, "password": 0}
+        )
+        gerants = gerants_result.items
         
         result = []
         for gerant in gerants:
@@ -1054,7 +1128,15 @@ async def get_gerants_trials(
             x['trial_end'] if x['trial_end'] else ''
         ))
         
-        return result
+        return {
+            "gerants": result,
+            "pagination": {
+                "page": page,
+                "size": size,
+                "total": gerants_result.total,
+                "pages": gerants_result.pages
+            }
+        }
         
     except Exception as e:
         logger.error(f"Error fetching gerants trials: {str(e)}")
@@ -1205,22 +1287,29 @@ async def get_ai_conversations(
     db: AsyncIOMotorDatabase = Depends(get_db),
     current_admin: dict = Depends(get_super_admin)
 ):
-    """Get AI assistant conversation history (last 7 days)"""
+    """Get AI assistant conversation history (last 7 days) - Paginated, max 100"""
     try:
         # Get conversations from last 7 days
         since = datetime.now(timezone.utc) - timedelta(days=7)
         
-        conversations = await db.ai_conversations.find(
+        # ✅ PAGINATION: Use pagination with max 100
+        conversations_result = await paginate(
+            db.ai_conversations,
             {
                 "admin_email": current_admin['email'],
                 "created_at": {"$gte": since.isoformat()}
             },
-            {"_id": 0}
-        ).sort("updated_at", -1).limit(limit).to_list(limit)
+            page=1,
+            size=min(limit, MAX_PAGE_SIZE),  # Enforce max 100
+            projection={"_id": 0},
+            sort=[("updated_at", -1)]
+        )
         
         return {
-            "conversations": conversations,
-            "total": len(conversations)
+            "conversations": conversations_result.items,
+            "total": conversations_result.total,
+            "page": conversations_result.page,
+            "pages": conversations_result.pages
         }
     except Exception as e:
         logger.error(f"Error fetching AI conversations: {str(e)}")
@@ -1247,15 +1336,22 @@ async def get_conversation_messages(
         if not conversation:
             raise HTTPException(status_code=404, detail="Conversation non trouvée")
         
-        # Get messages
-        messages = await db.ai_messages.find(
+        # Get messages (paginées, max 100 par page)
+        messages_result = await paginate(
+            db.ai_messages,
             {"conversation_id": conversation_id},
-            {"_id": 0}
-        ).sort("timestamp", 1).to_list(1000)
+            page=1,
+            size=100,  # Limite max 100 au lieu de 1000
+            projection={"_id": 0},
+            sort=[("timestamp", 1)]
+        )
         
         return {
             "conversation": conversation,
-            "messages": messages
+            "messages": messages_result.items,
+            "total": messages_result.total,
+            "page": messages_result.page,
+            "pages": messages_result.pages
         }
     except HTTPException:
         raise
@@ -1267,19 +1363,28 @@ async def get_conversation_messages(
 @router.get("/invitations")
 async def get_all_invitations(
     status: Optional[str] = Query(None, description="Filtrer par statut"),
+    page: int = Query(1, ge=1),
+    size: int = Query(50, ge=1, le=100),
     db: AsyncIOMotorDatabase = Depends(get_db),
     current_admin: dict = Depends(get_super_admin)
 ):
-    """Récupérer toutes les invitations (tous gérants)"""
+    """Récupérer toutes les invitations (tous gérants) - Paginées"""
     try:
         query = {}
         if status:
             query["status"] = status
         
-        invitations = await db.gerant_invitations.find(query, {"_id": 0}).to_list(1000)
+        # Pagination avec limite max 100
+        invitations_result = await paginate(
+            db.gerant_invitations,
+            query,
+            page=page,
+            size=size,
+            projection={"_id": 0}
+        )
         
         # Enrichir avec les infos du gérant
-        for invite in invitations:
+        for invite in invitations_result.items:
             gerant = await db.users.find_one(
                 {"id": invite.get("gerant_id")}, 
                 {"_id": 0, "name": 1, "email": 1}
@@ -1288,7 +1393,12 @@ async def get_all_invitations(
                 invite["gerant_name"] = gerant.get("name", "N/A")
                 invite["gerant_email"] = gerant.get("email", "N/A")
         
-        return invitations
+        return {
+            "invitations": invitations_result.items,
+            "total": invitations_result.total,
+            "page": invitations_result.page,
+            "pages": invitations_result.pages
+        }
     except Exception as e:
         logger.error(f"Error fetching invitations: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1297,25 +1407,40 @@ async def get_all_invitations(
 async def get_app_context_for_ai(db: AsyncIOMotorDatabase):
     """Gather relevant application context for AI assistant"""
     try:
-        # Get recent errors (last 24h)
+        # Get recent errors (last 24h) - paginated, max 10
         last_24h = datetime.now(timezone.utc) - timedelta(hours=24)
-        recent_errors = await db.system_logs.find(
+        recent_errors_result = await paginate(
+            db.system_logs,
             {"level": "error", "timestamp": {"$gte": last_24h.isoformat()}},
-            {"_id": 0}
-        ).sort("timestamp", -1).limit(10).to_list(10)
+            page=1,
+            size=10,
+            projection={"_id": 0},
+            sort=[("timestamp", -1)]
+        )
+        recent_errors = recent_errors_result.items
         
-        # Get recent warnings
-        recent_warnings = await db.system_logs.find(
+        # Get recent warnings - paginated, max 5
+        recent_warnings_result = await paginate(
+            db.system_logs,
             {"level": "warning", "timestamp": {"$gte": last_24h.isoformat()}},
-            {"_id": 0}
-        ).sort("timestamp", -1).limit(5).to_list(5)
+            page=1,
+            size=5,
+            projection={"_id": 0},
+            sort=[("timestamp", -1)]
+        )
+        recent_warnings = recent_warnings_result.items
         
-        # Get recent admin actions (last 7 days)
+        # Get recent admin actions (last 7 days) - paginated, max 20
         last_7d = datetime.now(timezone.utc) - timedelta(days=7)
-        recent_actions = await db.admin_logs.find(
+        recent_actions_result = await paginate(
+            db.admin_logs,
             {"timestamp": {"$gte": last_7d.isoformat()}},
-            {"_id": 0}
-        ).sort("timestamp", -1).limit(20).to_list(20)
+            page=1,
+            size=20,
+            projection={"_id": 0},
+            sort=[("timestamp", -1)]
+        )
+        recent_actions = recent_actions_result.items
         
         # Get platform stats
         total_workspaces = await db.workspaces.count_documents({})
@@ -1379,11 +1504,16 @@ async def chat_with_ai_assistant(
         # Get app context
         app_context = await get_app_context_for_ai(db)
         
-        # Get conversation history
-        history = await db.ai_messages.find(
+        # Get conversation history (paginated, max 100)
+        history_result = await paginate(
+            db.ai_messages,
             {"conversation_id": conversation_id},
-            {"_id": 0}
-        ).sort("timestamp", 1).to_list(50)
+            page=1,
+            size=100,  # Max 100 messages
+            projection={"_id": 0},
+            sort=[("timestamp", 1)]
+        )
+        history = history_result.items
         
         # Build system prompt
         system_prompt = f"""Tu es un assistant IA expert pour le SuperAdmin de Retail Performer AI, une plateforme SaaS de coaching commercial.

@@ -10,6 +10,11 @@ from pydantic import BaseModel
 from core.security import get_current_user, require_active_space
 from api.dependencies import get_db
 from services.ai_service import EvaluationGuideService
+from repositories.kpi_repository import KPIRepository
+from repositories.user_repository import UserRepository
+from repositories.diagnostic_repository import DiagnosticRepository
+from models.pagination import PaginatedResponse, PaginationParams
+from utils.pagination import paginate
 
 router = APIRouter(
     prefix="/evaluations",
@@ -51,14 +56,23 @@ async def get_employee_stats(db, employee_id: str, start_date: str, end_date: st
     except ValueError:
         raise HTTPException(status_code=400, detail="Format de date invalide. Utilisez YYYY-MM-DD")
     
-    # Récupérer les KPIs du vendeur sur la période
-    kpis = await db.kpi_entries.find({
-        "seller_id": employee_id,
-        "date": {
-            "$gte": start.strftime("%Y-%m-%d"),
-            "$lte": end.strftime("%Y-%m-%d")
-        }
-    }, {"_id": 0}).to_list(1000)
+    # ✅ MIGRÉ: Utilisation du repository avec pagination (limite à 50 pour éviter chargement massif)
+    kpi_repo = KPIRepository(db)
+    kpis_result = await paginate(
+        collection=kpi_repo.collection,
+        query={
+            "seller_id": employee_id,
+            "date": {
+                "$gte": start.strftime("%Y-%m-%d"),
+                "$lte": end.strftime("%Y-%m-%d")
+            }
+        },
+        page=1,
+        size=50,  # Limite par défaut pour calculs
+        projection={"_id": 0},
+        sort=[("date", 1)]
+    )
+    kpis = kpis_result.items
     
     if not kpis:
         return {
@@ -127,8 +141,15 @@ async def verify_access(db, current_user: Dict, employee_id: str) -> Dict:
     
     # Cas 2: Manager/Gérant génère pour un de ses vendeurs
     if role in ['manager', 'gerant']:
+        # ✅ MIGRÉ: Utilisation de verify_seller_store_access pour sécurité centralisée
+        from repositories.user_repository import UserRepository
+        from repositories.store_repository import StoreRepository
+        
+        user_repo = UserRepository(db)
+        store_repo = StoreRepository(db)
+        
         # Récupérer l'employé
-        employee = await db.users.find_one(
+        employee = await user_repo.find_one(
             {"id": employee_id, "role": "seller"},
             {"_id": 0}
         )
@@ -146,7 +167,7 @@ async def verify_access(db, current_user: Dict, employee_id: str) -> Dict:
         
         # Pour gérant: vérifier que le magasin lui appartient
         if role == 'gerant':
-            store = await db.stores.find_one(
+            store = await store_repo.find_one(
                 {"id": employee.get('store_id'), "gerant_id": user_id},
                 {"_id": 0}
             )
@@ -173,8 +194,9 @@ async def get_disc_profile(db, user_id: str) -> Optional[Dict]:
         Dict avec style, level, strengths, axes_de_developpement ou None
     """
     try:
-        # Chercher dans la collection 'diagnostics' ou dans le profil utilisateur
-        diagnostic = await db.diagnostics.find_one(
+        # ✅ MIGRÉ: Utilisation du repository
+        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic = await diagnostic_repo.find_one(
             {"seller_id": user_id},
             {"_id": 0, "style": 1, "level": 1, "strengths": 1, "weaknesses": 1, "axes_de_developpement": 1}
         )
@@ -254,10 +276,16 @@ async def generate_evaluation_guide(
     # 6. 📝 Récupérer les notes d'entretien du vendeur (si vendeur)
     interview_notes = []
     if role_perspective == 'seller':
-        notes = await db.interview_notes.find(
-            {"seller_id": request.employee_id},
-            {"_id": 0}
-        ).sort("date", 1).to_list(1000)  # Tri par date croissante
+        # ✅ MIGRÉ: Pagination avec limite par défaut
+        notes_result = await paginate(
+            collection=db.interview_notes,
+            query={"seller_id": request.employee_id},
+            page=1,
+            size=50,  # Limite par défaut
+            projection={"_id": 0},
+            sort=[("date", 1)]
+        )
+        notes = notes_result.items
         
         # Filtrer les notes dans la période
         notes_in_period = [

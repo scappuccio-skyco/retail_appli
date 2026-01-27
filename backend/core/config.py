@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     MONGO_SOCKET_TIMEOUT_MS: int = Field(default=30000, description="MongoDB socket timeout in milliseconds")
     MONGO_SERVER_SELECTION_TIMEOUT_MS: int = Field(default=5000, description="MongoDB server selection timeout in milliseconds")
     
+    # Cache (Redis)
+    REDIS_URL: Optional[str] = Field(default=None, description="Redis connection URL (e.g., redis://localhost:6379/0). If not provided, cache is disabled (graceful fallback)")
+    REDIS_ENABLED: bool = Field(default=True, description="Enable Redis cache (set to False to disable even if REDIS_URL is set)")
+    
     # Security
     JWT_SECRET: str = Field(..., description="JWT secret key for token signing")
     CORS_ORIGINS: str = Field(default="*", description="Allowed CORS origins")
@@ -106,6 +110,8 @@ def get_settings() -> Settings:
             MONGO_CONNECT_TIMEOUT_MS = int(os.environ.get("MONGO_CONNECT_TIMEOUT_MS", "5000"))
             MONGO_SOCKET_TIMEOUT_MS = int(os.environ.get("MONGO_SOCKET_TIMEOUT_MS", "30000"))
             MONGO_SERVER_SELECTION_TIMEOUT_MS = int(os.environ.get("MONGO_SERVER_SELECTION_TIMEOUT_MS", "5000"))
+            REDIS_URL = os.environ.get("REDIS_URL")
+            REDIS_ENABLED = os.environ.get("REDIS_ENABLED", "true").lower() == "true"
             JWT_SECRET = os.environ.get("JWT_SECRET", "")
             API_RATE_LIMIT = int(os.environ.get("API_RATE_LIMIT", "60"))
 

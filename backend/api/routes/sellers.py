@@ -13,6 +13,13 @@ from core.security import get_current_seller, get_current_user, verify_resource_
 from repositories.objective_repository import ObjectiveRepository
 from repositories.challenge_repository import ChallengeRepository
 from repositories.kpi_repository import KPIRepository
+from repositories.user_repository import UserRepository
+from repositories.store_repository import StoreRepository, WorkspaceRepository
+from repositories.kpi_config_repository import KPIConfigRepository
+from repositories.daily_challenge_repository import DailyChallengeRepository
+from repositories.diagnostic_repository import DiagnosticRepository
+from repositories.seller_bilan_repository import SellerBilanRepository
+from repositories.interview_note_repository import InterviewNoteRepository
 from models.pagination import PaginatedResponse, PaginationParams
 from utils.pagination import paginate, paginate_with_params
 import logging
@@ -43,7 +50,8 @@ async def get_seller_subscription_status(
             return {"isReadOnly": True, "status": "no_gerant", "message": "Aucun gérant associé"}
         
         # Get gérant info
-        gerant = await db.users.find_one({"id": gerant_id}, {"_id": 0})
+        user_repo = UserRepository(db)
+        gerant = await user_repo.find_by_id(user_id=gerant_id)
         
         if not gerant:
             return {"isReadOnly": True, "status": "gerant_not_found", "message": "Gérant non trouvé"}
@@ -53,7 +61,8 @@ async def get_seller_subscription_status(
         if not workspace_id:
             return {"isReadOnly": True, "status": "no_workspace", "message": "Aucun espace de travail"}
         
-        workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0})
+        workspace_repo = WorkspaceRepository(db)
+        workspace = await workspace_repo.find_by_id(workspace_id=workspace_id)
         
         if not workspace:
             return {"isReadOnly": True, "status": "workspace_not_found", "message": "Espace de travail non trouvé"}
@@ -122,12 +131,12 @@ async def check_kpi_enabled(
     elif current_user['role'] == 'manager':
         manager_id = current_user['id']
     
-    # Find config by store_id or manager_id
-    config = None
-    if effective_store_id:
-        config = await db.kpi_configs.find_one({"store_id": effective_store_id}, {"_id": 0})
-    if not config and manager_id:
-        config = await db.kpi_configs.find_one({"manager_id": manager_id}, {"_id": 0})
+    # ✅ REPOSITORY: Find config by store_id or manager_id
+    kpi_config_repo = KPIConfigRepository(db)
+    config = await kpi_config_repo.find_by_store_or_manager(
+        store_id=effective_store_id,
+        manager_id=manager_id
+    )
     
     if not config:
         return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
@@ -172,17 +181,20 @@ async def get_active_seller_objectives(
     """
     try:
         # Get seller's manager
-        user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user_repo = UserRepository(seller_service.db)
+        user = await user_repo.find_by_id(user_id=current_user['id'])
         
         # AUTO-FIX: If seller has no manager_id but has a store_id, try to auto-assign a manager
         if user and not user.get('manager_id') and user.get('store_id'):
             store_id = user.get('store_id')
             # Find active manager in the same store
-            manager = await seller_service.db.users.find_one({
-                "role": "manager",
-                "store_id": store_id,
-                "status": "active"
-            }, {"_id": 0, "id": 1, "name": 1})
+            managers = await user_repo.find_by_store(
+                store_id=store_id,
+                role="manager",
+                projection={"_id": 0, "id": 1, "name": 1},
+                limit=1
+            )
+            manager = managers[0] if managers and managers[0].get("status") == "active" else None
             
             if manager:
                 manager_id = manager.get('id')
@@ -231,7 +243,8 @@ async def get_all_seller_objectives(
     """
     try:
         # Get seller info
-        user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user_repo = UserRepository(seller_service.db)
+        user = await user_repo.find_by_id(user_id=current_user['id'])
         
         # CRITICAL: Objectives are filtered by store_id, not manager_id
         # A seller can see objectives even without a manager_id, as long as they have a store_id
@@ -263,7 +276,8 @@ async def get_seller_objectives_history(
     """
     try:
         # Get seller info
-        user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user_repo = UserRepository(seller_service.db)
+        user = await user_repo.find_by_id(user_id=current_user['id'])
         
         # CRITICAL: Objectives are filtered by store_id, not manager_id
         # A seller can see objectives even without a manager_id, as long as they have a store_id
@@ -333,7 +347,8 @@ async def get_seller_challenges(
     """
     try:
         # Get seller's manager
-        user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user_repo = UserRepository(seller_service.db)
+        user = await user_repo.find_by_id(user_id=current_user['id'])
         
         if not user or not user.get('manager_id'):
             return []
@@ -362,17 +377,20 @@ async def get_active_seller_challenges(
     """
     try:
         # Get seller's manager
-        user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user_repo = UserRepository(seller_service.db)
+        user = await user_repo.find_by_id(user_id=current_user['id'])
         
         # AUTO-FIX: If seller has no manager_id but has a store_id, try to auto-assign a manager
         if user and not user.get('manager_id') and user.get('store_id'):
             store_id = user.get('store_id')
             # Find active manager in the same store
-            manager = await seller_service.db.users.find_one({
-                "role": "manager",
-                "store_id": store_id,
-                "status": "active"
-            }, {"_id": 0, "id": 1, "name": 1})
+            managers = await user_repo.find_by_store(
+                store_id=store_id,
+                role="manager",
+                projection={"_id": 0, "id": 1, "name": 1},
+                limit=1
+            )
+            manager = managers[0] if managers and managers[0].get("status") == "active" else None
             
             if manager:
                 manager_id = manager.get('id')
@@ -474,7 +492,11 @@ async def create_seller_relationship_advice(
         seller_name = current_user.get('name', 'Vendeur')
         
         # Get seller's store_id and manager_id
-        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1, "manager_id": 1})
+        user_repo = UserRepository(db)
+        seller = await user_repo.find_by_id(
+            user_id=seller_id,
+            projection={"_id": 0, "store_id": 1, "manager_id": 1}
+        )
         if not seller:
             raise HTTPException(status_code=404, detail="Vendeur non trouvé")
         
@@ -547,7 +569,11 @@ async def get_seller_relationship_history(
         seller_id = current_user['id']
         
         # Get seller's store_id
-        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        user_repo = UserRepository(db)
+        seller = await user_repo.find_by_id(
+            user_id=seller_id,
+            projection={"_id": 0, "store_id": 1}
+        )
         store_id = seller.get('store_id') if seller else None
         
         relationship_service = RelationshipService(db)
@@ -604,7 +630,11 @@ async def create_seller_conflict_resolution(
         seller_name = current_user.get('name', 'Vendeur')
         
         # Get seller's store_id and manager_id
-        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1, "manager_id": 1})
+        user_repo = UserRepository(db)
+        seller = await user_repo.find_by_id(
+            user_id=seller_id,
+            projection={"_id": 0, "store_id": 1, "manager_id": 1}
+        )
         if not seller:
             raise HTTPException(status_code=404, detail="Vendeur non trouvé")
         
@@ -687,7 +717,11 @@ async def get_seller_conflict_history(
         seller_id = current_user['id']
         
         # Get seller's store_id
-        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        user_repo = UserRepository(db)
+        seller = await user_repo.find_by_id(
+            user_id=seller_id,
+            projection={"_id": 0, "store_id": 1}
+        )
         store_id = seller.get('store_id') if seller else None
         
         conflict_service = ConflictService(db)
@@ -737,7 +771,11 @@ async def update_seller_objective_progress(
         seller_id = current_user['id']
         
         # Get seller's manager and store_id
-        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "manager_id": 1, "store_id": 1})
+        user_repo = UserRepository(db)
+        seller = await user_repo.find_by_id(
+            user_id=seller_id,
+            projection={"_id": 0, "manager_id": 1, "store_id": 1}
+        )
         if not seller:
             raise HTTPException(status_code=404, detail="Vendeur non trouvé")
         
@@ -901,7 +939,11 @@ async def update_seller_challenge_progress(
         seller_id = current_user['id']
         
         # Get seller's manager and store_id
-        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "manager_id": 1, "store_id": 1})
+        user_repo = UserRepository(db)
+        seller = await user_repo.find_by_id(
+            user_id=seller_id,
+            projection={"_id": 0, "manager_id": 1, "store_id": 1}
+        )
         if not seller:
             raise HTTPException(status_code=404, detail="Vendeur non trouvé")
         
@@ -1050,7 +1092,8 @@ async def get_seller_challenges_history(
     """
     try:
         # Get seller info
-        user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user_repo = UserRepository(seller_service.db)
+        user = await user_repo.find_by_id(user_id=current_user['id'])
         
         # CRITICAL: Challenges are filtered by store_id, not manager_id
         # A seller can see challenges even without a manager_id, as long as they have a store_id
@@ -1101,14 +1144,15 @@ async def get_seller_dates_with_data(
             end_date = f"{year}-{month + 1:02d}-01"
         query["date"] = {"$gte": start_date, "$lt": end_date}
     
-    # Get distinct dates with data
-    dates = await db.kpi_entries.distinct("date", query)
+    # ✅ REPOSITORY: Get distinct dates with data
+    kpi_repo = KPIRepository(db)
+    dates = await kpi_repo.distinct_dates(query)
     
     all_dates = sorted(set(dates))
     
     # Get locked dates (from API/POS imports - cannot be edited manually)
     locked_query = {**query, "locked": True}
-    locked_dates = await db.kpi_entries.distinct("date", locked_query)
+    locked_dates = await kpi_repo.distinct_dates(locked_query)
     
     return {
         "dates": all_dates,
@@ -1135,7 +1179,8 @@ async def get_seller_kpi_config(
     """
     try:
         # Get seller's store_id
-        user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user_repo = UserRepository(db)
+        user = await user_repo.find_by_id(user_id=current_user['id'])
         
         # Use provided store_id or seller's store_id
         effective_store_id = store_id or (user.get('store_id') if user else None)
@@ -1150,8 +1195,9 @@ async def get_seller_kpi_config(
                 "track_prospects": True
             }
         
-        # Get KPI config for this store (CRITICAL: search by store_id, not manager_id)
-        config = await db.kpi_configs.find_one({"store_id": effective_store_id}, {"_id": 0})
+        # ✅ REPOSITORY: Get KPI config for this store (CRITICAL: search by store_id, not manager_id)
+        kpi_config_repo = KPIConfigRepository(db)
+        config = await kpi_config_repo.find_by_store(effective_store_id)
         
         if not config:
             # No config found for this store, return default
@@ -1239,37 +1285,29 @@ async def get_daily_challenge(
         seller_id = current_user['id']
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         
-        # Check if there's an uncompleted challenge for today
-        existing = await db.daily_challenges.find_one({
-            "seller_id": seller_id,
-            "date": today,
-            "completed": False
-        }, {"_id": 0})
+        # ✅ REPOSITORY: Check if there's an uncompleted challenge for today
+        daily_challenge_repo = DailyChallengeRepository(db)
+        existing = await daily_challenge_repo.find_by_seller_and_date(seller_id, today)
         
-        if existing:
+        if existing and not existing.get('completed'):
             return existing
         
         # Check if there's already a completed challenge for today
         # If yes, don't generate a new one - user must wait until tomorrow
-        completed_today = await db.daily_challenges.find_one({
-            "seller_id": seller_id,
-            "date": today,
-            "completed": True
-        }, {"_id": 0})
+        completed_today = await daily_challenge_repo.find_completed_today(seller_id, today)
         
         if completed_today:
             # Return the completed challenge instead of generating a new one
             return completed_today
         
         # Generate new challenge
-        # Get seller's diagnostic for personalization
-        diagnostic = await db.diagnostics.find_one({
-            "seller_id": seller_id
-        }, {"_id": 0})
+        # ✅ REPOSITORY: Get seller's diagnostic for personalization
+        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic = await diagnostic_repo.find_by_seller(seller_id)
         
-        # ✅ MIGRÉ: Pagination avec limite 5
+        # ✅ REPOSITORY: Pagination avec limite 5 (using repository collection)
         recent_result = await paginate(
-            collection=db.daily_challenges,
+            collection=daily_challenge_repo.collection,
             query={"seller_id": seller_id},
             page=1,
             size=5,
@@ -1354,7 +1392,9 @@ async def get_daily_challenge(
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.daily_challenges.insert_one(challenge)
+        # ✅ REPOSITORY: Create challenge using DailyChallengeRepository
+        daily_challenge_repo = DailyChallengeRepository(db)
+        await daily_challenge_repo.create_challenge(challenge)
         if '_id' in challenge:
             del challenge['_id']
         
@@ -1376,14 +1416,17 @@ async def complete_daily_challenge(
         result = data.get('result', 'success')  # success, partial, failed
         feedback = data.get('feedback', '')
         
-        update_result = await db.daily_challenges.update_one(
-            {"id": challenge_id, "seller_id": current_user['id']},
-            {"$set": {
+        # ✅ REPOSITORY: Update challenge using DailyChallengeRepository
+        daily_challenge_repo = DailyChallengeRepository(db)
+        update_result = await daily_challenge_repo.update_challenge(
+            seller_id=current_user['id'],
+            date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+            update_data={
                 "completed": True,
                 "challenge_result": result,
                 "feedback_comment": feedback,
                 "completed_at": datetime.now(timezone.utc).isoformat()
-            }}
+            }
         )
         
         if update_result.modified_count == 0:
@@ -1406,10 +1449,9 @@ async def get_my_diagnostic(
 ):
     """Get seller's own DISC diagnostic profile."""
     try:
-        diagnostic = await db.diagnostics.find_one(
-            {"seller_id": current_user['id']},
-            {"_id": 0}
-        )
+        # ✅ REPOSITORY: Get diagnostic using DiagnosticRepository
+        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic = await diagnostic_repo.find_by_seller(current_user['id'])
         
         if not diagnostic:
             # Return empty response instead of 404 to avoid console errors (consistent with diagnostic_router)
@@ -1539,10 +1581,9 @@ async def get_my_diagnostic_live_scores(
 ):
     """Get seller's live competence scores (updated after debriefs)."""
     try:
-        diagnostic = await db.diagnostics.find_one(
-            {"seller_id": current_user['id']},
-            {"_id": 0}
-        )
+        # ✅ REPOSITORY: Get diagnostic using DiagnosticRepository
+        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic = await diagnostic_repo.find_by_seller(current_user['id'])
         
         if not diagnostic:
             # Return default scores instead of 404 (consistent with diagnostic_router)
@@ -1598,33 +1639,36 @@ async def save_kpi_entry(
         date = kpi_data.get('date', datetime.now(timezone.utc).strftime('%Y-%m-%d'))
         
         # Get seller info for store_id and manager_id
-        seller = await db.users.find_one({"id": seller_id}, {"_id": 0})
+        user_repo = UserRepository(db)
+        seller = await user_repo.find_by_id(user_id=seller_id)
         if not seller:
             raise HTTPException(status_code=404, detail="Seller not found")
         
         store_id = seller.get('store_id')
         
-        # 🔒 VERROUILLAGE API: Vérifier si cette date a des données API verrouillées
-        locked_entry = await db.kpis.find_one({
-            "store_id": store_id,
-            "date": date,
-            "$or": [
-                {"locked": True},
-                {"source": "api"}
-            ]
-        }, {"_id": 0, "locked": 1, "source": 1})
+        # ✅ REPOSITORY: Vérifier si cette date a des données API verrouillées
+        kpi_repo = KPIRepository(db)
+        locked_entries = await kpi_repo.find_many(
+            {
+                "store_id": store_id,
+                "date": date,
+                "$or": [
+                    {"locked": True},
+                    {"source": "api"}
+                ]
+            },
+            projection={"_id": 0, "locked": 1, "source": 1},
+            limit=1
+        )
         
-        if locked_entry:
+        if locked_entries:
             raise HTTPException(
                 status_code=403, 
                 detail="🔒 Cette date est verrouillée. Les données proviennent de l'API/ERP et ne peuvent pas être modifiées manuellement."
             )
         
-        # Check if entry exists for this date
-        existing = await db.kpi_entries.find_one({
-            "seller_id": seller_id,
-            "date": date
-        })
+        # ✅ REPOSITORY: Check if entry exists for this date
+        existing = await kpi_repo.find_by_seller_and_date(seller_id, date)
         
         # 🔒 Vérifier si l'entrée existante est verrouillée
         if existing and existing.get('locked'):
@@ -1650,17 +1694,17 @@ async def save_kpi_entry(
         }
         
         if existing:
-            # Update existing entry
-            await db.kpi_entries.update_one(
-                {"_id": existing['_id']},
+            # ✅ REPOSITORY: Update existing entry
+            await kpi_repo.update_one(
+                {"id": existing.get('id')},
                 {"$set": entry_data}
             )
-            entry_data['id'] = existing.get('id', str(existing['_id']))
+            entry_data['id'] = existing.get('id')
         else:
-            # Create new entry
+            # ✅ REPOSITORY: Create new entry
             entry_data['id'] = str(uuid4())
             entry_data['created_at'] = datetime.now(timezone.utc).isoformat()
-            await db.kpi_entries.insert_one(entry_data)
+            await kpi_repo.insert_one(entry_data)
         
         if '_id' in entry_data:
             del entry_data['_id']
@@ -1684,9 +1728,10 @@ async def get_daily_challenge_stats(
     try:
         seller_id = current_user['id']
         
-        # ✅ MIGRÉ: Pagination avec limite par défaut (pour stats, on peut limiter)
+        # ✅ REPOSITORY: Pagination avec limite par défaut (pour stats, on peut limiter)
+        daily_challenge_repo = DailyChallengeRepository(db)
         challenges_result = await paginate(
-            collection=db.daily_challenges,
+            collection=daily_challenge_repo.collection,
             query={"seller_id": seller_id},
             page=1,
             size=50,  # Limite par défaut pour éviter chargement massif
@@ -1746,9 +1791,10 @@ async def get_daily_challenge_history(
 ):
     """Get all past daily challenges for the seller."""
     try:
-        # ✅ MIGRÉ: Pagination avec limite par défaut
+        # ✅ REPOSITORY: Pagination avec limite par défaut
+        daily_challenge_repo = DailyChallengeRepository(db)
         challenges_result = await paginate(
-            collection=db.daily_challenges,
+            collection=daily_challenge_repo.collection,
             query={"seller_id": current_user['id']},
             page=1,
             size=50,  # Limite par défaut
@@ -1779,9 +1825,10 @@ async def get_all_bilans_individuels(
 ):
     """Get all individual performance reports (bilans) for seller."""
     try:
-        # ✅ MIGRÉ: Pagination avec limite par défaut
+        # ✅ REPOSITORY: Pagination avec limite par défaut
+        seller_bilan_repo = SellerBilanRepository(db)
         bilans_result = await paginate(
-            collection=db.seller_bilans,
+            collection=seller_bilan_repo.collection,
             query={"seller_id": current_user['id']},
             page=1,
             size=50,  # Limite par défaut
@@ -1860,7 +1907,11 @@ async def generate_bilan_individuel(
         
         # Try to generate AI bilan with structured format
         ai_service = AIService()
-        seller_data = await db.users.find_one({"id": seller_id}, {"_id": 0, "password": 0})
+        user_repo = UserRepository(db)
+        seller_data = await user_repo.find_by_id(
+            user_id=seller_id,
+            include_password=False
+        )
         seller_name = seller_data.get('name', 'Vendeur') if seller_data else 'Vendeur'
         
         # Default values
@@ -1958,7 +2009,9 @@ Génère un bilan structuré au format JSON:
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.seller_bilans.insert_one(bilan)
+        # ✅ REPOSITORY: Create bilan using SellerBilanRepository
+        seller_bilan_repo = SellerBilanRepository(db)
+        await seller_bilan_repo.create_bilan(bilan)
         if '_id' in bilan:
             del bilan['_id']
         
@@ -1984,10 +2037,9 @@ async def get_diagnostic_me(
 ):
     """Get seller's own DISC diagnostic profile (at /api/diagnostic/me)."""
     try:
-        diagnostic = await db.diagnostics.find_one(
-            {"seller_id": current_user['id']},
-            {"_id": 0}
-        )
+        # ✅ REPOSITORY: Get diagnostic using DiagnosticRepository
+        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic = await diagnostic_repo.find_by_seller(current_user['id'])
         
         if not diagnostic:
             # Return empty response instead of 404 to avoid console errors
@@ -2017,10 +2069,9 @@ async def get_diagnostic_live_scores(
 ):
     """Get seller's live competence scores (updated after debriefs)."""
     try:
-        diagnostic = await db.diagnostics.find_one(
-            {"seller_id": current_user['id']},
-            {"_id": 0}
-        )
+        # ✅ REPOSITORY: Get diagnostic using DiagnosticRepository
+        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic = await diagnostic_repo.find_by_seller(current_user['id'])
         
         if not diagnostic:
             # Return default scores instead of 404
@@ -2079,7 +2130,10 @@ async def get_seller_diagnostic_for_manager(
             raise HTTPException(status_code=403, detail="Accès réservé aux managers et gérants")
         
         # Verify seller exists
-        seller = await db.users.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
+        user_repo = UserRepository(db)
+        seller = await user_repo.find_by_id(user_id=seller_id)
+        if seller and seller.get("role") != "seller":
+            seller = None
         if not seller:
             return None
         
@@ -2093,7 +2147,17 @@ async def get_seller_diagnostic_for_manager(
             has_access = (seller_store_id == current_user.get('store_id'))
         elif user_role in ['gerant', 'gérant']:
             # Gérant can see sellers from any store they own
-            store = await db.stores.find_one({
+            store_repo = StoreRepository(db)
+            store = await store_repo.find_by_id(
+                store_id=seller_store_id,
+                gerant_id=user_id
+            )
+            # Additional check for active status
+            if store and not store.get("active"):
+                store = None
+            # Convert to dict format for compatibility
+            if store:
+                store = {
                 "id": seller_store_id,
                 "gerant_id": user_id,
                 "active": True
@@ -2103,8 +2167,9 @@ async def get_seller_diagnostic_for_manager(
         if not has_access:
             raise HTTPException(status_code=403, detail="Accès non autorisé à ce vendeur")
         
-        # Get the diagnostic
-        diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
+        # ✅ REPOSITORY: Get the diagnostic using DiagnosticRepository
+        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic = await diagnostic_repo.find_by_seller(seller_id)
         
         return diagnostic  # Can be None if not completed
         
@@ -2123,17 +2188,19 @@ async def get_seller_store_info(
 ):
     """Get basic store info for the seller's store."""
     try:
-        seller = await db.users.find_one(
-            {"id": current_user['id']},
-            {"_id": 0, "store_id": 1}
+        user_repo = UserRepository(db)
+        seller = await user_repo.find_by_id(
+            user_id=current_user['id'],
+            projection={"_id": 0, "store_id": 1}
         )
         
         if not seller or not seller.get('store_id'):
             return {"name": "Magasin", "id": None}
         
-        store = await db.stores.find_one(
-            {"id": seller['store_id']},
-            {"_id": 0, "id": 1, "name": 1, "location": 1}
+        store_repo = StoreRepository(db)
+        store = await store_repo.find_by_id(
+            store_id=seller['store_id'],
+            projection={"_id": 0, "id": 1, "name": 1, "location": 1}
         )
         
         if not store:
@@ -2321,8 +2388,9 @@ async def _create_diagnostic_impl(
                     normalized_responses[key] = value
             responses = normalized_responses
         
-        # Delete existing diagnostic if any (allow update)
-        await db.diagnostics.delete_many({"seller_id": seller_id})
+        # ✅ REPOSITORY: Delete existing diagnostic if any (allow update)
+        diagnostic_repo = DiagnosticRepository(db)
+        await diagnostic_repo.delete_by_seller(seller_id)
         
         # Calculate competence scores from questionnaire
         competence_scores = calculate_competence_scores_from_questionnaire(responses)
@@ -2501,7 +2569,9 @@ Réponds au format JSON:
             response_types = [type(v).__name__ for v in list(responses.values())[:10]]
             logger.debug(f"Responses received: {len(response_keys)} questions, sample types: {response_types}")
         
-        await db.diagnostics.insert_one(diagnostic)
+        # ✅ REPOSITORY: Create diagnostic using DiagnosticRepository
+        diagnostic_repo = DiagnosticRepository(db)
+        await diagnostic_repo.create_diagnostic(diagnostic)
         if '_id' in diagnostic:
             del diagnostic['_id']
         
@@ -2537,8 +2607,10 @@ async def delete_my_diagnostic(
 ):
     """Delete seller's diagnostic to allow re-taking the questionnaire."""
     try:
-        result = await db.diagnostics.delete_many({"seller_id": current_user['id']})
-        return {"success": True, "deleted_count": result.deleted_count}
+        # ✅ REPOSITORY: Delete diagnostic using DiagnosticRepository
+        diagnostic_repo = DiagnosticRepository(db)
+        deleted_count = await diagnostic_repo.delete_by_seller(current_user['id'])
+        return {"success": True, "deleted_count": deleted_count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -2567,21 +2639,21 @@ async def refresh_daily_challenge(
         if data:
             force_competence = data.get('force_competence') or data.get('competence')
         
-        # Delete current uncompleted challenge for today
-        await db.daily_challenges.delete_many({
+        # ✅ REPOSITORY: Delete current uncompleted challenge for today
+        daily_challenge_repo = DailyChallengeRepository(db)
+        await daily_challenge_repo.delete_many({
             "seller_id": seller_id,
             "date": today,
             "completed": False
         })
         
-        # Get seller's diagnostic for personalization
-        diagnostic = await db.diagnostics.find_one({
-            "seller_id": seller_id
-        }, {"_id": 0})
+        # ✅ REPOSITORY: Get seller's diagnostic for personalization
+        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic = await diagnostic_repo.find_by_seller(seller_id)
         
-        # ✅ MIGRÉ: Pagination avec limite 5
+        # ✅ REPOSITORY: Pagination avec limite 5
         recent_result = await paginate(
-            collection=db.daily_challenges,
+            collection=daily_challenge_repo.collection,
             query={"seller_id": seller_id},
             page=1,
             size=5,
@@ -2666,7 +2738,9 @@ async def refresh_daily_challenge(
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.daily_challenges.insert_one(challenge)
+        # ✅ REPOSITORY: Create challenge using DailyChallengeRepository
+        daily_challenge_repo = DailyChallengeRepository(db)
+        await daily_challenge_repo.create_challenge(challenge)
         if '_id' in challenge:
             del challenge['_id']
         
@@ -2690,9 +2764,10 @@ async def get_interview_notes(
     try:
         seller_id = current_user['id']
         
-        # ✅ MIGRÉ: Pagination avec limite par défaut
+        # ✅ REPOSITORY: Pagination avec limite par défaut
+        interview_note_repo = InterviewNoteRepository(db)
         notes_result = await paginate(
-            collection=db.interview_notes,
+            collection=interview_note_repo.collection,
             query={"seller_id": seller_id},
             page=1,
             size=50,  # Limite par défaut pour éviter chargement massif
@@ -2726,10 +2801,9 @@ async def get_interview_note_by_date(
     try:
         seller_id = current_user['id']
         
-        note = await db.interview_notes.find_one(
-            {"seller_id": seller_id, "date": date},
-            {"_id": 0}
-        )
+        # ✅ REPOSITORY: Get interview note using InterviewNoteRepository
+        interview_note_repo = InterviewNoteRepository(db)
+        note = await interview_note_repo.find_by_seller_and_date(seller_id, date)
         
         if not note:
             return {"note": None}
@@ -2766,24 +2840,24 @@ async def create_interview_note(
         
         now = datetime.now(timezone.utc)
         
-        # Vérifier si une note existe déjà pour cette date
-        existing_note = await db.interview_notes.find_one(
-            {"seller_id": seller_id, "date": date}
-        )
+        # ✅ REPOSITORY: Vérifier si une note existe déjà pour cette date
+        interview_note_repo = InterviewNoteRepository(db)
+        existing_note = await interview_note_repo.find_by_seller_and_date(seller_id, date)
         
         if existing_note:
-            # Mettre à jour la note existante
-            await db.interview_notes.update_one(
-                {"seller_id": seller_id, "date": date},
-                {"$set": {
+            # ✅ REPOSITORY: Mettre à jour la note existante
+            await interview_note_repo.update_note_by_date(
+                seller_id=seller_id,
+                date=date,
+                update_data={
                     "content": content,
                     "updated_at": now.isoformat()
-                }}
+                }
             )
             note_id = existing_note.get('id')
             message = "Note mise à jour avec succès"
         else:
-            # Créer une nouvelle note
+            # ✅ REPOSITORY: Créer une nouvelle note
             note = {
                 "id": str(uuid.uuid4()),
                 "seller_id": seller_id,
@@ -2792,8 +2866,7 @@ async def create_interview_note(
                 "created_at": now.isoformat(),
                 "updated_at": now.isoformat()
             }
-            await db.interview_notes.insert_one(note)
-            note_id = note["id"]
+            note_id = await interview_note_repo.create_note(note)
             message = "Note créée avec succès"
         
         return {
@@ -2823,16 +2896,18 @@ async def update_interview_note(
         seller_id = current_user['id']
         content = note_data.get('content', '').strip()
         
-        # Vérifier que la note appartient au vendeur
-        note = await db.interview_notes.find_one(
-            {"id": note_id, "seller_id": seller_id}
+        # ✅ REPOSITORY: Vérifier que la note appartient au vendeur et mettre à jour
+        interview_note_repo = InterviewNoteRepository(db)
+        note = await interview_note_repo.find_one(
+            {"id": note_id, "seller_id": seller_id},
+            {"_id": 0}
         )
         
         if not note:
             raise HTTPException(status_code=404, detail="Note non trouvée")
         
-        # Mettre à jour
-        await db.interview_notes.update_one(
+        # ✅ REPOSITORY: Mettre à jour
+        await interview_note_repo.update_one(
             {"id": note_id, "seller_id": seller_id},
             {"$set": {
                 "content": content,
@@ -2863,20 +2938,11 @@ async def delete_interview_note(
     try:
         seller_id = current_user['id']
         
-        # Vérifier que la note appartient au vendeur
-        note = await db.interview_notes.find_one(
-            {"id": note_id, "seller_id": seller_id}
-        )
+        # ✅ REPOSITORY: Vérifier que la note appartient au vendeur et supprimer
+        interview_note_repo = InterviewNoteRepository(db)
+        deleted = await interview_note_repo.delete_note_by_id(note_id, seller_id)
         
-        if not note:
-            raise HTTPException(status_code=404, detail="Note non trouvée")
-        
-        # Supprimer
-        result = await db.interview_notes.delete_one(
-            {"id": note_id, "seller_id": seller_id}
-        )
-        
-        if result.deleted_count == 0:
+        if not deleted:
             raise HTTPException(status_code=404, detail="Note non trouvée")
         
         return {
@@ -2909,11 +2975,11 @@ async def delete_interview_note_by_date(
             raise HTTPException(status_code=400, detail="Format de date invalide. Utilisez YYYY-MM-DD")
         
         # Supprimer
-        result = await db.interview_notes.delete_one(
-            {"seller_id": seller_id, "date": date}
-        )
+        # ✅ REPOSITORY: Supprimer la note par date
+        interview_note_repo = InterviewNoteRepository(db)
+        deleted = await interview_note_repo.delete_note_by_date(seller_id, date)
         
-        if result.deleted_count == 0:
+        if not deleted:
             raise HTTPException(status_code=404, detail="Note non trouvée pour cette date")
         
         return {
