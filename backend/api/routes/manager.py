@@ -2681,12 +2681,16 @@ async def get_seller_stats(
         ).sort("created_at", -1).limit(5).to_list(5)
         
         # Calculate average competences from diagnostic and debriefs
-        logger.debug(f"[get_seller_stats] Checking competences for seller {seller_id}")
-        logger.debug(f"[get_seller_stats] Diagnostic found: {diagnostic is not None}")
-        logger.debug(f"[get_seller_stats] Debriefs found: {len(debriefs) if debriefs else 0}")
+        logger.info(f"[get_seller_stats] Checking competences for seller {seller_id}")
+        logger.info(f"[get_seller_stats] Diagnostic found: {diagnostic is not None}")
+        logger.info(f"[get_seller_stats] Debriefs found: {len(debriefs) if debriefs else 0}")
         
         if diagnostic:
-            logger.debug(f"[get_seller_stats] Diagnostic scores: accueil={diagnostic.get('score_accueil')}, decouverte={diagnostic.get('score_decouverte')}, argumentation={diagnostic.get('score_argumentation')}, closing={diagnostic.get('score_closing')}, fidelisation={diagnostic.get('score_fidelisation')}")
+            logger.info(f"[get_seller_stats] Diagnostic keys: {list(diagnostic.keys())}")
+            logger.info(f"[get_seller_stats] Diagnostic scores: accueil={diagnostic.get('score_accueil')}, decouverte={diagnostic.get('score_decouverte')}, argumentation={diagnostic.get('score_argumentation')}, closing={diagnostic.get('score_closing')}, fidelisation={diagnostic.get('score_fidelisation')}")
+            logger.info(f"[get_seller_stats] Diagnostic has answers: {bool(diagnostic.get('answers'))}")
+            if diagnostic.get('answers'):
+                logger.info(f"[get_seller_stats] Answers keys: {list(diagnostic.get('answers', {}).keys())}")
         
         if diagnostic or debriefs:
             all_scores = {

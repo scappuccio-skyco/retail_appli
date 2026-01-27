@@ -126,15 +126,7 @@ async def generate_morning_brief(
     - Retourne un brief formaté en Markdown
     """
     try:
-    """
-    Génère le brief matinal pour le manager.
-    
-    - **comments**: Consigne spécifique du manager (optionnel)
-    - **store_id**: ID du magasin (optionnel, pour gérant visualisant un magasin spécifique)
-    - Récupère automatiquement les stats du magasin d'hier
-    - Retourne un brief formaté en Markdown
-    """
-    # Vérifier que l'utilisateur est manager
+        # Vérifier que l'utilisateur est manager
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
         raise HTTPException(
             status_code=403, 
