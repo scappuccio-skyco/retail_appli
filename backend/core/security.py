@@ -744,7 +744,7 @@ async def verify_seller_store_access(
         if not seller:
             exists_elsewhere = await db.users.find_one(
                 {"id": seller_id, "role": "seller"},
-                {"_id": 0, "store_id": 1}
+                {"_id": 0}  # Exclude _id, include all other fields (including store_id)
             )
             if exists_elsewhere:
                 raise HTTPException(
