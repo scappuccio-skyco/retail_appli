@@ -2,12 +2,15 @@
 Evaluation Guide Routes (Entretien Annuel)
 🎯 Génère des guides d'entretien IA adaptés au rôle (Manager vs Vendeur)
 """
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Dict, Optional
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
 
-from core.security import get_current_user, require_active_space
+from core.security import get_current_user, require_active_space, verify_evaluation_employee_access
+
+logger = logging.getLogger(__name__)
 from api.dependencies import get_db
 from services.ai_service import EvaluationGuideService
 from repositories.kpi_repository import KPIRepository
@@ -110,66 +113,6 @@ async def get_employee_stats(db, employee_id: str, start_date: str, end_date: st
     }
 
 
-async def verify_access(db, current_user: Dict, employee_id: str) -> Dict:
-    """
-    Vérifie que l'utilisateur a le droit de générer l'évaluation.
-    Retourne les infos de l'employé si autorisé.
-    """
-    role = current_user.get('role')
-    user_id = current_user.get('id')
-    
-    # Cas 1: Vendeur génère son propre bilan
-    if role == 'seller':
-        if user_id != employee_id:
-            raise HTTPException(
-                status_code=403, 
-                detail="Un vendeur ne peut générer que son propre bilan"
-            )
-        return current_user
-    
-    # Cas 2: Manager/Gérant génère pour un de ses vendeurs
-    if role in ['manager', 'gerant']:
-        # ✅ MIGRÉ: Utilisation de verify_seller_store_access pour sécurité centralisée
-        from repositories.user_repository import UserRepository
-        from repositories.store_repository import StoreRepository
-        
-        user_repo = UserRepository(db)
-        store_repo = StoreRepository(db)
-        
-        # Récupérer l'employé
-        employee = await user_repo.find_one(
-            {"id": employee_id, "role": "seller"},
-            {"_id": 0}
-        )
-        
-        if not employee:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-        
-        # Vérifier que le vendeur appartient au même magasin (pour manager)
-        if role == 'manager':
-            if employee.get('store_id') != current_user.get('store_id'):
-                raise HTTPException(
-                    status_code=403,
-                    detail="Ce vendeur n'appartient pas à votre magasin"
-                )
-        
-        # Pour gérant: vérifier que le magasin lui appartient
-        if role == 'gerant':
-            store = await store_repo.find_one(
-                {"id": employee.get('store_id'), "gerant_id": user_id},
-                {"_id": 0}
-            )
-            if not store:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Ce vendeur n'appartient pas à l'un de vos magasins"
-                )
-        
-        return employee
-    
-    raise HTTPException(status_code=403, detail="Rôle non autorisé")
-
-
 async def get_disc_profile(db, user_id: str) -> Optional[Dict]:
     """
     🎨 Récupère le profil DISC d'un utilisateur depuis la base de données.
@@ -208,7 +151,7 @@ async def get_disc_profile(db, user_id: str) -> Optional[Dict]:
         
     except Exception as e:
         # Log l'erreur mais ne bloque pas la génération
-        print(f"⚠️ Erreur récupération profil DISC pour {user_id}: {e}")
+        logger.warning("Erreur récupération profil DISC pour user_id=%s: %s", user_id, e, exc_info=True)
         return None
 
 
@@ -228,8 +171,8 @@ async def generate_evaluation_guide(
     
     Le guide est basé sur les données réelles de performance du vendeur.
     """
-    # 1. Vérifier les droits d'accès
-    employee = await verify_access(db, current_user, request.employee_id)
+    # 1. Vérifier les droits d'accès (Phase 3: centralisé dans core.security)
+    employee = await verify_evaluation_employee_access(db, current_user, request.employee_id)
     employee_name = employee.get('name', 'Vendeur')
     
     # 2. Récupérer les statistiques sur la période

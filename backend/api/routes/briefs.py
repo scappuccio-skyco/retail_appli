@@ -10,7 +10,7 @@ from uuid import uuid4
 import logging
 
 from api.dependencies import get_db, get_ai_service
-from api.dependencies_rate_limiting import get_rate_limiter
+from api.dependencies_rate_limiting import rate_limit
 from core.security import get_current_user, require_active_space, verify_store_ownership
 from services.ai_service import AIService
 from repositories.store_repository import StoreRepository
@@ -112,10 +112,9 @@ class BriefHistoryItem(BaseModel):
     generated_at: str
 
 
-@router.post("/morning", response_model=MorningBriefResponse)
-@limiter.limit("10/minute")  # ⚠️ SECURITY: Rate limit 10 req/min to prevent cost abuse
+@router.post("/morning", response_model=MorningBriefResponse, dependencies=[rate_limit("10/minute")])
 async def generate_morning_brief(
-    request: Request,  # ⚠️ Required for rate limiting (slowapi expects 'request')
+    request: Request,
     store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
     brief_request: MorningBriefRequest = Body(...),  # Renamed from 'request' to avoid conflict
     current_user: dict = Depends(get_current_user),

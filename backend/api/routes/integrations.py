@@ -20,7 +20,7 @@ from services.gerant_service import GerantService
 from repositories.user_repository import UserRepository
 from repositories.store_repository import StoreRepository
 from api.dependencies import get_kpi_service, get_integration_service, get_db, get_store_service, get_gerant_service
-from core.security import get_current_gerant, get_password_hash, require_active_space
+from core.security import get_current_gerant, get_password_hash, require_active_space, get_api_key_from_headers
 
 logger = logging.getLogger(__name__)
 
@@ -67,41 +67,20 @@ async def verify_api_key(
     integration_service: IntegrationService = Depends(get_integration_service)
 ) -> Dict:
     """
-    Verify API key from header.
+    Verify API key from header (Phase 3: uses centralised get_api_key_from_headers).
     Supports both X-API-Key header and Authorization: Bearer <API_KEY> (not JWT).
     """
-    # Try X-API-Key first
-    api_key = x_api_key
-    
-    # If not found, try Authorization header
-    if not api_key and authorization:
-        if authorization.startswith("Bearer "):
-            api_key = authorization[7:]  # Remove "Bearer " prefix
-        else:
-            api_key = authorization
-    
-    if not api_key:
-        raise HTTPException(
-            status_code=401, 
-            detail="API key required. Use X-API-Key header or Authorization: Bearer <API_KEY>"
-        )
-    
+    api_key = get_api_key_from_headers(x_api_key, authorization)
     try:
         api_key_data = await integration_service.verify_api_key(api_key)
         return api_key_data
     except ValueError as e:
         error_message = str(e)
-        logger.warning(f"API key verification failed: {error_message}")
-        raise HTTPException(
-            status_code=401, 
-            detail=error_message
-        )
+        logger.warning("API key verification failed: %s", error_message)
+        raise HTTPException(status_code=401, detail=error_message)
     except Exception as e:
-        logger.error(f"Unexpected error during API key verification: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or inactive API Key"
-        )
+        logger.error("Unexpected error during API key verification: %s", e, exc_info=True)
+        raise HTTPException(status_code=401, detail="Invalid or inactive API Key")
 
 
 # ===== SECURITY MIDDLEWARES =====

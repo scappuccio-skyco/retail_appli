@@ -1,6 +1,7 @@
 """
 Base Repository Pattern
-Provides common CRUD operations for all repositories
+Provides common CRUD operations for all repositories.
+Phase 4: Cache-agnostic — no cache invalidation; Services call invalidate_* after write ops.
 """
 from typing import Optional, List, Dict, Any, AsyncIterator
 from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorCollection

@@ -2,12 +2,10 @@
 Admin Repository
 Database access layer for SuperAdmin operations.
 
-Multi-collection facade: accesses workspaces, users, stores, admin_logs,
-system_logs, logs, relationship_consultations, diagnostics. Does not inherit
-BaseRepository (single-collection pattern); structure kept consistent with
-other repositories (db injection, logger).
-
-Phase 3: Pagination obligatoire pour listes (get_all_workspaces_paginated).
+Phase 1 Refactoring: Delegates to UserRepository, StoreRepository, WorkspaceRepository
+for users, stores, workspaces. Uses skip/limit for all list operations (pagination-ready).
+Collections without a dedicated repo (admin_logs, system_logs, logs, diagnostics,
+relationship_consultations) still use self.db.
 """
 import logging
 from typing import List, Dict, Optional
@@ -15,28 +13,49 @@ from datetime import datetime, timezone, timedelta
 
 from utils.pagination import paginate
 from models.pagination import PaginatedResponse
+from repositories.user_repository import UserRepository
+from repositories.store_repository import StoreRepository, WorkspaceRepository
 
 logger = logging.getLogger(__name__)
 
+# Default limits for backward compatibility (pagination-ready: callers can pass skip/limit)
+DEFAULT_WORKSPACES_LIST_LIMIT = 1000
+DEFAULT_STORES_LIST_LIMIT = 100
+DEFAULT_SELLERS_LIST_LIMIT = 100
+DEFAULT_ADMINS_FROM_LOGS_LIMIT = 1000
+
 
 class AdminRepository:
-    """Multi-collection repository for SuperAdmin database operations."""
+    """Multi-collection repository for SuperAdmin database operations. Delegates to UserRepository, StoreRepository, WorkspaceRepository where applicable."""
 
     def __init__(self, db):
         self.db = db
-    
-    async def get_all_workspaces(self, include_deleted: bool = False) -> List[Dict]:
-        """Get all workspaces (legacy, non-paginated; max 1000).
-        Prefer get_all_workspaces_paginated for scalability."""
-        if include_deleted:
-            return await self.db.workspaces.find({}, {"_id": 0}).to_list(1000)
-        return await self.db.workspaces.find(
-            {"$or": [
-                {"status": {"$ne": "deleted"}},
-                {"status": {"$exists": False}}
-            ]},
-            {"_id": 0}
-        ).to_list(1000)
+        self.user_repo = UserRepository(db)
+        self.store_repo = StoreRepository(db)
+        self.workspace_repo = WorkspaceRepository(db)
+
+    async def get_all_workspaces(
+        self,
+        include_deleted: bool = False,
+        limit: int = DEFAULT_WORKSPACES_LIST_LIMIT,
+        skip: int = 0,
+    ) -> List[Dict]:
+        """Get workspaces with skip/limit (pagination-ready). Prefer get_all_workspaces_paginated for scalable listing."""
+        query: Dict = {}
+        if not include_deleted:
+            query = {
+                "$or": [
+                    {"status": {"$ne": "deleted"}},
+                    {"status": {"$exists": False}}
+                ]
+            }
+        return await self.workspace_repo.find_many(
+            query,
+            {"_id": 0},
+            limit=limit,
+            skip=skip,
+            sort=[("created_at", -1)],
+        )
 
     async def get_all_workspaces_paginated(
         self,
@@ -54,7 +73,7 @@ class AdminRepository:
                 ]
             }
         return await paginate(
-            self.db.workspaces,
+            self.workspace_repo.collection,
             query,
             page=page,
             size=size,
@@ -64,58 +83,79 @@ class AdminRepository:
 
     async def get_gerant_by_id(self, gerant_id: str) -> Optional[Dict]:
         """Get gérant user by ID"""
-        return await self.db.users.find_one(
+        return await self.user_repo.find_one(
             {"id": gerant_id},
             {"_id": 0, "password": 0}
         )
-    
-    async def get_stores_by_gerant(self, gerant_id: str) -> List[Dict]:
-        """Get all stores for a gérant"""
+
+    async def get_stores_by_gerant(
+        self,
+        gerant_id: str,
+        limit: int = DEFAULT_STORES_LIST_LIMIT,
+        skip: int = 0,
+    ) -> List[Dict]:
+        """Get all stores for a gérant (pagination-ready: skip/limit)."""
         if not gerant_id:
             return []
-        return await self.db.stores.find(
-            {"gerant_id": gerant_id},
-            {"_id": 0}
-        ).to_list(100)
-    
-    async def get_stores_by_workspace(self, workspace_id: str) -> List[Dict]:
-        """Get all stores for a workspace (by workspace_id field)"""
+        return await self.store_repo.find_by_gerant(
+            gerant_id,
+            limit=limit,
+            skip=skip,
+        )
+
+    async def get_stores_by_workspace(
+        self,
+        workspace_id: str,
+        limit: int = DEFAULT_STORES_LIST_LIMIT,
+        skip: int = 0,
+    ) -> List[Dict]:
+        """Get all stores for a workspace (by workspace_id field). Pagination-ready: skip/limit."""
         if not workspace_id:
             return []
-        return await self.db.stores.find(
+        return await self.store_repo.find_many(
             {"workspace_id": workspace_id},
-            {"_id": 0}
-        ).to_list(100)
-    
+            {"_id": 0},
+            limit=limit,
+            skip=skip,
+        )
+
     async def get_manager_for_store(self, store_id: str) -> Optional[Dict]:
         """Get the manager assigned to a store"""
-        return await self.db.users.find_one(
+        return await self.user_repo.find_one(
             {"store_id": store_id, "role": "manager"},
             {"_id": 0, "password": 0, "password_hash": 0}
         )
-    
-    async def get_sellers_for_store(self, store_id: str) -> List[Dict]:
-        """Get all sellers for a store"""
-        return await self.db.users.find(
-            {"store_id": store_id, "role": "seller"},
-            {"_id": 0, "password": 0, "password_hash": 0}
-        ).to_list(100)
-    
+
+    async def get_sellers_for_store(
+        self,
+        store_id: str,
+        limit: int = DEFAULT_SELLERS_LIST_LIMIT,
+        skip: int = 0,
+    ) -> List[Dict]:
+        """Get all sellers for a store (pagination-ready: skip/limit)."""
+        return await self.user_repo.find_by_store(
+            store_id,
+            role="seller",
+            projection={"_id": 0, "password": 0, "password_hash": 0},
+            limit=limit,
+            skip=skip,
+        )
+
     async def count_active_sellers_for_store(self, store_id: str) -> int:
         """Count active sellers for a store"""
-        return await self.db.users.count_documents({
+        return await self.user_repo.count({
             "store_id": store_id,
             "role": "seller",
             "status": "active"
         })
-    
+
     async def count_users_by_criteria(self, criteria: Dict) -> int:
         """Count users matching criteria"""
-        return await self.db.users.count_documents(criteria)
-    
+        return await self.user_repo.count(criteria)
+
     async def count_workspaces_by_criteria(self, criteria: Dict) -> int:
         """Count workspaces matching criteria"""
-        return await self.db.workspaces.count_documents(criteria)
+        return await self.workspace_repo.count(criteria)
     
     async def count_diagnostics(self) -> int:
         """Count total diagnostics"""
@@ -180,8 +220,13 @@ class AdminRepository:
             {"timestamp": {"$gte": time_threshold.isoformat()}}
         )
 
-    async def get_admins_from_logs(self, time_threshold: datetime) -> List[Dict]:
-        """Get distinct admins from audit logs within time window"""
+    async def get_admins_from_logs(
+        self,
+        time_threshold: datetime,
+        limit: int = DEFAULT_ADMINS_FROM_LOGS_LIMIT,
+        skip: int = 0,
+    ) -> List[Dict]:
+        """Get distinct admins from audit logs within time window (pagination-ready: skip/limit)."""
         pipeline = [
             {"$match": {
                 "timestamp": {"$gte": time_threshold.isoformat()},
@@ -197,6 +242,8 @@ class AdminRepository:
                 "_id": 0,
                 "email": "$_id.admin_email",
                 "name": "$_id.admin_name"
-            }}
+            }},
+            {"$skip": skip},
+            {"$limit": limit},
         ]
-        return await self.db.admin_logs.aggregate(pipeline).to_list(length=1000)
+        return await self.db.admin_logs.aggregate(pipeline).to_list(length=limit)

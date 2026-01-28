@@ -3,12 +3,15 @@ Diagnostic Routes - Manager DISC diagnostic profiles.
 Phase 10 RC6: No direct db access - DiagnosticRepository, ManagerDiagnosticRepository, UserRepository.
 """
 import json
+import logging
 from uuid import uuid4
 from datetime import datetime, timezone
 from typing import Dict, Any
 from pydantic import BaseModel
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+
+logger = logging.getLogger(__name__)
 
 from core.security import require_active_space
 from api.dependencies import get_db
@@ -97,7 +100,7 @@ Ton style doit être positif, professionnel et orienté action. Pas de jargon RH
         return result
         
     except Exception as e:
-        print(f"Error in AI analysis: {str(e)}")
+        logger.error("Error in AI analysis: %s", e, exc_info=True)
         # Fallback default response
         return {
             "profil_nom": "Le Coach",

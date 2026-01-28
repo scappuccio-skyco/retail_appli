@@ -3,6 +3,7 @@ Seller Routes
 API endpoints for seller-specific features (tasks, objectives, challenges)
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
+from exceptions.custom_exceptions import NotFoundError, ValidationError, ForbiddenError
 from typing import Dict, List, Optional, Union
 from datetime import datetime, timezone, timedelta
 import uuid
@@ -112,7 +113,7 @@ async def check_kpi_enabled(
     """
     # Allow sellers, managers, and gérants to check KPI status
     if current_user['role'] not in ['seller', 'manager', 'gerant', 'gérant']:
-        raise HTTPException(status_code=403, detail="Access denied")
+        raise ForbiddenError("Access denied")
     
     SELLER_INPUT_KPIS = ['ca_journalier', 'nb_ventes', 'nb_clients', 'nb_articles', 'nb_prospects']
     
@@ -159,11 +160,8 @@ async def get_seller_tasks(
     - Diagnostic completion status
     - Pending manager requests
     """
-    try:
-        tasks = await seller_service.get_seller_tasks(current_user['id'])
-        return tasks
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch tasks: {str(e)}")
+    tasks = await seller_service.get_seller_tasks(current_user['id'])
+    return tasks
 
 
 # ===== OBJECTIVES =====
@@ -226,8 +224,6 @@ async def get_active_seller_objectives(
             manager_id  # Can be None - only used for progress calculation
         )
         return objectives
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch objectives: {str(e)}")
 
 
 @router.get("/objectives/all")
@@ -261,8 +257,6 @@ async def get_all_seller_objectives(
             manager_id  # Can be None - only used for progress calculation
         )
         return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch objectives: {str(e)}")
 
 
 @router.get("/objectives/history")
@@ -294,8 +288,6 @@ async def get_seller_objectives_history(
             manager_id  # Can be None - only used for progress calculation
         )
         return objectives
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch objectives history: {str(e)}")
 
 
 @router.post("/objectives/{objective_id}/mark-achievement-seen")
@@ -309,29 +301,24 @@ async def mark_objective_achievement_seen(
     Mark an objective achievement notification as seen by the seller
     After this, the objective will move to history
     """
-    try:
-        seller_id = current_user['id']
-        seller_store_id = current_user.get('store_id')
-        
-        if not seller_store_id:
-            raise HTTPException(status_code=400, detail="Vendeur sans magasin assigné")
-        
-        # SECURITY: Verify objective belongs to seller's store (prevents IDOR)
-        await verify_resource_store_access(
-            db, objective_id, "objective", seller_store_id,
-            "seller", seller_id
-        )
-        
-        await seller_service.mark_achievement_as_seen(
-            seller_id,
-            "objective",
-            objective_id
-        )
-        return {"success": True, "message": "Notification marquée comme vue"}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
+    seller_id = current_user['id']
+    seller_store_id = current_user.get('store_id')
+    
+    if not seller_store_id:
+        raise ValidationError("Vendeur sans magasin assigné")
+    
+    # SECURITY: Verify objective belongs to seller's store (prevents IDOR)
+    await verify_resource_store_access(
+        db, objective_id, "objective", seller_store_id,
+        "seller", seller_id
+    )
+    
+    await seller_service.mark_achievement_as_seen(
+        seller_id,
+        "objective",
+        objective_id
+    )
+    return {"success": True, "message": "Notification marquée comme vue"}
 
 
 # ===== CHALLENGES =====
@@ -345,22 +332,19 @@ async def get_seller_challenges(
     Get all challenges (collective + individual) for seller
     Returns all challenges from seller's manager
     """
-    try:
-        # Get seller's manager
-        user_repo = UserRepository(seller_service.db)
-        user = await user_repo.find_by_id(user_id=current_user['id'])
-        
-        if not user or not user.get('manager_id'):
-            return []
-        
-        # Fetch challenges
-        challenges = await seller_service.get_seller_challenges(
-            current_user['id'], 
-            user['manager_id']
-        )
-        return challenges
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch challenges: {str(e)}")
+    # Get seller's manager
+    user_repo = UserRepository(seller_service.db)
+    user = await user_repo.find_by_id(user_id=current_user['id'])
+    
+    if not user or not user.get('manager_id'):
+        return []
+    
+    # Fetch challenges
+    challenges = await seller_service.get_seller_challenges(
+        current_user['id'], 
+        user['manager_id']
+    )
+    return challenges
 
 
 @router.get("/challenges/active")
@@ -422,8 +406,6 @@ async def get_active_seller_challenges(
             manager_id  # Can be None - only used for progress calculation
         )
         return challenges
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch active challenges: {str(e)}")
 
 
 @router.post("/challenges/{challenge_id}/mark-achievement-seen")
@@ -442,7 +424,7 @@ async def mark_challenge_achievement_seen(
         seller_store_id = current_user.get('store_id')
         
         if not seller_store_id:
-            raise HTTPException(status_code=400, detail="Vendeur sans magasin assigné")
+            raise ValidationError("Vendeur sans magasin assigné")
         
         # SECURITY: Verify challenge belongs to seller's store (prevents IDOR)
         await verify_resource_store_access(
@@ -456,10 +438,6 @@ async def mark_challenge_achievement_seen(
             challenge_id
         )
         return {"success": True, "message": "Notification marquée comme vue"}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
 
 
 @router.post("/relationship-advice")
@@ -498,7 +476,7 @@ async def create_seller_relationship_advice(
             projection={"_id": 0, "store_id": 1, "manager_id": 1}
         )
         if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            raise NotFoundError("Vendeur non trouvé")
         
         store_id = seller.get('store_id')
         manager_id = seller.get('manager_id')
@@ -539,18 +517,7 @@ async def create_seller_relationship_advice(
         }
         
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception(
-            "Seller relationship advice failed",
-            extra={
-                "seller_id": current_user.get('id') if 'current_user' in locals() else None,
-                "error": str(e)
-            }
-        )
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération: {str(e)}")
+        raise ValidationError(str(ve))
 
 
 @router.get("/relationship-advice/history")
@@ -565,34 +532,29 @@ async def get_seller_relationship_history(
     """
     from services.relationship_service import RelationshipService
     
-    try:
-        seller_id = current_user['id']
-        
-        # Get seller's store_id
-        user_repo = UserRepository(db)
-        seller = await user_repo.find_by_id(
-            user_id=seller_id,
-            projection={"_id": 0, "store_id": 1}
-        )
-        store_id = seller.get('store_id') if seller else None
-        
-        relationship_service = RelationshipService(db)
-        
-        # Get consultations for this seller only
-        consultations = await relationship_service.list_consultations(
-            seller_id=seller_id,
-            store_id=store_id,
-            limit=100
-        )
-        
-        return {
-            "consultations": consultations,
-            "total": len(consultations)
-        }
-        
-    except Exception as e:
-        logger.error(f"Error fetching seller relationship history: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+    seller_id = current_user['id']
+    
+    # Get seller's store_id
+    user_repo = UserRepository(db)
+    seller = await user_repo.find_by_id(
+        user_id=seller_id,
+        projection={"_id": 0, "store_id": 1}
+    )
+    store_id = seller.get('store_id') if seller else None
+    
+    relationship_service = RelationshipService(db)
+    
+    # Get consultations for this seller only
+    consultations = await relationship_service.list_consultations(
+        seller_id=seller_id,
+        store_id=store_id,
+        limit=100
+    )
+    
+    return {
+        "consultations": consultations,
+        "total": len(consultations)
+    }
 
 
 @router.post("/conflict-resolution")
@@ -636,7 +598,7 @@ async def create_seller_conflict_resolution(
             projection={"_id": 0, "store_id": 1, "manager_id": 1}
         )
         if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            raise NotFoundError("Vendeur non trouvé")
         
         store_id = seller.get('store_id')
         manager_id = seller.get('manager_id')
@@ -687,7 +649,7 @@ async def create_seller_conflict_resolution(
         }
         
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        raise ValidationError(str(ve))
     except HTTPException:
         raise
     except Exception as e:
@@ -777,11 +739,11 @@ async def update_seller_objective_progress(
             projection={"_id": 0, "manager_id": 1, "store_id": 1}
         )
         if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            raise NotFoundError("Vendeur non trouvé")
         
         seller_store_id = seller.get('store_id')
         if not seller_store_id:
-            raise HTTPException(status_code=404, detail="Vendeur sans magasin assigné")
+            raise NotFoundError("Vendeur sans magasin assigné")
         
         manager_id = seller.get('manager_id')  # Still needed for progress calculation
         
@@ -793,10 +755,7 @@ async def update_seller_objective_progress(
         
         # CONTROLE D'ACCÈS: Vérifier data_entry_responsible
         if objective.get('data_entry_responsible') != 'seller':
-            raise HTTPException(
-                status_code=403,
-                detail="Vous n'êtes pas autorisé à mettre à jour cet objectif. Seul le manager peut le faire."
-            )
+            raise ForbiddenError("Vous n'êtes pas autorisé à mettre à jour cet objectif. Seul le manager peut le faire.")
         
         # CONTROLE D'ACCÈS: Vérifier visible
         if not objective.get('visible', True):
@@ -815,10 +774,7 @@ async def update_seller_objective_progress(
             # Collective: check visible_to_sellers
             visible_to = objective.get('visible_to_sellers', [])
             if visible_to and len(visible_to) > 0 and seller_id not in visible_to:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vous n'êtes pas autorisé à mettre à jour cet objectif collectif"
-                )
+                raise ForbiddenError("Vous n'êtes pas autorisé à mettre à jour cet objectif collectif")
         
         # Get increment value
         increment_value = progress_data.get("value")
@@ -945,11 +901,11 @@ async def update_seller_challenge_progress(
             projection={"_id": 0, "manager_id": 1, "store_id": 1}
         )
         if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            raise NotFoundError("Vendeur non trouvé")
         
         seller_store_id = seller.get('store_id')
         if not seller_store_id:
-            raise HTTPException(status_code=404, detail="Vendeur sans magasin assigné")
+            raise NotFoundError("Vendeur sans magasin assigné")
         
         manager_id = seller.get('manager_id')  # Still needed for progress calculation
         
@@ -961,32 +917,23 @@ async def update_seller_challenge_progress(
         
         # CONTROLE D'ACCÈS: Vérifier data_entry_responsible
         if challenge.get('data_entry_responsible') != 'seller':
-            raise HTTPException(
-                status_code=403,
-                detail="Vous n'êtes pas autorisé à mettre à jour ce challenge. Seul le manager peut le faire."
-            )
+            raise ForbiddenError("Vous n'êtes pas autorisé à mettre à jour ce challenge. Seul le manager peut le faire.")
         
         # CONTROLE D'ACCÈS: Vérifier visible
         if not challenge.get('visible', True):
-            raise HTTPException(status_code=403, detail="Ce challenge n'est pas visible")
+            raise ForbiddenError("Ce challenge n'est pas visible")
         
         # CONTROLE D'ACCÈS: Vérifier type et seller_id/visible_to_sellers
         chall_type = challenge.get('type', 'collective')
         if chall_type == 'individual':
             # Individual: seller_id must match
             if challenge.get('seller_id') != seller_id:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vous n'êtes pas autorisé à mettre à jour ce challenge individuel"
-                )
+                raise ForbiddenError("Vous n'êtes pas autorisé à mettre à jour ce challenge individuel")
         else:
             # Collective: check visible_to_sellers
             visible_to = challenge.get('visible_to_sellers', [])
             if visible_to and len(visible_to) > 0 and seller_id not in visible_to:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vous n'êtes pas autorisé à mettre à jour ce challenge collectif"
-                )
+                raise ForbiddenError("Vous n'êtes pas autorisé à mettre à jour ce challenge collectif")
         
         # Get increment value
         increment_value = progress_data.get("value")
@@ -1642,7 +1589,7 @@ async def save_kpi_entry(
         user_repo = UserRepository(db)
         seller = await user_repo.find_by_id(user_id=seller_id)
         if not seller:
-            raise HTTPException(status_code=404, detail="Seller not found")
+            raise NotFoundError("Seller not found")
         
         store_id = seller.get('store_id')
         
@@ -1672,10 +1619,7 @@ async def save_kpi_entry(
         
         # 🔒 Vérifier si l'entrée existante est verrouillée
         if existing and existing.get('locked'):
-            raise HTTPException(
-                status_code=403,
-                detail="🔒 Cette entrée est verrouillée (données API). Impossible de modifier."
-            )
+            raise ForbiddenError("🔒 Cette entrée est verrouillée (données API). Impossible de modifier.")
         
         entry_data = {
             "seller_id": seller_id,
@@ -1972,7 +1916,7 @@ Génère un bilan structuré au format JSON:
                         synthese = response[:500] if response else ""
                         
             except Exception as e:
-                print(f"AI bilan error: {e}")
+                logger.error("AI bilan error: %s", e, exc_info=True)
         
         # If no AI, generate basic bilan
         if not synthese:
@@ -2127,7 +2071,7 @@ async def get_seller_diagnostic_for_manager(
         
         # Verify user is manager or gérant
         if user_role not in ['manager', 'gerant', 'gérant']:
-            raise HTTPException(status_code=403, detail="Accès réservé aux managers et gérants")
+            raise ForbiddenError("Accès réservé aux managers et gérants")
         
         # Verify seller exists
         user_repo = UserRepository(db)
@@ -2165,7 +2109,7 @@ async def get_seller_diagnostic_for_manager(
             has_access = store is not None
         
         if not has_access:
-            raise HTTPException(status_code=403, detail="Accès non autorisé à ce vendeur")
+            raise ForbiddenError("Accès non autorisé à ce vendeur")
         
         # ✅ REPOSITORY: Get the diagnostic using DiagnosticRepository
         diagnostic_repo = DiagnosticRepository(db)
@@ -2501,7 +2445,7 @@ Réponds au format JSON:
                         pass
                         
             except Exception as e:
-                print(f"AI diagnostic error: {e}")
+                logger.error("AI diagnostic error: %s", e, exc_info=True)
         
         # Get strengths and axes_de_developpement from request if provided (from /ai/diagnostic)
         strengths = diagnostic_data.dict().get('strengths') or ai_analysis.get('strengths', [])
@@ -2830,7 +2774,7 @@ async def create_interview_note(
         content = note_data.get('content', '').strip()
         
         if not date:
-            raise HTTPException(status_code=400, detail="La date est requise")
+            raise ValidationError("La date est requise")
         
         # Valider le format de date
         try:
@@ -2980,7 +2924,7 @@ async def delete_interview_note_by_date(
         deleted = await interview_note_repo.delete_note_by_date(seller_id, date)
         
         if not deleted:
-            raise HTTPException(status_code=404, detail="Note non trouvée pour cette date")
+            raise NotFoundError("Note non trouvée pour cette date")
         
         return {
             "success": True,

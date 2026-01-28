@@ -4,12 +4,13 @@ Security utilities: JWT, password hashing, authentication
 import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
 import logging
 
 from core.config import settings
+from exceptions.custom_exceptions import UnauthorizedError, ForbiddenError, NotFoundError
 
 # Security scheme
 # Use auto_error=False to control 401 vs 403 at dependency level
@@ -837,3 +838,80 @@ async def verify_seller_store_access(
             raise HTTPException(status_code=404, detail="Vendeur non trouvé")
         
         return seller
+
+
+# ===== API KEY & ROLE HELPERS (Phase 3: centralisation) =====
+
+def get_api_key_from_headers(
+    x_api_key: Optional[str] = None,
+    authorization: Optional[str] = None,
+) -> str:
+    """
+    Extract API key from X-API-Key or Authorization: Bearer header.
+    Reusable for integrations and enterprise routes.
+    """
+    api_key = x_api_key
+    if not api_key and authorization:
+        if authorization.startswith("Bearer "):
+            api_key = authorization[7:]
+        else:
+            api_key = authorization
+    if not api_key:
+        raise UnauthorizedError(
+            "API key required. Use X-API-Key header or Authorization: Bearer <API_KEY>"
+        )
+    return api_key
+
+
+async def require_it_admin(
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    """Dependency: verify current user is IT Admin (enterprise)."""
+    if (current_user or {}).get("role") != "it_admin":
+        raise ForbiddenError("Access restricted to IT Admins")
+    return current_user
+
+
+async def verify_evaluation_employee_access(
+    db,
+    current_user: dict,
+    employee_id: str,
+) -> dict:
+    """
+    Verify that the current user can generate an evaluation for the given employee_id.
+    Returns the employee dict if allowed. Reusable for evaluations routes.
+    Call from route: employee = await verify_evaluation_employee_access(db, current_user, request.employee_id)
+    """
+    from repositories.user_repository import UserRepository
+    from repositories.store_repository import StoreRepository
+
+    role = (current_user or {}).get("role")
+    user_id = (current_user or {}).get("id")
+
+    if role == "seller":
+        if user_id != employee_id:
+            raise ForbiddenError("Un vendeur ne peut générer que son propre bilan")
+        return current_user
+
+    if role in ("manager", "gerant", "gérant"):
+        user_repo = UserRepository(db)
+        store_repo = StoreRepository(db)
+        employee = await user_repo.find_one(
+            {"id": employee_id, "role": "seller"},
+            {"_id": 0},
+        )
+        if not employee:
+            raise NotFoundError("Vendeur non trouvé")
+        if role == "manager":
+            if employee.get("store_id") != current_user.get("store_id"):
+                raise ForbiddenError("Ce vendeur n'appartient pas à votre magasin")
+        else:
+            store = await store_repo.find_one(
+                {"id": employee.get("store_id"), "gerant_id": user_id},
+                {"_id": 0},
+            )
+            if not store:
+                raise ForbiddenError("Ce vendeur n'appartient pas à l'un de vos magasins")
+        return employee
+
+    raise ForbiddenError("Rôle non autorisé")

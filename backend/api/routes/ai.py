@@ -4,14 +4,9 @@ from typing import Dict, List, Union
 
 from services.ai_service import AIService, AIDataService
 from api.dependencies import get_ai_service, get_ai_data_service
-from api.dependencies_rate_limiting import get_rate_limiter
+from api.dependencies_rate_limiting import rate_limit
 from core.security import get_current_user, get_current_seller, require_active_space
 from models.diagnostics import DiagnosticResponse
-
-# Rate limiter instance (will be set from app.state in main.py)
-# Use IP-based limiting for AI endpoints (cost protection)
-# Note: Returns dummy limiter if slowapi not available (graceful degradation)
-limiter = get_rate_limiter()
 
 router = APIRouter(
     prefix="/ai",
@@ -20,8 +15,7 @@ router = APIRouter(
 )
 
 
-@router.post("/diagnostic")
-@limiter.limit("10/minute")  # ⚠️ SECURITY: Rate limit 10 req/min to prevent cost abuse
+@router.post("/diagnostic", dependencies=[rate_limit("10/minute")])
 async def generate_diagnostic(
     request: Request,
     responses: List[Union[DiagnosticResponse, Dict]],
@@ -108,8 +102,7 @@ async def generate_daily_challenge(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/seller-bilan")
-@limiter.limit("10/minute")  # ⚠️ SECURITY: Rate limit 10 req/min to prevent cost abuse
+@router.post("/seller-bilan", dependencies=[rate_limit("10/minute")])
 async def generate_seller_bilan(
     request: Request,
     current_user: Dict = Depends(get_current_seller),

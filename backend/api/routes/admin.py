@@ -8,6 +8,7 @@ from typing import List, Dict, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, EmailStr
 from api.dependencies import get_admin_service
+from exceptions.custom_exceptions import NotFoundError, ValidationError
 from core.security import get_super_admin
 from services.admin_service import AdminService
 from models.chat import ChatRequest
@@ -34,11 +35,7 @@ async def get_superadmin_stats(
     current_admin: dict = Depends(get_super_admin)
 ):
     """Statistiques globales de la plateforme"""
-    try:
-        return await admin_service.get_platform_stats()
-    except Exception as e:
-        logger.error(f"Error fetching superadmin stats: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return await admin_service.get_platform_stats()
 
 
 @router.get("/workspaces")
@@ -54,6 +51,42 @@ async def get_all_workspaces(
         page=page,
         size=size,
         include_deleted=include_deleted,
+    )
+
+
+@router.get("/stores")
+async def get_all_stores(
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
+    active_only: Optional[bool] = Query(None, description="Filtrer par magasins actifs uniquement"),
+    gerant_id: Optional[str] = Query(None, description="Filtrer par ID gérant"),
+    admin_service: AdminService = Depends(get_admin_service),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Liste tous les magasins (paginé: items, total, page, size, pages). Défauts: page=1, size=50."""
+    return await admin_service.get_stores_paginated(
+        page=page,
+        size=size,
+        active_only=active_only,
+        gerant_id=gerant_id,
+    )
+
+
+@router.get("/users")
+async def get_all_users(
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
+    role: Optional[str] = Query(None, description="Filtrer par rôle"),
+    status: Optional[str] = Query(None, description="Filtrer par statut"),
+    admin_service: AdminService = Depends(get_admin_service),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Liste tous les utilisateurs (paginé: items, total, page, size, pages). Défauts: page=1, size=50."""
+    return await admin_service.get_users_paginated(
+        page=page,
+        size=size,
+        role=role,
+        status=status,
     )
 
 
@@ -78,9 +111,6 @@ async def get_audit_logs(
             action=action,
             admin_emails=emails_list
         )
-    except Exception as e:
-        logger.error(f"Error fetching audit logs: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/system-logs")
@@ -93,16 +123,12 @@ async def get_system_logs(
     current_admin: dict = Depends(get_super_admin)
 ):
     """Récupère les logs système"""
-    try:
-        return await admin_service.get_system_logs(
-            hours=hours,
-            limit=limit,
-            level=level,
-            type_filter=type
-        )
-    except Exception as e:
-        logger.error(f"Error fetching system logs: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return await admin_service.get_system_logs(
+        hours=hours,
+        limit=limit,
+        level=level,
+        type_filter=type
+    )
 
 
 @router.get("/health")
@@ -126,16 +152,12 @@ async def resolve_duplicates(
     🔧 Endpoint support-only pour résoudre les abonnements multiples.
     PROTECTION: Super admin uniquement + dry-run par défaut + logs audit.
     """
-    try:
-        return await admin_service.resolve_subscription_duplicates(
-            gerant_id=gerant_id,
-            apply=apply,
-            current_admin=current_admin,
-            request_headers=dict(request.headers)
-        )
-    except Exception as e:
-        logger.error(f"Erreur résolution doublons: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la résolution: {str(e)}")
+    return await admin_service.resolve_subscription_duplicates(
+        gerant_id=gerant_id,
+        apply=apply,
+        current_admin=current_admin,
+        request_headers=dict(request.headers)
+    )
 
 
 @router.patch("/workspaces/{workspace_id}/status")
@@ -148,7 +170,7 @@ async def update_workspace_status(
     """Activer ou supprimer un workspace"""
     try:
         if status not in ['active', 'deleted']:
-            raise HTTPException(status_code=400, detail="Invalid status. Must be: active or deleted")
+            raise ValidationError("Invalid status. Must be: active or deleted")
         return await admin_service.update_workspace_status(
             workspace_id=workspace_id,
             status=status,
@@ -157,13 +179,8 @@ async def update_workspace_status(
     except ValueError as e:
         err = str(e)
         if "not found" in err.lower():
-            raise HTTPException(status_code=404, detail=err)
-        raise HTTPException(status_code=400, detail=err)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error updating workspace status: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+            raise NotFoundError(err)
+        raise ValidationError(err)
 
 
 @router.patch("/workspaces/{workspace_id}/plan")
@@ -184,13 +201,8 @@ async def update_workspace_plan(
     except ValueError as e:
         err = str(e)
         if "not found" in err.lower():
-            raise HTTPException(status_code=404, detail=err)
-        raise HTTPException(status_code=400, detail=err)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error updating workspace plan: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+            raise NotFoundError(err)
+        raise ValidationError(err)
 
 
 @router.patch("/workspaces/bulk/status")
@@ -209,12 +221,7 @@ async def bulk_update_workspace_status(
             current_admin=current_admin
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error bulk updating workspace status: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ValidationError(str(e))
 
 
 @router.get("/admins")
@@ -225,11 +232,7 @@ async def get_super_admins(
     current_admin: dict = Depends(get_super_admin)
 ):
     """Get list of super admins"""
-    try:
-        return await admin_service.get_admins_paginated(page=page, size=size)
-    except Exception as e:
-        logger.error(f"Error fetching admins: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return await admin_service.get_admins_paginated(page=page, size=size)
 
 
 @router.post("/admins")
@@ -247,12 +250,9 @@ async def add_super_admin(
             current_admin=current_admin
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error adding super admin: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/admins/{admin_id}")
@@ -270,13 +270,8 @@ async def remove_super_admin(
     except ValueError as e:
         err = str(e)
         if "retirer" in err or "vous-même" in err:
-            raise HTTPException(status_code=400, detail=err)
-        raise HTTPException(status_code=404, detail=err)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error removing super admin: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+            raise ValidationError(err)
+        raise NotFoundError(err)
 
 
 @router.get("/subscriptions/overview")
@@ -287,11 +282,7 @@ async def get_subscriptions_overview(
     current_admin: dict = Depends(get_super_admin)
 ):
     """Vue d'ensemble de tous les abonnements Stripe des gérants. Paginée: max 100 gérants par page."""
-    try:
-        return await admin_service.get_subscriptions_overview(page=page, size=size)
-    except Exception as e:
-        logger.error(f"Error fetching subscriptions overview: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return await admin_service.get_subscriptions_overview(page=page, size=size)
 
 
 @router.get("/subscriptions/{gerant_id}/details")
@@ -305,13 +296,8 @@ async def get_subscription_details(
         return await admin_service.get_subscription_details(gerant_id=gerant_id)
     except ValueError as e:
         if "non trouvé" in str(e).lower():
-            raise HTTPException(status_code=404, detail=str(e))
-        raise HTTPException(status_code=400, detail=str(e))
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching subscription details: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+            raise NotFoundError(str(e))
+        raise ValidationError(str(e))
 
 
 @router.get("/gerants/trials")
@@ -322,11 +308,7 @@ async def get_gerants_trials(
     current_admin: dict = Depends(get_super_admin)
 ):
     """Récupérer tous les gérants avec leurs informations d'essai (paginated, max 100 par page)"""
-    try:
-        return await admin_service.get_gerants_trials(page=page, size=size)
-    except Exception as e:
-        logger.error(f"Error fetching gerants trials: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return await admin_service.get_gerants_trials(page=page, size=size)
 
 
 @router.patch("/gerants/{gerant_id}/trial")
@@ -340,7 +322,7 @@ async def update_gerant_trial(
     try:
         trial_end_str = trial_data.get('trial_end')
         if not trial_end_str:
-            raise HTTPException(status_code=400, detail="Date de fin d'essai requise")
+            raise ValidationError("Date de fin d'essai requise")
         return await admin_service.update_gerant_trial(
             gerant_id=gerant_id,
             trial_end_str=trial_end_str,
@@ -349,13 +331,8 @@ async def update_gerant_trial(
     except ValueError as e:
         err = str(e)
         if "non trouvé" in err.lower():
-            raise HTTPException(status_code=404, detail=err)
-        raise HTTPException(status_code=400, detail=err)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error updating gerant trial: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+            raise NotFoundError(err)
+        raise ValidationError(err)
 
 
 @router.get("/ai-assistant/conversations")
@@ -366,15 +343,11 @@ async def get_ai_conversations(
     current_admin: dict = Depends(get_super_admin)
 ):
     """Get AI assistant conversation history (last 7 days) - Paginated, max 100"""
-    try:
-        return await admin_service.get_ai_conversations(
-            admin_email=current_admin['email'],
-            limit=limit,
-            page=page
-        )
-    except Exception as e:
-        logger.error(f"Error fetching AI conversations: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return await admin_service.get_ai_conversations(
+        admin_email=current_admin['email'],
+        limit=limit,
+        page=page
+    )
 
 
 @router.get("/ai-assistant/conversation/{conversation_id}")
@@ -395,13 +368,8 @@ async def get_conversation_messages(
         )
     except ValueError as e:
         if "non trouvée" in str(e).lower():
-            raise HTTPException(status_code=404, detail=str(e))
-        raise HTTPException(status_code=400, detail=str(e))
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching conversation messages: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+            raise NotFoundError(str(e))
+        raise ValidationError(str(e))
 
 
 @router.get("/invitations")
@@ -431,12 +399,8 @@ async def chat_with_ai_assistant(
     current_admin: dict = Depends(get_super_admin)
 ):
     """Chat with AI assistant for troubleshooting and support"""
-    try:
-        return await admin_service.chat_with_ai_assistant(
-            message=request.message,
-            conversation_id=request.conversation_id,
-            current_admin=current_admin
-        )
-    except Exception as e:
-        logger.error(f"Error in AI assistant chat: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur AI: {str(e)}")
+    return await admin_service.chat_with_ai_assistant(
+        message=request.message,
+        conversation_id=request.conversation_id,
+        current_admin=current_admin
+    )

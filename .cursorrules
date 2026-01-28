@@ -6,12 +6,12 @@
 
 ---
 
-## 🚨 RÈGLES CRITIQUES (Phase 5 - Qualité & Pérennité)
+## 🚨 RÈGLES CRITIQUES (Architecture Backend)
 
 **À respecter en priorité** (refactoring post-audit):
 
 1. **Architecture**
-   - Les **Services** ne doivent **JAMAIS** accéder à `self.db`. Ils doivent utiliser uniquement des **Repositories** injectés (ex: `self.user_repo`, `self.store_repo`).
+   - Les **Services** ne doivent **JAMAIS** accéder à `self.db`. Ils doivent utiliser des **Repositories** injectés (ex: `self.user_repo`, `self.store_repo`).
    - Routes → Services → Repositories → Database (pas de bypass).
 
 2. **Erreurs**
@@ -19,7 +19,7 @@
    - Le `ErrorHandlerMiddleware` convertit ces exceptions en réponses HTTP avec le bon status_code.
 
 3. **Pagination**
-   - Toute **liste** retournée par l’API doit être **paginée**. Pas de `.to_list(1000)` ni de listes illimitées. Utiliser `paginate()`, `PaginatedResponse`, et les paramètres `page`/`limit` (max 100 par page).
+   - Toute **liste** retournée par l’API doit être **paginée**. Pas de `.to_list(1000)`. Utiliser `paginate()`, `PaginatedResponse`, et les paramètres `page`/`limit` (max 100 par page).
 
 4. **Logs**
    - Utiliser **`logger`** (module `logging`), **jamais** `print`. Exemple : `logger.info(...)`, `logger.warning(...)`, `logger.error(...)`.
@@ -566,9 +566,9 @@ Avant chaque commit, vérifier:
 - ✅ Modifié: `.cursorrules` - Documentation configuration production-ready
 
 ### [28 Janvier 2026] - Phase 5: Qualité & Pérennité (Finalisation)
-- ✅ Ajouté: Section **RÈGLES CRITIQUES (Phase 5)** - Architecture (Services/Repositories), Erreurs (pas HTTPException 500), Pagination, Logs (logger jamais print)
+- ✅ Section **RÈGLES CRITIQUES (Architecture Backend)** - Architecture (Services/Repositories injectés), Erreurs (pas HTTPException 500), Pagination (pas .to_list(1000)), Logs (logger jamais print)
 - ✅ Renforcé: Anti-pattern gestion d'erreurs (exceptions métier obligatoires)
-- ✅ Tests: `backend/tests/test_payment_repository.py` - Testabilité du `PaymentTransactionRepository` isolé
+- ✅ Tests: `backend/tests/test_payment_repository.py` - Preuve de testabilité : `PaymentTransactionRepository` testé avec `unittest.mock` (DB mockée, pas de MongoDB réel)
 
 ---
 

@@ -11,7 +11,7 @@ from models.enterprise import (
 )
 from services.enterprise_service import EnterpriseService
 from api.dependencies import get_enterprise_service
-from core.security import get_current_user, require_active_space
+from core.security import get_current_user, require_active_space, get_api_key_from_headers, require_it_admin
 
 router = APIRouter(
     prefix="/enterprise",
@@ -25,26 +25,16 @@ router = APIRouter(
 # ============================================
 
 async def verify_api_key_header(
-    x_api_key: str = Header(...),
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
     enterprise_service: EnterpriseService = Depends(get_enterprise_service)
 ) -> dict:
-    """Verify API key from header"""
-    api_key = await enterprise_service.verify_api_key(x_api_key)
-    
+    """Verify API key from header (Phase 3: uses centralised get_api_key_from_headers)."""
+    api_key_str = get_api_key_from_headers(x_api_key, authorization)
+    api_key = await enterprise_service.verify_api_key(api_key_str)
     if not api_key:
         raise HTTPException(status_code=401, detail="Invalid or expired API key")
-    
     return api_key
-
-
-async def verify_it_admin(
-    current_user: dict = Depends(get_current_user)
-) -> dict:
-    """Verify current user is IT Admin"""
-    if current_user.get('role') != 'it_admin':
-        raise HTTPException(status_code=403, detail="Access restricted to IT Admins")
-    
-    return current_user
 
 
 # ============================================
@@ -84,7 +74,7 @@ async def register_enterprise_account(
 
 @router.get("/config")
 async def get_enterprise_config(
-    current_user: dict = Depends(verify_it_admin),
+    current_user: dict = Depends(require_it_admin),
     enterprise_service: EnterpriseService = Depends(get_enterprise_service)
 ):
     """Get enterprise account configuration"""
@@ -103,7 +93,7 @@ async def get_enterprise_config(
 @router.put("/config")
 async def update_enterprise_config(
     update_data: EnterpriseAccountUpdate,
-    current_user: dict = Depends(verify_it_admin),
+    current_user: dict = Depends(require_it_admin),
     enterprise_service: EnterpriseService = Depends(get_enterprise_service)
 ):
     """Update enterprise account configuration"""
@@ -133,7 +123,7 @@ async def update_enterprise_config(
 @router.post("/api-keys/generate")
 async def generate_api_key(
     key_data: APIKeyCreate,
-    current_user: dict = Depends(verify_it_admin),
+    current_user: dict = Depends(require_it_admin),
     enterprise_service: EnterpriseService = Depends(get_enterprise_service)
 ):
     """Generate new API key for provisioning"""
@@ -157,7 +147,7 @@ async def generate_api_key(
 
 @router.get("/api-keys")
 async def list_api_keys(
-    current_user: dict = Depends(verify_it_admin),
+    current_user: dict = Depends(require_it_admin),
     enterprise_service: EnterpriseService = Depends(get_enterprise_service)
 ):
     """List all API keys for enterprise account"""
@@ -175,7 +165,7 @@ async def list_api_keys(
 @router.delete("/api-keys/{key_id}")
 async def revoke_api_key(
     key_id: str,
-    current_user: dict = Depends(verify_it_admin),
+    current_user: dict = Depends(require_it_admin),
     enterprise_service: EnterpriseService = Depends(get_enterprise_service)
 ):
     """Revoke (deactivate) an API key"""
@@ -202,7 +192,7 @@ async def revoke_api_key(
 
 @router.get("/sync-status")
 async def get_sync_status(
-    current_user: dict = Depends(verify_it_admin),
+    current_user: dict = Depends(require_it_admin),
     enterprise_service: EnterpriseService = Depends(get_enterprise_service)
 ):
     """Get synchronization status for enterprise account"""
@@ -223,7 +213,7 @@ async def get_sync_logs(
     limit: int = 50,
     operation: Optional[str] = None,
     status: Optional[str] = None,
-    current_user: dict = Depends(verify_it_admin),
+    current_user: dict = Depends(require_it_admin),
     enterprise_service: EnterpriseService = Depends(get_enterprise_service)
 ):
     """Get synchronization logs"""

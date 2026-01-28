@@ -287,6 +287,55 @@ class AdminService:
             pages=result.pages,
         )
 
+    async def get_stores_paginated(
+        self,
+        page: int = 1,
+        size: int = 50,
+        active_only: Optional[bool] = None,
+        gerant_id: Optional[str] = None,
+    ) -> PaginatedResponse:
+        """
+        Get stores paginated (Phase 3: admin list).
+        skip = (page - 1) * size, limit = size.
+        """
+        size = min(size, MAX_PAGE_SIZE)
+        skip = (page - 1) * size
+        items = await self.store_repo.admin_find_all_paginated(
+            active_only=active_only,
+            gerant_id=gerant_id,
+            limit=size,
+            skip=skip,
+        )
+        total = await self.store_repo.admin_count_all(
+            active_only=active_only,
+            gerant_id=gerant_id,
+        )
+        pages = (total + size - 1) // size if size else 0
+        return PaginatedResponse(items=items, total=total, page=page, size=size, pages=pages)
+
+    async def get_users_paginated(
+        self,
+        page: int = 1,
+        size: int = 50,
+        role: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> PaginatedResponse:
+        """
+        Get users paginated (Phase 3: admin list).
+        skip = (page - 1) * size, limit = size.
+        """
+        size = min(size, MAX_PAGE_SIZE)
+        skip = (page - 1) * size
+        items = await self.user_repo.admin_find_all_paginated(
+            role=role,
+            status=status,
+            limit=size,
+            skip=skip,
+        )
+        total = await self.user_repo.admin_count_all(role=role, status=status)
+        pages = (total + size - 1) // size if size else 0
+        return PaginatedResponse(items=items, total=total, page=page, size=size, pages=pages)
+
     async def get_platform_stats(self) -> Dict:
         """
         Get platform-wide statistics

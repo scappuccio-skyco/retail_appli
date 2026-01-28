@@ -120,7 +120,7 @@ async def update_gerant_profile(
         if 'company_name' in update_data and update_data['company_name'] is not None:
             company_name_update = update_data['company_name'].strip()
             if not company_name_update:
-                raise HTTPException(status_code=400, detail="Le nom de l'entreprise ne peut pas être vide")
+                raise ValidationError("Le nom de l'entreprise ne peut pas être vide")
         
         # Store old email for Stripe update and audit
         old_email = user.get('email', '').lower().strip() if user.get('email') else None
@@ -388,7 +388,7 @@ async def update_subscription_seats(
         if new_seats < 1:
             raise HTTPException(status_code=400, detail="Le nombre de sièges doit être au moins 1")
         if new_seats > 50:
-            raise HTTPException(status_code=400, detail="Maximum 50 sièges. Contactez-nous pour un devis personnalisé.")
+            raise ValidationError("Maximum 50 sièges. Contactez-nous pour un devis personnalisé.")
         
         # RC6: PaymentService via DI (no explicit instantiation)
         # PaymentService will handle multiple active subscriptions check
@@ -560,11 +560,11 @@ async def preview_subscription_update(
         
         # Validate
         if new_seats < 1:
-            raise HTTPException(status_code=400, detail="Minimum 1 siège")
+            raise ValidationError("Minimum 1 siège")
         if new_seats > 50:
             raise HTTPException(status_code=400, detail="Maximum 50 sièges")
         if new_interval not in ['month', 'year']:
-            raise HTTPException(status_code=400, detail="Intervalle invalide (month ou year)")
+            raise ValidationError("Intervalle invalide (month ou year)")
         
         # Block downgrade from annual to monthly
         if current_interval == 'year' and new_interval == 'month':
@@ -1050,7 +1050,7 @@ async def update_staff_member(
                 updates[field] = update_data[field]
         
         if not updates:
-            raise HTTPException(status_code=400, detail="Aucun champ valide à mettre à jour")
+            raise ValidationError("Aucun champ valide à mettre à jour")
         
         # Validate email format if provided
         email_changed = False
@@ -1060,7 +1060,7 @@ async def update_staff_member(
             import re
             email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
             if not re.match(email_pattern, updates['email']):
-                raise HTTPException(status_code=400, detail="Format d'email invalide")
+                raise ValidationError("Format d'email invalide")
             
             # Normalize email to lowercase for consistency and uniqueness check
             email_lower = updates['email'].lower().strip()
@@ -1298,9 +1298,9 @@ async def transfer_seller_to_store(
         # Determine appropriate status code based on error message
         error_msg = str(e)
         if "Invalid transfer data" in error_msg:
-            raise HTTPException(status_code=400, detail=error_msg)
+            raise ValidationError(error_msg)
         elif "inactif" in error_msg:
-            raise HTTPException(status_code=400, detail=error_msg)
+            raise ValidationError(error_msg)
         else:
             raise NotFoundError(error_msg)
 
@@ -1898,9 +1898,9 @@ async def send_support_message(
     try:
         # Validate input
         if not request.subject.strip():
-            raise HTTPException(status_code=400, detail="Le sujet est requis")
+            raise ValidationError("Le sujet est requis")
         if not request.message.strip():
-            raise HTTPException(status_code=400, detail="Le message est requis")
+            raise ValidationError("Le message est requis")
         if len(request.message) > 5000:
             raise HTTPException(status_code=400, detail="Le message est trop long (max 5000 caractères)")
         
@@ -2072,7 +2072,7 @@ async def switch_billing_interval(
         
         # Validate interval
         if new_interval not in ['month', 'year']:
-            raise HTTPException(status_code=400, detail="Intervalle invalide. Utilisez 'month' ou 'year'.")
+            raise ValidationError("Intervalle invalide. Utilisez 'month' ou 'year'.")
         
         # ✅ PHASE 6: Use SubscriptionRepository
         subscription_repo = SubscriptionRepository(db)
@@ -3251,7 +3251,7 @@ async def update_billing_profile(
             if vat_number and country != 'FR' and is_eu_country(country):
                 is_valid, validation_data, error_msg = await validate_vat_number(vat_number, country)
                 if not is_valid:
-                    raise HTTPException(status_code=400, detail=f"Numéro de TVA invalide: {error_msg}")
+                    raise ValidationError(f"Numéro de TVA invalide: {error_msg}")
                 vat_validated = True
                 vat_validation_date = datetime.now(timezone.utc).isoformat()
                 is_vat_exempt = True

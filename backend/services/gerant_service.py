@@ -606,33 +606,35 @@ class GerantService:
         
         store_ids = [store['id'] for store in stores]
         
-        # Count active managers
-        total_managers = await self.user_repo.count({
-            "gerant_id": gerant_id,
-            "role": "manager",
-            "status": "active"
-        })
-        
-        # Count suspended managers
-        suspended_managers = await self.user_repo.count({
-            "gerant_id": gerant_id,
-            "role": "manager",
-            "status": "suspended"
-        })
-        
-        # Count active sellers
-        total_sellers = await self.user_repo.count({
-            "gerant_id": gerant_id,
-            "role": "seller",
-            "status": "active"
-        })
-        
-        # Count suspended sellers
-        suspended_sellers = await self.user_repo.count({
-            "gerant_id": gerant_id,
-            "role": "seller",
-            "status": "suspended"
-        })
+        # PHASE 4: One aggregation instead of 4 count() calls (N+1 optimization)
+        staff_counts_pipeline = [
+            {"$match": {
+                "gerant_id": gerant_id,
+                "role": {"$in": ["manager", "seller"]},
+                "status": {"$in": ["active", "suspended"]}
+            }},
+            {"$group": {
+                "_id": {"role": "$role", "status": "$status"},
+                "count": {"$sum": 1}
+            }}
+        ]
+        staff_counts_result = await self.user_repo.aggregate(
+            staff_counts_pipeline, max_results=4
+        )
+        counts_map = {
+            ("manager", "active"): 0,
+            ("manager", "suspended"): 0,
+            ("seller", "active"): 0,
+            ("seller", "suspended"): 0,
+        }
+        for row in staff_counts_result:
+            key = (row["_id"]["role"], row["_id"]["status"])
+            if key in counts_map:
+                counts_map[key] = row["count"]
+        total_managers = counts_map[("manager", "active")]
+        suspended_managers = counts_map[("manager", "suspended")]
+        total_sellers = counts_map[("seller", "active")]
+        suspended_sellers = counts_map[("seller", "suspended")]
         
         # Calculate monthly KPI aggregations
         now = datetime.now(timezone.utc)

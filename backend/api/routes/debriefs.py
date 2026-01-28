@@ -106,7 +106,7 @@ async def create_debrief(
                         'fidelisation': feedback_result.get('score_fidelisation', current_scores['fidelisation'])
                     }
             except Exception as e:
-                print(f"AI debrief error: {e}")
+                logger.error("AI debrief error: %s", e, exc_info=True)
         
         debrief = {
             "id": str(uuid4()),

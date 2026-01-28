@@ -18,7 +18,7 @@ from core.security import (
 )
 from models.pagination import PaginatedResponse, PaginationParams
 from utils.pagination import paginate_with_params, paginate
-from exceptions.custom_exceptions import NotFoundError, ValidationError
+from exceptions.custom_exceptions import NotFoundError, ValidationError, ForbiddenError
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.user_repository import UserRepository
 from repositories.store_repository import StoreRepository, WorkspaceRepository
@@ -37,7 +37,7 @@ from api.dependencies import (
 from repositories.objective_repository import ObjectiveRepository
 from repositories.challenge_repository import ChallengeRepository
 from repositories.debrief_repository import DebriefRepository
-from api.dependencies_rate_limiting import get_rate_limiter
+from api.dependencies_rate_limiting import rate_limit
 from services.seller_service import SellerService
 from services.gerant_service import GerantService
 from services.notification_service import NotificationService
@@ -45,9 +45,6 @@ from services.conflict_service import ConflictService
 from services.relationship_service import RelationshipService
 from services.ai_service import AIService
 from services.competence_service import CompetenceService
-
-# Rate limiter instance (will be set from app.state in main.py)
-limiter = get_rate_limiter()
 
 router = APIRouter(
     prefix="/manager",
@@ -87,7 +84,7 @@ async def get_store_context(
             # Manager: use their store_id
             store_id = current_user.get('store_id')
             if not store_id:
-                raise HTTPException(status_code=400, detail="Manager n'a pas de magasin assigné")
+                raise ValidationError("Manager n'a pas de magasin assigné")
             return {**current_user, 'resolved_store_id': store_id, 'view_mode': 'manager'}
         
         elif role in ['gerant', 'gérant']:
@@ -145,7 +142,7 @@ async def get_store_context(
         
         else:
             logger.warning(f"[get_store_context] Unauthorized role: {role}")
-            raise HTTPException(status_code=403, detail="Rôle non autorisé")
+            raise ForbiddenError("Rôle non autorisé")
     except HTTPException:
         raise
 
@@ -169,14 +166,14 @@ async def get_store_context_with_seller(
         # Seller: use their store_id directly
         store_id = current_user.get('store_id')
         if not store_id:
-            raise HTTPException(status_code=400, detail="Vendeur n'a pas de magasin assigné")
+            raise ValidationError("Vendeur n'a pas de magasin assigné")
         return {**current_user, 'resolved_store_id': store_id, 'view_mode': 'seller'}
     
     elif role == 'manager':
         # Manager: use their store_id
         store_id = current_user.get('store_id')
         if not store_id:
-            raise HTTPException(status_code=400, detail="Manager n'a pas de magasin assigné")
+            raise ValidationError("Manager n'a pas de magasin assigné")
         return {**current_user, 'resolved_store_id': store_id, 'view_mode': 'manager'}
     
     elif role in ['gerant', 'gérant']:
@@ -184,58 +181,36 @@ async def get_store_context_with_seller(
         store_id = request.query_params.get('store_id')
         
         if not store_id:
-            raise HTTPException(
-                status_code=400, 
-                detail="Le paramètre store_id est requis pour un gérant. Ex: ?store_id=xxx"
-            )
+            raise ValidationError("Le paramètre store_id est requis pour un gérant. Ex: ?store_id=xxx")
         
         # Security: Verify the gérant owns this store
-        try:
-            store_repo = StoreRepository(db)
-            store = await store_repo.find_by_id(
-                store_id=store_id,
-                gerant_id=current_user['id'],
-                projection={"_id": 0, "id": 1, "name": 1, "active": 1}
-            )
-            # Additional check for active status
-            if store and not store.get("active"):
-                store = None
-            
-            if not store:
-                # Check if store exists but doesn't belong to gérant or is inactive
-                store_exists = await store_repo.find_by_id(
-                    store_id=store_id,
-                    projection={"_id": 0, "id": 1, "gerant_id": 1, "active": 1}
-                )
-                
-                if store_exists:
-                    if store_exists.get('gerant_id') != current_user['id']:
-                        logger.warning(f"Gérant {current_user['id']} attempted to access store {store_id} owned by {store_exists.get('gerant_id')}")
-                        raise HTTPException(
-                            status_code=403, 
-                            detail="Ce magasin ne vous appartient pas"
-                        )
-                    elif not store_exists.get('active', True):
-                        logger.warning(f"Gérant {current_user['id']} attempted to access inactive store {store_id}")
-                        raise HTTPException(
-                            status_code=403, 
-                            detail="Ce magasin est inactif"
-                        )
-                else:
-                    logger.warning(f"Gérant {current_user['id']} attempted to access non-existent store {store_id}")
-                    raise HTTPException(
-                        status_code=404, 
-                        detail="Magasin non trouvé"
-                    )
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error verifying store ownership for gérant {current_user['id']} and store {store_id}: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=500,
-                detail=f"Erreur lors de la vérification du magasin: {str(e)}"
-            )
+        store_repo = StoreRepository(db)
+        store = await store_repo.find_by_id(
+            store_id=store_id,
+            gerant_id=current_user['id'],
+            projection={"_id": 0, "id": 1, "name": 1, "active": 1}
+        )
+        # Additional check for active status
+        if store and not store.get("active"):
+            store = None
         
+        if not store:
+            # Check if store exists but doesn't belong to gérant or is inactive
+            store_exists = await store_repo.find_by_id(
+                store_id=store_id,
+                projection={"_id": 0, "id": 1, "gerant_id": 1, "active": 1}
+            )
+            
+            if store_exists:
+                if store_exists.get('gerant_id') != current_user['id']:
+                    logger.warning(f"Gérant {current_user['id']} attempted to access store {store_id} owned by {store_exists.get('gerant_id')}")
+                    raise ForbiddenError("Ce magasin ne vous appartient pas")
+                elif not store_exists.get('active', True):
+                    logger.warning(f"Gérant {current_user['id']} attempted to access inactive store {store_id}")
+                    raise ForbiddenError("Ce magasin est inactif")
+            else:
+                logger.warning(f"Gérant {current_user['id']} attempted to access non-existent store {store_id}")
+                raise NotFoundError("Magasin non trouvé")
         return {
             **current_user, 
             'resolved_store_id': store_id, 
@@ -244,7 +219,7 @@ async def get_store_context_with_seller(
         }
     
     else:
-        raise HTTPException(status_code=403, detail="Rôle non autorisé")
+        raise ForbiddenError("Rôle non autorisé")
 
 
 # ===== SUBSCRIPTION ACCESS CHECK =====
@@ -368,7 +343,7 @@ async def get_store_kpi_overview(
     resolved_store_id = context.get('resolved_store_id')
     
     if not resolved_store_id:
-        raise HTTPException(status_code=400, detail="Store ID requis")
+        raise ValidationError("Store ID requis")
     
     # Use provided date or today
     target_date = date or datetime.now(timezone.utc).strftime('%Y-%m-%d')
@@ -650,7 +625,7 @@ async def update_kpi_config(
         
         if not resolved_store_id and not manager_id:
             logger.error("[KPI-CONFIG] PUT - Missing both store_id and manager_id")
-            raise HTTPException(status_code=400, detail="Store ID ou Manager ID requis")
+            raise ValidationError("Store ID ou Manager ID requis")
         
         # Prepare update data
         update_data = {
@@ -1103,7 +1078,7 @@ async def mark_challenge_achievement_seen_manager(
     try:
         resolved_store_id = context.get('resolved_store_id')
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
+            raise ValidationError("store_id requis")
         
         # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
         await verify_resource_store_access(
@@ -1136,7 +1111,7 @@ async def mark_objective_achievement_seen_manager(
     try:
         resolved_store_id = context.get('resolved_store_id')
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
+            raise ValidationError("store_id requis")
         
         # SECURITY: Verify objective belongs to user's store (prevents IDOR)
         await verify_resource_store_access(
@@ -1205,7 +1180,7 @@ async def create_api_key(
         )
         return result
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
 
 
 @router.get("/api-keys")
@@ -1222,7 +1197,7 @@ async def list_api_keys(
     try:
         return await api_key_service.list_api_keys(current_user['id'])
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
 
 
 @router.delete("/api-keys/{key_id}")
@@ -1242,7 +1217,7 @@ async def delete_api_key(
     except ValueError as e:
         raise NotFoundError(str(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
 
 
 @router.post("/api-keys/{key_id}/regenerate")
@@ -1262,7 +1237,7 @@ async def regenerate_api_key(
     except ValueError as e:
         raise NotFoundError(str(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
 
 
 @router.delete("/api-keys/{key_id}/permanent")
@@ -1284,11 +1259,11 @@ async def delete_api_key_permanent(
             current_user['role']
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise ForbiddenError(str(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
 
 
 
@@ -1641,7 +1616,7 @@ async def delete_objective(
     try:
         resolved_store_id = context.get('resolved_store_id')
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
+            raise ValidationError("store_id requis")
         
         # SECURITY: Verify objective belongs to user's store (prevents IDOR)
         await verify_resource_store_access(
@@ -1724,7 +1699,7 @@ async def update_objective_progress(
         # CONTROLE D'ACCÈS: Manager peut toujours mettre à jour
         # (Les vendeurs utiliseront /api/seller/objectives/{id}/progress)
         if user_role not in ['manager', 'gerant', 'gérant']:
-            raise HTTPException(status_code=403, detail="Seuls les managers peuvent mettre à jour la progression via cette route")
+            raise ForbiddenError("Seuls les managers peuvent mettre à jour la progression via cette route")
         
         # Read increment value (support both "value" and "current_value")
         increment_value = progress_data.get("value")
@@ -2048,7 +2023,7 @@ async def update_challenge(
     try:
         resolved_store_id = context.get('resolved_store_id')
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
+            raise ValidationError("store_id requis")
         
         # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
         existing = await verify_resource_store_access(
@@ -2107,7 +2082,7 @@ async def delete_challenge(
     try:
         resolved_store_id = context.get('resolved_store_id')
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
+            raise ValidationError("store_id requis")
         
         # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
         await verify_resource_store_access(
@@ -2189,7 +2164,7 @@ async def update_challenge_progress(
         # CONTROLE D'ACCÈS: Manager peut toujours mettre à jour
         # (Les vendeurs utiliseront /api/seller/challenges/{id}/progress)
         if user_role not in ['manager', 'gerant', 'gérant']:
-            raise HTTPException(status_code=403, detail="Seuls les managers peuvent mettre à jour la progression via cette route")
+            raise ForbiddenError("Seuls les managers peuvent mettre à jour la progression via cette route")
         
         # Read increment value (support both "value" and "current_value")
         increment_value = progress_data.get("value")
@@ -2540,10 +2515,9 @@ Format : Markdown simple et concis."""
 # Individual seller data access for Manager AND Gérant roles
 # These endpoints require store context verification
 
-@router.get("/kpi-entries/{seller_id}")
-@limiter.limit("100/minute")  # ⚠️ SECURITY: Rate limit 100 req/min to prevent scraping
+@router.get("/kpi-entries/{seller_id}", dependencies=[rate_limit("100/minute")])
 async def get_seller_kpi_entries(
-    request: Request,  # ⚠️ Required for rate limiting
+    request: Request,
     seller_id: str,
     days: int = Query(30, description="Number of days to fetch"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
@@ -2611,10 +2585,9 @@ async def get_seller_kpi_entries(
     return result
 
 
-@router.get("/seller/{seller_id}/stats")
-@limiter.limit("100/minute")  # ⚠️ SECURITY: Rate limit 100 req/min to prevent scraping
+@router.get("/seller/{seller_id}/stats", dependencies=[rate_limit("100/minute")])
 async def get_seller_stats(
-    request: Request,  # ⚠️ Required for rate limiting
+    request: Request,
     seller_id: str,
     days: int = Query(30, description="Number of days for stats calculation"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
@@ -2743,7 +2716,7 @@ async def get_seller_diagnostic(
     try:
         resolved_store_id = context.get('resolved_store_id')
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
+            raise ValidationError("store_id requis")
         
         # SECURITY: Verify seller belongs to user's store (prevents IDOR)
         seller = await verify_seller_store_access(
@@ -2838,7 +2811,7 @@ async def get_seller_kpi_history(
     try:
         resolved_store_id = context.get('resolved_store_id')
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
+            raise ValidationError("store_id requis")
         
         # SECURITY: Verify seller belongs to user's store (prevents IDOR)
         seller = await verify_seller_store_access(
@@ -2902,7 +2875,7 @@ async def get_seller_profile(
     try:
         resolved_store_id = context.get('resolved_store_id')
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="store_id requis")
+            raise ValidationError("store_id requis")
         
         # SECURITY: Verify seller belongs to user's store (prevents IDOR)
         seller = await verify_seller_store_access(
@@ -3190,7 +3163,7 @@ async def get_relationship_advice(
         }
         
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        raise ValidationError(str(ve))
     except HTTPException:
         raise
     except (HTTPException, NotFoundError, ValidationError):
@@ -3307,7 +3280,7 @@ async def create_conflict_resolution(
         }
         
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        raise ValidationError(str(ve))
     except HTTPException:
         raise
     except (HTTPException, NotFoundError, ValidationError):
@@ -3426,7 +3399,7 @@ async def get_seller_debriefs(
             has_access = store is not None
         
         if not has_access:
-            raise HTTPException(status_code=403, detail="Accès non autorisé à ce vendeur")
+            raise ForbiddenError("Accès non autorisé à ce vendeur")
         
         # Get all debriefs for this seller
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
@@ -3487,7 +3460,7 @@ async def get_seller_competences_history(
             has_access = (store is not None and store.get("active"))
         
         if not has_access:
-            raise HTTPException(status_code=403, detail="Accès non autorisé à ce vendeur")
+            raise ForbiddenError("Accès non autorisé à ce vendeur")
         
         history = []
         
