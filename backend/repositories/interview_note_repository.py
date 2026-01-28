@@ -1,7 +1,7 @@
 """
 Interview Note Repository - Data access for interview_notes collection
 """
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 from repositories.base_repository import BaseRepository
 

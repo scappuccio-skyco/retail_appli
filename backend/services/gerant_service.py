@@ -1521,10 +1521,11 @@ class GerantService:
                 entry['seller_name'] = entry.get('seller_name', 'Vendeur (historique)')
         
         # Get manager KPIs for this store (uniquement pour prospects globaux)
+        # ✅ PHASE 8: Use find_many with limit parameter (no .to_list() on list)
         manager_kpis_list = await self.manager_kpi_repo.find_many({
             "store_id": store_id,
             "date": date
-        }, {"_id": 0}).to_list(100)
+        }, {"_id": 0}, limit=100)
         
         # ⭐ NOUVELLE LOGIQUE : Prospects globaux pour répartition
         global_prospects = sum((kpi.get("nb_prospects") or 0) for kpi in manager_kpis_list)
