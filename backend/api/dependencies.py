@@ -177,6 +177,17 @@ def get_enterprise_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> Enterp
     )
 
 
+def get_notification_service(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> NotificationService:
+    """
+    Get NotificationService instance with database dependency.
+    Service partagé pour notifications (découplage). Défini avant get_manager_service
+    car ce dernier en dépend (Depends(get_notification_service)).
+    """
+    return NotificationService(db)
+
+
 def get_manager_service(
     db: AsyncIOMotorDatabase = Depends(get_db),
     notification_service: "NotificationService" = Depends(get_notification_service),
@@ -282,25 +293,6 @@ def get_payment_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> PaymentSe
             ...
     """
     return PaymentService(db)
-
-
-# Notification Service
-def get_notification_service(
-    db: AsyncIOMotorDatabase = Depends(get_db)
-) -> NotificationService:
-    """
-    Get NotificationService instance with database dependency
-    
-    ✅ ÉTAPE C : Service partagé pour notifications (découplage)
-    
-    Usage in routes:
-        @router.get("/objectives")
-        async def get_objectives(
-            notification_service: NotificationService = Depends(get_notification_service)
-        ):
-            await notification_service.add_achievement_notification_flag(...)
-    """
-    return NotificationService(db)
 
 
 # Conflict Service (with injected AIService)
