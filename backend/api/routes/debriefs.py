@@ -12,6 +12,8 @@ from core.security import get_current_user, require_active_space
 from api.dependencies import get_db, get_ai_service
 from services.ai_service import AIService
 from repositories.debrief_repository import DebriefRepository
+from repositories.diagnostic_repository import DiagnosticRepository
+from repositories.kpi_repository import KPIRepository
 
 router = APIRouter(
     tags=["Debriefs"],
@@ -50,13 +52,12 @@ async def create_debrief(
     
     try:
         seller_id = current_user['id']
-        
-        # Get current competence scores from diagnostic
-        diagnostic = await db.diagnostics.find_one(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        )
-        
+        diagnostic_repo = DiagnosticRepository(db)
+        kpi_repo = KPIRepository(db)
+
+        # RC6: Use repositories instead of direct db access
+        diagnostic = await diagnostic_repo.find_by_seller(seller_id)
+
         current_scores = {
             'accueil': diagnostic.get('score_accueil', 3.0) if diagnostic else 3.0,
             'decouverte': diagnostic.get('score_decouverte', 3.0) if diagnostic else 3.0,
@@ -64,14 +65,10 @@ async def create_debrief(
             'closing': diagnostic.get('score_closing', 3.0) if diagnostic else 3.0,
             'fidelisation': diagnostic.get('score_fidelisation', 3.0) if diagnostic else 3.0
         }
-        
-        # Get KPI context
+
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-        today_kpi = await db.kpi_entries.find_one(
-            {"seller_id": seller_id, "date": today},
-            {"_id": 0}
-        )
-        
+        today_kpi = await kpi_repo.find_by_seller_and_date(seller_id, today)
+
         kpi_context = ""
         if today_kpi:
             kpi_context = f"\n\nKPIs du jour: CA {today_kpi.get('ca_journalier', 0):.0f}€, {today_kpi.get('nb_ventes', 0)} ventes"
@@ -145,20 +142,9 @@ async def create_debrief(
             seller_id=seller_id
         )
         
-        # Update diagnostic scores if changed
+        # RC6: Update diagnostic scores via repository
         if new_scores != current_scores:
-            await db.diagnostics.update_one(
-                {"seller_id": seller_id},
-                {"$set": {
-                    "score_accueil": new_scores['accueil'],
-                    "score_decouverte": new_scores['decouverte'],
-                    "score_argumentation": new_scores['argumentation'],
-                    "score_closing": new_scores['closing'],
-                    "score_fidelisation": new_scores['fidelisation'],
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }},
-                upsert=True
-            )
+            await diagnostic_repo.update_scores_by_seller(seller_id, new_scores)
         
         if '_id' in debrief:
             del debrief['_id']
@@ -202,7 +188,7 @@ async def get_debriefs(
                 sellers = await user_repo.find_many(
                     {"store_id": store_id, "role": "seller"},
                     projection={"_id": 0, "id": 1},
-                    limit=1000
+                    limit=100
                 )
                 seller_ids = [s['id'] for s in sellers]
                 

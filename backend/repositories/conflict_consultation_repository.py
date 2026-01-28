@@ -1,18 +1,18 @@
 """
-Relationship Consultation Repository - Data access for relationship_consultations collection
+Conflict Consultation Repository - Data access for conflict_consultations collection
 """
 from typing import Optional, Dict, Any, List
 from repositories.base_repository import BaseRepository
 
 
-class RelationshipConsultationRepository(BaseRepository):
-    """Repository for relationship_consultations collection"""
+class ConflictConsultationRepository(BaseRepository):
+    """Repository for conflict_consultations collection"""
 
     def __init__(self, db):
-        super().__init__(db, "relationship_consultations")
+        super().__init__(db, "conflict_consultations")
 
     async def create_consultation(self, consultation_data: Dict[str, Any]) -> str:
-        """Create a new relationship consultation."""
+        """Create a new conflict consultation."""
         return await self.insert_one(consultation_data)
 
     async def find_many_by_filters(
@@ -25,7 +25,3 @@ class RelationshipConsultationRepository(BaseRepository):
         """Find consultations matching filters (e.g. seller_id, manager_id)."""
         sort = sort or [("created_at", -1)]
         return await self.find_many(filters, projection or {"_id": 0}, limit, 0, sort)
-
-    async def delete_consultation(self, consultation_id: str) -> bool:
-        """Delete relationship consultation by ID"""
-        return await self.delete_one({"id": consultation_id})

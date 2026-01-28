@@ -1,6 +1,7 @@
 """
 Admin-only endpoints for subscription management and support operations.
 Phase 9 - Vague 3: Routes ne contiennent que définition HTTP + validation, logique dans AdminService.
+Phase 3: Pagination obligatoire pour GET /workspaces (items, total, page, size, pages).
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Body
 from typing import List, Dict, Optional
@@ -10,6 +11,7 @@ from api.dependencies import get_admin_service
 from core.security import get_super_admin
 from services.admin_service import AdminService
 from models.chat import ChatRequest
+from config.limits import MAX_PAGE_SIZE
 import logging
 
 logger = logging.getLogger(__name__)
@@ -41,16 +43,18 @@ async def get_superadmin_stats(
 
 @router.get("/workspaces")
 async def get_all_workspaces(
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
     include_deleted: bool = Query(False, description="Inclure les workspaces supprimés"),
     admin_service: AdminService = Depends(get_admin_service),
     current_admin: dict = Depends(get_super_admin)
 ):
-    """Liste tous les workspaces avec informations détaillées"""
-    try:
-        return await admin_service.get_workspaces_with_details(include_deleted=include_deleted)
-    except Exception as e:
-        logger.error(f"Error fetching workspaces: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Liste tous les workspaces avec informations détaillées (paginé: items, total, page, size, pages)."""
+    return await admin_service.get_workspaces_with_details_paginated(
+        page=page,
+        size=size,
+        include_deleted=include_deleted,
+    )
 
 
 @router.get("/logs")

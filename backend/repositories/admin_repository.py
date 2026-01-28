@@ -1,36 +1,67 @@
 """
 Admin Repository
-Database access layer for SuperAdmin operations
+Database access layer for SuperAdmin operations.
+
+Multi-collection facade: accesses workspaces, users, stores, admin_logs,
+system_logs, logs, relationship_consultations, diagnostics. Does not inherit
+BaseRepository (single-collection pattern); structure kept consistent with
+other repositories (db injection, logger).
+
+Phase 3: Pagination obligatoire pour listes (get_all_workspaces_paginated).
 """
+import logging
 from typing import List, Dict, Optional
 from datetime import datetime, timezone, timedelta
 
+from utils.pagination import paginate
+from models.pagination import PaginatedResponse
+
+logger = logging.getLogger(__name__)
+
 
 class AdminRepository:
-    """Repository for SuperAdmin database operations"""
-    
+    """Multi-collection repository for SuperAdmin database operations."""
+
     def __init__(self, db):
         self.db = db
     
     async def get_all_workspaces(self, include_deleted: bool = False) -> List[Dict]:
-        """Get all workspaces
-        
-        Args:
-            include_deleted: If True, includes deleted/inactive workspaces (for admin recovery)
-        """
+        """Get all workspaces (legacy, non-paginated; max 1000).
+        Prefer get_all_workspaces_paginated for scalability."""
         if include_deleted:
-            # Return ALL workspaces including deleted ones
             return await self.db.workspaces.find({}, {"_id": 0}).to_list(1000)
-        else:
-            # Default: only active workspaces (exclude status='deleted')
-            return await self.db.workspaces.find(
-                {"$or": [
+        return await self.db.workspaces.find(
+            {"$or": [
+                {"status": {"$ne": "deleted"}},
+                {"status": {"$exists": False}}
+            ]},
+            {"_id": 0}
+        ).to_list(1000)
+
+    async def get_all_workspaces_paginated(
+        self,
+        page: int = 1,
+        size: int = 50,
+        include_deleted: bool = False,
+    ) -> PaginatedResponse[Dict]:
+        """Get workspaces paginated (Phase 3: scalable admin)."""
+        query: Dict = {}
+        if not include_deleted:
+            query = {
+                "$or": [
                     {"status": {"$ne": "deleted"}},
                     {"status": {"$exists": False}}
-                ]},
-                {"_id": 0}
-            ).to_list(1000)
-    
+                ]
+            }
+        return await paginate(
+            self.db.workspaces,
+            query,
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("created_at", -1)],
+        )
+
     async def get_gerant_by_id(self, gerant_id: str) -> Optional[Dict]:
         """Get gérant user by ID"""
         return await self.db.users.find_one(

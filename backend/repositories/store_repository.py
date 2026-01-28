@@ -175,3 +175,14 @@ class WorkspaceRepository(BaseRepository):
     async def find_by_stripe_customer(self, stripe_customer_id: str) -> Optional[Dict]:
         """Find workspace by Stripe customer ID"""
         return await self.find_one({"stripe_customer_id": stripe_customer_id})
+
+    async def find_by_name_case_insensitive(self, name: str, projection: Optional[Dict] = None) -> Optional[Dict]:
+        """Find workspace by name (case-insensitive). Used for availability check."""
+        return await self.find_one(
+            {"name": {"$regex": f"^{name}$", "$options": "i"}},
+            projection or {"_id": 0, "id": 1}
+        )
+
+    async def update_by_id(self, workspace_id: str, update_data: Dict) -> bool:
+        """Update workspace by ID (e.g. subscription_status)."""
+        return await self.update_one({"id": workspace_id}, {"$set": update_data})

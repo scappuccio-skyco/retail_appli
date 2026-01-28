@@ -123,17 +123,21 @@ class StoreService:
             {"id": manager_id},
             {"$set": {"store_id": to_store_id}}
         )
+        from core.cache import invalidate_user_cache, invalidate_store_cache
+        await invalidate_user_cache(manager_id)
         
         # Update old store (remove manager)
         await self.store_repo.update_one(
             {"id": from_store_id},
             {"$set": {"manager_id": None}}
         )
+        await invalidate_store_cache(from_store_id)
         
         # Update new store (add manager)
         await self.store_repo.update_one(
             {"id": to_store_id},
             {"$set": {"manager_id": manager_id}}
         )
+        await invalidate_store_cache(to_store_id)
         
         return True

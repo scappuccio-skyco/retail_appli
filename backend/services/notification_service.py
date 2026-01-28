@@ -1,21 +1,21 @@
 """
 Notification Service
-Service for achievement notifications (extracted from SellerService for decoupling)
-
-✅ ÉTAPE C : Service partagé pour notifications (découplage)
+Service for achievement notifications (Phase 12: repositories only).
 """
 import logging
 from datetime import datetime, timezone
 from typing import List, Dict
 
+from repositories.achievement_notification_repository import AchievementNotificationRepository
+
 logger = logging.getLogger(__name__)
 
 
 class NotificationService:
-    """Service for achievement notifications"""
+    """Service for achievement notifications (repositories only)."""
     
     def __init__(self, db):
-        self.db = db
+        self.achievement_notification_repo = AchievementNotificationRepository(db)
     
     async def check_achievement_notification(self, user_id: str, item_type: str, item_id: str) -> bool:
         """
@@ -29,11 +29,9 @@ class NotificationService:
         Returns:
             True if notification has been seen, False if unseen
         """
-        notification = await self.db.achievement_notifications.find_one({
-            "user_id": user_id,
-            "item_type": item_type,
-            "item_id": item_id
-        })
+        notification = await self.achievement_notification_repo.find_by_user_and_item(
+            user_id, item_type, item_id
+        )
         return notification is not None
     
     async def mark_achievement_as_seen(self, user_id: str, item_type: str, item_id: str):
@@ -46,25 +44,9 @@ class NotificationService:
             item_id: Objective or challenge ID
         """
         now = datetime.now(timezone.utc).isoformat()
-        await self.db.achievement_notifications.update_one(
-            {
-                "user_id": user_id,
-                "item_type": item_type,
-                "item_id": item_id
-            },
-            {
-                "$set": {
-                    "seen_at": now,
-                    "updated_at": now
-                },
-                "$setOnInsert": {
-                    "user_id": user_id,
-                    "item_type": item_type,
-                    "item_id": item_id,
-                    "created_at": now
-                }
-            },
-            upsert=True
+        await self.achievement_notification_repo.upsert_notification(
+            user_id, item_type, item_id,
+            {"seen_at": now, "updated_at": now, "created_at": now}
         )
     
     async def add_achievement_notification_flag(self, items: List[Dict], user_id: str, item_type: str):

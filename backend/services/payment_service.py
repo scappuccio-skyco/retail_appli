@@ -1,23 +1,28 @@
 """Payment Service
 Business logic for Stripe payment processing and webhook handling.
-Follows Clean Architecture: Controller → Service → Repository
+Phase 12: repositories only (no direct db in services).
 """
 import stripe
 import os
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Optional
-from motor.motor_asyncio import AsyncIOMotorDatabase
+
+from repositories.user_repository import UserRepository
+from repositories.subscription_repository import SubscriptionRepository
+from repositories.store_repository import WorkspaceRepository
 
 logger = logging.getLogger(__name__)
 
 
 class PaymentService:
-    """Service for handling Stripe payments and subscriptions"""
-    
-    def __init__(self, db: AsyncIOMotorDatabase):
-        self.db = db
-        self.stripe_api_key = os.environ.get('STRIPE_API_KEY')
+    """Service for handling Stripe payments and subscriptions (repositories only)."""
+
+    def __init__(self, db):
+        self.user_repo = UserRepository(db)
+        self.subscription_repo = SubscriptionRepository(db)
+        self.workspace_repo = WorkspaceRepository(db)
+        self.stripe_api_key = os.environ.get("STRIPE_API_KEY")
         if self.stripe_api_key:
             stripe.api_key = self.stripe_api_key
     
@@ -75,12 +80,7 @@ class PaymentService:
             logger.warning("Payment succeeded but no customer_id")
             return {"status": "skipped", "reason": "no_customer"}
         
-        # Find the gérant by stripe_customer_id
-        gerant = await self.db.users.find_one(
-            {"stripe_customer_id": customer_id},
-            {"_id": 0, "id": 1, "email": 1, "workspace_id": 1}
-        )
-        
+        gerant = await self.user_repo.find_by_stripe_customer_id(customer_id)
         if not gerant:
             logger.warning(f"Payment succeeded but customer {customer_id} not found in DB")
             return {"status": "skipped", "reason": "customer_not_found"}
@@ -99,12 +99,7 @@ class PaymentService:
         # 🔴 RÈGLE ABSOLUE: Utiliser stripe_subscription_id si disponible, jamais user_id pour upsert
         if subscription_id:
             update_data["stripe_subscription_id"] = subscription_id
-            # ✅ Utiliser stripe_subscription_id comme clé unique
-            await self.db.subscriptions.update_one(
-                {"stripe_subscription_id": subscription_id},  # ✅ FILTRE VALIDE
-                {"$set": update_data},
-                upsert=True
-            )
+            await self.subscription_repo.upsert_by_stripe_subscription(subscription_id, update_data)
         else:
             # ⚠️ Pas de stripe_subscription_id: update simple (pas d'upsert) par user_id
             # Ce cas ne devrait pas arriver en production normale
@@ -114,21 +109,12 @@ class PaymentService:
                 f"workspace_id: {gerant.get('workspace_id')}, "
                 f"gerant_id: {gerant['id']}"
             )
-            await self.db.subscriptions.update_one(
-                {"user_id": gerant['id']},
-                {"$set": update_data}
+            await self.subscription_repo.update_by_user(gerant["id"], update_data)
+        if gerant.get("workspace_id"):
+            await self.workspace_repo.update_by_id(
+                gerant["workspace_id"],
+                {"subscription_status": "active", "stripe_subscription_id": subscription_id},
             )
-        
-        # Also update workspace status
-        if gerant.get('workspace_id'):
-            await self.db.workspaces.update_one(
-                {"id": gerant['workspace_id']},
-                {"$set": {
-                    "subscription_status": "active",
-                    "stripe_subscription_id": subscription_id
-                }}
-            )
-        
         logger.info(f"✅ Payment succeeded for {gerant['email']} - subscription active until {period_end}")
         return {"status": "success", "user_id": gerant['id'], "period_end": period_end.isoformat()}
     
@@ -152,11 +138,7 @@ class PaymentService:
             logger.warning("Payment failed event received without customer_id")
             return {"status": "skipped", "reason": "no_customer"}
         
-        gerant = await self.db.users.find_one(
-            {"stripe_customer_id": customer_id},
-            {"_id": 0, "id": 1, "email": 1, "workspace_id": 1}
-        )
-        
+        gerant = await self.user_repo.find_by_stripe_customer_id(customer_id)
         if not gerant:
             logger.warning(f"Payment failed for unknown customer: {customer_id}")
             return {"status": "skipped", "reason": "customer_not_found"}
@@ -188,17 +170,9 @@ class PaymentService:
             f"gerant_id: {gerant['id']}, "
             f"subscription_id: {subscription_id or 'N/A'}"
         )
-        await self.db.subscriptions.update_one(
-            {"user_id": gerant['id']},
-            {"$set": update_data}
-        )
-        
-        # Update workspace status
-        if gerant.get('workspace_id'):
-            await self.db.workspaces.update_one(
-                {"id": gerant['workspace_id']},
-                {"$set": {"subscription_status": "past_due"}}
-            )
+        await self.subscription_repo.update_by_user(gerant["id"], update_data)
+        if gerant.get("workspace_id"):
+            await self.workspace_repo.update_by_id(gerant["workspace_id"], {"subscription_status": "past_due"})
         
         # Log detailed failure info
         logger.warning(
@@ -233,18 +207,10 @@ class PaymentService:
         event_created = subscription.get('_event_created') or subscription.get('created')  # Unix timestamp
         event_id = subscription.get('_event_id', '')  # If available from webhook
         
-        gerant = await self.db.users.find_one(
-            {"stripe_customer_id": customer_id},
-            {"_id": 0, "id": 1, "email": 1, "workspace_id": 1}
-        )
-        
+        gerant = await self.user_repo.find_by_stripe_customer_id(customer_id)
         if not gerant:
             return {"status": "skipped", "reason": "customer_not_found"}
-        
-        # WEBHOOK ORDERING PROTECTION: Check if this event is older than last processed
-        existing_sub = await self.db.subscriptions.find_one(
-            {"stripe_subscription_id": subscription_id}
-        )
+        existing_sub = await self.subscription_repo.find_by_stripe_subscription(subscription_id)
         
         if existing_sub:
             last_event_id = existing_sub.get('last_event_id')
@@ -288,14 +254,14 @@ class PaymentService:
                             "last_event_id": last_event_id
                         }
         
-        # Check for existing active subscriptions (for anomaly detection)
-        existing_active = await self.db.subscriptions.find(
+        existing_active = await self.subscription_repo.find_many_with_query(
             {
-                "user_id": gerant['id'],
+                "user_id": gerant["id"],
                 "status": {"$in": ["active", "trialing"]},
-                "stripe_subscription_id": {"$ne": subscription_id}
-            }
-        ).to_list(length=10)
+                "stripe_subscription_id": {"$ne": subscription_id},
+            },
+            limit=10,
+        )
         
         has_multiple_active = len(existing_active) > 0
         
@@ -348,21 +314,19 @@ class PaymentService:
             elif checkout_session_id:
                 duplicate_query["checkout_session_id"] = checkout_session_id
             
-            duplicate_check = await self.db.subscriptions.find_one(duplicate_query)
-            
+            duplicate_check = await self.subscription_repo.find_one(duplicate_query)
             if duplicate_check:
                 # ✅ TOUTES les conditions sont remplies - c'est un vrai doublon de notre checkout
                 old_stripe_id = duplicate_check.get('stripe_subscription_id')
                 if old_stripe_id:
                     try:
                         stripe.Subscription.modify(old_stripe_id, cancel_at_period_end=True)
-                        await self.db.subscriptions.update_one(
-                            {"stripe_subscription_id": old_stripe_id},
-                            {"$set": {
+                        await self.subscription_repo.update_by_stripe_subscription(
+                            old_stripe_id,
+                            {
                                 "cancel_at_period_end": True,
                                 "canceled_at": datetime.now(timezone.utc).isoformat(),
-                                "updated_at": datetime.now(timezone.utc).isoformat()
-                            }}
+                            },
                         )
                         canceled_count = 1
                         logger.warning(
@@ -427,13 +391,7 @@ class PaymentService:
         if not existing_sub:
             update_data["created_at"] = datetime.now(timezone.utc).isoformat()
         
-        # Upsert by stripe_subscription_id (unique key)
-        await self.db.subscriptions.update_one(
-            {"stripe_subscription_id": subscription_id},
-            {"$set": update_data},
-            upsert=True
-        )
-        
+        await self.subscription_repo.upsert_by_stripe_subscription(subscription_id, update_data)
         if has_multiple_active and not checkout_session_id:
             logger.warning(
                 f"⚠️ ANOMALY: Multiple active subscriptions for {gerant['email']} "
@@ -460,56 +418,36 @@ class PaymentService:
         subscription_id = subscription.get('id')
         status = subscription.get('status')
         
-        gerant = await self.db.users.find_one(
-            {"stripe_customer_id": customer_id},
-            {"_id": 0, "id": 1, "workspace_id": 1}
-        )
-        
+        gerant = await self.user_repo.find_by_stripe_customer_id(customer_id)
         if not gerant:
             return {"status": "skipped", "reason": "customer_not_found"}
-        
+        existing_sub = await self.subscription_repo.find_by_stripe_subscription(subscription_id)
         quantity = 1
         subscription_item_id = None
-        billing_interval = 'month'
-        if subscription.get('items', {}).get('data'):
-            item = subscription['items']['data'][0]
-            quantity = item.get('quantity', 1)
-            subscription_item_id = item.get('id')
-            
-            # Extract billing interval
-            if item.get('price') and item['price'].get('recurring'):
-                billing_interval = item['price']['recurring'].get('interval', 'month')
-        
-        # IDEMPOTENCE: Use stripe_subscription_id as unique key
+        billing_interval = "month"
+        if subscription.get("items", {}).get("data"):
+            item = subscription["items"]["data"][0]
+            quantity = item.get("quantity", 1)
+            subscription_item_id = item.get("id")
+            if item.get("price") and item["price"].get("recurring"):
+                billing_interval = item["price"]["recurring"].get("interval", "month")
+        event_created = subscription.get("_event_created") or subscription.get("created")
+        event_id = subscription.get("_event_id", "")
         update_data = {
-            "user_id": gerant['id'],
-            "workspace_id": gerant.get('workspace_id'),
+            "user_id": gerant["id"],
+            "workspace_id": gerant.get("workspace_id"),
             "status": status,
             "seats": quantity,
             "billing_interval": billing_interval,
             "stripe_subscription_item_id": subscription_item_id,
-            "last_event_created": event_created,  # Store for ordering protection
+            "last_event_created": event_created,
             "last_event_id": event_id,
-            "updated_at": datetime.now(timezone.utc).isoformat()
         }
-        
-        # Set created_at only on first creation
         if not existing_sub:
             update_data["created_at"] = datetime.now(timezone.utc).isoformat()
-        
-        await self.db.subscriptions.update_one(
-            {"stripe_subscription_id": subscription_id},
-            {"$set": update_data},
-            upsert=True
-        )
-        
-        # Update workspace
-        if gerant.get('workspace_id'):
-            await self.db.workspaces.update_one(
-                {"id": gerant['workspace_id']},
-                {"$set": {"subscription_status": status}}
-            )
-        
+        await self.subscription_repo.upsert_by_stripe_subscription(subscription_id, update_data)
+        if gerant.get("workspace_id"):
+            await self.workspace_repo.update_by_id(gerant["workspace_id"], {"subscription_status": status})
         logger.info(f"✅ Subscription updated: {subscription_id}, status={status}, seats={quantity}")
         return {"status": "success", "new_status": status, "seats": quantity}
     
@@ -528,16 +466,10 @@ class PaymentService:
         - Set access_end_date to cut off access
         - Update workspace status
         """
-        customer_id = subscription.get('customer')
-        
-        gerant = await self.db.users.find_one(
-            {"stripe_customer_id": customer_id},
-            {"_id": 0, "id": 1, "email": 1, "workspace_id": 1}
-        )
-        
+        customer_id = subscription.get("customer")
+        gerant = await self.user_repo.find_by_stripe_customer_id(customer_id)
         if not gerant:
             return {"status": "skipped", "reason": "customer_not_found"}
-        
         # Extract period end from Stripe subscription (when access should end)
         # If canceled_at exists, use it; otherwise use current_period_end or now
         access_end_date = datetime.now(timezone.utc)
@@ -553,48 +485,27 @@ class PaymentService:
         
         # Update subscription in database
         # 🔴 RÈGLE ABSOLUE: Utiliser stripe_subscription_id si disponible
-        subscription_id_from_stripe = subscription.get('id')
+        subscription_id_from_stripe = subscription.get("id")
+        cancel_data = {
+            "status": "canceled",
+            "canceled_at": datetime.now(timezone.utc).isoformat(),
+            "access_end_date": access_end_date.isoformat(),
+        }
         if subscription_id_from_stripe:
-            # ✅ Utiliser stripe_subscription_id comme clé unique
-            await self.db.subscriptions.update_one(
-                {"stripe_subscription_id": subscription_id_from_stripe},
-                {"$set": {
-                    "status": "canceled",
-                    "canceled_at": datetime.now(timezone.utc).isoformat(),
-                    "access_end_date": access_end_date.isoformat(),
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
+            await self.subscription_repo.update_by_stripe_subscription(
+                subscription_id_from_stripe, cancel_data
             )
         else:
-            # ⚠️ Pas de stripe_subscription_id: update simple (pas d'upsert) par user_id
-            subscription_id_from_stripe = subscription.get('id', 'N/A')
             logger.warning(
                 f"⚠️ Subscription deleted but no subscription_id for customer {customer_id}. "
-                f"Using fallback update by user_id. "
-                f"workspace_id: {gerant.get('workspace_id')}, "
-                f"gerant_id: {gerant['id']}, "
-                f"stripe_subscription_id: {subscription_id_from_stripe}"
+                f"Using fallback update by user_id."
             )
-            await self.db.subscriptions.update_one(
-                {"user_id": gerant['id']},
-                {"$set": {
-                    "status": "canceled",
-                    "canceled_at": datetime.now(timezone.utc).isoformat(),
-                    "access_end_date": access_end_date.isoformat(),
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
+            await self.subscription_repo.update_by_user(gerant["id"], cancel_data)
+        if gerant.get("workspace_id"):
+            await self.workspace_repo.update_by_id(
+                gerant["workspace_id"],
+                {"subscription_status": "canceled", "access_end_date": access_end_date.isoformat()},
             )
-        
-        # Update workspace status
-        if gerant.get('workspace_id'):
-            await self.db.workspaces.update_one(
-                {"id": gerant['workspace_id']},
-                {"$set": {
-                    "subscription_status": "canceled",
-                    "access_end_date": access_end_date.isoformat()
-                }}
-            )
-        
         logger.warning(f"⚠️ Subscription DELETED for {gerant.get('email', gerant['id'])} - access ends at {access_end_date.isoformat()}")
         return {
             "status": "success", 
@@ -621,23 +532,15 @@ class PaymentService:
         
         if not customer_id:
             return {"status": "skipped", "reason": "no_customer"}
-        
-        gerant = await self.db.users.find_one(
-            {"stripe_customer_id": customer_id},
-            {"_id": 0, "id": 1, "email": 1, "workspace_id": 1}
-        )
-        
+        gerant = await self.user_repo.find_by_stripe_customer_id(customer_id)
         if not gerant:
             return {"status": "skipped", "reason": "customer_not_found"}
-        
-        # Check for existing active subscriptions (for anomaly detection)
-        existing_active = await self.db.subscriptions.find(
-            {
-                "user_id": gerant['id'],
-                "status": {"$in": ["active", "trialing"]},
-                "stripe_subscription_id": {"$ne": subscription_id} if subscription_id else {"$exists": True}
-            }
-        ).to_list(length=10)
+        q = {
+            "user_id": gerant["id"],
+            "status": {"$in": ["active", "trialing"]},
+            "stripe_subscription_id": {"$ne": subscription_id} if subscription_id else {"$exists": True},
+        }
+        existing_active = await self.subscription_repo.find_many_with_query(q, limit=10)
         
         has_multiple_active = len(existing_active) > 0
         
@@ -701,30 +604,15 @@ class PaymentService:
             else:
                 update_data["plan"] = "enterprise"
         
-        # Set created_at only on first creation
-        existing = await self.db.subscriptions.find_one(
-            {"stripe_subscription_id": subscription_id}
-        )
+        existing = await self.subscription_repo.find_by_stripe_subscription(subscription_id)
         if not existing:
             update_data["created_at"] = datetime.now(timezone.utc).isoformat()
-        
-        # Upsert by stripe_subscription_id (unique key)
-        await self.db.subscriptions.update_one(
-            {"stripe_subscription_id": subscription_id},
-            {"$set": update_data},
-            upsert=True
-        )
-        
-        # Also update workspace status to ensure immediate access
-        if gerant.get('workspace_id'):
-            await self.db.workspaces.update_one(
-                {"id": gerant['workspace_id']},
-                {"$set": {
-                    "subscription_status": "active",
-                    "stripe_subscription_id": subscription_id
-                }}
+        await self.subscription_repo.upsert_by_stripe_subscription(subscription_id, update_data)
+        if gerant.get("workspace_id"):
+            await self.workspace_repo.update_by_id(
+                gerant["workspace_id"],
+                {"subscription_status": "active", "stripe_subscription_id": subscription_id},
             )
-        
         logger.info(f"✅ Checkout completed for {gerant['email']} - subscription synced: {subscription_id} (has_multiple_active={has_multiple_active})")
         
         return {
@@ -765,15 +653,12 @@ class PaymentService:
             ValueError if multiple actives and no stripe_subscription_id provided
             Exception if Stripe call fails (DB not updated for atomicity)
         """
-        # Get all active subscriptions
-        active_subscriptions = await self.db.subscriptions.find(
+        active_subscriptions = await self.subscription_repo.find_many_with_query(
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
-            {"_id": 0}
-        ).to_list(length=10)
-        
+            limit=10,
+        )
         if not active_subscriptions:
             raise ValueError("Aucun abonnement trouvé")
-        
         # 🔴 SAFETY CHECK: If multiple actives, require explicit stripe_subscription_id
         if len(active_subscriptions) > 1:
             if not stripe_subscription_id:
@@ -878,48 +763,21 @@ class PaymentService:
         
         new_monthly_cost = new_seats * price_per_seat
         
-        # Update local database AFTER Stripe succeeds
-        # 🔴 RÈGLE ABSOLUE: Utiliser stripe_subscription_id si disponible
-        # Note: Cette fonction est appelée depuis l'endpoint API, pas depuis webhook
-        # On doit trouver la subscription active pour cet utilisateur
-        active_subscription = await self.db.subscriptions.find_one(
-            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
-            {"stripe_subscription_id": 1}
+        active_sub = await self.subscription_repo.find_by_user_and_status(
+            gerant_id, ["active", "trialing"]
         )
-        
-        if active_subscription and active_subscription.get('stripe_subscription_id'):
-            # ✅ Utiliser stripe_subscription_id comme clé unique
-            await self.db.subscriptions.update_one(
-                {"stripe_subscription_id": active_subscription['stripe_subscription_id']},
-                {"$set": {
-                    "seats": new_seats,
-                    "plan": plan,
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
+        seats_update = {"seats": new_seats, "plan": plan}
+        if active_sub and active_sub.get("stripe_subscription_id"):
+            await self.subscription_repo.update_by_stripe_subscription(
+                active_sub["stripe_subscription_id"], seats_update
             )
         else:
-            # ⚠️ Pas de subscription active trouvée: update simple par user_id
-            # Get workspace_id for logging
-            gerant_user = await self.db.users.find_one(
-                {"id": gerant_id},
-                {"workspace_id": 1}
-            )
-            workspace_id = gerant_user.get('workspace_id') if gerant_user else None
-            
+            gerant_user = await self.user_repo.find_one({"id": gerant_id}, {"workspace_id": 1})
             logger.warning(
                 f"⚠️ Updating seats but no active subscription found for gerant {gerant_id}. "
-                f"Using fallback update by user_id. "
-                f"workspace_id: {workspace_id}, "
-                f"stripe_subscription_id: N/A (no active subscription)"
+                f"Using fallback update by user_id."
             )
-            await self.db.subscriptions.update_one(
-                {"user_id": gerant_id},
-                {"$set": {
-                    "seats": new_seats,
-                    "plan": plan,
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
-            )
+            await self.subscription_repo.update_by_user(gerant_id, seats_update)
         
         logger.info(f"✅ DB updated: {current_seats} → {new_seats} seats for {gerant_id}")
         

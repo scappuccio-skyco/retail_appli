@@ -1,19 +1,21 @@
 """
 Onboarding Service
-Business logic for user onboarding progress tracking
+Business logic for user onboarding progress tracking (Phase 12: repositories only).
 """
 from typing import Dict, List
 from datetime import datetime, timezone
 import logging
 
+from repositories.onboarding_progress_repository import OnboardingProgressRepository
+
 logger = logging.getLogger(__name__)
 
 
 class OnboardingService:
-    """Service for onboarding progress operations"""
+    """Service for onboarding progress operations (repositories only)."""
     
     def __init__(self, db):
-        self.db = db
+        self.onboarding_progress_repo = OnboardingProgressRepository(db)
     
     async def get_progress(self, user_id: str) -> Dict:
         """
@@ -25,10 +27,7 @@ class OnboardingService:
         Returns:
             Progress document or default if not found
         """
-        progress = await self.db.onboarding_progress.find_one(
-            {"user_id": user_id},
-            {"_id": 0}
-        )
+        progress = await self.onboarding_progress_repo.find_by_user(user_id)
         
         if not progress:
             # Return default progress
@@ -73,11 +72,7 @@ class OnboardingService:
         }
         
         # Upsert the progress
-        await self.db.onboarding_progress.update_one(
-            {"user_id": user_id},
-            {"$set": progress_doc},
-            upsert=True
-        )
+        await self.onboarding_progress_repo.upsert_by_user(user_id, progress_doc)
         
         return progress_doc
     
@@ -100,10 +95,6 @@ class OnboardingService:
             "last_updated": datetime.now(timezone.utc).isoformat()
         }
         
-        await self.db.onboarding_progress.update_one(
-            {"user_id": user_id},
-            {"$set": progress_doc},
-            upsert=True
-        )
+        await self.onboarding_progress_repo.upsert_by_user(user_id, progress_doc)
         
         return progress_doc

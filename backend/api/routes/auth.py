@@ -1,6 +1,6 @@
 """
-Authentication Routes
-Login, registration, password reset
+Authentication Routes - Login, registration, password reset.
+Phase 10 RC6: No direct db access - AuthService only.
 """
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -12,13 +12,9 @@ from models.users import (
     ResetPasswordRequest
 )
 from services.auth_service import AuthService
-from api.dependencies import get_auth_service, get_db
+from api.dependencies import get_auth_service
 from core.security import get_current_user
-from exceptions.custom_exceptions import (
-    NotFoundError,
-    ValidationError,
-    UnauthorizedError
-)
+from exceptions.custom_exceptions import UnauthorizedError
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -26,51 +22,17 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.get("/invitations/verify/{token}")
 async def verify_invitation_token(
     token: str,
-    db = Depends(get_db)
+    auth_service: AuthService = Depends(get_auth_service),
 ):
-    """
-    Verify invitation token and return invitation details
-    
-    Args:
-        token: Invitation token from email link
-        
-    Returns:
-        Invitation details if valid
-        
-    Raises:
-        HTTPException 404: Token not found or expired
-    """
-    # Check in gerant_invitations collection
-    invitation = await db.gerant_invitations.find_one(
-        {"token": token},
-        {"_id": 0}
-    )
-    
-    if not invitation:
-        # Try the old invitations collection
-        invitation = await db.invitations.find_one(
-            {"token": token},
-            {"_id": 0}
-        )
-    
-    if not invitation:
-        raise HTTPException(status_code=404, detail="Invitation non trouvée ou expirée")
-    
-    if invitation.get('status') == 'accepted':
-        raise HTTPException(status_code=400, detail="Cette invitation a déjà été utilisée")
-    
-    if invitation.get('status') == 'expired':
-        raise HTTPException(status_code=400, detail="Cette invitation a expiré")
-    
-    return {
-        "valid": True,
-        "email": invitation.get('email'),
-        "role": invitation.get('role', 'seller'),
-        "store_name": invitation.get('store_name'),
-        "gerant_name": invitation.get('gerant_name'),
-        "manager_name": invitation.get('manager_name'),
-        "name": invitation.get('name', '')
-    }
+    """Verify invitation token (Phase 10: AuthService.verify_invitation_token, no db)."""
+    try:
+        result = await auth_service.verify_invitation_token(token)
+        return result
+    except ValueError as e:
+        detail = str(e)
+        if "déjà été utilisée" in detail or "expiré" in detail:
+            raise HTTPException(status_code=400, detail=detail)
+        raise HTTPException(status_code=404, detail=detail)
 
 
 @router.post("/login")
@@ -213,55 +175,13 @@ async def forgot_password(
 @router.get("/reset-password/{token}")
 async def verify_reset_token(
     token: str,
-    db = Depends(get_db)
+    auth_service: AuthService = Depends(get_auth_service),
 ):
-    """
-    Verify reset password token
-    
-    Args:
-        token: Reset token from email
-        
-    Returns:
-        User email if token is valid
-        
-    Raises:
-        HTTPException 400: Invalid or expired token
-    """
-    from datetime import datetime, timezone
-    
-    # Find reset token in database
-    reset_entry = await db.password_resets.find_one(
-        {"token": token},
-        {"_id": 0}
-    )
-    
-    if not reset_entry:
-        raise HTTPException(status_code=400, detail="Lien invalide ou expiré")
-    
-    # Check expiration (10 minutes = 600 seconds)
-    created_at = reset_entry.get('created_at')
-    if created_at:
-        # Handle both datetime object and ISO string
-        if isinstance(created_at, str):
-            from dateutil import parser
-            created_at = parser.parse(created_at)
-        
-        now = datetime.now(timezone.utc)
-        if created_at.tzinfo is None:
-            created_at = created_at.replace(tzinfo=timezone.utc)
-        
-        age_seconds = (now - created_at).total_seconds()
-        if age_seconds > 600:  # 10 minutes
-            raise HTTPException(status_code=400, detail="Ce lien a expiré. Veuillez demander un nouveau lien.")
-    
-    # Check if already used
-    if reset_entry.get('used'):
-        raise HTTPException(status_code=400, detail="Ce lien a déjà été utilisé")
-    
-    return {
-        "valid": True,
-        "email": reset_entry.get('email', '')
-    }
+    """Verify reset password token (Phase 10: AuthService.verify_reset_token, no db)."""
+    try:
+        return await auth_service.verify_reset_token(token)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/reset-password")
@@ -294,29 +214,7 @@ async def reset_password(
 @router.get("/me")
 async def get_me(
     current_user: dict = Depends(get_current_user),
-    db = Depends(get_db)
+    auth_service: AuthService = Depends(get_auth_service),
 ):
-    """
-    Get current authenticated user information
-    
-    Args:
-        current_user: Current authenticated user from JWT token
-        db: Database connection
-        
-    Returns:
-        User information without password, including manager_name if seller
-    """
-    # If user is a seller and has a manager_id, include manager name
-    if current_user.get('role') == 'seller' and current_user.get('manager_id'):
-        try:
-            manager = await db.users.find_one(
-                {"id": current_user.get('manager_id')},
-                {"_id": 0, "name": 1}
-            )
-            if manager and manager.get('name'):
-                current_user['manager_name'] = manager.get('name')
-        except Exception:
-            # If error, just don't include manager_name
-            pass
-    
-    return current_user
+    """Get current user info (Phase 10: AuthService.get_me_enriched, no db)."""
+    return await auth_service.get_me_enriched(current_user)

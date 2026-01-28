@@ -2,7 +2,27 @@
 ## Source de Vérité pour le Développement
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 27 Janvier 2026
+**Dernière mise à jour**: 28 Janvier 2026
+
+---
+
+## 🚨 RÈGLES CRITIQUES (Phase 5 - Qualité & Pérennité)
+
+**À respecter en priorité** (refactoring post-audit):
+
+1. **Architecture**
+   - Les **Services** ne doivent **JAMAIS** accéder à `self.db`. Ils doivent utiliser uniquement des **Repositories** injectés (ex: `self.user_repo`, `self.store_repo`).
+   - Routes → Services → Repositories → Database (pas de bypass).
+
+2. **Erreurs**
+   - **Ne jamais** utiliser `HTTPException(500)`. Utiliser des **exceptions métier** : `NotFoundError`, `ValidationError`, `ForbiddenError`, `UnauthorizedError`, etc. (voir `exceptions/custom_exceptions.py`).
+   - Le `ErrorHandlerMiddleware` convertit ces exceptions en réponses HTTP avec le bon status_code.
+
+3. **Pagination**
+   - Toute **liste** retournée par l’API doit être **paginée**. Pas de `.to_list(1000)` ni de listes illimitées. Utiliser `paginate()`, `PaginatedResponse`, et les paramètres `page`/`limit` (max 100 par page).
+
+4. **Logs**
+   - Utiliser **`logger`** (module `logging`), **jamais** `print`. Exemple : `logger.info(...)`, `logger.warning(...)`, `logger.error(...)`.
 
 ---
 
@@ -208,8 +228,8 @@ from api.dependencies import (
    - ✅ Vérifier indexes avant requête
 
 6. **Gestion d'Erreurs Incohérente**
-   - ❌ `except Exception: raise HTTPException(500)`
-   - ✅ Utiliser exceptions custom (`AppException` subclasses) + `ErrorHandlerMiddleware`
+   - ❌ `except Exception: raise HTTPException(500)` ou `HTTPException(500)` en dur
+   - ✅ Utiliser exceptions métier (`NotFoundError`, `ValidationError`, etc.) + `ErrorHandlerMiddleware`
 
 ---
 
@@ -544,6 +564,11 @@ Avant chaque commit, vérifier:
 - ✅ Modifié: `backend/core/database.py` - Pool size augmenté à 50, timeouts optimisés (production-ready)
 - ✅ Ajouté: `backend/scripts/ensure_indexes.py` - Script d'indexation pour déploiement
 - ✅ Modifié: `.cursorrules` - Documentation configuration production-ready
+
+### [28 Janvier 2026] - Phase 5: Qualité & Pérennité (Finalisation)
+- ✅ Ajouté: Section **RÈGLES CRITIQUES (Phase 5)** - Architecture (Services/Repositories), Erreurs (pas HTTPException 500), Pagination, Logs (logger jamais print)
+- ✅ Renforcé: Anti-pattern gestion d'erreurs (exceptions métier obligatoires)
+- ✅ Tests: `backend/tests/test_payment_repository.py` - Testabilité du `PaymentTransactionRepository` isolé
 
 ---
 

@@ -1,19 +1,23 @@
-"""KPI Service - Business logic for KPI calculations and aggregations"""
+"""KPI Service - Business logic for KPI calculations and aggregations (Phase 12: repositories only)."""
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.user_repository import UserRepository
+from repositories.store_repository import WorkspaceRepository, StoreRepository
+from repositories.kpi_config_repository import KPIConfigRepository
 
 
 class KPIService:
-    """Service for KPI calculations and aggregations"""
+    """Service for KPI calculations and aggregations (repositories only)."""
     
     def __init__(self, db):
         self.kpi_repo = KPIRepository(db)
         self.manager_kpi_repo = ManagerKPIRepository(db)
         self.user_repo = UserRepository(db)
-        self.db = db
+        self.workspace_repo = WorkspaceRepository(db)
+        self.store_repo = StoreRepository(db)
+        self.kpi_config_repo = KPIConfigRepository(db)
     
     async def check_user_write_access(self, user_id: str) -> bool:
         """
@@ -57,10 +61,7 @@ class KPIService:
         if not workspace_id:
             raise HTTPException(status_code=403, detail="Aucun espace de travail associé")
         
-        workspace = await self.db.workspaces.find_one(
-            {"id": workspace_id},
-            {"_id": 0}
-        )
+        workspace = await self.workspace_repo.find_by_id(workspace_id)
         
         if not workspace:
             raise HTTPException(status_code=403, detail="Espace de travail non trouvé")
@@ -87,12 +88,12 @@ class KPIService:
                     return True
                 else:
                     # Trial has expired - update status in DB
-                    await self.db.workspaces.update_one(
-                        {"id": workspace_id},
-                        {"$set": {
+                    await self.workspace_repo.update_by_id(
+                        workspace_id,
+                        {
                             "subscription_status": "trial_expired",
                             "updated_at": datetime.now(timezone.utc).isoformat()
-                        }}
+                        }
                     )
         
         # Trial expired or other inactive status
@@ -103,7 +104,7 @@ class KPIService:
     
     async def check_kpi_entry_enabled(self, store_id: str) -> dict:
         """Check if KPI entry is enabled for a store"""
-        store = await self.db.stores.find_one({"id": store_id}, {"_id": 0, "sync_mode": 1})
+        store = await self.store_repo.find_one({"id": store_id}, {"_id": 0, "sync_mode": 1})
         
         if not store:
             return {"enabled": True, "sync_mode": "manual"}
@@ -112,10 +113,7 @@ class KPIService:
         
         # If sync mode is api_sync, manual entry might be disabled
         if sync_mode == "api_sync":
-            config = await self.db.kpi_configs.find_one(
-                {"store_id": store_id},
-                {"_id": 0, "saisie_enabled": 1}
-            )
+            config = await self.kpi_config_repo.find_by_store(store_id)
             
             if config and not config.get("saisie_enabled", True):
                 return {"enabled": False, "sync_mode": sync_mode, "reason": "External sync configured"}

@@ -7,7 +7,15 @@ from typing import Optional
 from datetime import datetime, timezone, timedelta
 import logging
 
-from core.security import get_current_user, verify_resource_store_access, verify_seller_store_access, require_active_space
+from core.security import (
+    get_current_user,
+    verify_manager,
+    verify_manager_or_gerant,
+    verify_manager_gerant_or_seller,
+    verify_resource_store_access,
+    verify_seller_store_access,
+    require_active_space,
+)
 from models.pagination import PaginatedResponse, PaginationParams
 from utils.pagination import paginate_with_params, paginate
 from exceptions.custom_exceptions import NotFoundError, ValidationError
@@ -48,9 +56,7 @@ router = APIRouter(
 )
 logger = logging.getLogger(__name__)
 
-# Log router initialization
-print(f"[MANAGER ROUTER] Router initialized with prefix: {router.prefix}", flush=True)
-logger.info(f"Manager router initialized with prefix: {router.prefix}")
+logger.info("Manager router initialized with prefix: %s", router.prefix)
 
 # Test endpoint to verify router is working
 @router.get("/test")
@@ -59,28 +65,7 @@ async def test_endpoint():
     return {"status": "ok", "message": "Manager router is working", "router_prefix": router.prefix}
 
 
-# ===== RBAC: ROLE-BASED ACCESS CONTROL =====
-
-async def verify_manager(current_user: dict = Depends(get_current_user)) -> dict:
-    """Verify current user is a manager"""
-    if current_user.get('role') != 'manager':
-        raise HTTPException(status_code=403, detail="Access restricted to managers")
-    return current_user
-
-
-async def verify_manager_or_gerant(current_user: dict = Depends(get_current_user)) -> dict:
-    """Verify current user is a manager or gérant"""
-    if current_user.get('role') not in ['manager', 'gerant', 'gérant']:
-        raise HTTPException(status_code=403, detail="Access restricted to managers and gérants")
-    return current_user
-
-
-async def verify_manager_gerant_or_seller(current_user: dict = Depends(get_current_user)) -> dict:
-    """Verify current user is a manager, gérant, or seller"""
-    if current_user.get('role') not in ['manager', 'gerant', 'gérant', 'seller']:
-        raise HTTPException(status_code=403, detail="Access restricted to managers, gérants, and sellers")
-    return current_user
-
+# ===== RBAC: ROLE-BASED ACCESS CONTROL (Phase 3: verify_* centralisés dans core.security) =====
 
 async def get_store_context(
     request: Request,
@@ -163,9 +148,6 @@ async def get_store_context(
             raise HTTPException(status_code=403, detail="Rôle non autorisé")
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"[get_store_context] Unexpected error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la résolution du contexte: {str(e)}")
 
 
 async def get_store_context_with_seller(
@@ -431,9 +413,6 @@ async def get_store_kpi_overview(
             "sellers_submitted": len(overview.get('seller_entries', [])),
             "entries_count": len(overview.get('seller_entries', []))
         }
-    except Exception as e:
-        logger.error(f"Error in get_store_kpi_overview: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors du calcul des KPIs: {str(e)}")
 
 
 @router.get("/dates-with-data")
@@ -532,9 +511,6 @@ async def get_sellers(
         return sellers
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/invitations")
@@ -548,9 +524,6 @@ async def get_invitations(
         manager_id = context.get('id')
         invitations = await manager_service.get_invitations(manager_id)
         return invitations
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.get("/sync-mode")
 async def get_sync_mode(
@@ -579,9 +552,6 @@ async def get_sync_mode(
         return config
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching sync mode: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/kpi-config")
@@ -733,9 +703,6 @@ async def update_kpi_config(
     except HTTPException as e:
         logger.error(f"[KPI-CONFIG] PUT - HTTPException: {e.status_code} - {e.detail}")
         raise
-    except Exception as e:
-        logger.error(f"[KPI-CONFIG] PUT - Error updating KPI config: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ===== MANAGER KPI ENDPOINTS =====
@@ -1067,9 +1034,6 @@ async def save_manager_kpi(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error saving manager KPI: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/team-bilans/all")
@@ -1088,9 +1052,6 @@ async def get_team_bilans_all(
             store_id=resolved_store_id
         )
         return bilans
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.get("/store-kpi/stats")
 async def get_store_kpi_stats(
@@ -1110,9 +1071,6 @@ async def get_store_kpi_stats(
             end_date=end_date
         )
         return stats
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.get("/objectives/active")
 async def get_active_objectives(
@@ -1130,9 +1088,6 @@ async def get_active_objectives(
             store_id=resolved_store_id
         )
         return objectives
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.post("/challenges/{challenge_id}/mark-achievement-seen")
 async def mark_challenge_achievement_seen_manager(
@@ -1165,8 +1120,6 @@ async def mark_challenge_achievement_seen_manager(
         return {"success": True, "message": "Notification marquée comme vue"}
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
 
 
 @router.post("/objectives/{objective_id}/mark-achievement-seen")
@@ -1200,8 +1153,6 @@ async def mark_objective_achievement_seen_manager(
         return {"success": True, "message": "Notification marquée comme vue"}
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
 
 
 @router.get("/challenges/active")
@@ -1220,9 +1171,6 @@ async def get_active_challenges(
             store_id=resolved_store_id
         )
         return challenges
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 
 # ===== API KEYS MANAGEMENT =====
@@ -1292,7 +1240,7 @@ async def delete_api_key(
     try:
         return await api_key_service.deactivate_api_key(key_id, current_user['id'])
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise NotFoundError(str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -1312,7 +1260,7 @@ async def regenerate_api_key(
     try:
         return await api_key_service.regenerate_api_key(key_id, current_user['id'])
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise NotFoundError(str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -1465,18 +1413,6 @@ async def get_all_objectives(
         )
         
         return objectives
-    except Exception as e:
-        duration_ms = (time.time() - start_time) * 1000
-        logger.error(
-            f"Error fetching objectives: {e}",
-            extra={
-                'endpoint': '/api/manager/objectives',
-                'duration_ms': round(duration_ms, 2),
-                'error': str(e)
-            },
-            exc_info=True
-        )
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/objectives")
@@ -1634,9 +1570,6 @@ async def create_objective(
             )
         
         return objective
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.put("/objectives/{objective_id}")
 async def update_objective(
@@ -1658,7 +1591,7 @@ async def update_objective(
         )
         
         if not existing:
-            raise HTTPException(status_code=404, detail="Objectif non trouvé")
+            raise NotFoundError("Objectif non trouvé")
         
         update_fields = {
             "title": objective_data.get("title", existing.get("title")),
@@ -1695,9 +1628,6 @@ async def update_objective(
         return {"success": True, "message": "Objectif mis à jour", "id": objective_id}
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.delete("/objectives/{objective_id}")
@@ -1727,14 +1657,11 @@ async def delete_objective(
         )
         
         if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Objectif non trouvé")
+            raise NotFoundError("Objectif non trouvé")
         
         return {"success": True, "message": "Objectif supprimé"}
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.post("/objectives/{objective_id}")
@@ -1903,9 +1830,6 @@ async def update_objective_progress(
             }
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error updating objective progress: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
 
 
 # ===== CHALLENGES CRUD =====
@@ -2048,18 +1972,6 @@ async def get_all_challenges(
         )
         
         return enriched_challenges
-    except Exception as e:
-        duration_ms = (time.time() - start_time) * 1000
-        logger.error(
-            f"Error fetching challenges: {e}",
-            extra={
-                'endpoint': '/api/manager/challenges',
-                'duration_ms': round(duration_ms, 2),
-                'error': str(e)
-            },
-            exc_info=True
-        )
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/challenges")
@@ -2123,9 +2035,6 @@ async def create_challenge(
         challenge.pop("_id", None)
         
         return challenge
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.put("/challenges/{challenge_id}")
 async def update_challenge(
@@ -2185,9 +2094,6 @@ async def update_challenge(
         return {"success": True, "message": "Challenge mis à jour", "id": challenge_id}
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.delete("/challenges/{challenge_id}")
@@ -2217,14 +2123,11 @@ async def delete_challenge(
         )
         
         if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Challenge non trouvé")
+            raise NotFoundError("Challenge non trouvé")
         
         return {"success": True, "message": "Challenge supprimé"}
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.post("/challenges/{challenge_id}")
@@ -2381,9 +2284,6 @@ async def update_challenge_progress(
             }
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error updating challenge progress: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
 
 
 # ===== AI STORE KPI ANALYSIS =====
@@ -2634,9 +2534,6 @@ Format : Markdown simple et concis."""
             }
         }
         
-    except Exception as e:
-        logger.error(f"Error in analyze_store_kpis: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ===== SELLER DETAILS ENDPOINTS =====
@@ -2880,9 +2777,6 @@ async def get_seller_diagnostic(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/sellers/archived")
@@ -2926,9 +2820,6 @@ async def get_archived_sellers(
             }
         }
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 # ===== ADDITIONAL SELLER MANAGEMENT ROUTES =====
 
@@ -2996,9 +2887,6 @@ async def get_seller_kpi_history(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/seller/{seller_id}/profile")
@@ -3053,9 +2941,6 @@ async def get_seller_profile(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 
@@ -3194,9 +3079,6 @@ async def analyze_team(
             "generated_at": analysis_record["generated_at"]
         }
         
-    except Exception as e:
-        logger.error(f"Error analyzing team: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/team-analysis/{analysis_id}")
@@ -3217,15 +3099,12 @@ async def delete_team_analysis(
         )
         
         if not deleted:
-            raise HTTPException(status_code=404, detail="Analyse non trouvée")
+            raise NotFoundError("Analyse non trouvée")
         
         return {"success": True, "message": "Analyse supprimée"}
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 
@@ -3314,17 +3193,8 @@ async def get_relationship_advice(
         raise HTTPException(status_code=400, detail=str(ve))
     except HTTPException:
         raise
-    except Exception as e:
-        logger.exception(
-            "Relationship advice failed",
-            extra={
-                "store_id": context.get('resolved_store_id') if 'context' in locals() else None,
-                "user_id": context.get('id') if 'context' in locals() else None,
-                "seller_id": request.seller_id if 'request' in locals() else None,
-                "error": str(e)
-            }
-        )
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération du conseil: {str(e)}")
+    except (HTTPException, NotFoundError, ValidationError):
+        raise
 
 
 @router.get("/relationship-history")
@@ -3372,9 +3242,6 @@ async def get_relationship_history(
             }
         }
         
-    except Exception as e:
-        logger.error(f"Error fetching relationship history: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/conflict-resolution")
@@ -3443,17 +3310,8 @@ async def create_conflict_resolution(
         raise HTTPException(status_code=400, detail=str(ve))
     except HTTPException:
         raise
-    except Exception as e:
-        logger.exception(
-            "Conflict resolution failed",
-            extra={
-                "store_id": context.get('resolved_store_id') if 'context' in locals() else None,
-                "user_id": context.get('id') if 'context' in locals() else None,
-                "seller_id": request.seller_id if 'request' in locals() else None,
-                "error": str(e)
-            }
-        )
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération: {str(e)}")
+    except (HTTPException, NotFoundError, ValidationError):
+        raise
 
 
 @router.get("/conflict-history/{seller_id}")
@@ -3488,9 +3346,6 @@ async def get_conflict_history(
             "total": len(conflicts)
         }
         
-    except Exception as e:
-        logger.error(f"Error fetching conflict history: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/relationship-consultation/{consultation_id}")
@@ -3512,15 +3367,12 @@ async def delete_relationship_consultation(
         )
         
         if not deleted:
-            raise HTTPException(status_code=404, detail="Consultation non trouvée")
+            raise NotFoundError("Consultation non trouvée")
         
         return {"success": True, "message": "Consultation supprimée"}
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 
@@ -3550,7 +3402,7 @@ async def get_seller_debriefs(
         )
         
         if not seller or seller.get("role") != "seller":
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            raise NotFoundError("Vendeur non trouvé")
         
         seller_store_id = seller.get('store_id')
         
@@ -3590,9 +3442,6 @@ async def get_seller_debriefs(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")
 
 
 @router.get("/competences-history/{seller_id}")
@@ -3619,7 +3468,7 @@ async def get_seller_competences_history(
         )
         
         if not seller or seller.get("role") != "seller":
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            raise NotFoundError("Vendeur non trouvé")
         
         seller_store_id = seller.get('store_id')
         
@@ -3681,6 +3530,3 @@ async def get_seller_competences_history(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error fetching KPI entries for seller {seller_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des KPIs: {str(e)}")

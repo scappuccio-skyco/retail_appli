@@ -2,10 +2,12 @@
 Workspace Routes
 Workspace availability check and management
 """
-from fastapi import APIRouter, Depends, HTTPException
+import random
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from api.dependencies import get_db
+from repositories.store_repository import WorkspaceRepository
 
 router = APIRouter(prefix="/workspaces", tags=["Workspaces"])
 
@@ -17,7 +19,7 @@ class WorkspaceCheckRequest(BaseModel):
 @router.post("/check-availability")
 async def check_workspace_availability(
     request: WorkspaceCheckRequest,
-    db = Depends(get_db)
+    db=Depends(get_db)
 ):
     """
     Check if a workspace name is available
@@ -36,15 +38,10 @@ async def check_workspace_availability(
             "message": "Le nom doit contenir au moins 3 caractères"
         }
     
-    # Check if workspace name already exists
-    existing = await db.workspaces.find_one(
-        {"name": {"$regex": f"^{name}$", "$options": "i"}},
-        {"_id": 0, "id": 1}
-    )
+    workspace_repo = WorkspaceRepository(db)
+    existing = await workspace_repo.find_by_name_case_insensitive(name)
     
     if existing:
-        # Generate suggestions
-        import random
         suggestions = [
             f"{name}{random.randint(1, 99)}",
             f"{name}-{random.randint(100, 999)}",

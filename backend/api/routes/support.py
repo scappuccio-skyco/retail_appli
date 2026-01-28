@@ -10,6 +10,7 @@ import logging
 from core.security import get_current_user
 from core.config import settings
 from api.dependencies import get_db
+from repositories.store_repository import WorkspaceRepository, StoreRepository
 
 router = APIRouter(prefix="/support", tags=["Support"])
 logger = logging.getLogger(__name__)
@@ -55,17 +56,13 @@ async def send_support_message(
         
         # Get store/workspace info based on role
         context_info = "N/A"
+        workspace_repo = WorkspaceRepository(db)
+        store_repo = StoreRepository(db)
         if user_role == 'gerant' or user_role == 'gérant':
-            workspace = await db.workspaces.find_one(
-                {"id": current_user.get('workspace_id')},
-                {"_id": 0, "name": 1}
-            )
+            workspace = await workspace_repo.find_by_id(current_user.get('workspace_id'))
             context_info = workspace.get('name', 'N/A') if workspace else 'N/A'
         elif store_id:
-            store = await db.stores.find_one(
-                {"id": store_id},
-                {"_id": 0, "name": 1}
-            )
+            store = await store_repo.find_by_id(store_id, None, {"_id": 0, "name": 1})
             context_info = store.get('name', 'N/A') if store else 'N/A'
         
         # Role labels

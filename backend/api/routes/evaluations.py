@@ -13,8 +13,7 @@ from services.ai_service import EvaluationGuideService
 from repositories.kpi_repository import KPIRepository
 from repositories.user_repository import UserRepository
 from repositories.diagnostic_repository import DiagnosticRepository
-from models.pagination import PaginatedResponse, PaginationParams
-from utils.pagination import paginate
+from repositories.interview_note_repository import InterviewNoteRepository
 
 router = APIRouter(
     prefix="/evaluations",
@@ -56,23 +55,12 @@ async def get_employee_stats(db, employee_id: str, start_date: str, end_date: st
     except ValueError:
         raise HTTPException(status_code=400, detail="Format de date invalide. Utilisez YYYY-MM-DD")
     
-    # ✅ MIGRÉ: Utilisation du repository avec pagination (limite à 50 pour éviter chargement massif)
     kpi_repo = KPIRepository(db)
-    kpis_result = await paginate(
-        collection=kpi_repo.collection,
-        query={
-            "seller_id": employee_id,
-            "date": {
-                "$gte": start.strftime("%Y-%m-%d"),
-                "$lte": end.strftime("%Y-%m-%d")
-            }
-        },
-        page=1,
-        size=50,  # Limite par défaut pour calculs
-        projection={"_id": 0},
-        sort=[("date", 1)]
+    kpis = await kpi_repo.find_by_date_range(
+        employee_id,
+        start.strftime("%Y-%m-%d"),
+        end.strftime("%Y-%m-%d")
     )
-    kpis = kpis_result.items
     
     if not kpis:
         return {
@@ -208,13 +196,13 @@ async def get_disc_profile(db, user_id: str) -> Optional[Dict]:
             return diagnostic
         
         # Fallback: chercher dans le profil utilisateur
-        user = await db.users.find_one(
+        user_repo = UserRepository(db)
+        user = await user_repo.find_one(
             {"id": user_id},
             {"_id": 0, "disc_profile": 1}
         )
-        
-        if user and user.get('disc_profile'):
-            return user['disc_profile']
+        if user and user.get("disc_profile"):
+            return user["disc_profile"]
         
         return None
         
@@ -275,24 +263,14 @@ async def generate_evaluation_guide(
     
     # 6. 📝 Récupérer les notes d'entretien du vendeur (si vendeur)
     interview_notes = []
-    if role_perspective == 'seller':
-        # ✅ MIGRÉ: Pagination avec limite par défaut
-        notes_result = await paginate(
-            collection=db.interview_notes,
-            query={"seller_id": request.employee_id},
-            page=1,
-            size=50,  # Limite par défaut
-            projection={"_id": 0},
-            sort=[("date", 1)]
-        )
-        notes = notes_result.items
-        
-        # Filtrer les notes dans la période
+    if role_perspective == "seller":
+        interview_note_repo = InterviewNoteRepository(db)
+        notes = await interview_note_repo.find_by_seller(request.employee_id)
         notes_in_period = [
             note for note in notes
-            if request.start_date <= note.get('date', '') <= request.end_date
+            if request.start_date <= note.get("date", "") <= request.end_date
         ]
-        interview_notes = notes_in_period
+        interview_notes = notes_in_period[:50]
     
     # 7. Générer le guide IA avec le profil DISC et les notes
     evaluation_service = EvaluationGuideService()

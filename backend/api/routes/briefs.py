@@ -14,10 +14,10 @@ from api.dependencies_rate_limiting import get_rate_limiter
 from core.security import get_current_user, require_active_space, verify_store_ownership
 from services.ai_service import AIService
 from repositories.store_repository import StoreRepository
-from repositories.kpi_repository import KPIRepository
+from repositories.kpi_repository import KPIRepository, StoreKPIRepository
 from repositories.user_repository import UserRepository
+from repositories.morning_brief_repository import MorningBriefRepository
 from models.pagination import PaginatedResponse, PaginationParams
-from utils.pagination import paginate
 
 # Rate limiter instance (will be set from app.state in main.py)
 limiter = get_rate_limiter()
@@ -349,23 +349,15 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
     
     try:
         # Chercher le dernier jour avec des données de vente (dans les 30 derniers jours)
+        store_kpi_repo = StoreKPIRepository(db)
+        kpi_repo = KPIRepository(db)
         last_data_date = None
         for days_back in range(1, 31):  # De hier jusqu'à 30 jours en arrière
             check_date = today - timedelta(days=days_back)
             check_date_str = check_date.strftime("%Y-%m-%d")
             
-            # ✅ MIGRÉ: Utilisation du repository
-            kpi_repo = KPIRepository(db)
-            
-            # Vérifier si des KPIs existent pour ce jour avec du CA > 0
-            # Note: collection 'kpis' n'a pas de repository, on garde l'accès direct pour l'instant
-            kpi_check = await db.kpis.find_one({
-                "store_id": store_id,
-                "date": check_date_str,
-                "ca": {"$gt": 0}
-            }, {"_id": 0, "date": 1})
-            
-            # Si pas dans kpis, vérifier kpi_entries (vendeurs)
+            # Vérifier si des KPIs existent pour ce jour avec du CA > 0 (store kpis legacy puis kpi_entries)
+            kpi_check = await store_kpi_repo.find_one_with_ca(store_id, check_date_str)
             if not kpi_check:
                 kpi_check = await kpi_repo.find_one({
                     "store_id": store_id,
@@ -383,32 +375,12 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         
         stats["data_date"] = last_data_date
         
-        # ✅ MIGRÉ: Utilisation du repository avec pagination
-        kpi_repo = KPIRepository(db)
-        
-        # Récupérer les KPIs du dernier jour avec données
-        # D'abord essayer la collection kpis (données magasin) - pas de repository pour kpis
-        kpis_yesterday_result = await paginate(
-            collection=db.kpis,
-            query={"store_id": store_id, "date": last_data_date},
-            page=1,
-            size=50,  # Limite par défaut
-            projection={"_id": 0},
-            sort=None
+        # Récupérer les KPIs du dernier jour : d'abord store kpis (legacy), sinon kpi_entries
+        kpis_yesterday = await store_kpi_repo.find_many_for_store(
+            store_id, date=last_data_date, limit=50
         )
-        kpis_yesterday = kpis_yesterday_result.items
-        
-        # Si pas de données dans kpis, chercher dans kpi_entries (données vendeurs)
         if not kpis_yesterday:
-            kpi_entries_result = await paginate(
-                collection=kpi_repo.collection,
-                query={"store_id": store_id, "date": last_data_date},
-                page=1,
-                size=50,  # Limite par défaut
-                projection={"_id": 0},
-                sort=None
-            )
-            kpi_entries = kpi_entries_result.items
+            kpi_entries = await kpi_repo.find_by_store(store_id, last_data_date)
             
             if kpi_entries:
                 # Adapter les champs de kpi_entries vers le format attendu
@@ -471,10 +443,8 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
                     if top_seller:
                         stats["top_seller_yesterday"] = f"{top_seller.get('name')} ({top_kpi.get('ca', 0):,.0f}€)"
         
-        # ✅ MIGRÉ: Utilisation du repository
         store_obj = await store_repo.find_by_id(
-            store_id,
-            {"_id": 0, "objective_daily": 1, "objective_weekly": 1}
+            store_id, None, {"_id": 0, "objective_daily": 1, "objective_weekly": 1}
         )
         
         if store_obj:
@@ -500,36 +470,20 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         if kpi_week_result:
             stats["ca_week"] = kpi_week_result[0].get("total_ca", 0) or 0
         else:
-            # Fallback: chercher dans kpis (collection legacy)
-            kpis_week_result = await paginate(
-                collection=db.kpis,
-                query={
-                    "store_id": store_id,
-                    "date": {"$gte": week_start_str, "$lte": last_data_date}
-                },
-                page=1,
-                size=50,  # Limite par défaut
-                projection={"_id": 0, "ca": 1},
-                sort=None
+            kpis_week = await store_kpi_repo.find_many_for_store(
+                store_id,
+                date_range={"$gte": week_start_str, "$lte": last_data_date},
+                limit=500,
+                projection={"_id": 0, "ca": 1}
             )
-            if kpis_week_result.items:
-                stats["ca_week"] = sum(k.get("ca", 0) or 0 for k in kpis_week_result.items)
+            if kpis_week:
+                stats["ca_week"] = sum(k.get("ca", 0) or 0 for k in kpis_week)
         
-        # ✅ MIGRÉ: Utilisation du repository pour équipe
         user_repo = UserRepository(db)
-        sellers_result = await paginate(
-            collection=user_repo.collection,
-            query={
-                "store_id": store_id,
-                "role": "seller",
-                "status": "active"
-            },
-            page=1,
-            size=50,  # Limite par défaut
-            projection={"_id": 0, "name": 1},
-            sort=None
+        sellers = await user_repo.find_by_store(
+            store_id, role="seller", status="active",
+            projection={"_id": 0, "name": 1}, limit=50
         )
-        sellers = sellers_result.items
         
         if sellers:
             names = [s.get("name", "").split()[0] for s in sellers[:5]]  # Prénoms des 5 premiers
@@ -593,24 +547,16 @@ async def get_morning_briefs_history(
             raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
     
     try:
-        # ✅ MIGRÉ: Utilisation du repository avec pagination
         brief_repo = MorningBriefRepository(db)
-        briefs_result = await paginate(
-            collection=brief_repo.collection,
-            query={"store_id": effective_store_id},
-            page=1,
-            size=30,  # Limite par défaut
-            projection={"_id": 0},
-            sort=[("generated_at", -1)]
-        )
-        
+        briefs = await brief_repo.find_by_store(effective_store_id, limit=30, sort=[("generated_at", -1)])
+        total = await brief_repo.count_by_store(effective_store_id)
         return {
-            "briefs": briefs_result.items,
-            "total": briefs_result.total,
+            "briefs": briefs,
+            "total": total,
             "pagination": {
-                "page": briefs_result.page,
-                "size": briefs_result.size,
-                "pages": briefs_result.pages
+                "page": 1,
+                "size": 30,
+                "pages": (total + 29) // 30 if total else 0
             }
         }
         

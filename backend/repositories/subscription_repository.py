@@ -54,6 +54,22 @@ class SubscriptionRepository(BaseRepository):
             {"stripe_subscription_id": stripe_subscription_id},
             {"$set": update_data}
         )
+
+    async def upsert_by_stripe_subscription(
+        self, stripe_subscription_id: str, update_data: Dict
+    ) -> bool:
+        """Upsert subscription by Stripe subscription ID (for webhooks)."""
+        return await self.update_one(
+            {"stripe_subscription_id": stripe_subscription_id},
+            {"$set": update_data},
+            upsert=True,
+        )
+
+    async def find_many_with_query(
+        self, query: Dict, projection: Optional[Dict] = None, limit: int = 100, sort=None
+    ) -> List[Dict]:
+        """Find subscriptions matching query (for duplicate detection)."""
+        return await self.find_many(query, projection or {"_id": 0}, limit, 0, sort)
     
     async def update_by_workspace(self, workspace_id: str, update_data: Dict) -> bool:
         """Update subscription by workspace ID"""

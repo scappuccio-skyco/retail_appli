@@ -15,18 +15,23 @@ from core.security import (
 )
 from repositories.user_repository import UserRepository
 from repositories.store_repository import WorkspaceRepository
+from repositories.gerant_invitation_repository import GerantInvitationRepository
+from repositories.invitation_repository import InvitationRepository
+from repositories.password_reset_repository import PasswordResetRepository
 from exceptions.custom_exceptions import UnauthorizedError, ValidationError
 
 logger = logging.getLogger(__name__)
 
 
 class AuthService:
-    """Service for authentication operations"""
-    
+    """Service for authentication operations (Phase 12: repositories only, no self.db)."""
+
     def __init__(self, db):
         self.user_repo = UserRepository(db)
         self.workspace_repo = WorkspaceRepository(db)
-        self.db = db
+        self.gerant_invitation_repo = GerantInvitationRepository(db)
+        self.invitation_repo = InvitationRepository(db)
+        self.password_reset_repo = PasswordResetRepository(db)
     
     async def login(self, email: str, password: str) -> Dict:
         """
@@ -104,12 +109,7 @@ class AuthService:
         workspace_id = gerant.get('workspace_id')
         if not workspace_id:
             return {"status": "no_workspace", "is_read_only": True}
-        
-        workspace = await self.db.workspaces.find_one(
-            {"id": workspace_id},
-            {"_id": 0}
-        )
-        
+        workspace = await self.workspace_repo.find_by_id(workspace_id)
         if not workspace:
             return {"status": "workspace_not_found", "is_read_only": True}
         
@@ -244,18 +244,12 @@ class AuthService:
             Exception: If invitation invalid or expired
         """
         # Find invitation in gerant_invitations first
-        invitation = await self.db.gerant_invitations.find_one(
-            {"token": invitation_token},
-            {"_id": 0}
-        )
+        invitation = await self.gerant_invitation_repo.find_by_token(invitation_token, projection={"_id": 0})
         invitation_collection = "gerant_invitations"
         
         # Fallback to old invitations collection
         if not invitation:
-            invitation = await self.db.invitations.find_one(
-                {"token": invitation_token},
-                {"_id": 0}
-            )
+            invitation = await self.invitation_repo.find_by_token(invitation_token, projection={"_id": 0})
             invitation_collection = "invitations"
         
         if not invitation:
@@ -288,10 +282,9 @@ class AuthService:
         # Remove MongoDB _id if present (added by insert_one)
         user.pop('_id', None)
         
-        # If this is a manager, automatically reassign orphan sellers (without manager_id) in the same store
         if invitation['role'] == 'manager' and user.get('store_id'):
             from datetime import datetime, timezone
-            orphan_sellers_result = await self.db.users.update_many(
+            modified = await self.user_repo.update_many(
                 {
                     "role": "seller",
                     "store_id": user.get('store_id'),
@@ -301,24 +294,19 @@ class AuthService:
                     ],
                     "status": {"$ne": "deleted"}
                 },
-                {
-                    "$set": {
-                        "manager_id": user_id,
-                        "updated_at": datetime.now(timezone.utc).isoformat()
-                    }
-                }
+                {"$set": {"manager_id": user_id, "updated_at": datetime.now(timezone.utc).isoformat()}}
             )
-            if orphan_sellers_result.modified_count > 0:
+            if modified > 0:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.info(f"Auto-assigned {orphan_sellers_result.modified_count} orphan seller(s) to new manager {email}")
+                logger.info(f"Auto-assigned {modified} orphan seller(s) to new manager {email}")
         
         # Mark invitation as used in the correct collection
-        collection = self.db.gerant_invitations if invitation_collection == "gerant_invitations" else self.db.invitations
-        await collection.update_one(
-            {"token": invitation_token},
-            {"$set": {"status": "accepted", "used_at": datetime.now(timezone.utc).isoformat()}}
-        )
+        update_data = {"status": "accepted", "used_at": datetime.now(timezone.utc).isoformat()}
+        if invitation_collection == "gerant_invitations":
+            await self.gerant_invitation_repo.update_by_token(invitation_token, update_data)
+        else:
+            await self.invitation_repo.update_by_token(invitation_token, update_data)
         
         # Generate token
         token = create_token(user_id, email, invitation['role'])
@@ -349,16 +337,14 @@ class AuthService:
         # Generate reset token
         reset_token = secrets.token_urlsafe(32)
         
-        # Save token to database (CRITICAL: All dates in UTC ISO format for consistency)
         now_utc = datetime.now(timezone.utc)
-        expires_at_utc = now_utc + timedelta(minutes=15)  # 15 minutes expiration for security
-        
-        await self.db.password_resets.insert_one({
-            "email": email,
-            "token": reset_token,
-            "created_at": now_utc.isoformat(),
-            "expires_at": expires_at_utc.isoformat()  # 15 minutes from now
-        })
+        expires_at_utc = now_utc + timedelta(minutes=15)
+        await self.password_reset_repo.create_reset(
+            email=email,
+            token=reset_token,
+            created_at=now_utc.isoformat(),
+            expires_at=expires_at_utc.isoformat(),
+        )
         
         # CRITICAL: Send password reset email
         logger.info(f"🔄 Début de l'envoi de l'email de réinitialisation pour {email}")
@@ -396,10 +382,7 @@ class AuthService:
             Exception: If token invalid or expired
         """
         # Find reset token
-        reset = await self.db.password_resets.find_one(
-            {"token": token},
-            {"_id": 0}
-        )
+        reset = await self.password_reset_repo.find_by_token(token)
         
         if not reset:
             raise Exception("Token invalide ou expiré")
@@ -417,8 +400,79 @@ class AuthService:
             {"email": reset['email']},
             {"$set": {"password": hashed_password}}
         )
+        # Invalidation cache (contexte métier : user modifié)
+        from core.cache import invalidate_user_cache
+        user = await self.user_repo.find_one({"email": reset['email']}, {"id": 1})
+        if user and user.get("id"):
+            await invalidate_user_cache(str(user["id"]))
         
-        # Delete used token
-        await self.db.password_resets.delete_one({"token": token})
-        
+        await self.password_reset_repo.delete_by_token(token)
         return True
+
+    async def verify_invitation_token(self, token: str) -> Dict:
+        """
+        Verify invitation token and return invitation details (Phase 10: no db in auth routes).
+        Raises Exception if invalid/expired/already used.
+        """
+        invitation = await self.gerant_invitation_repo.find_by_token(token, projection={"_id": 0})
+        if not invitation:
+            invitation = await self.invitation_repo.find_by_token(token, projection={"_id": 0})
+        if not invitation:
+            raise ValueError("Invitation non trouvée ou expirée")
+        if invitation.get("status") == "accepted":
+            raise ValueError("Cette invitation a déjà été utilisée")
+        if invitation.get("status") == "expired":
+            raise ValueError("Cette invitation a expiré")
+        return {
+            "valid": True,
+            "email": invitation.get("email"),
+            "role": invitation.get("role", "seller"),
+            "store_name": invitation.get("store_name"),
+            "gerant_name": invitation.get("gerant_name"),
+            "manager_name": invitation.get("manager_name"),
+            "name": invitation.get("name", ""),
+            "gerant_id": invitation.get("gerant_id"),
+            "store_id": invitation.get("store_id"),
+            "manager_id": invitation.get("manager_id"),
+        }
+
+    async def verify_reset_token(self, token: str) -> Dict:
+        """
+        Verify reset password token (Phase 10: no db in auth routes).
+        Returns dict with valid and email if valid. Uses password_resets collection internally.
+        """
+        reset_entry = await self.password_reset_repo.find_by_token(token)
+        if not reset_entry:
+            raise ValueError("Lien invalide ou expiré")
+        created_at = reset_entry.get("created_at")
+        if created_at:
+            if isinstance(created_at, str):
+                try:
+                    from dateutil import parser
+                    created_at = parser.parse(created_at)
+                except Exception:
+                    created_at = None
+            if created_at:
+                now = datetime.now(timezone.utc)
+                if getattr(created_at, "tzinfo", None) is None:
+                    created_at = created_at.replace(tzinfo=timezone.utc)
+                age_seconds = (now - created_at).total_seconds()
+                if age_seconds > 600:
+                    raise ValueError("Ce lien a expiré. Veuillez demander un nouveau lien.")
+        if reset_entry.get("used"):
+            raise ValueError("Ce lien a déjà été utilisé")
+        return {"valid": True, "email": reset_entry.get("email", "")}
+
+    async def get_me_enriched(self, current_user: Dict) -> Dict:
+        """Add manager_name to current_user if seller (Phase 10: no db in auth routes)."""
+        if current_user.get("role") == "seller" and current_user.get("manager_id"):
+            try:
+                manager = await self.user_repo.find_one(
+                    {"id": current_user["manager_id"]},
+                    projection={"_id": 0, "name": 1},
+                )
+                if manager and manager.get("name"):
+                    current_user = {**current_user, "manager_name": manager["name"]}
+            except Exception:
+                pass
+        return current_user

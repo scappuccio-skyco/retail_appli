@@ -2,7 +2,7 @@
 Gérant Service
 Business logic for gérant dashboard, subscription, and workspace management
 """
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 from datetime import datetime, timezone, timedelta
 import logging
 import os
@@ -110,6 +110,8 @@ class GerantService:
                             "updated_at": datetime.now(timezone.utc).isoformat()
                         }
                     )
+                    from core.cache import invalidate_workspace_cache
+                    await invalidate_workspace_cache(workspace_id)
                     raise HTTPException(
                         status_code=403, 
                         detail="Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
@@ -170,27 +172,33 @@ class GerantService:
             elif inv.get("role") == "seller":
                 pending_by_store[sid]["pending_sellers"] += 1
         
-        # Enrich stores with staff counts
+        # PHASE 4: One aggregation instead of 2*N counts (N+1 optimization)
+        store_ids = [s.get("id") for s in stores if s.get("id")]
+        staff_by_store = {}
+        if store_ids:
+            pipeline = [
+                {"$match": {
+                    "store_id": {"$in": store_ids},
+                    "status": {"$in": ["active", "Active"]}
+                }},
+                {"$group": {
+                    "_id": "$store_id",
+                    "manager_count": {"$sum": {"$cond": [{"$eq": ["$role", "manager"]}, 1, 0]}},
+                    "seller_count": {"$sum": {"$cond": [{"$eq": ["$role", "seller"]}, 1, 0]}}
+                }}
+            ]
+            agg_result = await self.user_repo.aggregate(pipeline, max_results=len(store_ids) + 1)
+            staff_by_store = {
+                r["_id"]: {"manager_count": r.get("manager_count", 0), "seller_count": r.get("seller_count", 0)}
+                for r in agg_result
+            }
+        
+        # Enrich stores with staff counts (from single aggregation + pending)
         for store in stores:
             store_id = store.get('id')
-            
-            # Count active managers in this store
-            manager_count = await self.user_repo.count({
-                "store_id": store_id,
-                "role": "manager",
-                "status": {"$in": ["active", "Active"]}
-            })
-            
-            # Count active sellers in this store
-            seller_count = await self.user_repo.count({
-                "store_id": store_id,
-                "role": "seller",
-                "status": {"$in": ["active", "Active"]}
-            })
-            
-            store['manager_count'] = manager_count
-            store['seller_count'] = seller_count
-            
+            counts = staff_by_store.get(store_id, {"manager_count": 0, "seller_count": 0})
+            store['manager_count'] = counts["manager_count"]
+            store['seller_count'] = counts["seller_count"]
             sid_counts = pending_by_store.get(store_id, {"pending_managers": 0, "pending_sellers": 0})
             store['pending_manager_count'] = sid_counts["pending_managers"]
             store['pending_seller_count'] = sid_counts["pending_sellers"]
@@ -255,8 +263,16 @@ class GerantService:
                 "deleted_by": gerant_id
             }
         )
+        from core.cache import invalidate_store_cache, invalidate_user_cache
+        await invalidate_store_cache(store_id)
         
         # Suspend all staff in this store
+        affected_users = await self.user_repo.find_many(
+            {"store_id": store_id, "status": "active"},
+            {"id": 1},
+            limit=2000,
+            allow_over_limit=True
+        )
         await self.user_repo.update_many(
             {"store_id": store_id, "status": "active"},
             {
@@ -265,6 +281,9 @@ class GerantService:
                 "suspended_at": datetime.now(timezone.utc).isoformat()
             }
         )
+        for u in affected_users:
+            if u.get("id"):
+                await invalidate_user_cache(str(u["id"]))
         
         return {"message": "Magasin supprimé avec succès"}
     
@@ -330,6 +349,8 @@ class GerantService:
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
         )
+        from core.cache import invalidate_user_cache
+        await invalidate_user_cache(manager_id)
         
         return {
             "message": f"Manager transféré vers {new_store.get('name')}",
@@ -1297,6 +1318,8 @@ class GerantService:
             {"id": seller_id},
             update_operation
         )
+        from core.cache import invalidate_user_cache
+        await invalidate_user_cache(seller_id)
         
         # ⭐ IMPORTANT: Update all existing KPI entries for this seller with the new store_id
         # This ensures that when the seller returns to their original store, their KPI data is still accessible
@@ -2146,6 +2169,8 @@ class GerantService:
         }
         unset_data = {"suspended_at": "", "suspended_by": "", "suspended_reason": ""}
         await self.user_repo.update_with_unset({"id": user_id}, set_data, unset_data)
+        from core.cache import invalidate_user_cache
+        await invalidate_user_cache(user_id)
         
         return {"message": f"{role.capitalize()} réactivé avec succès"}
     
@@ -2184,6 +2209,8 @@ class GerantService:
                 "deleted_by": gerant_id
             }
         )
+        from core.cache import invalidate_user_cache
+        await invalidate_user_cache(user_id)
         
         return {"message": f"{role.capitalize()} supprimé avec succès"}
 

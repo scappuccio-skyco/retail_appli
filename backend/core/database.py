@@ -2,18 +2,14 @@
 Database connection management using Motor (async MongoDB driver)
 Implements singleton pattern with dependency injection support
 """
-import sys
-print("[DATABASE_MODULE] Loading database module...", flush=True)
+import logging
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from typing import Optional
-import logging
 
-print("[DATABASE_MODULE] Importing settings...", flush=True)
 from core.config import settings
 
 logger = logging.getLogger(__name__)
-print("[DATABASE_MODULE] Database module loaded", flush=True)
 
 
 class Database:
@@ -38,8 +34,7 @@ class Database:
         
         try:
             logger.info("Establishing MongoDB connection...")
-            print("[DATABASE] Connecting to MongoDB...", flush=True)
-            
+
             # ✅ PRODUCTION-READY: Optimized connection settings (Phase 4)
             # Uses configurable values from Settings (defaults: maxPoolSize=50, timeouts optimized)
             self.client = AsyncIOMotorClient(
@@ -53,17 +48,14 @@ class Database:
                 retryReads=True
             )
             self.db = self.client[settings.DB_NAME]
-            
-            print("[DATABASE] Pinging database...", flush=True)
-            # Force connection with ping
+
+            logger.debug("Pinging database...")
             await self.db.command('ping')
-            
+
             self._initialized = True
-            print(f"[DATABASE] ✅ Connected to {settings.DB_NAME}", flush=True)
-            logger.info(f"✅ MongoDB connection established successfully (DB: {settings.DB_NAME})")
+            logger.info("MongoDB connection established successfully (DB: %s)", settings.DB_NAME)
         except Exception as e:
-            print(f"[DATABASE] ❌ Connection failed: {e}", flush=True)
-            logger.error(f"❌ MongoDB connection failed: {e}")
+            logger.error("MongoDB connection failed: %s", e)
             raise
     
     async def disconnect(self):

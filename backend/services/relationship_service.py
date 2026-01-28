@@ -1,9 +1,6 @@
 """
 Relationship & Conflict Advice Service
-Centralized service for generating AI-powered relationship and conflict management advice.
-Used by both manager and seller routes.
-
-✅ ÉTAPE B : Découplage - AIService injecté via constructeur
+Phase 12: repositories only (no direct db in services).
 """
 from typing import Dict, List, Optional
 from datetime import datetime, timezone, timedelta
@@ -11,27 +8,29 @@ from uuid import uuid4
 import json
 import logging
 
+from repositories.user_repository import UserRepository
+from repositories.manager_diagnostic_results_repository import ManagerDiagnosticResultsRepository
+from repositories.diagnostic_repository import DiagnosticRepository
+from repositories.kpi_repository import KPIRepository
+from repositories.debrief_repository import DebriefRepository
+from repositories.relationship_consultation_repository import RelationshipConsultationRepository
+
 logger = logging.getLogger(__name__)
 
 
 class RelationshipService:
-    """Service for relationship and conflict advice generation"""
-    
+    """Service for relationship advice generation (repositories only)."""
+
     def __init__(self, db, ai_service=None):
-        """
-        Initialize RelationshipService with injected AIService
-        
-        ✅ ÉTAPE B : Injection de dépendance pour découplage
-        
-        Args:
-            db: Database connection
-            ai_service: AIService instance (injected, optional for backward compatibility)
-        """
-        self.db = db
-        # ✅ ÉTAPE B : Injection de dépendance (fallback pour compatibilité)
+        self.user_repo = UserRepository(db)
+        self.manager_diagnostic_results_repo = ManagerDiagnosticResultsRepository(db)
+        self.diagnostic_repo = DiagnosticRepository(db)
+        self.kpi_repo = KPIRepository(db)
+        self.debrief_repo = DebriefRepository(db)
+        self.relationship_consultation_repo = RelationshipConsultationRepository(db)
         if ai_service is None:
             from services.ai_service import AIService
-            self.ai_service = AIService()
+            self.ai_service = AIService(db)
         else:
             self.ai_service = ai_service
     
@@ -63,56 +62,34 @@ class RelationshipService:
             Dict with recommendation and consultation data
         """
         try:
-            # Get seller info
             seller_query = {"id": seller_id}
             if store_id:
                 seller_query["store_id"] = store_id
-            
-            seller = await self.db.users.find_one(
-                seller_query,
-                {"_id": 0, "password": 0}
-            )
+            seller = await self.user_repo.find_one(seller_query, {"_id": 0, "password": 0})
             if not seller:
                 raise ValueError("Vendeur non trouvé")
-            
-            # For seller requests, get their manager
             if is_seller_request:
-                manager_id = seller.get('manager_id')
+                manager_id = seller.get("manager_id")
                 if not manager_id:
                     raise ValueError("Vendeur sans manager associé")
-            
-            # Get manager profile (if manager_id provided)
             manager_diagnostic = None
             if manager_id:
-                manager_diagnostic = await self.db.manager_diagnostic_results.find_one(
-                    {"manager_id": manager_id},
-                    {"_id": 0}
-                )
-            
-            # Get seller profile
-            seller_diagnostic = await self.db.diagnostics.find_one(
-                {"seller_id": seller_id},
-                {"_id": 0}
+                manager_diagnostic = await self.manager_diagnostic_results_repo.find_by_manager(manager_id)
+            seller_diagnostic = await self.diagnostic_repo.find_by_seller(seller_id)
+            if seller_diagnostic is None:
+                seller_diagnostic = {}
+            thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
+            today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            kpi_entries = await self.kpi_repo.find_by_date_range(seller_id, thirty_days_ago, today_str)
+            if len(kpi_entries) > 100:
+                kpi_entries = kpi_entries[:100]
+            recent_debriefs = await self.debrief_repo.find_many(
+                {"seller_id": seller_id, "shared_with_manager": True},
+                {"_id": 0},
+                5,
+                0,
+                [("created_at", -1)],
             )
-            
-            # Get seller KPIs (last 30 days)
-            thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).strftime('%Y-%m-%d')
-            kpi_entries = await self.db.kpi_entries.find(
-                {
-                    "seller_id": seller_id,
-                    "date": {"$gte": thirty_days_ago}
-                },
-                {"_id": 0}
-            ).to_list(100)
-            
-            # Get recent shared debriefs (last 5)
-            recent_debriefs = await self.db.debriefs.find(
-                {
-                    "seller_id": seller_id,
-                    "shared_with_manager": True
-                },
-                {"_id": 0}
-            ).sort("created_at", -1).limit(5).to_list(5)
             
             # Prepare data summary for AI
             kpi_summary = f"KPIs sur les 30 derniers jours : {len(kpi_entries)} entrées"
@@ -286,7 +263,7 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications th�
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
             
-            await self.db.relationship_consultations.insert_one(consultation)
+            await self.relationship_consultation_repo.create_consultation(consultation)
             return consultation_id
             
         except Exception as e:
@@ -325,11 +302,9 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications th�
             if advice_type:
                 query["advice_type"] = advice_type
             
-            consultations = await self.db.relationship_consultations.find(
-                query,
-                {"_id": 0}
-            ).sort("created_at", -1).limit(limit).to_list(limit)
-            
+            consultations = await self.relationship_consultation_repo.find_many_by_filters(
+                query, limit=limit
+            )
             return consultations
             
         except Exception as e:

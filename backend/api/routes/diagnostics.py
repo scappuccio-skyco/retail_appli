@@ -1,6 +1,6 @@
 """
-Diagnostic Routes
-Manager DISC diagnostic profiles
+Diagnostic Routes - Manager DISC diagnostic profiles.
+Phase 10 RC6: No direct db access - DiagnosticRepository, ManagerDiagnosticRepository, UserRepository.
 """
 import json
 from uuid import uuid4
@@ -8,15 +8,15 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 from pydantic import BaseModel
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
-from fastapi import Request
-
-from core.security import get_current_user, require_active_space
-from services.manager_service import DiagnosticService
-from api.dependencies import get_diagnostic_service, get_db
+from core.security import require_active_space
+from api.dependencies import get_db
 from services.ai_service import AIService
 from api.routes.manager import get_store_context, verify_manager_or_gerant
+from repositories.diagnostic_repository import DiagnosticRepository
+from repositories.manager_diagnostic_repository import ManagerDiagnosticRepository
+from repositories.user_repository import UserRepository
 
 router = APIRouter(
     prefix="/manager-diagnostic",
@@ -114,52 +114,39 @@ Ton style doit être positif, professionnel et orienté action. Pas de jargon RH
 async def create_manager_diagnostic(
     diagnostic_data: ManagerDiagnosticCreate,
     current_user: dict = Depends(verify_manager_or_gerant),
-    db = Depends(get_db)
+    db=Depends(get_db),
 ):
     """
-    Create or update manager DISC diagnostic profile
-    
-    Analyzes responses with AI to determine management style
+    Create or update manager DISC diagnostic profile.
+    Phase 10: Uses ManagerDiagnosticRepository only (no db.*).
     """
     try:
-        # Check if diagnostic already exists - if yes, delete it to allow update
-        existing = await db.manager_diagnostics.find_one(
-            {"manager_id": current_user['id']},
-            {"_id": 0}
-        )
+        manager_diag_repo = ManagerDiagnosticRepository(db)
+        existing = await manager_diag_repo.find_latest_by_manager(current_user["id"])
         if existing:
-            await db.manager_diagnostics.delete_one({"manager_id": current_user['id']})
-        
-        # Analyze with AI
+            await manager_diag_repo.delete_one({"manager_id": current_user["id"]})
+
         ai_analysis = await analyze_manager_diagnostic_with_ai(diagnostic_data.responses)
-        
-        # Create diagnostic document
+
         diagnostic_doc = {
             "id": str(uuid4()),
-            "manager_id": current_user['id'],
+            "manager_id": current_user["id"],
             "responses": diagnostic_data.responses,
-            "profil_nom": ai_analysis.get('profil_nom', 'Le Coach'),
-            "profil_description": ai_analysis.get('profil_description', ''),
-            "force_1": ai_analysis.get('force_1', ''),
-            "force_2": ai_analysis.get('force_2', ''),
-            "axe_progression": ai_analysis.get('axe_progression', ''),
-            "recommandation": ai_analysis.get('recommandation', ''),
-            "exemple_concret": ai_analysis.get('exemple_concret', ''),
+            "profil_nom": ai_analysis.get("profil_nom", "Le Coach"),
+            "profil_description": ai_analysis.get("profil_description", ""),
+            "force_1": ai_analysis.get("force_1", ""),
+            "force_2": ai_analysis.get("force_2", ""),
+            "axe_progression": ai_analysis.get("axe_progression", ""),
+            "recommandation": ai_analysis.get("recommandation", ""),
+            "exemple_concret": ai_analysis.get("exemple_concret", ""),
             "completed": True,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
-        
-        await db.manager_diagnostics.insert_one(diagnostic_doc)
-        
-        # Remove _id before returning
-        diagnostic_doc.pop('_id', None)
-        
-        # Return in format expected by frontend
-        return {
-            "status": "completed",
-            "diagnostic": diagnostic_doc
-        }
-        
+
+        await manager_diag_repo.create_diagnostic(diagnostic_doc, current_user["id"])
+        diagnostic_doc.pop("_id", None)
+
+        return {"status": "completed", "diagnostic": diagnostic_doc}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating diagnostic: {str(e)}")
 
@@ -167,31 +154,24 @@ async def create_manager_diagnostic(
 @router.get("/me")
 async def get_my_diagnostic(
     current_user: dict = Depends(verify_manager_or_gerant),
-    db = Depends(get_db)
+    db=Depends(get_db),
 ):
     """
-    Get current user's DISC diagnostic profile
-    
-    Returns manager's/gérant's personality profile (DISC method)
+    Get current user's DISC diagnostic profile (Phase 10: ManagerDiagnosticRepository).
     """
     try:
-        diagnostic = await db.manager_diagnostics.find_one(
-            {"manager_id": current_user['id']},
-            {"_id": 0}
+        manager_diag_repo = ManagerDiagnosticRepository(db)
+        diagnostic = await manager_diag_repo.find_latest_by_manager(
+            current_user["id"], projection={"_id": 0}
         )
-        
         if not diagnostic:
             return {
                 "status": "not_completed",
-                "manager_id": current_user['id'],
+                "manager_id": current_user["id"],
                 "completed": False,
-                "message": "Diagnostic not completed yet"
+                "message": "Diagnostic not completed yet",
             }
-        
-        return {
-            "status": "completed",
-            "diagnostic": diagnostic
-        }
+        return {"status": "completed", "diagnostic": diagnostic}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -202,31 +182,32 @@ async def get_seller_diagnostic_for_manager(
     seller_id: str,
     request: Request,
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    db=Depends(get_db),
 ):
     """
-    Get a seller's diagnostic (for manager/gérant viewing seller details)
+    Get a seller's diagnostic (Phase 10: UserRepository + DiagnosticRepository only).
     """
     try:
-        resolved_store_id = context.get('resolved_store_id')
-        current_user = context
-        
-        # Verify seller exists and belongs to the store
-        seller = await db.users.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
+        resolved_store_id = context.get("resolved_store_id")
+        user_repo = UserRepository(db)
+        diagnostic_repo = DiagnosticRepository(db)
+
+        seller = await user_repo.find_one(
+            {"id": seller_id, "role": "seller"},
+            projection={"_id": 0},
+        )
         if not seller:
             return None
-        
-        # Verify seller belongs to the resolved store_id
-        if resolved_store_id and seller.get('store_id') != resolved_store_id:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé ou n'appartient pas à ce magasin")
-        
-        diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
-        
+        if resolved_store_id and seller.get("store_id") != resolved_store_id:
+            raise HTTPException(
+                status_code=404,
+                detail="Vendeur non trouvé ou n'appartient pas à ce magasin",
+            )
+
+        diagnostic = await diagnostic_repo.find_by_seller(seller_id)
         if not diagnostic:
             return None
-        
         return diagnostic
-        
     except HTTPException:
         raise
     except Exception as e:

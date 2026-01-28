@@ -1,9 +1,6 @@
 """
 Conflict Resolution Service
-Centralized service for generating AI-powered conflict resolution advice.
-Used by both manager and seller routes.
-
-✅ ÉTAPE B : Découplage - AIService injecté via constructeur
+Phase 12: repositories only (no direct db in services).
 """
 from typing import Dict, List, Optional
 from datetime import datetime, timezone
@@ -11,27 +8,25 @@ from uuid import uuid4
 import json
 import logging
 
+from repositories.user_repository import UserRepository
+from repositories.manager_diagnostic_results_repository import ManagerDiagnosticResultsRepository
+from repositories.diagnostic_repository import DiagnosticRepository
+from repositories.conflict_consultation_repository import ConflictConsultationRepository
+
 logger = logging.getLogger(__name__)
 
 
 class ConflictService:
-    """Service for conflict resolution advice generation"""
-    
+    """Service for conflict resolution advice (repositories only)."""
+
     def __init__(self, db, ai_service=None):
-        """
-        Initialize ConflictService with injected AIService
-        
-        ✅ ÉTAPE B : Injection de dépendance pour découplage
-        
-        Args:
-            db: Database connection
-            ai_service: AIService instance (injected, optional for backward compatibility)
-        """
-        self.db = db
-        # ✅ ÉTAPE B : Injection de dépendance (fallback pour compatibilité)
+        self.user_repo = UserRepository(db)
+        self.manager_diagnostic_results_repo = ManagerDiagnosticResultsRepository(db)
+        self.diagnostic_repo = DiagnosticRepository(db)
+        self.conflict_consultation_repo = ConflictConsultationRepository(db)
         if ai_service is None:
             from services.ai_service import AIService
-            self.ai_service = AIService()
+            self.ai_service = AIService(db)
         else:
             self.ai_service = ai_service
     
@@ -72,7 +67,7 @@ class ConflictService:
             if store_id:
                 seller_query["store_id"] = store_id
             
-            seller = await self.db.users.find_one(
+            seller = await self.user_repo.find_one(
                 seller_query,
                 {"_id": 0, "password": 0}
             )
@@ -88,15 +83,9 @@ class ConflictService:
             # Get profiles
             manager_diagnostic = None
             if manager_id:
-                manager_diagnostic = await self.db.manager_diagnostic_results.find_one(
-                    {"manager_id": manager_id},
-                    {"_id": 0}
-                )
+                manager_diagnostic = await self.manager_diagnostic_results_repo.find_by_manager(manager_id)
             
-            seller_diagnostic = await self.db.diagnostics.find_one(
-                {"seller_id": seller_id},
-                {"_id": 0}
-            )
+            seller_diagnostic = await self.diagnostic_repo.find_by_seller(seller_id)
             
             # Build AI prompt
             if is_seller_request:
@@ -290,10 +279,9 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE."""
             conflict = {
                 "id": conflict_id,
                 **conflict_data,
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
-            
-            await self.db.conflict_consultations.insert_one(conflict)
+            await self.conflict_consultation_repo.create_consultation(conflict)
             return conflict_id
             
         except Exception as e:
@@ -328,11 +316,7 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE."""
             if store_id:
                 query["store_id"] = store_id
             
-            conflicts = await self.db.conflict_consultations.find(
-                query,
-                {"_id": 0}
-            ).sort("created_at", -1).limit(limit).to_list(limit)
-            
+            conflicts = await self.conflict_consultation_repo.find_many_by_filters(query, limit=limit)
             return conflicts
             
         except Exception as e:

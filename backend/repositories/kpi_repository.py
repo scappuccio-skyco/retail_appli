@@ -1,6 +1,42 @@
-"""KPI Repository - Data access for KPI entries"""
+"""KPI Repository - Data access for KPI entries and store-level kpis (legacy)"""
 from typing import Optional, List, Dict
 from repositories.base_repository import BaseRepository
+
+
+class StoreKPIRepository(BaseRepository):
+    """
+    Repository for legacy store-level 'kpis' collection.
+    Used by morning briefs for yesterday stats and week CA fallback.
+    """
+    def __init__(self, db):
+        super().__init__(db, "kpis")
+
+    async def find_one_with_ca(
+        self,
+        store_id: str,
+        date: str,
+        projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Find one store KPI for store/date with CA > 0."""
+        q = {"store_id": store_id, "date": date, "ca": {"$gt": 0}}
+        return await self.find_one(q, projection or {"_id": 0, "date": 1})
+
+    async def find_many_for_store(
+        self,
+        store_id: str,
+        date: Optional[str] = None,
+        date_range: Optional[Dict] = None,
+        projection: Optional[Dict] = None,
+        limit: int = 50,
+        sort: Optional[List[tuple]] = None
+    ) -> List[Dict]:
+        """Find store KPIs by store_id, optional date or date range."""
+        q = {"store_id": store_id}
+        if date:
+            q["date"] = date
+        if date_range:
+            q["date"] = date_range
+        return await self.find_many(q, projection or {"_id": 0}, limit, 0, sort)
 
 
 class KPIRepository(BaseRepository):

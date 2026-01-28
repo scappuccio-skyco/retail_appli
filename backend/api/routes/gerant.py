@@ -1,6 +1,7 @@
 """
 Gérant-specific Routes
-Dashboard stats, subscription status, and workspace management
+Dashboard stats, subscription status, and workspace management.
+Phase 2: Exceptions métier (NotFoundError, ValidationError) ; pas de try/except 500.
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, Body
 from pydantic import BaseModel
@@ -9,12 +10,14 @@ from typing import Dict, Optional
 import stripe
 import uuid
 
+from exceptions.custom_exceptions import NotFoundError, ValidationError, ForbiddenError, BusinessLogicError
 from core.security import get_current_gerant, get_gerant_or_manager
 from core.config import settings
 from services.gerant_service import GerantService
+from services.payment_service import PaymentService
 from services.vat_service import validate_vat_number, calculate_vat_rate, is_eu_country
 from models.billing import BillingProfileCreate, BillingProfileUpdate, BillingProfile, BillingProfileResponse
-from api.dependencies import get_gerant_service, get_db
+from api.dependencies import get_gerant_service, get_db, get_payment_service
 from email_service import send_staff_email_update_confirmation, send_staff_email_update_alert
 from models.pagination import PaginatedResponse, PaginationParams
 from utils.pagination import paginate, paginate_with_params
@@ -48,41 +51,30 @@ async def get_gerant_profile(
     Returns:
         Dict with profile data including user info and workspace company name
     """
-    try:
-        gerant_id = current_user['id']
-        
-        # ✅ PHASE 6: Use repositories instead of direct DB access
-        user_repo = UserRepository(db)
-        workspace_repo = WorkspaceRepository(db)
-        
-        # Get user info
-        user = await user_repo.find_by_id(user_id=gerant_id, include_password=False)
-        
-        if not user:
-            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
-        
-        # Get workspace company name
-        workspace_id = user.get('workspace_id')
-        company_name = None
-        
-        if workspace_id:
-            workspace = await workspace_repo.find_by_id(workspace_id=workspace_id)
-            if workspace:
-                company_name = workspace.get('name')
-        
-        return {
-            "id": user.get('id'),
-            "name": user.get('name'),
-            "email": user.get('email'),
-            "phone": user.get('phone'),
-            "company_name": company_name,
-            "created_at": user.get('created_at')
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching gérant profile: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération du profil: {str(e)}")
+    gerant_id = current_user['id']
+
+    user_repo = UserRepository(db)
+    workspace_repo = WorkspaceRepository(db)
+
+    user = await user_repo.find_by_id(user_id=gerant_id, include_password=False)
+    if not user:
+        raise NotFoundError("Utilisateur non trouvé")
+
+    workspace_id = user.get('workspace_id')
+    company_name = None
+    if workspace_id:
+        workspace = await workspace_repo.find_by_id(workspace_id=workspace_id)
+        if workspace:
+            company_name = workspace.get('name')
+
+    return {
+        "id": user.get('id'),
+        "name": user.get('name'),
+        "email": user.get('email'),
+        "phone": user.get('phone'),
+        "company_name": company_name,
+        "created_at": user.get('created_at')
+    }
 
 
 @router.put("/profile")
@@ -113,8 +105,8 @@ async def update_gerant_profile(
         user = await user_repo.find_by_id(user_id=gerant_id, include_password=True)
         
         if not user:
-            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
-        
+            raise NotFoundError("Utilisateur non trouvé")
+
         # Whitelist allowed fields
         ALLOWED_USER_FIELDS = ['name', 'email', 'phone']
         user_updates = {}
@@ -139,7 +131,7 @@ async def update_gerant_profile(
             import re
             email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
             if not re.match(email_pattern, user_updates['email']):
-                raise HTTPException(status_code=400, detail="Format d'email invalide")
+                raise ValidationError("Format d'email invalide")
             
             # Normalize email to lowercase
             email_lower = user_updates['email'].lower().strip()
@@ -239,8 +231,8 @@ async def update_gerant_profile(
                     # Other Stripe errors, log but don't fail the request
                     logger.error(f"Error updating Stripe customer email: {str(stripe_error)}", exc_info=True)
         
-        logger.info(f"Gérant profile {gerant_id} updated")
-        
+        logger.info("Gérant profile %s updated", gerant_id)
+
         return {
             "success": True,
             "message": "Profil mis à jour avec succès",
@@ -253,11 +245,8 @@ async def update_gerant_profile(
                 "created_at": updated_user.get('created_at')
             }
         }
-    except HTTPException:
+    except (HTTPException, NotFoundError, ValidationError):
         raise
-    except Exception as e:
-        logger.error(f"Error updating gérant profile: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour du profil: {str(e)}")
 
 
 @router.put("/profile/change-password")
@@ -284,13 +273,13 @@ async def change_gerant_password(
         new_password = password_data.get('new_password')
         
         if not old_password:
-            raise HTTPException(status_code=400, detail="L'ancien mot de passe est requis")
-        
+            raise ValidationError("L'ancien mot de passe est requis")
+
         if not new_password:
-            raise HTTPException(status_code=400, detail="Le nouveau mot de passe est requis")
-        
+            raise ValidationError("Le nouveau mot de passe est requis")
+
         if len(new_password) < 8:
-            raise HTTPException(status_code=400, detail="Le nouveau mot de passe doit contenir au moins 8 caractères")
+            raise ValidationError("Le nouveau mot de passe doit contenir au moins 8 caractères")
         
         # ✅ PHASE 6: Use UserRepository
         user_repo = UserRepository(db)
@@ -299,7 +288,7 @@ async def change_gerant_password(
         user = await user_repo.find_by_id(user_id=gerant_id, include_password=True)
         
         if not user:
-            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+            raise NotFoundError("Utilisateur non trouvé")
         
         # Verify old password
         if not verify_password(old_password, user.get('password', '')):
@@ -317,17 +306,14 @@ async def change_gerant_password(
             }}
         )
         
-        logger.info(f"Password changed for gérant {gerant_id}")
-        
+        logger.info("Password changed for gérant %s", gerant_id)
+
         return {
             "success": True,
             "message": "Mot de passe modifié avec succès"
         }
-    except HTTPException:
+    except (HTTPException, NotFoundError, ValidationError):
         raise
-    except Exception as e:
-        logger.error(f"Error changing password: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors du changement de mot de passe: {str(e)}")
 
 
 @router.get("/dashboard/stats")
@@ -341,11 +327,8 @@ async def get_dashboard_stats(
     Returns:
         Dict with total stores, managers, sellers, and monthly KPI aggregations
     """
-    try:
-        stats = await gerant_service.get_dashboard_stats(current_user['id'])
-        return stats
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    stats = await gerant_service.get_dashboard_stats(current_user['id'])
+    return stats
 
 
 @router.get("/subscription/status")
@@ -364,11 +347,8 @@ async def get_subscription_status(
     Returns:
         Dict with subscription details, plan, seats, trial info
     """
-    try:
-        status = await gerant_service.get_subscription_status(current_user['id'])
-        return status
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    status = await gerant_service.get_subscription_status(current_user['id'])
+    return status
 
 
 class UpdateSeatsRequest(BaseModel):
@@ -381,6 +361,7 @@ class UpdateSeatsRequest(BaseModel):
 async def update_subscription_seats(
     request: UpdateSeatsRequest,
     current_user: dict = Depends(get_current_gerant),
+    payment_service: PaymentService = Depends(get_payment_service),
     db = Depends(get_db)
 ):
     """
@@ -399,8 +380,6 @@ async def update_subscription_seats(
         is_trial: bool
         proration_amount: float
     """
-    from services.payment_service import PaymentService
-    
     try:
         gerant_id = current_user['id']
         new_seats = request.seats
@@ -411,9 +390,8 @@ async def update_subscription_seats(
         if new_seats > 50:
             raise HTTPException(status_code=400, detail="Maximum 50 sièges. Contactez-nous pour un devis personnalisé.")
         
-        # Use PaymentService for atomic Stripe + DB update
+        # RC6: PaymentService via DI (no explicit instantiation)
         # PaymentService will handle multiple active subscriptions check
-        payment_service = PaymentService(db)
         
         # ✅ PHASE 6: Use SubscriptionRepository
         subscription_repo = SubscriptionRepository(db)
@@ -425,7 +403,7 @@ async def update_subscription_seats(
         )
         
         if not subscription:
-            raise HTTPException(status_code=404, detail="Aucun abonnement trouvé")
+            raise NotFoundError("Aucun abonnement trouvé")
         
         is_trial = subscription.get('status') == 'trialing'
         
@@ -468,7 +446,6 @@ async def update_subscription_seats(
         
         # Check if it's a ValueError (other cases)
         if isinstance(e, ValueError):
-            # Check if it contains MULTIPLE_ACTIVE_SUBSCRIPTIONS
             if "MULTIPLE_ACTIVE_SUBSCRIPTIONS" in str(e):
                 raise HTTPException(
                     status_code=409,
@@ -478,10 +455,8 @@ async def update_subscription_seats(
                         "recommended_action": "USE_STRIPE_SUBSCRIPTION_ID"
                     }
                 )
-            raise HTTPException(status_code=400, detail=str(e))
-        
-        logger.error(f"Erreur mise à jour sièges: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
+            raise ValidationError(str(e))
+        raise
 
 
 class PreviewUpdateRequest(BaseModel):
@@ -572,7 +547,7 @@ async def preview_subscription_update(
         )
         
         if not subscription:
-            raise HTTPException(status_code=404, detail="Aucun abonnement trouvé")
+            raise NotFoundError("Aucun abonnement trouvé")
         
         # Current values
         current_seats = subscription.get('seats', 1)
@@ -716,11 +691,8 @@ async def preview_subscription_update(
             annual_savings_percent=annual_savings_percent
         )
         
-    except HTTPException:
+    except (HTTPException, NotFoundError, ValidationError, BusinessLogicError):
         raise
-    except Exception as e:
-        logger.error(f"Error in preview: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/seats/preview", response_model=PreviewSeatsResponse)
@@ -762,7 +734,7 @@ async def preview_seat_change(
         )
         
         if not subscription:
-            raise HTTPException(status_code=404, detail="Aucun abonnement trouvé")
+            raise NotFoundError("Aucun abonnement trouvé")
         
         current_seats = subscription.get('seats', 1)
         is_trial = subscription.get('status') == 'trialing'
@@ -853,11 +825,8 @@ async def preview_seat_change(
             is_trial=is_trial
         )
         
-    except HTTPException:
+    except (HTTPException, NotFoundError, ValidationError, BusinessLogicError):
         raise
-    except Exception as e:
-        logger.error(f"Erreur preview sièges: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/stores")
@@ -871,11 +840,8 @@ async def get_all_stores(
     Returns:
         List of stores with their details
     """
-    try:
-        stores = await gerant_service.get_all_stores(current_user['id'])
-        return stores
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    stores = await gerant_service.get_all_stores(current_user['id'])
+    return stores
 
 
 @router.post("/stores")
@@ -898,11 +864,9 @@ async def create_store(
     """
     try:
         result = await gerant_service.create_store(store_data, current_user['id'])
-        return result
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ValidationError(str(e))
+    return result
 
 
 @router.delete("/stores/{store_id}")
@@ -920,9 +884,7 @@ async def delete_store(
         result = await gerant_service.delete_store(store_id, current_user['id'])
         return result
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.put("/stores/{store_id}")
@@ -935,11 +897,9 @@ async def update_store(
     """Update store information"""
     try:
         result = await gerant_service.update_store(store_id, store_data, current_user['id'])
-        return result
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
+    return result
 
 
 @router.get("/managers")
@@ -956,8 +916,6 @@ async def get_all_managers(
     try:
         managers = await gerant_service.get_all_managers(current_user['id'])
         return managers
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/sellers")
@@ -971,11 +929,8 @@ async def get_all_sellers(
     Returns:
         List of sellers with their details (password excluded)
     """
-    try:
-        sellers = await gerant_service.get_all_sellers(current_user['id'])
-        return sellers
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    sellers = await gerant_service.get_all_sellers(current_user['id'])
+    return sellers
 
 
 @router.get("/stores/{store_id}/stats")
@@ -1006,9 +961,7 @@ async def get_store_stats(
         )
         return stats
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 
@@ -1021,10 +974,7 @@ async def get_store_managers(
     gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """Get all managers for a specific store"""
-    try:
-        return await gerant_service.get_store_managers(store_id, current_user['id'])
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    return await gerant_service.get_store_managers(store_id, current_user['id'])
 
 
 
@@ -1039,7 +989,7 @@ async def get_store_sellers(
     try:
         return await gerant_service.get_store_sellers(store_id, current_user['id'])
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.put("/staff/{user_id}")
@@ -1068,7 +1018,7 @@ async def update_staff_member(
         user = await user_repo.find_by_id(user_id=user_id, include_password=True)
         
         if not user:
-            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+            raise NotFoundError("Utilisateur non trouvé")
         
         # Security: Verify the user belongs to the gérant
         user_gerant_id = user.get('gerant_id')
@@ -1184,9 +1134,8 @@ async def update_staff_member(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error updating staff member: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
+    except (HTTPException, NotFoundError, ValidationError, ForbiddenError):
+        raise
 
 
 @router.get("/stores/{store_id}/kpi-overview")
@@ -1202,7 +1151,7 @@ async def get_store_kpi_overview(
         user_id = current_user['id']
         return await gerant_service.get_store_kpi_overview(store_id, user_id, date)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.get("/stores/{store_id}/kpi-history")
@@ -1234,9 +1183,7 @@ async def get_store_kpi_history(
             store_id, user_id, days, start_date, end_date
         )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.get("/stores/{store_id}/available-years")
@@ -1257,9 +1204,7 @@ async def get_store_available_years(
         user_id = current_user['id']
         return await gerant_service.get_store_available_years(store_id, user_id)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.get("/stores/{store_id}/kpi-dates")
@@ -1289,8 +1234,6 @@ async def get_store_kpi_dates(
         dates = [r['_id'] for r in results if r['_id']]
         
         return {"dates": dates}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ===== MANAGER MANAGEMENT ROUTES =====
@@ -1317,8 +1260,6 @@ async def transfer_manager_to_store(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ===== SELLER MANAGEMENT ROUTES =====
@@ -1361,9 +1302,7 @@ async def transfer_seller_to_store(
         elif "inactif" in error_msg:
             raise HTTPException(status_code=400, detail=error_msg)
         else:
-            raise HTTPException(status_code=404, detail=error_msg)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+            raise NotFoundError(error_msg)
 
 
 # ===== INVITATION ROUTES =====
@@ -1392,8 +1331,6 @@ async def send_invitation(
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/invitations")
@@ -1404,8 +1341,6 @@ async def get_invitations(
     """Get all invitations sent by this gérant"""
     try:
         return await gerant_service.get_invitations(current_user['id'])
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/invitations/{invitation_id}")
@@ -1418,9 +1353,7 @@ async def cancel_invitation(
     try:
         return await gerant_service.cancel_invitation(invitation_id, current_user['id'])
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.post("/invitations/{invitation_id}/resend")
@@ -1434,8 +1367,6 @@ async def resend_invitation(
         return await gerant_service.resend_invitation(invitation_id, current_user['id'])
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ===== MANAGER SUSPEND/REACTIVATE/DELETE ROUTES =====
@@ -1450,9 +1381,7 @@ async def suspend_manager(
     try:
         return await gerant_service.suspend_user(manager_id, current_user['id'], 'manager')
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.patch("/managers/{manager_id}/reactivate")
@@ -1465,9 +1394,7 @@ async def reactivate_manager(
     try:
         return await gerant_service.reactivate_user(manager_id, current_user['id'], 'manager')
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.delete("/managers/{manager_id}")
@@ -1480,9 +1407,7 @@ async def delete_manager(
     try:
         return await gerant_service.delete_user(manager_id, current_user['id'], 'manager')
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 # ===== SELLER SUSPEND/REACTIVATE/DELETE ROUTES =====
@@ -1497,9 +1422,7 @@ async def suspend_seller(
     try:
         return await gerant_service.suspend_user(seller_id, current_user['id'], 'seller')
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.patch("/sellers/{seller_id}/reactivate")
@@ -1512,9 +1435,7 @@ async def reactivate_seller(
     try:
         return await gerant_service.reactivate_user(seller_id, current_user['id'], 'seller')
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 @router.delete("/sellers/{seller_id}")
@@ -1527,9 +1448,7 @@ async def delete_seller(
     try:
         return await gerant_service.delete_user(seller_id, current_user['id'], 'seller')
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise NotFoundError(str(e))
 
 
 
@@ -1950,9 +1869,6 @@ async def bulk_import_stores(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Erreur import massif: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de l'import: {str(e)}")
 
 
 
@@ -2108,9 +2024,6 @@ async def send_support_message(
                 
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error sending support message: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ==========================================
@@ -2171,7 +2084,7 @@ async def switch_billing_interval(
         )
         
         if not subscription:
-            raise HTTPException(status_code=404, detail="Aucun abonnement actif trouvé")
+            raise NotFoundError("Aucun abonnement actif trouvé")
         
         current_interval = subscription.get('billing_interval', 'month')
         current_seats = subscription.get('seats', 1)
@@ -2382,7 +2295,7 @@ async def cancel_subscription(
         )
         
         if not active_subscriptions:
-            raise HTTPException(status_code=404, detail="Aucun abonnement actif trouvé")
+            raise NotFoundError("Aucun abonnement actif trouvé")
         
         # If multiple active subscriptions, handle according to mode
         if len(active_subscriptions) > 1:
@@ -2585,9 +2498,6 @@ async def cancel_subscription(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Erreur annulation abonnement: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de l'annulation: {str(e)}")
 
 
 class ReactivateSubscriptionRequest(BaseModel):
@@ -2639,7 +2549,7 @@ async def reactivate_subscription(
         )
         
         if not active_subscriptions:
-            raise HTTPException(status_code=404, detail="Aucun abonnement actif trouvé")
+            raise NotFoundError("Aucun abonnement actif trouvé")
         
         # Filter subscriptions that are scheduled for cancellation
         scheduled_subscriptions = [
@@ -2896,9 +2806,6 @@ async def get_all_subscriptions(
             "warning": f"⚠️ {active_count} abonnement(s) actif(s) détecté(s)" if active_count > 1 else None
         }
         
-    except Exception as e:
-        logger.error(f"Erreur récupération abonnements: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération: {str(e)}")
 
 
 @router.get("/subscription/audit")
@@ -3103,9 +3010,6 @@ async def get_billing_profile(
             return {"exists": False, "profile": None}
         
         return {"exists": True, "profile": billing_profile}
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération du profil de facturation: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Erreur lors de la récupération du profil de facturation")
 
 
 @router.post("/billing-profile")
@@ -3277,9 +3181,6 @@ async def create_billing_profile(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Erreur lors de la création du profil de facturation: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de l'enregistrement du profil de facturation: {str(e)}")
 
 
 @router.put("/billing-profile")
@@ -3303,7 +3204,7 @@ async def update_billing_profile(
         existing_profile = await billing_profile_repo.find_by_gerant(gerant_id=gerant_id)
         
         if not existing_profile:
-            raise HTTPException(status_code=404, detail="Profil de facturation introuvable")
+            raise NotFoundError("Profil de facturation introuvable")
         
         # Vérifier si des factures existent (verrouillage)
         has_invoices = existing_profile.get('has_invoices', False)
@@ -3423,6 +3324,3 @@ async def update_billing_profile(
         
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Erreur lors de la mise à jour du profil: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")

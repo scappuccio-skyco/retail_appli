@@ -1493,20 +1493,20 @@ Le premier à atteindre 500€ de CA gagne un café offert par le manager !
 
 class AIDataService:
     """
-    Service for AI operations with database access
-    Handles data retrieval for AI features
+    Service for AI operations with database access (Phase 12: repositories only).
+    Handles data retrieval for AI features.
     """
     
     def __init__(self, db):
-        self.db = db
+        from repositories.diagnostic_repository import DiagnosticRepository
+        from repositories.kpi_repository import KPIRepository
+        self.diagnostic_repo = DiagnosticRepository(db)
+        self.kpi_repo = KPIRepository(db)
         self.ai_service = AIService()
     
     async def get_seller_diagnostic(self, seller_id: str) -> Dict:
         """Get diagnostic profile for a seller"""
-        diagnostic = await self.db.diagnostics.find_one(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        )
+        diagnostic = await self.diagnostic_repo.find_by_seller(seller_id)
         
         if not diagnostic:
             return {"style": "Adaptateur", "level": 3}
@@ -1515,11 +1515,7 @@ class AIDataService:
     
     async def get_recent_kpis(self, seller_id: str, limit: int = 7) -> List[Dict]:
         """Get recent KPI entries for a seller"""
-        kpis = await self.db.kpi_entries.find(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        ).sort("date", -1).limit(limit).to_list(limit)
-        
+        kpis = await self.kpi_repo.find_by_seller(seller_id, limit=limit)
         return kpis
     
     async def generate_daily_challenge_with_data(self, seller_id: str) -> Dict:
@@ -1539,11 +1535,7 @@ class AIDataService:
         days: int = 30
     ) -> str:
         """Generate seller bilan with KPI data"""
-        kpis = await self.db.kpi_entries.find(
-            {"seller_id": seller_id},
-            {"_id": 0}
-        ).sort("date", -1).limit(days).to_list(days)
-        
+        kpis = await self.kpi_repo.find_by_seller(seller_id, limit=days)
         return await self.ai_service.generate_seller_bilan(seller_data, kpis)
 
 

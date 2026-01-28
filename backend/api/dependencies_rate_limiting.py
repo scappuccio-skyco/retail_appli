@@ -1,8 +1,14 @@
 """
 Dependency helpers for rate limiting
-Allows routes to access the rate limiter from app.state
+Allows routes to access the rate limiter from app.state (dynamique).
+Main.py imports routers AFTER init_global_limiter so get_rate_limiter() returns app.state.limiter.
 """
 from typing import Optional
+
+try:
+    from fastapi import Request
+except ImportError:
+    Request = None
 
 # Optional: slowapi for rate limiting
 try:
@@ -40,7 +46,8 @@ def init_global_limiter(limiter: Limiter):
 def get_rate_limiter() -> Limiter:
     """
     Get the rate limiter instance.
-    Returns the limiter from app.state if available, otherwise creates a new one.
+    Returns the limiter set by main.py (app.state.limiter via init_global_limiter).
+    Routers are imported AFTER init_global_limiter so this always returns the app limiter.
     """
     global _global_limiter
     
@@ -52,3 +59,13 @@ def get_rate_limiter() -> Limiter:
         return Limiter(key_func=get_remote_address)
     else:
         return Limiter()  # Dummy limiter that does nothing
+
+
+def get_limiter_from_request(request: "Request") -> Optional[Limiter]:
+    """
+    Dependency: return the rate limiter from request.app.state (dynamique).
+    Use this when you need the limiter at request time instead of at import time.
+    """
+    if Request is None:
+        return None
+    return getattr(request.app.state, "limiter", None) or get_rate_limiter()

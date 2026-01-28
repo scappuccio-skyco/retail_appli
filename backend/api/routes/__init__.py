@@ -1,6 +1,7 @@
 """API route modules"""
-import sys
-print("[ROUTES] Loading API routes...", flush=True)
+import logging
+
+logger = logging.getLogger(__name__)
 
 # List of all routers to include in main app
 routers = []
@@ -9,13 +10,11 @@ routers = []
 try:
     from api.routes.auth import router as auth_router
     routers.append(auth_router)
-    print(f"[ROUTES] ✅ Loaded auth router ({len(auth_router.routes)} routes)", flush=True)
+    logger.info("Loaded auth router (%s routes)", len(auth_router.routes))
 except Exception as e:
-    print(f"[ROUTES] ❌ FATAL: Failed to load auth router: {e}", flush=True)
-    import traceback
-    traceback.print_exc()
-    # Auth router is CRITICAL - fail startup if it can't be loaded
+    logger.exception("FATAL: Failed to load auth router: %s", e)
     raise RuntimeError(f"CRITICAL: Cannot load auth router: {e}") from e
+
 
 def safe_import(module_path, router_name, fallback_prefix=None):
     """Safely import a router with error handling"""
@@ -23,12 +22,13 @@ def safe_import(module_path, router_name, fallback_prefix=None):
         module = __import__(module_path, fromlist=[router_name])
         router = getattr(module, router_name)
         routers.append(router)
-        print(f"[ROUTES] ✅ Loaded {module_path}.{router_name} (prefix: {router.prefix}, routes: {len(router.routes)})", flush=True)
+        logger.info(
+            "Loaded %s.%s (prefix: %s, routes: %s)",
+            module_path, router_name, router.prefix, len(router.routes),
+        )
         return router
     except Exception as e:
-        print(f"[ROUTES] ❌ Failed to load {module_path}.{router_name}: {e}", flush=True)
-        import traceback
-        traceback.print_exc()
+        logger.exception("Failed to load %s.%s: %s", module_path, router_name, e)
         return None
 
 # Import other routers with error handling
@@ -54,6 +54,6 @@ safe_import('api.routes.briefs', 'router')
 safe_import('api.routes.docs', 'router')
 safe_import('api.routes.early_access', 'router')
 
-print(f"[ROUTES] Loaded {len(routers)} routers total", flush=True)
+logger.info("Loaded %s routers total", len(routers))
 
 __all__ = ['routers']

@@ -23,6 +23,7 @@ from repositories.system_log_repository import SystemLogRepository
 from repositories.base_repository import BaseRepository
 from utils.pagination import paginate, paginate_aggregation
 from config.limits import MAX_PAGE_SIZE
+from models.pagination import PaginatedResponse
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +194,99 @@ class AdminService:
                 workspace['subscription']['status'] = workspace.get('subscription_status', 'active')
         
         return workspaces
-    
+
+    async def get_workspaces_with_details_paginated(
+        self,
+        page: int = 1,
+        size: int = 50,
+        include_deleted: bool = False,
+    ) -> PaginatedResponse:
+        """
+        Get workspaces paginated with enriched details (Phase 3: scalable admin).
+        Same enrichment as get_workspaces_with_details but on a single page.
+        """
+        result = await self.admin_repo.get_all_workspaces_paginated(
+            page=page,
+            size=size,
+            include_deleted=include_deleted,
+        )
+        workspaces = result.items
+
+        for workspace in workspaces:
+            workspace_id = workspace.get('id')
+            gerant_id = workspace.get('gerant_id')
+
+            current_status = workspace.get('status')
+            if not current_status or current_status == '' or current_status is None:
+                workspace['status'] = 'active'
+
+            if gerant_id:
+                gerant = await self.admin_repo.get_gerant_by_id(gerant_id)
+                workspace['gerant'] = gerant
+            else:
+                workspace['gerant'] = None
+
+            stores = []
+            if gerant_id:
+                stores = await self.admin_repo.get_stores_by_gerant(gerant_id)
+            if not stores and workspace_id:
+                stores = await self.admin_repo.get_stores_by_workspace(workspace_id)
+
+            total_managers = 0
+            total_sellers = 0
+
+            for store in stores:
+                manager = await self.admin_repo.get_manager_for_store(store.get('id'))
+                store['manager'] = manager
+                if manager:
+                    total_managers += 1
+
+                sellers = await self.admin_repo.get_sellers_for_store(store.get('id'))
+                store['sellers'] = sellers
+                store['sellers_count'] = len([s for s in sellers if s.get('status') == 'active'])
+                store['total_sellers'] = len(sellers)
+                total_sellers += store['sellers_count']
+
+                if not store.get('status'):
+                    store['status'] = 'active' if store.get('active', True) else 'inactive'
+
+            workspace['stores'] = stores
+            workspace['stores_count'] = len(stores)
+            workspace['managers_count'] = total_managers
+            workspace['sellers_count'] = total_sellers
+
+            if gerant_id:
+                total_workspace_sellers = await self.admin_repo.count_users_by_criteria({
+                    "gerant_id": gerant_id,
+                    "role": "seller",
+                    "status": "active"
+                })
+            else:
+                total_workspace_sellers = total_sellers
+            workspace['total_sellers'] = total_workspace_sellers
+
+            default_subscription = {
+                "plan": "free",
+                "status": "active",
+                "created_at": workspace.get('created_at'),
+                "trial_ends_at": workspace.get('trial_ends_at')
+            }
+            if workspace.get('subscription') and isinstance(workspace['subscription'], dict):
+                workspace['subscription']['plan'] = workspace['subscription'].get('plan') or workspace.get('subscription_plan', 'free')
+                workspace['subscription']['status'] = workspace['subscription'].get('status') or workspace.get('subscription_status', 'active')
+            else:
+                workspace['subscription'] = default_subscription
+                workspace['subscription']['plan'] = workspace.get('subscription_plan', 'free')
+                workspace['subscription']['status'] = workspace.get('subscription_status', 'active')
+
+        return PaginatedResponse(
+            items=workspaces,
+            total=result.total,
+            page=result.page,
+            size=result.size,
+            pages=result.pages,
+        )
+
     async def get_platform_stats(self) -> Dict:
         """
         Get platform-wide statistics
@@ -267,7 +360,7 @@ class AdminService:
         Uses workspace repository's database connection to ping MongoDB.
         """
         try:
-            await self.workspace_repo.collection.database.command("ping")
+            await self.workspace_repo.db.command("ping")
             db_status = "healthy"
         except Exception as e:
             logger.error(f"Database health check failed: {str(e)}")
@@ -507,6 +600,9 @@ class AdminService:
             {"id": workspace_id},
             {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
         )
+        if updated:
+            from core.cache import invalidate_workspace_cache
+            await invalidate_workspace_cache(workspace_id)
         
         if not updated:
             raise ValueError("Workspace status update failed")
@@ -561,6 +657,8 @@ class AdminService:
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
+        from core.cache import invalidate_workspace_cache
+        await invalidate_workspace_cache(workspace_id)
         
         # Update subscription if exists
         subscription = await self.subscription_repo.find_by_workspace(workspace_id)
@@ -928,6 +1026,8 @@ class AdminService:
         
         # Remove admin
         await self.user_repo.delete_one({"id": admin_id})
+        from core.cache import invalidate_user_cache
+        await invalidate_user_cache(admin_id)
         
         # Log admin action
         await self.log_admin_action(
@@ -1409,6 +1509,10 @@ class AdminService:
             {"gerant_id": gerant_id},
             {"$set": update_data}
         )
+        workspace_id = workspace.get("id")
+        if workspace_id:
+            from core.cache import invalidate_workspace_cache
+            await invalidate_workspace_cache(workspace_id)
         
         # Update subscription if exists (for compatibility)
         subscription = await self.subscription_repo.find_by_user(gerant_id)

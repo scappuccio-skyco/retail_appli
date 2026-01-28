@@ -25,6 +25,13 @@ from repositories.achievement_notification_repository import AchievementNotifica
 from repositories.manager_request_repository import ManagerRequestRepository
 from repositories.manager_diagnostic_repository import ManagerDiagnosticRepository
 from repositories.team_bilan_repository import TeamBilanRepository
+from repositories.admin_repository import AdminRepository
+from repositories.admin_log_repository import AdminLogRepository
+from repositories.payment_transaction_repository import PaymentTransactionRepository
+from repositories.stripe_event_repository import StripeEventRepository
+from repositories.ai_conversation_repository import AIConversationRepository
+from repositories.ai_message_repository import AIMessageRepository
+from repositories.ai_usage_log_repository import AIUsageLogRepository
 
 __all__ = [
     'BaseRepository',
@@ -55,4 +62,11 @@ __all__ = [
     'ManagerRequestRepository',
     'ManagerDiagnosticRepository',
     'TeamBilanRepository',
+    'AdminRepository',
+    'AdminLogRepository',
+    'PaymentTransactionRepository',
+    'StripeEventRepository',
+    'AIConversationRepository',
+    'AIMessageRepository',
+    'AIUsageLogRepository',
 ]

@@ -48,6 +48,18 @@ class InvitationRepository(BaseRepository):
         sort = sort or [("created_at", -1)]
         return await self.find_many(filters, projection, limit, skip, sort)
     
+    async def find_by_token(self, token: str, projection: Optional[Dict[str, int]] = None) -> Optional[Dict]:
+        """Find invitation by token (for registration flow; Phase 10 auth routes)."""
+        if not token:
+            raise ValueError("token is required")
+        return await self.find_one({"token": token}, projection)
+
+    async def update_by_token(self, token: str, update_data: Dict[str, Any]) -> bool:
+        """Update invitation by token (e.g. mark accepted)."""
+        if not token:
+            raise ValueError("token is required")
+        return await self.update_one({"token": token}, {"$set": update_data})
+
     async def find_by_id(
         self,
         invitation_id: str,

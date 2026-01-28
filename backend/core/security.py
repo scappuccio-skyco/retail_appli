@@ -462,6 +462,48 @@ async def get_gerant_or_manager(
     return user
 
 
+# ===== RBAC: ROLE VERIFICATION (Phase 3 - Single Point of Truth) =====
+
+
+async def verify_manager(
+    current_user: dict = Depends(get_current_user)
+) -> dict:
+    """
+    Verify current user is a manager (RBAC).
+    Use for endpoints restricted to managers only.
+    """
+    role = _normalize_role(current_user.get('role'))
+    if role != 'manager':
+        raise HTTPException(status_code=403, detail="Access restricted to managers")
+    return current_user
+
+
+async def verify_manager_or_gerant(
+    current_user: dict = Depends(get_current_user)
+) -> dict:
+    """
+    Verify current user is a manager or gérant (RBAC).
+    Use for endpoints accessible to both managers and gérants.
+    """
+    role = _normalize_role(current_user.get('role'))
+    if role not in ('manager', 'gerant'):
+        raise HTTPException(status_code=403, detail="Access restricted to managers and gérants")
+    return current_user
+
+
+async def verify_manager_gerant_or_seller(
+    current_user: dict = Depends(get_current_user)
+) -> dict:
+    """
+    Verify current user is a manager, gérant, or seller (RBAC).
+    Use for endpoints accessible to managers, gérants, and sellers.
+    """
+    role = _normalize_role(current_user.get('role'))
+    if role not in ('manager', 'gerant', 'seller'):
+        raise HTTPException(status_code=403, detail="Access restricted to managers, gérants, and sellers")
+    return current_user
+
+
 async def require_active_space(
     current_user: dict = Depends(get_current_user)
 ) -> dict:

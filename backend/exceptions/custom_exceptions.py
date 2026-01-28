@@ -108,14 +108,30 @@ class ForbiddenError(AppException):
 class BusinessLogicError(AppException):
     """
     Business logic error (422).
-    
+
     Use when request is valid but violates business rules.
     Example: Cannot delete active subscription, trial expired, etc.
     """
-    
+
     def __init__(self, detail: str, error_code: Optional[str] = None):
         super().__init__(
             detail=detail,
             status_code=422,
             error_code=error_code or "BUSINESS_LOGIC_ERROR"
+        )
+
+
+class ConflictError(AppException):
+    """
+    Conflict (409).
+
+    Use when the request conflicts with current state of the resource.
+    Example: Duplicate key, version conflict, etc.
+    """
+
+    def __init__(self, detail: str, error_code: Optional[str] = None):
+        super().__init__(
+            detail=detail,
+            status_code=409,
+            error_code=error_code or "CONFLICT"
         )

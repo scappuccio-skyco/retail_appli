@@ -59,11 +59,21 @@ class UserRepository(BaseRepository):
         Note: This is used for authentication, so no security filter needed
         """
         return await self.find_one({"email": email})
-    
+
+    async def find_by_stripe_customer_id(
+        self, stripe_customer_id: str, projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Find user by Stripe customer ID (for payment/auth flows)."""
+        return await self.find_one(
+            {"stripe_customer_id": stripe_customer_id},
+            projection or {"_id": 0, "id": 1, "email": 1, "workspace_id": 1},
+        )
+
     async def find_by_store(
         self,
         store_id: str,
         role: Optional[str] = None,
+        status: Optional[str] = None,
         projection: Optional[Dict] = None,
         limit: int = 100,
         skip: int = 0
@@ -74,6 +84,7 @@ class UserRepository(BaseRepository):
         Args:
             store_id: Store ID (required for security)
             role: Optional role filter
+            status: Optional status filter (e.g. "active")
             projection: MongoDB projection
             limit: Maximum number of results
             skip: Number of results to skip
@@ -84,6 +95,8 @@ class UserRepository(BaseRepository):
         filters = {"store_id": store_id}
         if role:
             filters["role"] = role
+        if status:
+            filters["status"] = status
         
         return await self.find_many(filters, projection, limit, skip)
     
@@ -246,7 +259,8 @@ class UserRepository(BaseRepository):
     ) -> bool:
         """
         Update one document with $set and optional $unset (e.g. reactivate user).
-        Returns True if document was modified. Invalidates cache.
+        Returns True if document was modified.
+        Cache invalidation is the responsibility of the calling Service.
         """
         set_data = dict(set_data)
         set_data["updated_at"] = datetime.now(timezone.utc)
@@ -254,10 +268,7 @@ class UserRepository(BaseRepository):
         if unset_data:
             update["$unset"] = {k: "" for k in unset_data}
         result = await self.collection.update_one(filter, update)
-        modified = result.modified_count > 0
-        if modified:
-            await self._invalidate_cache_for_update(filter)
-        return modified
+        return result.modified_count > 0
     
     # ===== ADMIN OPERATIONS (Global search - Admin only) =====
     
