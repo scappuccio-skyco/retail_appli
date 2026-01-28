@@ -19,6 +19,12 @@ from repositories.seller_bilan_repository import SellerBilanRepository
 from repositories.interview_note_repository import InterviewNoteRepository
 from repositories.team_analysis_repository import TeamAnalysisRepository
 from repositories.relationship_consultation_repository import RelationshipConsultationRepository
+from repositories.gerant_invitation_repository import GerantInvitationRepository
+from repositories.invitation_repository import InvitationRepository
+from repositories.achievement_notification_repository import AchievementNotificationRepository
+from repositories.manager_request_repository import ManagerRequestRepository
+from repositories.manager_diagnostic_repository import ManagerDiagnosticRepository
+from repositories.team_bilan_repository import TeamBilanRepository
 
 __all__ = [
     'BaseRepository',
@@ -43,4 +49,10 @@ __all__ = [
     'InterviewNoteRepository',
     'TeamAnalysisRepository',
     'RelationshipConsultationRepository',
+    'GerantInvitationRepository',
+    'InvitationRepository',
+    'AchievementNotificationRepository',
+    'ManagerRequestRepository',
+    'ManagerDiagnosticRepository',
+    'TeamBilanRepository',
 ]

@@ -2,7 +2,8 @@
 User Repository - Data access for users collection
 Security: All methods require store_id, gerant_id, or manager_id to prevent IDOR
 """
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any, AsyncIterator
+from datetime import datetime, timezone
 from repositories.base_repository import BaseRepository
 
 
@@ -198,6 +199,65 @@ class UserRepository(BaseRepository):
             "role": "seller",
             "status": "active"
         })
+    
+    # ===== PHASE 8: Iterator & complex update (no .collection in services) =====
+    
+    async def find_ids_by_query(self, query: Dict[str, Any]) -> AsyncIterator[str]:
+        """
+        Return an async iterator of user IDs matching the query (cursor-based, no limit).
+        SECURITY: query must contain store_id, manager_id, or gerant_id to prevent full scan.
+        """
+        if not any(k in query for k in ("store_id", "manager_id", "gerant_id")):
+            raise ValueError("query must contain store_id, manager_id, or gerant_id for security")
+        projection = {"_id": 0, "id": 1}
+        cursor = self.collection.find(query, projection)
+        async for doc in cursor:
+            if doc.get("id"):
+                yield doc["id"]
+    
+    async def find_by_store_iter(
+        self,
+        store_id: str,
+        role: Optional[str] = None,
+        status_exclude: Optional[str] = None,
+        projection: Optional[Dict[str, int]] = None
+    ) -> AsyncIterator[Dict]:
+        """
+        Async iterator of users in a store (cursor-based, no limit).
+        SECURITY: requires store_id.
+        """
+        if not store_id:
+            raise ValueError("store_id is required for security")
+        filters = {"store_id": store_id}
+        if role:
+            filters["role"] = role
+        if status_exclude:
+            filters["status"] = {"$ne": status_exclude}
+        projection = projection or {"_id": 0, "password": 0}
+        cursor = self.collection.find(filters, projection)
+        async for doc in cursor:
+            yield doc
+    
+    async def update_with_unset(
+        self,
+        filter: Dict[str, Any],
+        set_data: Dict[str, Any],
+        unset_data: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Update one document with $set and optional $unset (e.g. reactivate user).
+        Returns True if document was modified. Invalidates cache.
+        """
+        set_data = dict(set_data)
+        set_data["updated_at"] = datetime.now(timezone.utc)
+        update = {"$set": set_data}
+        if unset_data:
+            update["$unset"] = {k: "" for k in unset_data}
+        result = await self.collection.update_one(filter, update)
+        modified = result.modified_count > 0
+        if modified:
+            await self._invalidate_cache_for_update(filter)
+        return modified
     
     # ===== UTILITY OPERATIONS (No security filter needed) =====
     

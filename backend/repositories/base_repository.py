@@ -2,7 +2,7 @@
 Base Repository Pattern
 Provides common CRUD operations for all repositories
 """
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, AsyncIterator
 from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorCollection
 from datetime import datetime, timezone
 
@@ -54,6 +54,22 @@ class BaseRepository:
         cursor = cursor.skip(skip).limit(limit)
         return await cursor.to_list(limit)
     
+    async def find_iter(
+        self,
+        filters: Dict[str, Any],
+        projection: Optional[Dict[str, int]] = None,
+        sort: Optional[List[tuple]] = None
+    ) -> AsyncIterator[Dict]:
+        """
+        Async iterator over documents (cursor-based, no limit). PHASE 8: avoids .collection in services.
+        """
+        projection = projection or {"_id": 0}
+        cursor = self.collection.find(filters, projection)
+        if sort:
+            cursor = cursor.sort(sort)
+        async for doc in cursor:
+            yield doc
+    
     async def count(self, filters: Dict[str, Any]) -> int:
         """Count documents matching filters"""
         return await self.collection.count_documents(filters)
@@ -62,6 +78,19 @@ class BaseRepository:
         """Check if document exists"""
         count = await self.collection.count_documents(filters, limit=1)
         return count > 0
+    
+    async def distinct(self, field: str, filters: Optional[Dict[str, Any]] = None) -> List:
+        """
+        Get distinct values for a field
+        
+        Args:
+            field: Field name to get distinct values for
+            filters: Optional query filters
+            
+        Returns:
+            List of distinct values
+        """
+        return await self.collection.distinct(field, filters or {})
     
     # ===== WRITE OPERATIONS =====
     
@@ -73,12 +102,12 @@ class BaseRepository:
         result = await self.collection.insert_one(document)
         return document.get('id', str(result.inserted_id))
     
-    async def insert_many(self, documents: List[Dict[str, Any]]) -> List[str]:
-        """Insert multiple documents"""
+    async def insert_many(self, documents: List[Dict[str, Any]], ordered: bool = True) -> List[str]:
+        """Insert multiple documents. ordered=False continues on duplicate key (e.g. sync logs)."""
         if not documents:
             return []
         
-        result = await self.collection.insert_many(documents)
+        result = await self.collection.insert_many(documents, ordered=ordered)
         return [doc.get('id') for doc in documents]
     
     async def update_one(

@@ -7,6 +7,14 @@ from datetime import datetime, timezone
 from typing import List, Dict, Optional
 from uuid import uuid4
 
+from repositories.user_repository import UserRepository
+from repositories.diagnostic_repository import DiagnosticRepository
+from repositories.manager_request_repository import ManagerRequestRepository
+from repositories.objective_repository import ObjectiveRepository
+from repositories.challenge_repository import ChallengeRepository
+from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
+from repositories.achievement_notification_repository import AchievementNotificationRepository
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,6 +23,15 @@ class SellerService:
     
     def __init__(self, db):
         self.db = db
+        # ✅ PHASE 7: Inject repositories instead of direct DB access
+        self.user_repo = UserRepository(db)
+        self.diagnostic_repo = DiagnosticRepository(db)
+        self.manager_request_repo = ManagerRequestRepository(db)
+        self.objective_repo = ObjectiveRepository(db)
+        self.challenge_repo = ChallengeRepository(db)
+        self.kpi_repo = KPIRepository(db)
+        self.manager_kpi_repo = ManagerKPIRepository(db)
+        self.achievement_notification_repo = AchievementNotificationRepository(db)
     
     # ===== ACHIEVEMENT NOTIFICATIONS =====
     
@@ -30,11 +47,9 @@ class SellerService:
         Returns:
             True if notification has been seen, False if unseen
         """
-        notification = await self.db.achievement_notifications.find_one({
-            "user_id": user_id,
-            "item_type": item_type,
-            "item_id": item_id
-        })
+        notification = await self.achievement_notification_repo.find_by_user_and_item(
+            user_id, item_type, item_id
+        )
         return notification is not None
     
     async def mark_achievement_as_seen(self, user_id: str, item_type: str, item_id: str):
@@ -47,25 +62,13 @@ class SellerService:
             item_id: Objective or challenge ID
         """
         now = datetime.now(timezone.utc).isoformat()
-        await self.db.achievement_notifications.update_one(
-            {
-                "user_id": user_id,
-                "item_type": item_type,
-                "item_id": item_id
-            },
-            {
-                "$set": {
-                    "seen_at": now,
-                    "updated_at": now
-                },
-                "$setOnInsert": {
-                    "user_id": user_id,
-                    "item_type": item_type,
-                    "item_id": item_id,
-                    "created_at": now
-                }
-            },
-            upsert=True
+        notification_data = {
+            "seen_at": now,
+            "updated_at": now,
+            "created_at": now
+        }
+        await self.achievement_notification_repo.upsert_notification(
+            user_id, item_type, item_id, notification_data
         )
     
     async def add_achievement_notification_flag(self, items: List[Dict], user_id: str, item_type: str):
@@ -100,10 +103,7 @@ class SellerService:
         tasks = []
         
         # Check diagnostic
-        diagnostic = await self.db.diagnostics.find_one(
-            {"seller_id": seller_id}, 
-            {"_id": 0}
-        )
+        diagnostic = await self.diagnostic_repo.find_by_seller(seller_id)
         
         if not diagnostic:
             tasks.append({
@@ -116,13 +116,9 @@ class SellerService:
             })
         
         # Check pending manager requests
-        requests_list = await self.db.manager_requests.find(
-            {
-                "seller_id": seller_id,
-                "status": "pending"
-            }, 
-            {"_id": 0}
-        ).to_list(100)
+        requests_list = await self.manager_request_repo.find_by_seller(
+            seller_id, status="pending", limit=100
+        )
         
         for req in requests_list:
             # Ensure created_at is properly formatted
@@ -157,7 +153,7 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -173,10 +169,14 @@ class SellerService:
         # manager_id removed from query - used only for progress calculation
         
         # Get active objectives from the store (created by manager OR gérant)
-        objectives = await self.db.objectives.find(
-            query,
-            {"_id": 0}
-        ).sort("period_start", 1).to_list(100)
+        objectives = await self.objective_repo.find_by_store(
+            seller_store_id,
+            projection={"_id": 0},
+            limit=100,
+            sort=[("period_start", 1)]
+        )
+        # Filter by period_end and visible
+        objectives = [obj for obj in objectives if obj.get("period_end", "") >= today and obj.get("visible", False)]
         
         # Filter objectives based on visibility rules
         filtered_objectives = []
@@ -253,7 +253,7 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -269,10 +269,14 @@ class SellerService:
         
         # Get ALL objectives from the store (created by manager OR gérant)
         # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
-        all_objectives = await self.db.objectives.find(
-            query,
-            {"_id": 0}
-        ).sort("period_start", -1).to_list(100)
+        all_objectives = await self.objective_repo.find_by_store(
+            seller_store_id,
+            projection={"_id": 0},
+            limit=100,
+            sort=[("period_start", -1)]
+        )
+        # Filter by visible
+        all_objectives = [obj for obj in all_objectives if obj.get("visible", False)]
         
         # Filter objectives based on visibility rules and separate active/inactive
         active_objectives = []
@@ -327,7 +331,7 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -349,10 +353,16 @@ class SellerService:
         
         # Get past objectives from the store (created by manager OR gérant)
         # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
-        objectives = await self.db.objectives.find(
-            query,
-            {"_id": 0}
-        ).sort("period_start", -1).to_list(50)
+        objectives = await self.objective_repo.find_by_store(
+            seller_store_id,
+            projection={"_id": 0},
+            limit=50,
+            sort=[("period_start", -1)]
+        )
+        # Filter by period_end, status, and visible
+        objectives = [obj for obj in objectives if (
+            obj.get("period_end", "") < today or obj.get("status") in ["achieved", "failed"]
+        ) and obj.get("visible", False)]
         
         # Filter objectives based on visibility rules
         filtered_objectives = []
@@ -427,7 +437,7 @@ class SellerService:
         - Gérants (store owners)
         """
         # Get seller's store_id for filtering
-        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -447,10 +457,16 @@ class SellerService:
         
         # Get collective challenges + individual challenges assigned to this seller
         # From the store (created by manager OR gérant)
-        challenges = await self.db.challenges.find(
-            query,
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(100)
+        challenges = await self.challenge_repo.find_by_store(
+            seller_store_id,
+            projection={"_id": 0},
+            limit=100,
+            sort=[("created_at", -1)]
+        )
+        # Filter by visible and type
+        challenges = [c for c in challenges if c.get("visible", False) and (
+            c.get("type") == "collective" or (c.get("type") == "individual" and c.get("seller_id") == seller_id)
+        )]
         
         # Filter challenges based on visibility rules (for collective challenges)
         filtered_challenges = []
@@ -496,7 +512,7 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -513,10 +529,14 @@ class SellerService:
         # manager_id removed from query - used only for progress calculation
         
         # Get active challenges from the store (created by manager OR gérant)
-        challenges = await self.db.challenges.find(
-            query,
-            {"_id": 0}
-        ).sort("start_date", 1).to_list(10)
+        challenges = await self.challenge_repo.find_by_store(
+            seller_store_id,
+            projection={"_id": 0},
+            limit=10,
+            sort=[("start_date", 1)]
+        )
+        # Filter by end_date and visible
+        challenges = [c for c in challenges if c.get("end_date", "") >= today and c.get("visible", False)]
         
         # Filter challenges based on visibility rules
         filtered_challenges = []
@@ -573,7 +593,7 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -589,10 +609,14 @@ class SellerService:
         # manager_id removed from query - used only for progress calculation
         
         # Get past challenges from the store (created by manager OR gérant)
-        challenges = await self.db.challenges.find(
-            query,
-            {"_id": 0}
-        ).sort("start_date", -1).to_list(50)
+        challenges = await self.challenge_repo.find_by_store(
+            seller_store_id,
+            projection={"_id": 0},
+            limit=50,
+            sort=[("start_date", -1)]
+        )
+        # Filter by end_date and visible
+        challenges = [c for c in challenges if c.get("end_date", "") < today and c.get("visible", False)]
         
         # Filter challenges based on visibility rules
         filtered_challenges = []
@@ -691,9 +715,11 @@ class SellerService:
             current_value = float(objective.get('current_value') or 0)
             objective['status'] = self.compute_status(current_value, target_value, end_date)
             # Only update status in DB, keep current_value as-is (manually entered)
-            await self.db.objectives.update_one(
-                {"id": objective['id']},
-                {"$set": {"status": objective['status']}}
+            await self.objective_repo.update_objective(
+                objective['id'],
+                {"status": objective['status']},
+                store_id=objective.get('store_id'),
+                manager_id=objective.get('manager_id')
             )
             return
 
@@ -713,12 +739,10 @@ class SellerService:
             # No store_id and no manager_id - cannot calculate progress
             return
         
-        # Get all sellers for this store/manager
-        sellers = await self.db.users.find(
-            seller_query,
-            {"_id": 0, "id": 1}
-        ).to_list(1000)
-        seller_ids = [s['id'] for s in sellers]
+        # Get all sellers for this store/manager (PHASE 8: iterator via repository, no .collection)
+        seller_ids = []
+        async for uid in self.user_repo.find_ids_by_query(seller_query):
+            seller_ids.append(uid)
         
         # ✅ PHASE 6: Use aggregation instead of .to_list(10000) for memory efficiency
         from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
@@ -816,17 +840,19 @@ class SellerService:
         
         # Save progress to database (including computed status)
         # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
-        await self.db.objectives.update_one(
-            {"id": objective['id']},
-            {"$set": {
+        await self.objective_repo.update_objective(
+            objective['id'],
+            {
                 "progress_ca": total_ca,
                 "progress_ventes": total_ventes,
                 "progress_articles": total_articles,
                 "progress_panier_moyen": panier_moyen,
                 "progress_indice_vente": indice_vente,
-                "status": objective['status'],  # Use computed status
-                "current_value": current_value  # Update current_value
-            }}
+                "status": objective['status'],
+                "current_value": current_value
+            },
+            store_id=objective.get('store_id'),
+            manager_id=objective.get('manager_id')
         )
     
     async def calculate_objectives_progress_batch(self, objectives: List[Dict], manager_id: str, store_id: str):
@@ -855,11 +881,10 @@ class SellerService:
             seller_query["manager_id"] = manager_id
         
         increment_db_op("db.users.find (sellers - objectives)")
-        sellers = await self.db.users.find(
-            seller_query,
-            {"_id": 0, "id": 1}
-        ).to_list(1000)
-        seller_ids = [s['id'] for s in sellers]
+        # PHASE 8: iterator via repository, no .collection / no limit=1000
+        seller_ids = []
+        async for uid in self.user_repo.find_ids_by_query(seller_query):
+            seller_ids.append(uid)
         
         if not seller_ids:
             # No sellers, set all progress to 0
@@ -901,7 +926,8 @@ class SellerService:
         # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
         # If more data is needed, use streaming/cursor approach
         MAX_KPI_BATCH_SIZE = 10000
-        all_kpi_entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).limit(MAX_KPI_BATCH_SIZE).to_list(MAX_KPI_BATCH_SIZE)
+        # ✅ PHASE 7: Use repository instead of direct DB access
+        all_kpi_entries = await self.kpi_repo.find_many(kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE)
         
         if len(all_kpi_entries) == MAX_KPI_BATCH_SIZE:
             logger.warning(f"KPI entries query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
@@ -916,7 +942,8 @@ class SellerService:
         
         increment_db_op("db.manager_kpis.find (batch - objectives)")
         # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
-        all_manager_kpis = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).limit(MAX_KPI_BATCH_SIZE).to_list(MAX_KPI_BATCH_SIZE)
+        # ✅ PHASE 7: Use repository instead of direct DB access
+        all_manager_kpis = await self.manager_kpi_repo.find_many(manager_kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE)
         
         if len(all_manager_kpis) == MAX_KPI_BATCH_SIZE:
             logger.warning(f"Manager KPIs query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
@@ -1064,7 +1091,7 @@ class SellerService:
             if bulk_ops:
                 # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
                 increment_db_op("db.objectives.bulk_write")
-                await self.db.objectives.bulk_write(bulk_ops)
+                await self.objective_repo.bulk_write(bulk_ops)
         
         return objectives
     
@@ -1085,9 +1112,11 @@ class SellerService:
             update_data = {"status": new_status}
             if new_status in ['achieved', 'completed']:
                 update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
-            await self.db.challenges.update_one(
-                {"id": challenge['id']},
-                {"$set": update_data}
+            await self.challenge_repo.update_challenge(
+                challenge['id'],
+                update_data,
+                store_id=challenge.get('store_id'),
+                manager_id=challenge.get('manager_id')
             )
             return
         
@@ -1104,17 +1133,15 @@ class SellerService:
             else:
                 seller_query["manager_id"] = manager_id
             
-            sellers = await self.db.users.find(
-                seller_query,
-                {"_id": 0, "id": 1}
-            ).to_list(1000)
-            seller_ids = [s['id'] for s in sellers]
+            # PHASE 8: iterator via repository, no .collection / no limit=1000
+            seller_ids = []
+            async for uid in self.user_repo.find_ids_by_query(seller_query):
+                seller_ids.append(uid)
             
             # ✅ PHASE 6: Use aggregation instead of .to_list(10000) for memory efficiency
-            from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
-            
-            kpi_repo = KPIRepository(self.db)
-            manager_kpi_repo = ManagerKPIRepository(self.db)
+            # ✅ PHASE 7: Use injected repositories
+            kpi_repo = self.kpi_repo
+            manager_kpi_repo = self.manager_kpi_repo
             
             # Get KPI entries for all sellers in date range
             kpi_query = {
@@ -1189,9 +1216,9 @@ class SellerService:
                     completed = False
                 
                 new_status = 'completed' if completed else 'failed'
-                await self.db.challenges.update_one(
-                    {"id": challenge['id']},
-                    {"$set": {
+                await self.challenge_repo.update_challenge(
+                    challenge['id'],
+                    {
                         "status": new_status,
                         "completed_at": datetime.now(timezone.utc).isoformat(),
                         "progress_ca": total_ca,
@@ -1199,20 +1226,24 @@ class SellerService:
                         "progress_articles": total_articles,
                         "progress_panier_moyen": panier_moyen,
                         "progress_indice_vente": indice_vente
-                    }}
+                    },
+                    store_id=challenge.get('store_id'),
+                    manager_id=challenge.get('manager_id')
                 )
                 challenge['status'] = new_status
         else:
             # Challenge in progress: save only progress values
-            await self.db.challenges.update_one(
-                {"id": challenge['id']},
-                {"$set": {
+            await self.challenge_repo.update_challenge(
+                challenge['id'],
+                {
                     "progress_ca": total_ca,
                     "progress_ventes": total_ventes,
                     "progress_articles": total_articles,
                     "progress_panier_moyen": panier_moyen,
                     "progress_indice_vente": indice_vente
-                }}
+                },
+                store_id=challenge.get('store_id'),
+                manager_id=challenge.get('manager_id')
             )
     
     async def calculate_challenges_progress_batch(self, challenges: List[Dict], manager_id: str, store_id: str):
@@ -1241,11 +1272,10 @@ class SellerService:
             seller_query["manager_id"] = manager_id
         
         increment_db_op("db.users.find (sellers - challenges)")
-        sellers = await self.db.users.find(
-            seller_query,
-            {"_id": 0, "id": 1}
-        ).to_list(1000)
-        seller_ids = [s['id'] for s in sellers]
+        # PHASE 8: iterator via repository, no .collection / no limit=1000
+        seller_ids = []
+        async for uid in self.user_repo.find_ids_by_query(seller_query):
+            seller_ids.append(uid)
         
         # Calculate global date range (min start, max end)
         date_ranges = []
@@ -1289,7 +1319,8 @@ class SellerService:
         increment_db_op("db.kpi_entries.find (batch - challenges)")
         # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
         MAX_KPI_BATCH_SIZE = 10000
-        all_kpi_entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).limit(MAX_KPI_BATCH_SIZE).to_list(MAX_KPI_BATCH_SIZE)
+        # ✅ PHASE 7: Use repository instead of direct DB access
+        all_kpi_entries = await self.kpi_repo.find_many(kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE)
         
         if len(all_kpi_entries) == MAX_KPI_BATCH_SIZE:
             logger.warning(f"KPI entries query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
@@ -1304,7 +1335,8 @@ class SellerService:
         
         increment_db_op("db.manager_kpis.find (batch - challenges)")
         # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
-        all_manager_kpis = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).limit(MAX_KPI_BATCH_SIZE).to_list(MAX_KPI_BATCH_SIZE)
+        # ✅ PHASE 7: Use repository instead of direct DB access
+        all_manager_kpis = await self.manager_kpi_repo.find_many(manager_kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE)
         
         if len(all_manager_kpis) == MAX_KPI_BATCH_SIZE:
             logger.warning(f"Manager KPIs query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
@@ -1425,6 +1457,6 @@ class SellerService:
             bulk_ops = [UpdateOne({"id": u["id"]}, u["update"]) for u in updates]
             if bulk_ops:
                 increment_db_op("db.challenges.bulk_write")
-                await self.db.challenges.bulk_write(bulk_ops)
+                await self.challenge_repo.bulk_write(bulk_ops)
         
         return challenges

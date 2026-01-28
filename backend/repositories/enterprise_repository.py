@@ -53,9 +53,71 @@ class APIKeyRepository(BaseRepository):
             projection
         )
     
+    async def find_by_user(self, user_id: str, projection: Optional[Dict] = None) -> List[Dict]:
+        """Find all API keys for a user (SECURITY: requires user_id)"""
+        if not user_id:
+            raise ValueError("user_id is required for security")
+        return await self.find_many({"user_id": user_id}, projection)
+    
+    async def find_by_id(
+        self,
+        key_id: str,
+        user_id: Optional[str] = None,
+        projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Find API key by ID (SECURITY: requires user_id if provided)"""
+        if not key_id:
+            raise ValueError("key_id is required")
+        
+        filters = {"id": key_id}
+        if user_id:
+            filters["user_id"] = user_id
+        
+        return await self.find_one(filters, projection)
+    
+    async def create_key(self, key_data: Dict[str, Any], user_id: str) -> str:
+        """Create a new API key (SECURITY: validates user_id)"""
+        if not user_id:
+            raise ValueError("user_id is required for security")
+        key_data["user_id"] = user_id
+        return await self.insert_one(key_data)
+    
+    async def update_key(
+        self,
+        key_id: str,
+        update_data: Dict[str, Any],
+        user_id: Optional[str] = None
+    ) -> bool:
+        """Update an API key (SECURITY: requires user_id if provided)"""
+        if not key_id:
+            raise ValueError("key_id is required")
+        
+        filters = {"id": key_id}
+        if user_id:
+            filters["user_id"] = user_id
+        
+        return await self.update_one(filters, {"$set": update_data})
+    
+    async def delete_key(
+        self,
+        key_id: str,
+        user_id: Optional[str] = None
+    ) -> bool:
+        """Delete an API key (SECURITY: requires user_id if provided)"""
+        if not key_id:
+            raise ValueError("key_id is required")
+        
+        filters = {"id": key_id}
+        if user_id:
+            filters["user_id"] = user_id
+        
+        return await self.delete_one(filters)
+    
     async def update_usage(self, key_id: str):
         """Update last used timestamp and increment request count"""
-        return await self.collection.update_one(
+        # Use BaseRepository method but with $inc operator
+        from pymongo import UpdateOne
+        await self.collection.update_one(
             {"id": key_id},
             {
                 "$set": {"last_used_at": datetime.now(timezone.utc).isoformat()},
@@ -65,16 +127,13 @@ class APIKeyRepository(BaseRepository):
     
     async def revoke_key(self, key_id: str, enterprise_id: str) -> bool:
         """Revoke (deactivate) an API key"""
-        result = await self.collection.update_one(
+        return await self.update_one(
             {"id": key_id, "enterprise_account_id": enterprise_id},
             {
-                "$set": {
-                    "is_active": False,
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }
+                "is_active": False,
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }
         )
-        return result.modified_count > 0
 
 
 class SyncLogRepository(BaseRepository):

@@ -8,6 +8,14 @@ import logging
 
 from repositories.user_repository import UserRepository
 from repositories.store_repository import StoreRepository
+from repositories.invitation_repository import InvitationRepository
+from repositories.kpi_config_repository import KPIConfigRepository
+from repositories.team_bilan_repository import TeamBilanRepository
+from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
+from repositories.objective_repository import ObjectiveRepository
+from repositories.challenge_repository import ChallengeRepository
+from repositories.manager_diagnostic_repository import ManagerDiagnosticRepository
+from repositories.enterprise_repository import APIKeyRepository
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +25,18 @@ class ManagerService:
     
     def __init__(self, db):
         self.db = db
+        # ✅ PHASE 7: Inject repositories instead of direct DB access
         self.user_repo = UserRepository(db)
         self.store_repo = StoreRepository(db)
+        self.invitation_repo = InvitationRepository(db)
+        self.kpi_config_repo = KPIConfigRepository(db)
+        self.team_bilan_repo = TeamBilanRepository(db)
+        self.kpi_repo = KPIRepository(db)
+        self.manager_kpi_repo = ManagerKPIRepository(db)
+        self.objective_repo = ObjectiveRepository(db)
+        self.challenge_repo = ChallengeRepository(db)
+        self.manager_diagnostic_repo = ManagerDiagnosticRepository(db)
+        self.api_key_repo = APIKeyRepository(db)
     
     async def get_sellers(self, manager_id: str, store_id: str) -> List[Dict]:
         """
@@ -51,10 +69,9 @@ class ManagerService:
     
     async def get_invitations(self, manager_id: str) -> List[Dict]:
         """Get pending invitations for manager"""
-        invitations = await self.db.invitations.find(
-            {"invited_by": manager_id, "status": "pending"},
-            {"_id": 0}
-        ).to_list(100)
+        invitations = await self.invitation_repo.find_by_manager(
+            manager_id, status="pending", projection={"_id": 0}, limit=100
+        )
         return invitations
     
     async def get_sync_mode(self, store_id: str) -> Dict:
@@ -83,7 +100,7 @@ class ManagerService:
     
     async def get_kpi_config(self, store_id: str) -> Dict:
         """Get KPI configuration for store"""
-        config = await self.db.kpi_configs.find_one(
+        config = await self.kpi_config_repo.find_one(
             {"store_id": store_id},
             {"_id": 0}
         )
@@ -101,10 +118,9 @@ class ManagerService:
     
     async def get_team_bilans_all(self, manager_id: str, store_id: str) -> List[Dict]:
         """Get all team bilans for manager"""
-        bilans = await self.db.team_bilans.find(
-            {"manager_id": manager_id, "store_id": store_id},
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(100)
+        bilans = await self.team_bilan_repo.find_by_manager(
+            manager_id, store_id, projection={"_id": 0}, limit=100, sort=[("created_at", -1)]
+        )
         
         return bilans
     
@@ -139,7 +155,7 @@ class ManagerService:
             }}
         ]
         
-        seller_stats = await self.db.kpi_entries.aggregate(seller_pipeline).to_list(1)
+        seller_stats = await self.kpi_repo.aggregate(seller_pipeline, max_results=1)
         
         # Aggregate manager KPIs
         manager_pipeline = [
@@ -155,7 +171,7 @@ class ManagerService:
             }}
         ]
         
-        manager_stats = await self.db.manager_kpis.aggregate(manager_pipeline).to_list(1)
+        manager_stats = await self.manager_kpi_repo.aggregate(manager_pipeline, max_results=1)
         
         seller_ca = seller_stats[0].get("total_ca", 0) if seller_stats else 0
         seller_ventes = seller_stats[0].get("total_ventes", 0) if seller_stats else 0
@@ -209,16 +225,16 @@ class ManagerService:
             notification_service = NotificationService(self.db)
         
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-        objectives = await self.db.objectives.find(
-            {
-                "store_id": store_id,
-                "$or": [
-                    {"status": "active", "period_end": {"$gte": today}},
-                    {"status": "achieved"}  # Include achieved objectives even if period ended
-                ]
-            },
-            {"_id": 0}
-        ).to_list(100)
+        # Get all objectives for the store, then filter
+        all_objectives = await self.objective_repo.find_by_store(
+            store_id, projection={"_id": 0}, limit=100
+        )
+        # Filter by status and period
+        objectives = [
+            obj for obj in all_objectives
+            if (obj.get("status") == "active" and obj.get("period_end", "") >= today)
+            or obj.get("status") == "achieved"
+        ]
         
         # Add achievement notification flags via NotificationService
         await notification_service.add_achievement_notification_flag(objectives, manager_id, "objective")
@@ -241,14 +257,17 @@ class ManagerService:
             from services.notification_service import NotificationService
             notification_service = NotificationService(self.db)
         
-        challenges = await self.db.challenges.find(
-            {
-                "store_id": store_id,
-                "status": {"$in": ["active", "completed"]},  # Include completed challenges
-                "end_date": {"$gte": datetime.now(timezone.utc).strftime('%Y-%m-%d')}
-            },
-            {"_id": 0}
-        ).to_list(100)
+        # Get all challenges for the store, then filter
+        all_challenges = await self.challenge_repo.find_by_store(
+            store_id, projection={"_id": 0}, limit=100
+        )
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        # Filter by status and end_date
+        challenges = [
+            c for c in all_challenges
+            if c.get("status") in ["active", "completed"]
+            and c.get("end_date", "") >= today
+        ]
         
         # Add achievement notification flags via NotificationService
         await notification_service.add_achievement_notification_flag(challenges, manager_id, "challenge")
@@ -264,9 +283,9 @@ class DiagnosticService:
     
     async def get_manager_diagnostic(self, manager_id: str) -> Optional[Dict]:
         """Get manager's DISC diagnostic profile"""
-        diagnostic = await self.db.manager_diagnostics.find_one(
-            {"manager_id": manager_id},
-            {"_id": 0}
+        diagnostic = await self.manager_diagnostic_repo.find_latest_by_manager(
+            manager_id,
+            projection={"_id": 0}
         )
         
         return diagnostic
@@ -337,7 +356,7 @@ class APIKeyService:
             "expires_at": expires_at
         }
         
-        await self.db.api_keys.insert_one(key_record)
+        await self.api_key_repo.create_key(key_record, user_id)
         
         # Convert created_at to ISO string for JSON serialization
         created_at_iso = key_record["created_at"].isoformat() if isinstance(key_record["created_at"], datetime) else key_record["created_at"]
@@ -375,10 +394,10 @@ class APIKeyService:
         Returns:
             Dict with api_keys list
         """
-        keys = await self.db.api_keys.find(
-            {"user_id": user_id},
-            {"_id": 0, "key": 0}  # Don't return _id or actual key
-        ).to_list(100)
+        keys = await self.api_key_repo.find_by_user(
+            user_id,
+            projection={"_id": 0, "key": 0}  # Don't return _id or actual key
+        )
         
         return {"api_keys": keys}
     
@@ -397,14 +416,15 @@ class APIKeyService:
             ValueError: If key not found
         """
         # Verify ownership
-        key = await self.db.api_keys.find_one({"id": key_id, "user_id": user_id})
+        key = await self.api_key_repo.find_by_id(key_id, user_id=user_id)
         if not key:
             raise ValueError("API key not found")
         
         # Deactivate instead of delete (for audit)
-        await self.db.api_keys.update_one(
-            {"id": key_id},
-            {"$set": {"active": False, "deleted_at": datetime.now(timezone.utc).isoformat()}}
+        await self.api_key_repo.update_key(
+            key_id,
+            {"active": False, "deleted_at": datetime.now(timezone.utc).isoformat()},
+            user_id=user_id
         )
         
         return {"message": "API key deactivated successfully"}
@@ -427,14 +447,15 @@ class APIKeyService:
         import secrets
         
         # Find old key
-        old_key = await self.db.api_keys.find_one({"id": key_id, "user_id": user_id})
+        old_key = await self.api_key_repo.find_by_id(key_id, user_id=user_id)
         if not old_key:
             raise ValueError("API key not found")
         
         # Deactivate old key
-        await self.db.api_keys.update_one(
-            {"id": key_id},
-            {"$set": {"active": False, "regenerated_at": datetime.now(timezone.utc).isoformat()}}
+        await self.api_key_repo.update_key(
+            key_id,
+            {"active": False, "regenerated_at": datetime.now(timezone.utc).isoformat()},
+            user_id=user_id
         )
         
         # Generate new key
@@ -475,7 +496,7 @@ class APIKeyService:
             "previous_key_id": key_id
         }
         
-        await self.db.api_keys.insert_one(new_key_record)
+        await self.api_key_repo.create_key(new_key_record, user_id)
         
         return {
             "id": new_key_id,
@@ -511,7 +532,7 @@ class APIKeyService:
             ValueError: If key not found or not authorized
         """
         # Find the key
-        key = await self.db.api_keys.find_one({"id": key_id}, {"_id": 0})
+        key = await self.api_key_repo.find_by_id(key_id, projection={"_id": 0})
         
         if not key:
             raise ValueError("API key not found")
@@ -529,7 +550,7 @@ class APIKeyService:
             raise ValueError("Cannot permanently delete an active key. Deactivate it first.")
         
         # Permanently delete
-        await self.db.api_keys.delete_one({"id": key_id})
+        await self.api_key_repo.delete_key(key_id, user_id=user_id if role == 'manager' else None)
         
         return {"success": True, "message": "API key permanently deleted"}
 

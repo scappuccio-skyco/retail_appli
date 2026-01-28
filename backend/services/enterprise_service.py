@@ -115,12 +115,12 @@ class EnterpriseService:
         update_fields = {k: v for k, v in update_data.items() if v is not None}
         update_fields['updated_at'] = datetime.now(timezone.utc).isoformat()
         
-        result = await self.enterprise_repo.collection.update_one(
+        modified = await self.enterprise_repo.update_one(
             {"id": enterprise_id},
             {"$set": update_fields}
         )
         
-        return result.modified_count > 0
+        return modified
     
     # ============================================
     # API KEY MANAGEMENT
@@ -321,15 +321,14 @@ class EnterpriseService:
             "errors": []
         }
         
-        # PHASE 1: Pre-load existing users (1 query for all)
+        # PHASE 1: Pre-load existing users via repository (no .collection)
         emails = [user.get('email') for user in users if user.get('email')]
-        existing_users_cursor = self.user_repo.collection.find(
-            {"email": {"$in": emails}},
-            {"_id": 0, "id": 1, "email": 1, "role": 1, "store_id": 1}
-        )
-        # ⚠️ SECURITY: Limit to 1000 users max to prevent OOM during sync
         MAX_USERS_SYNC = 1000
-        existing_users_list = await existing_users_cursor.limit(MAX_USERS_SYNC).to_list(MAX_USERS_SYNC)
+        existing_users_list = await self.user_repo.find_many(
+            {"email": {"$in": emails}},
+            {"_id": 0, "id": 1, "email": 1, "role": 1, "store_id": 1},
+            limit=MAX_USERS_SYNC
+        )
         if len(existing_users_list) == MAX_USERS_SYNC:
             logger.warning(f"Users sync query hit limit of {MAX_USERS_SYNC}. Some users may not be matched correctly.")
         existing_users_map = {
@@ -458,21 +457,18 @@ class EnterpriseService:
                 })
                 logger.error(f"Error preparing user {user_data.get('email')}: {str(e)}")
         
-        # PHASE 3: Execute bulk write (ordered=False for performance)
+        # PHASE 3: Execute bulk write via repository (no .collection)
         if bulk_operations:
             try:
-                await self.user_repo.collection.bulk_write(
-                    bulk_operations,
-                    ordered=False  # Continue on error, don't block entire batch
-                )
+                await self.user_repo.bulk_write(bulk_operations)
                 logger.info(f"✅ Bulk user import: {results['created']} created, {results['updated']} updated")
             except Exception as e:
                 logger.error(f"Bulk write error (some ops may have succeeded): {str(e)}")
         
-        # PHASE 4: Insert sync logs in batch
+        # PHASE 4: Insert sync logs via repository (no .collection)
         if sync_logs_batch:
             try:
-                await self.sync_log_repo.collection.insert_many(sync_logs_batch, ordered=False)
+                await self.sync_log_repo.insert_many(sync_logs_batch, ordered=False)
             except Exception as e:
                 logger.error(f"Batch log insert error: {str(e)}")
         
@@ -529,14 +525,13 @@ class EnterpriseService:
             })
         
         existing_stores_map = {}
+        MAX_STORES_SYNC = 1000
         if query["$or"]:
-            existing_stores_cursor = self.store_repo.collection.find(
+            existing_stores_list = await self.store_repo.find_many(
                 query,
-                {"_id": 0, "id": 1, "name": 1, "external_id": 1, "location": 1}
+                {"_id": 0, "id": 1, "name": 1, "external_id": 1, "location": 1},
+                limit=MAX_STORES_SYNC
             )
-            # ⚠️ SECURITY: Limit to 1000 stores max to prevent OOM during sync
-            MAX_STORES_SYNC = 1000
-            existing_stores_list = await existing_stores_cursor.limit(MAX_STORES_SYNC).to_list(MAX_STORES_SYNC)
             if len(existing_stores_list) == MAX_STORES_SYNC:
                 logger.warning(f"Stores sync query hit limit of {MAX_STORES_SYNC}. Some stores may not be matched correctly.")
             for store in existing_stores_list:
@@ -661,21 +656,18 @@ class EnterpriseService:
                 })
                 logger.error(f"Error preparing store {store_data.get('name')}: {str(e)}")
         
-        # PHASE 3: Execute bulk write (ordered=False for performance)
+        # PHASE 3: Execute bulk write via repository (no .collection)
         if bulk_operations:
             try:
-                await self.store_repo.collection.bulk_write(
-                    bulk_operations,
-                    ordered=False  # Continue on error, don't block entire batch
-                )
+                await self.store_repo.bulk_write(bulk_operations)
                 logger.info(f"✅ Bulk store import: {results['created']} created, {results['updated']} updated")
             except Exception as e:
                 logger.error(f"Bulk write error (some ops may have succeeded): {str(e)}")
         
-        # PHASE 4: Insert sync logs in batch
+        # PHASE 4: Insert sync logs via repository (no .collection)
         if sync_logs_batch:
             try:
-                await self.sync_log_repo.collection.insert_many(sync_logs_batch, ordered=False)
+                await self.sync_log_repo.insert_many(sync_logs_batch, ordered=False)
             except Exception as e:
                 logger.error(f"Batch log insert error: {str(e)}")
         

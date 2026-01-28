@@ -9,7 +9,10 @@ import os
 from fastapi import HTTPException
 
 from repositories.user_repository import UserRepository
-from repositories.store_repository import StoreRepository
+from repositories.store_repository import StoreRepository, WorkspaceRepository
+from repositories.gerant_invitation_repository import GerantInvitationRepository
+from repositories.subscription_repository import SubscriptionRepository
+from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +22,14 @@ class GerantService:
     
     def __init__(self, db):
         self.db = db
+        # ✅ PHASE 7: Inject repositories instead of direct DB access
         self.user_repo = UserRepository(db)
         self.store_repo = StoreRepository(db)
+        self.workspace_repo = WorkspaceRepository(db)
+        self.gerant_invitation_repo = GerantInvitationRepository(db)
+        self.subscription_repo = SubscriptionRepository(db)
+        self.kpi_repo = KPIRepository(db)
+        self.manager_kpi_repo = ManagerKPIRepository(db)
     
     async def check_gerant_active_access(
         self, 
@@ -64,10 +73,7 @@ class GerantService:
         if not workspace_id:
             raise HTTPException(status_code=403, detail="Aucun espace de travail associé")
         
-        workspace = await self.db.workspaces.find_one(
-            {"id": workspace_id},
-            {"_id": 0}
-        )
+        workspace = await self.workspace_repo.find_by_id(workspace_id, projection={"_id": 0})
         
         if not workspace:
             raise HTTPException(status_code=403, detail="Espace de travail non trouvé")
@@ -97,12 +103,12 @@ class GerantService:
                     return True
                 else:
                     # Trial has expired - update status in DB
-                    await self.db.workspaces.update_one(
+                    await self.workspace_repo.update_one(
                         {"id": workspace_id},
-                        {"$set": {
+                        {
                             "subscription_status": "trial_expired",
                             "updated_at": datetime.now(timezone.utc).isoformat()
-                        }}
+                        }
                     )
                     raise HTTPException(
                         status_code=403, 
@@ -153,19 +159,30 @@ class GerantService:
             {"_id": 0}
         )
         
+        # PHASE 8: build pending counts per store via iterator (no limit=1000)
+        pending_by_store = {}
+        async for inv in self.gerant_invitation_repo.find_by_gerant_iter(gerant_id, status="pending"):
+            sid = inv.get("store_id")
+            if sid not in pending_by_store:
+                pending_by_store[sid] = {"pending_managers": 0, "pending_sellers": 0}
+            if inv.get("role") == "manager":
+                pending_by_store[sid]["pending_managers"] += 1
+            elif inv.get("role") == "seller":
+                pending_by_store[sid]["pending_sellers"] += 1
+        
         # Enrich stores with staff counts
         for store in stores:
             store_id = store.get('id')
             
             # Count active managers in this store
-            manager_count = await self.db.users.count_documents({
+            manager_count = await self.user_repo.count({
                 "store_id": store_id,
                 "role": "manager",
                 "status": {"$in": ["active", "Active"]}
             })
             
             # Count active sellers in this store
-            seller_count = await self.db.users.count_documents({
+            seller_count = await self.user_repo.count({
                 "store_id": store_id,
                 "role": "seller",
                 "status": {"$in": ["active", "Active"]}
@@ -174,24 +191,9 @@ class GerantService:
             store['manager_count'] = manager_count
             store['seller_count'] = seller_count
             
-            # Count pending manager invitations for this store
-            pending_managers = await self.db.gerant_invitations.count_documents({
-                "gerant_id": gerant_id,
-                "store_id": store_id,
-                "role": "manager",
-                "status": "pending"
-            })
-            
-            # Count pending seller invitations for this store
-            pending_sellers = await self.db.gerant_invitations.count_documents({
-                "gerant_id": gerant_id,
-                "store_id": store_id,
-                "role": "seller",
-                "status": "pending"
-            })
-            
-            store['pending_manager_count'] = pending_managers
-            store['pending_seller_count'] = pending_sellers
+            sid_counts = pending_by_store.get(store_id, {"pending_managers": 0, "pending_sellers": 0})
+            store['pending_manager_count'] = sid_counts["pending_managers"]
+            store['pending_seller_count'] = sid_counts["pending_sellers"]
         
         return stores
     
@@ -228,7 +230,7 @@ class GerantService:
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         
-        await self.db.stores.insert_one(store)
+        await self.store_repo.insert_one(store)
         
         # Remove _id for return
         store.pop('_id', None)
@@ -245,23 +247,23 @@ class GerantService:
             raise ValueError("Magasin non trouvé")
         
         # Soft delete - set active to False
-        await self.db.stores.update_one(
-            {"id": store_id},
-            {"$set": {
+        await self.store_repo.update_one(
+            {"id": store_id, "gerant_id": gerant_id},
+            {
                 "active": False,
                 "deleted_at": datetime.now(timezone.utc).isoformat(),
                 "deleted_by": gerant_id
-            }}
+            }
         )
         
         # Suspend all staff in this store
-        await self.db.users.update_many(
+        await self.user_repo.update_many(
             {"store_id": store_id, "status": "active"},
-            {"$set": {
+            {
                 "status": "suspended",
                 "suspended_reason": "Store deleted",
                 "suspended_at": datetime.now(timezone.utc).isoformat()
-            }}
+            }
         )
         
         return {"message": "Magasin supprimé avec succès"}
@@ -287,9 +289,9 @@ class GerantService:
         
         if update_fields:
             update_fields['updated_at'] = datetime.now(timezone.utc).isoformat()
-            await self.db.stores.update_one(
-                {"id": store_id},
-                {"$set": update_fields}
+            await self.store_repo.update_one(
+                {"id": store_id, "gerant_id": gerant_id},
+                update_fields
             )
         
         # Return updated store
@@ -321,12 +323,12 @@ class GerantService:
             raise ValueError("Nouveau magasin non trouvé ou inactif")
         
         # Update manager's store
-        await self.db.users.update_one(
+        await self.user_repo.update_one(
             {"id": manager_id},
-            {"$set": {
+            {
                 "store_id": new_store_id,
                 "updated_at": datetime.now(timezone.utc).isoformat()
-            }}
+            }
         )
         
         return {
@@ -402,9 +404,8 @@ class GerantService:
         # Calculate today's KPIs
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         
-        # 🔒 ANTI-DOUBLON: Get manager_ids that have entries in manager_kpis for today
-        # This prevents double counting if a manager also has entries in kpi_entries
-        managers_with_kpis_today = await self.db.manager_kpis.distinct(
+        # 🔒 ANTI-DOUBLON: Get manager_ids that have entries in manager_kpis for today (PHASE 8: via repository)
+        managers_with_kpis_today = await self.manager_kpi_repo.distinct(
             "manager_id",
             {"store_id": store_id, "date": today}
         )
@@ -417,7 +418,7 @@ class GerantService:
         if managers_with_kpis_today:
             seller_match_today["seller_id"] = {"$nin": managers_with_kpis_today}
         
-        sellers_today = await self.db.kpi_entries.aggregate([
+        sellers_today = await self.kpi_repo.aggregate([
             {"$match": seller_match_today},
             {"$group": {
                 "_id": None,
@@ -425,10 +426,10 @@ class GerantService:
                 "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
                 "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}}
             }}
-        ]).to_list(1)
+        ], max_results=1)
         
         # Managers KPIs today
-        managers_today = await self.db.manager_kpis.aggregate([
+        managers_today = await self.manager_kpi_repo.aggregate([
             {"$match": {"store_id": store_id, "date": today}},
             {"$group": {
                 "_id": None,
@@ -436,7 +437,7 @@ class GerantService:
                 "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
                 "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}}
             }}
-        ]).to_list(1)
+        ], max_results=1)
         
         sellers_ca = sellers_today[0].get("total_ca", 0) if sellers_today else 0
         sellers_ventes = sellers_today[0].get("total_ventes", 0) if sellers_today else 0
@@ -478,7 +479,7 @@ class GerantService:
         
         # 🔒 ANTI-DOUBLON: Get manager_ids that have entries in manager_kpis for this period
         # This prevents double counting if a manager also has entries in kpi_entries
-        managers_with_kpis = await self.db.manager_kpis.distinct(
+        managers_with_kpis = await self.manager_kpi_repo.distinct(
             "manager_id",
             {"store_id": store_id, "date": {"$gte": period_start, "$lte": period_end}}
         )
@@ -492,23 +493,23 @@ class GerantService:
             seller_match["seller_id"] = {"$nin": managers_with_kpis}
         
         # Get period KPIs (sellers only, excluding managers with dedicated entries)
-        period_sellers = await self.db.kpi_entries.aggregate([
+        period_sellers = await self.kpi_repo.aggregate([
             {"$match": seller_match},
             {"$group": {
                 "_id": None,
                 "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
                 "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}}
             }}
-        ]).to_list(1)
+        ], max_results=1)
         
-        period_managers = await self.db.manager_kpis.aggregate([
+        period_managers = await self.manager_kpi_repo.aggregate([
             {"$match": {"store_id": store_id, "date": {"$gte": period_start, "$lte": period_end}}},
             {"$group": {
                 "_id": None,
                 "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
                 "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}}
             }}
-        ]).to_list(1)
+        ], max_results=1)
         
         period_ca = (period_sellers[0].get("total_ca", 0) if period_sellers else 0) + \
                     (period_managers[0].get("total_ca", 0) if period_managers else 0)
@@ -516,7 +517,7 @@ class GerantService:
                         (period_managers[0].get("total_ventes", 0) if period_managers else 0)
         
         # Get previous period KPIs for evolution (same anti-doublon logic)
-        prev_managers_with_kpis = await self.db.manager_kpis.distinct(
+        prev_managers_with_kpis = await self.manager_kpi_repo.distinct(
             "manager_id",
             {"store_id": store_id, "date": {"$gte": prev_start, "$lte": prev_end}}
         )
@@ -528,15 +529,15 @@ class GerantService:
         if prev_managers_with_kpis:
             prev_seller_match["seller_id"] = {"$nin": prev_managers_with_kpis}
         
-        prev_sellers = await self.db.kpi_entries.aggregate([
+        prev_sellers = await self.kpi_repo.aggregate([
             {"$match": prev_seller_match},
             {"$group": {"_id": None, "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}}}}
-        ]).to_list(1)
+        ], max_results=1)
         
-        prev_managers = await self.db.manager_kpis.aggregate([
+        prev_managers = await self.manager_kpi_repo.aggregate([
             {"$match": {"store_id": store_id, "date": {"$gte": prev_start, "$lte": prev_end}}},
             {"$group": {"_id": None, "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}}}}
-        ]).to_list(1)
+        ], max_results=1)
         
         prev_ca = (prev_sellers[0].get("total_ca", 0) if prev_sellers else 0) + \
                   (prev_managers[0].get("total_ca", 0) if prev_managers else 0)
@@ -618,7 +619,7 @@ class GerantService:
         today = now.strftime('%Y-%m-%d')
         
         # 🔒 ANTI-DOUBLON: Get manager_ids that have entries in manager_kpis for this month
-        managers_with_kpis = await self.db.manager_kpis.distinct(
+        managers_with_kpis = await self.manager_kpi_repo.distinct(
             "manager_id",
             {"store_id": {"$in": store_ids}, "date": {"$gte": first_day_of_month, "$lte": today}}
         )
@@ -643,7 +644,7 @@ class GerantService:
             }
         ]
         
-        kpi_stats = await self.db.kpi_entries.aggregate(pipeline).to_list(length=1)
+        kpi_stats = await self.kpi_repo.aggregate(pipeline, max_results=1)
         
         # Aggregate manager KPIs separately
         manager_pipeline = [
@@ -663,7 +664,7 @@ class GerantService:
             }
         ]
         
-        manager_stats = await self.db.manager_kpis.aggregate(manager_pipeline).to_list(length=1)
+        manager_stats = await self.manager_kpi_repo.aggregate(manager_pipeline, max_results=1)
         
         # Combine seller and manager stats
         seller_ca = kpi_stats[0].get("total_ca", 0) if kpi_stats else 0
@@ -721,10 +722,7 @@ class GerantService:
         
         # PRIORITY 1: Check workspace (for free trials without Stripe)
         if workspace_id:
-            workspace = await self.db.workspaces.find_one(
-                {"id": workspace_id},
-                {"_id": 0}
-            )
+            workspace = await self.workspace_repo.find_by_id(workspace_id, projection={"_id": 0})
             
             if workspace:
                 workspace_name = workspace.get('name')
@@ -836,10 +834,11 @@ class GerantService:
         
         # PRIORITY 3: Check local database subscription
         # 🔍 Use find() instead of find_one() to detect multiple subscriptions
-        db_subscriptions = await self.db.subscriptions.find(
+        db_subscriptions = await self.subscription_repo.find_many(
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
-            {"_id": 0}
-        ).to_list(length=10)
+            {"_id": 0},
+            limit=10
+        )
         
         if not db_subscriptions:
             active_sellers_count = await self.user_repo.count({
@@ -1011,7 +1010,7 @@ class GerantService:
         
         # If not gérant, check if user is a manager assigned to this store
         if not store:
-            user = await self.db.users.find_one({"id": user_id}, {"_id": 0})
+            user = await self.user_repo.find_by_id(user_id, projection={"_id": 0})
             if user and user.get('role') == 'manager' and user.get('store_id') == store_id:
                 store = await self.store_repo.find_one(
                     {"id": store_id, "active": True},
@@ -1047,18 +1046,11 @@ class GerantService:
         kpi_query = {"store_id": store_id}
         date_range = {"$gte": start_date_query, "$lte": end_date_query}
         
-        # Use cursor with batch processing instead of .to_list(10000)
+        # PHASE 8: iterator via repository, no .collection
         all_seller_entries = []
-        cursor = self.db.kpi_entries.find({
-            **kpi_query,
-            "date": date_range
-        }, {"_id": 0})
-        
-        # Process in batches of 1000 to avoid memory issues
-        batch_size = 1000
-        async for batch in cursor.batch_size(batch_size):
-            all_seller_entries.append(batch)
-            # Safety limit: if we exceed 10000 entries, we've hit a data quality issue
+        kpi_query_with_date = {**kpi_query, "date": date_range}
+        async for entry in self.kpi_repo.find_iter(kpi_query_with_date, {"_id": 0}):
+            all_seller_entries.append(entry)
             if len(all_seller_entries) >= 10000:
                 logger.warning(f"Store {store_id} has > 10000 KPI entries in date range - consider data cleanup")
                 break
@@ -1092,18 +1084,14 @@ class GerantService:
         # Convertir le dictionnaire en liste (sans doublons)
         seller_entries = list(seller_entries_dict.values())
         
-        # Get manager KPIs for this store (uniquement pour prospects globaux maintenant)
-        # ✅ PHASE 6: Use cursor iteration instead of .to_list(10000)
+        # Get manager KPIs for this store. PHASE 8: iterator via repository, no .collection
         manager_kpis = []
-        manager_cursor = self.db.manager_kpis.find({
+        manager_query = {
             "store_id": store_id,
             "date": {"$gte": start_date_query, "$lte": end_date_query}
-        }, {"_id": 0})
-        
-        # Process in batches of 1000
-        batch_size = 1000
-        async for batch in manager_cursor.batch_size(batch_size):
-            manager_kpis.append(batch)
+        }
+        async for entry in self.manager_kpi_repo.find_iter(manager_query, {"_id": 0}):
+            manager_kpis.append(entry)
             if len(manager_kpis) >= 10000:
                 logger.warning(f"Store {store_id} has > 10000 manager KPIs in date range - consider data cleanup")
                 break
@@ -1185,7 +1173,7 @@ class GerantService:
         
         # If not gérant, check if user is a manager assigned to this store
         if not store:
-            user = await self.db.users.find_one({"id": user_id}, {"_id": 0})
+            user = await self.user_repo.find_by_id(user_id, projection={"_id": 0})
             if user and user.get('role') == 'manager' and user.get('store_id') == store_id:
                 store = await self.store_repo.find_one(
                     {"id": store_id, "active": True},
@@ -1196,7 +1184,7 @@ class GerantService:
             raise ValueError("Magasin non trouvé ou accès non autorisé")
         
         # Get distinct years from kpi_entries
-        kpi_years = await self.db.kpi_entries.distinct("date", {"store_id": store_id})
+        kpi_years = await self.kpi_repo.distinct("date", {"store_id": store_id})
         years_set = set()
         for date_str in kpi_years:
             if date_str and len(date_str) >= 4:
@@ -1204,7 +1192,7 @@ class GerantService:
                 years_set.add(year)
         
         # Get distinct years from manager_kpi
-        manager_years = await self.db.manager_kpis.distinct("date", {"store_id": store_id})
+        manager_years = await self.manager_kpi_repo.distinct("date", {"store_id": store_id})
         for date_str in manager_years:
             if date_str and len(date_str) >= 4:
                 year = int(date_str[:4])
@@ -1305,7 +1293,7 @@ class GerantService:
         if unset_fields:
             update_operation["$unset"] = unset_fields
         
-        await self.db.users.update_one(
+        await self.user_repo.update_one(
             {"id": seller_id},
             update_operation
         )
@@ -1317,12 +1305,12 @@ class GerantService:
             seller_gerant_id = seller.get('gerant_id')
             
             # Update all KPI entries for this seller
-            kpi_update_result = await self.db.kpi_entries.update_many(
+            kpi_update_result = await self.kpi_repo.update_many(
                 {"seller_id": seller_id},
-                {"$set": {
+                {
                     "store_id": transfer.new_store_id,
                     "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
+                }
             )
             
             logger.info(
@@ -1412,22 +1400,19 @@ class GerantService:
         Security: Verifies store ownership
         """
         # Verify store ownership
-        store = await self.db.stores.find_one(
-            {"id": store_id, "gerant_id": gerant_id, "active": True},
-            {"_id": 0}
-        )
-        if not store:
+        store = await self.store_repo.find_by_id(store_id, gerant_id=gerant_id, projection={"_id": 0})
+        if not store or not store.get('active'):
             raise Exception("Magasin non trouvé ou accès non autorisé")
         
         # Get managers (exclude deleted ones)
-        managers = await self.db.users.find(
-            {
-                "store_id": store_id, 
-                "role": "manager",
-                "status": {"$ne": "deleted"}
-            },
-            {"_id": 0, "password": 0}
-        ).to_list(100)
+        managers = await self.user_repo.find_by_store(
+            store_id,
+            role="manager",
+            projection={"_id": 0, "password": 0},
+            limit=100
+        )
+        # Filter out deleted
+        managers = [m for m in managers if m.get('status') != 'deleted']
         
         return managers
     
@@ -1438,22 +1423,16 @@ class GerantService:
         Security: Verifies store ownership
         """
         # Verify store ownership
-        store = await self.db.stores.find_one(
-            {"id": store_id, "gerant_id": gerant_id, "active": True},
-            {"_id": 0}
-        )
-        if not store:
+        store = await self.store_repo.find_by_id(store_id, gerant_id=gerant_id, projection={"_id": 0})
+        if not store or not store.get('active'):
             raise Exception("Magasin non trouvé ou accès non autorisé")
         
-        # Get sellers (exclude deleted ones)
-        sellers = await self.db.users.find(
-            {
-                "store_id": store_id, 
-                "role": "seller",
-                "status": {"$ne": "deleted"}
-            },
-            {"_id": 0, "password": 0}
-        ).to_list(1000)
+        # Get sellers (exclude deleted ones). PHASE 8: iterator via repository, no .collection
+        sellers = []
+        async for seller in self.user_repo.find_by_store_iter(
+            store_id, role="seller", status_exclude="deleted", projection={"_id": 0, "password": 0}
+        ):
+            sellers.append(seller)
         
         return sellers
     
@@ -1473,21 +1452,15 @@ class GerantService:
         from datetime import datetime, timezone
         
         # First check if user is a gérant who owns this store
-        store = await self.db.stores.find_one(
-            {"id": store_id, "gerant_id": user_id, "active": True},
-            {"_id": 0}
-        )
+        store = await self.store_repo.find_by_id(store_id, gerant_id=user_id, projection={"_id": 0})
         
         # If not gérant, check if user is a manager assigned to this store
-        if not store:
-            user = await self.db.users.find_one({"id": user_id}, {"_id": 0})
+        if not store or not store.get('active'):
+            user = await self.user_repo.find_by_id(user_id, projection={"_id": 0})
             if user and user.get('role') == 'manager' and user.get('store_id') == store_id:
-                store = await self.db.stores.find_one(
-                    {"id": store_id, "active": True},
-                    {"_id": 0}
-                )
+                store = await self.store_repo.find_by_id(store_id, projection={"_id": 0})
         
-        if not store:
+        if not store or not store.get('active'):
             raise Exception("Magasin non trouvé ou accès non autorisé")
         
         # Default to today
@@ -1495,23 +1468,24 @@ class GerantService:
             date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         
         # Get all managers and sellers in this store
-        managers = await self.db.users.find({
-            "store_id": store_id,
-            "role": "manager",
-            "status": "active"
-        }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+        managers = await self.user_repo.find_by_store(
+            store_id,
+            role="manager",
+            projection={"_id": 0, "id": 1, "name": 1},
+            limit=100
+        )
+        managers = [m for m in managers if m.get('status') == 'active']
         
-        sellers = await self.db.users.find({
-            "store_id": store_id,
-            "role": "seller",
-            "status": "active"
-        }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+        sellers = await self.user_repo.find_by_store(
+            store_id,
+            role="seller",
+            projection={"_id": 0, "id": 1, "name": 1},
+            limit=100
+        )
+        sellers = [s for s in sellers if s.get('status') == 'active']
         
         # Get ALL KPI entries for this store directly by store_id
-        all_seller_entries = await self.db.kpi_entries.find({
-            "store_id": store_id,
-            "date": date
-        }, {"_id": 0}).to_list(100)
+        all_seller_entries = await self.kpi_repo.find_by_store(store_id, date, projection={"_id": 0})
         
         # ⭐ PRIORITÉ DE LA DONNÉE : Si un vendeur ET un manager ont saisi pour la même journée,
         # utiliser la version du manager (created_by: 'manager')
@@ -1547,7 +1521,7 @@ class GerantService:
                 entry['seller_name'] = entry.get('seller_name', 'Vendeur (historique)')
         
         # Get manager KPIs for this store (uniquement pour prospects globaux)
-        manager_kpis_list = await self.db.manager_kpis.find({
+        manager_kpis_list = await self.manager_kpi_repo.find_many({
             "store_id": store_id,
             "date": date
         }, {"_id": 0}).to_list(100)
@@ -1727,10 +1701,9 @@ class GerantService:
             raise ValueError("Un utilisateur avec cet email existe déjà")
         
         # Check for pending invitation
-        existing_invitation = await self.db.gerant_invitations.find_one({
-            "email": email,
-            "status": "pending"
-        })
+        existing_invitation = await self.gerant_invitation_repo.find_by_email(
+            email, gerant_id=gerant_id, status="pending"
+        )
         if existing_invitation:
             raise ValueError("Une invitation est déjà en attente pour cet email")
         
@@ -1772,7 +1745,7 @@ class GerantService:
                          __import__('datetime').timedelta(days=7)).isoformat()
         }
         
-        await self.db.gerant_invitations.insert_one(invitation)
+        await self.gerant_invitation_repo.create_invitation(invitation, gerant_id)
         
         # Send email
         try:
@@ -2027,19 +2000,18 @@ class GerantService:
     
     async def get_invitations(self, gerant_id: str) -> list:
         """Get all invitations sent by this gérant"""
-        invitations = await self.db.gerant_invitations.find(
-            {"gerant_id": gerant_id},
-            {"_id": 0}
-        ).sort("created_at", -1).to_list(100)
+        invitations = await self.gerant_invitation_repo.find_by_gerant(
+            gerant_id,
+            projection={"_id": 0},
+            limit=100,
+            sort=[("created_at", -1)]
+        )
         
         return invitations
     
     async def cancel_invitation(self, invitation_id: str, gerant_id: str) -> Dict:
         """Cancel a pending invitation"""
-        invitation = await self.db.gerant_invitations.find_one({
-            "id": invitation_id,
-            "gerant_id": gerant_id
-        })
+        invitation = await self.gerant_invitation_repo.find_by_id(invitation_id, gerant_id=gerant_id)
         
         if not invitation:
             raise ValueError("Invitation non trouvée")
@@ -2047,9 +2019,10 @@ class GerantService:
         if invitation.get('status') != 'pending':
             raise ValueError("Seules les invitations en attente peuvent être annulées")
         
-        await self.db.gerant_invitations.update_one(
-            {"id": invitation_id},
-            {"$set": {"status": "cancelled", "cancelled_at": datetime.now(timezone.utc).isoformat()}}
+        await self.gerant_invitation_repo.update_invitation(
+            invitation_id,
+            {"status": "cancelled", "cancelled_at": datetime.now(timezone.utc).isoformat()},
+            gerant_id=gerant_id
         )
         
         return {"message": "Invitation annulée"}
@@ -2058,10 +2031,7 @@ class GerantService:
         """Resend an invitation email"""
         from uuid import uuid4
         
-        invitation = await self.db.gerant_invitations.find_one({
-            "id": invitation_id,
-            "gerant_id": gerant_id
-        })
+        invitation = await self.gerant_invitation_repo.find_by_id(invitation_id, gerant_id=gerant_id)
         
         if not invitation:
             raise ValueError("Invitation non trouvée")
@@ -2073,14 +2043,15 @@ class GerantService:
         new_token = str(uuid4())
         new_expiry = (datetime.now(timezone.utc).replace(hour=0, minute=0, second=0) + timedelta(days=7)).isoformat()
         
-        await self.db.gerant_invitations.update_one(
-            {"id": invitation_id},
-            {"$set": {
+        await self.gerant_invitation_repo.update_invitation(
+            invitation_id,
+            {
                 "token": new_token,
                 "status": "pending",
                 "expires_at": new_expiry,
                 "resent_at": datetime.now(timezone.utc).isoformat()
-            }}
+            },
+            gerant_id=gerant_id
         )
         
         # Refresh invitation data with new token
@@ -2127,14 +2098,14 @@ class GerantService:
         if user.get('status') == 'deleted':
             raise ValueError(f"Ce {role} a été supprimé")
         
-        await self.db.users.update_one(
+        await self.user_repo.update_one(
             {"id": user_id},
-            {"$set": {
+            {
                 "status": "suspended",
                 "suspended_at": datetime.now(timezone.utc).isoformat(),
                 "suspended_by": gerant_id,
                 "suspended_reason": "Suspendu par le gérant"
-            }}
+            }
         )
         
         return {"message": f"{role.capitalize()} suspendu avec succès"}
@@ -2166,21 +2137,14 @@ class GerantService:
         if user.get('status') != 'suspended':
             raise ValueError(f"Ce {role} n'est pas suspendu")
         
-        await self.db.users.update_one(
-            {"id": user_id},
-            {
-                "$set": {
-                    "status": "active",
-                    "reactivated_at": datetime.now(timezone.utc).isoformat(),
-                    "reactivated_by": gerant_id
-                },
-                "$unset": {
-                    "suspended_at": "",
-                    "suspended_by": "",
-                    "suspended_reason": ""
-                }
-            }
-        )
+        # PHASE 8: update_with_unset via repository, no .collection
+        set_data = {
+            "status": "active",
+            "reactivated_at": datetime.now(timezone.utc).isoformat(),
+            "reactivated_by": gerant_id
+        }
+        unset_data = {"suspended_at": "", "suspended_by": "", "suspended_reason": ""}
+        await self.user_repo.update_with_unset({"id": user_id}, set_data, unset_data)
         
         return {"message": f"{role.capitalize()} réactivé avec succès"}
     
@@ -2211,13 +2175,13 @@ class GerantService:
         if user.get('status') == 'deleted':
             raise ValueError(f"Ce {role} a déjà été supprimé")
         
-        await self.db.users.update_one(
+        await self.user_repo.update_one(
             {"id": user_id},
-            {"$set": {
+            {
                 "status": "deleted",
                 "deleted_at": datetime.now(timezone.utc).isoformat(),
                 "deleted_by": gerant_id
-            }}
+            }
         )
         
         return {"message": f"{role.capitalize()} supprimé avec succès"}
@@ -2276,14 +2240,14 @@ class GerantService:
             query["$or"].append({"external_id": {"$in": external_ids}})
         
         existing_stores_map = {}
+        MAX_STORES_SYNC = 1000
         if query["$or"]:
-            existing_stores_cursor = self.store_repo.collection.find(
+            # PHASE 8: find_many via repository, no .collection
+            existing_stores_list = await self.store_repo.find_many(
                 query,
-                {"_id": 0, "id": 1, "name": 1, "external_id": 1, "location": 1}
+                {"_id": 0, "id": 1, "name": 1, "external_id": 1, "location": 1},
+                limit=MAX_STORES_SYNC
             )
-            # ⚠️ SECURITY: Limit to 1000 stores max to prevent OOM during sync
-            MAX_STORES_SYNC = 1000
-            existing_stores_list = await existing_stores_cursor.limit(MAX_STORES_SYNC).to_list(MAX_STORES_SYNC)
             if len(existing_stores_list) == MAX_STORES_SYNC:
                 logger.warning(f"Stores sync query hit limit of {MAX_STORES_SYNC}. Some stores may not be matched correctly.")
             for store in existing_stores_list:
@@ -2376,13 +2340,10 @@ class GerantService:
                 })
                 logger.error(f"Erreur import magasin {store_data.get('name')}: {str(e)}")
         
-        # PHASE 3: Execute bulk write (ordered=False for performance)
+        # PHASE 3: Execute bulk write via repository (no .collection)
         if bulk_operations:
             try:
-                await self.store_repo.collection.bulk_write(
-                    bulk_operations,
-                    ordered=False  # Continue on error
-                )
+                await self.store_repo.bulk_write(bulk_operations)
                 logger.info(f"✅ Import massif magasins: {results['created']} créés, {results['updated']} mis à jour")
             except Exception as e:
                 logger.error(f"Erreur bulk write: {str(e)}")

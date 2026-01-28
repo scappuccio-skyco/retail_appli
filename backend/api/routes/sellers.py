@@ -200,7 +200,7 @@ async def get_active_seller_objectives(
                 manager_id = manager.get('id')
                 # Auto-assign the manager
                 from datetime import datetime, timezone
-                await seller_service.db.users.update_one(
+                await user_repo.update_one(
                     {"id": current_user['id']},
                     {"$set": {
                         "manager_id": manager_id,
@@ -396,7 +396,7 @@ async def get_active_seller_challenges(
                 manager_id = manager.get('id')
                 # Auto-assign the manager
                 from datetime import datetime, timezone
-                await seller_service.db.users.update_one(
+                await user_repo.update_one(
                     {"id": current_user['id']},
                     {"$set": {
                         "manager_id": manager_id,
