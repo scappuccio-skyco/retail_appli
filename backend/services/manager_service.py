@@ -2,7 +2,7 @@
 Manager Service
 Business logic for manager operations (team management, KPIs, diagnostics)
 """
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone, timedelta
 import logging
 
@@ -11,32 +11,62 @@ from repositories.store_repository import StoreRepository
 from repositories.invitation_repository import InvitationRepository
 from repositories.kpi_config_repository import KPIConfigRepository
 from repositories.team_bilan_repository import TeamBilanRepository
-from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
+from repositories.kpi_repository import KPIRepository, ManagerKPIRepository, StoreKPIRepository
 from repositories.objective_repository import ObjectiveRepository
 from repositories.challenge_repository import ChallengeRepository
 from repositories.manager_diagnostic_repository import ManagerDiagnosticRepository
 from repositories.enterprise_repository import APIKeyRepository
+from repositories.morning_brief_repository import MorningBriefRepository
+from repositories.diagnostic_repository import DiagnosticRepository
+from repositories.debrief_repository import DebriefRepository
+from repositories.team_analysis_repository import TeamAnalysisRepository
+from repositories.relationship_consultation_repository import RelationshipConsultationRepository
 
 logger = logging.getLogger(__name__)
 
 
 class ManagerService:
-    """Service for manager operations"""
-    
-    def __init__(self, db):
-        self.db = db
-        # ✅ PHASE 7: Inject repositories instead of direct DB access
-        self.user_repo = UserRepository(db)
-        self.store_repo = StoreRepository(db)
-        self.invitation_repo = InvitationRepository(db)
-        self.kpi_config_repo = KPIConfigRepository(db)
-        self.team_bilan_repo = TeamBilanRepository(db)
-        self.kpi_repo = KPIRepository(db)
-        self.manager_kpi_repo = ManagerKPIRepository(db)
-        self.objective_repo = ObjectiveRepository(db)
-        self.challenge_repo = ChallengeRepository(db)
-        self.manager_diagnostic_repo = ManagerDiagnosticRepository(db)
-        self.api_key_repo = APIKeyRepository(db)
+    """Service for manager operations. Phase 0: repositories + notification_service only, no self.db."""
+
+    def __init__(
+        self,
+        user_repo: UserRepository,
+        store_repo: StoreRepository,
+        invitation_repo: InvitationRepository,
+        kpi_config_repo: KPIConfigRepository,
+        team_bilan_repo: TeamBilanRepository,
+        kpi_repo: KPIRepository,
+        manager_kpi_repo: ManagerKPIRepository,
+        objective_repo: ObjectiveRepository,
+        challenge_repo: ChallengeRepository,
+        manager_diagnostic_repo: ManagerDiagnosticRepository,
+        api_key_repo: APIKeyRepository,
+        notification_service,
+        store_kpi_repo: Optional[StoreKPIRepository] = None,
+        morning_brief_repo: Optional[MorningBriefRepository] = None,
+        diagnostic_repo: Optional[DiagnosticRepository] = None,
+        debrief_repo: Optional[DebriefRepository] = None,
+        team_analysis_repo: Optional[TeamAnalysisRepository] = None,
+        relationship_consultation_repo: Optional[RelationshipConsultationRepository] = None,
+    ):
+        self.user_repo = user_repo
+        self.store_repo = store_repo
+        self.invitation_repo = invitation_repo
+        self.kpi_config_repo = kpi_config_repo
+        self.team_bilan_repo = team_bilan_repo
+        self.kpi_repo = kpi_repo
+        self.manager_kpi_repo = manager_kpi_repo
+        self.objective_repo = objective_repo
+        self.challenge_repo = challenge_repo
+        self.manager_diagnostic_repo = manager_diagnostic_repo
+        self.api_key_repo = api_key_repo
+        self.notification_service = notification_service
+        self.store_kpi_repo = store_kpi_repo
+        self.morning_brief_repo = morning_brief_repo
+        self.diagnostic_repo = diagnostic_repo
+        self.debrief_repo = debrief_repo
+        self.team_analysis_repo = team_analysis_repo
+        self.relationship_consultation_repo = relationship_consultation_repo
     
     async def get_sellers(self, manager_id: str, store_id: str) -> List[Dict]:
         """
@@ -209,21 +239,16 @@ class ManagerService:
         }
     
     async def get_active_objectives(
-        self, 
-        manager_id: str, 
+        self,
+        manager_id: str,
         store_id: str,
-        notification_service=None
     ) -> List[Dict]:
         """
         Get active objectives for manager's team
         
         ✅ ÉTAPE C : Utilise NotificationService injecté (découplage)
         """
-        # ✅ ÉTAPE C : Utiliser NotificationService au lieu de SellerService
-        if notification_service is None:
-            from services.notification_service import NotificationService
-            notification_service = NotificationService(self.db)
-        
+        # Phase 0: use injected notification_service
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         # Get all objectives for the store, then filter
         all_objectives = await self.objective_repo.find_by_store(
@@ -237,26 +262,21 @@ class ManagerService:
         ]
         
         # Add achievement notification flags via NotificationService
-        await notification_service.add_achievement_notification_flag(objectives, manager_id, "objective")
+        await self.notification_service.add_achievement_notification_flag(objectives, manager_id, "objective")
         
         return objectives
     
     async def get_active_challenges(
-        self, 
-        manager_id: str, 
+        self,
+        manager_id: str,
         store_id: str,
-        notification_service=None
     ) -> List[Dict]:
         """
         Get active challenges for manager's team
         
         ✅ ÉTAPE C : Utilise NotificationService injecté (découplage)
         """
-        # ✅ ÉTAPE C : Utiliser NotificationService au lieu de SellerService
-        if notification_service is None:
-            from services.notification_service import NotificationService
-            notification_service = NotificationService(self.db)
-        
+        # Phase 0: use injected notification_service
         # Get all challenges for the store, then filter
         all_challenges = await self.challenge_repo.find_by_store(
             store_id, projection={"_id": 0}, limit=100
@@ -270,17 +290,17 @@ class ManagerService:
         ]
         
         # Add achievement notification flags via NotificationService
-        await notification_service.add_achievement_notification_flag(challenges, manager_id, "challenge")
+        await self.notification_service.add_achievement_notification_flag(challenges, manager_id, "challenge")
         
         return challenges
 
 
 class DiagnosticService:
-    """Service for diagnostic operations"""
-    
-    def __init__(self, db):
-        self.db = db
-    
+    """Service for diagnostic operations. Phase 0: repository only, no self.db."""
+
+    def __init__(self, manager_diagnostic_repo: ManagerDiagnosticRepository):
+        self.manager_diagnostic_repo = manager_diagnostic_repo
+
     async def get_manager_diagnostic(self, manager_id: str) -> Optional[Dict]:
         """Get manager's DISC diagnostic profile"""
         diagnostic = await self.manager_diagnostic_repo.find_latest_by_manager(
@@ -292,11 +312,11 @@ class DiagnosticService:
 
 
 class APIKeyService:
-    """Service for API key management operations"""
-    
-    def __init__(self, db):
-        self.db = db
-    
+    """Service for API key management operations. Phase 0: repository only, no self.db."""
+
+    def __init__(self, api_key_repo: APIKeyRepository):
+        self.api_key_repo = api_key_repo
+
     async def create_api_key(
         self,
         user_id: str,
@@ -553,4 +573,157 @@ class APIKeyService:
         await self.api_key_repo.delete_key(key_id, user_id=user_id if role == 'manager' else None)
         
         return {"success": True, "message": "API key permanently deleted"}
+
+    async def get_yesterday_stats_for_brief(
+        self, store_id: Optional[str], manager_id: str
+    ) -> Dict[str, Any]:
+        """
+        Récupère les statistiques du dernier jour avec des données de vente pour le brief matinal.
+        Cherche dans les 30 derniers jours pour trouver le dernier jour travaillé.
+        Utilise store_kpi_repo, kpi_repo, user_repo, store_repo (injectés).
+        """
+        today = datetime.now(timezone.utc)
+        start_of_week = today - timedelta(days=today.weekday())
+        stats: Dict[str, Any] = {
+            "ca_yesterday": 0,
+            "objectif_yesterday": 0,
+            "ventes_yesterday": 0,
+            "panier_moyen_yesterday": 0,
+            "taux_transfo_yesterday": 0,
+            "indice_vente_yesterday": 0,
+            "top_seller_yesterday": None,
+            "ca_week": 0,
+            "objectif_week": 0,
+            "team_present": "Non renseigné",
+            "data_date": None,
+        }
+        if not store_id or not self.store_kpi_repo:
+            return stats
+        try:
+            store_kpi_repo = self.store_kpi_repo
+            kpi_repo = self.kpi_repo
+            last_data_date = None
+            for days_back in range(1, 31):
+                check_date = today - timedelta(days=days_back)
+                check_date_str = check_date.strftime("%Y-%m-%d")
+                kpi_check = await store_kpi_repo.find_one_with_ca(store_id, check_date_str)
+                if not kpi_check:
+                    kpi_check = await kpi_repo.find_one(
+                        {
+                            "store_id": store_id,
+                            "date": check_date_str,
+                            "ca_journalier": {"$gt": 0},
+                        },
+                        {"_id": 0, "date": 1},
+                    )
+                if kpi_check:
+                    last_data_date = check_date_str
+                    break
+            if not last_data_date:
+                last_data_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+            stats["data_date"] = last_data_date
+
+            kpis_yesterday = await store_kpi_repo.find_many_for_store(
+                store_id, date=last_data_date, limit=50
+            )
+            if not kpis_yesterday:
+                kpi_entries = await kpi_repo.find_by_store(store_id, last_data_date)
+                if kpi_entries:
+                    total_ca = sum(k.get("ca_journalier", 0) or 0 for k in kpi_entries)
+                    total_ventes = sum(k.get("nb_ventes", 0) or 0 for k in kpi_entries)
+                    total_articles = sum(
+                        k.get("nb_articles", k.get("nb_ventes", 0)) or 0 for k in kpi_entries
+                    )
+                    total_visiteurs = sum(
+                        k.get("nb_visiteurs", k.get("nb_prospects", 0)) or 0 for k in kpi_entries
+                    )
+                    stats["ca_yesterday"] = total_ca
+                    stats["ventes_yesterday"] = total_ventes
+                    if total_ventes > 0:
+                        stats["panier_moyen_yesterday"] = total_ca / total_ventes
+                        stats["indice_vente_yesterday"] = total_articles / total_ventes
+                    if total_visiteurs > 0:
+                        stats["taux_transfo_yesterday"] = (total_ventes / total_visiteurs) * 100
+                    if kpi_entries:
+                        sorted_sellers = sorted(
+                            kpi_entries, key=lambda x: x.get("ca_journalier", 0) or 0, reverse=True
+                        )
+                        if sorted_sellers:
+                            top_kpi = sorted_sellers[0]
+                            top_seller = await self.user_repo.find_one(
+                                {"id": top_kpi.get("seller_id")},
+                                {"_id": 0, "name": 1},
+                            )
+                            if top_seller:
+                                stats["top_seller_yesterday"] = (
+                                    f"{top_seller.get('name')} ({top_kpi.get('ca_journalier', 0):,.0f}€)"
+                                )
+            if kpis_yesterday:
+                total_ca = sum(k.get("ca", 0) or 0 for k in kpis_yesterday)
+                total_ventes = sum(k.get("nb_ventes", 0) or 0 for k in kpis_yesterday)
+                total_articles = sum(k.get("nb_articles", 0) or 0 for k in kpis_yesterday)
+                total_visiteurs = sum(k.get("nb_visiteurs", 0) or 0 for k in kpis_yesterday)
+                stats["ca_yesterday"] = total_ca
+                stats["ventes_yesterday"] = total_ventes
+                if total_ventes > 0:
+                    stats["panier_moyen_yesterday"] = total_ca / total_ventes
+                    stats["indice_vente_yesterday"] = total_articles / total_ventes
+                if total_visiteurs > 0:
+                    stats["taux_transfo_yesterday"] = (total_ventes / total_visiteurs) * 100
+                sorted_sellers = sorted(
+                    kpis_yesterday, key=lambda x: x.get("ca", 0) or 0, reverse=True
+                )
+                if sorted_sellers:
+                    top_kpi = sorted_sellers[0]
+                    top_seller = await self.user_repo.find_one(
+                        {"id": top_kpi.get("seller_id")},
+                        {"_id": 0, "name": 1},
+                    )
+                    if top_seller:
+                        stats["top_seller_yesterday"] = (
+                            f"{top_seller.get('name')} ({top_kpi.get('ca', 0):,.0f}€)"
+                        )
+
+            store_obj = await self.store_repo.find_by_id(
+                store_id, None, {"_id": 0, "objective_daily": 1, "objective_weekly": 1}
+            )
+            if store_obj:
+                stats["objectif_yesterday"] = store_obj.get("objective_daily", 0) or 0
+                stats["objectif_week"] = store_obj.get("objective_weekly", 0) or 0
+
+            week_start_str = start_of_week.strftime("%Y-%m-%d")
+            kpi_week_aggregate = [
+                {
+                    "$match": {
+                        "store_id": store_id,
+                        "date": {"$gte": week_start_str, "$lte": last_data_date},
+                    }
+                },
+                {"$group": {"_id": None, "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}}}},
+            ]
+            kpi_week_result = await kpi_repo.aggregate(kpi_week_aggregate, max_results=1)
+            if kpi_week_result:
+                stats["ca_week"] = kpi_week_result[0].get("total_ca", 0) or 0
+            else:
+                kpis_week = await store_kpi_repo.find_many_for_store(
+                    store_id,
+                    date_range={"$gte": week_start_str, "$lte": last_data_date},
+                    limit=500,
+                    projection={"_id": 0, "ca": 1},
+                )
+                if kpis_week:
+                    stats["ca_week"] = sum(k.get("ca", 0) or 0 for k in kpis_week)
+
+            sellers = await self.user_repo.find_by_store(
+                store_id, role="seller", status="active",
+                projection={"_id": 0, "name": 1}, limit=50
+            )
+            if sellers:
+                names = [s.get("name", "").split()[0] for s in sellers[:5]]
+                stats["team_present"] = ", ".join(names)
+                if len(sellers) > 5:
+                    stats["team_present"] += f" et {len(sellers) - 5} autres"
+        except Exception as e:
+            logger.error("Erreur récupération stats brief: %s", e)
+        return stats
 

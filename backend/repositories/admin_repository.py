@@ -2,8 +2,9 @@
 Admin Repository
 Database access layer for SuperAdmin operations.
 
-Phase 1 Refactoring: Delegates to UserRepository, StoreRepository, WorkspaceRepository
-for users, stores, workspaces. Uses skip/limit for all list operations (pagination-ready).
+Phase 1: Does NOT inherit from BaseRepository by design — multi-collection facade
+that delegates to UserRepository, StoreRepository, WorkspaceRepository for users,
+stores, workspaces. Uses skip/limit for all list operations (pagination-ready).
 Collections without a dedicated repo (admin_logs, system_logs, logs, diagnostics,
 relationship_consultations) still use self.db.
 """
@@ -26,7 +27,12 @@ DEFAULT_ADMINS_FROM_LOGS_LIMIT = 1000
 
 
 class AdminRepository:
-    """Multi-collection repository for SuperAdmin database operations. Delegates to UserRepository, StoreRepository, WorkspaceRepository where applicable."""
+    """
+    Multi-collection repository for SuperAdmin database operations.
+    Does not inherit from BaseRepository (single-collection pattern); delegates to
+    UserRepository, StoreRepository, WorkspaceRepository where applicable.
+    All list methods accept skip/limit for pagination; prefer get_*_paginated when available.
+    """
 
     def __init__(self, db):
         self.db = db

@@ -13,7 +13,29 @@ from repositories.store_repository import StoreRepository, WorkspaceRepository
 from repositories.subscription_repository import SubscriptionRepository
 from repositories.gerant_invitation_repository import GerantInvitationRepository
 from repositories.invitation_repository import InvitationRepository
+from repositories.kpi_repository import KPIRepository, ManagerKPIRepository, StoreKPIRepository
+from repositories.diagnostic_repository import DiagnosticRepository
+from repositories.manager_diagnostic_repository import ManagerDiagnosticRepository
+from repositories.achievement_notification_repository import AchievementNotificationRepository
+from repositories.interview_note_repository import InterviewNoteRepository
+from repositories.debrief_repository import DebriefRepository
+from repositories.manager_request_repository import ManagerRequestRepository
+from repositories.objective_repository import ObjectiveRepository
+from repositories.challenge_repository import ChallengeRepository
+from repositories.kpi_config_repository import KPIConfigRepository
+from repositories.team_bilan_repository import TeamBilanRepository
+from repositories.morning_brief_repository import MorningBriefRepository
+from repositories.daily_challenge_repository import DailyChallengeRepository
+from repositories.seller_bilan_repository import SellerBilanRepository
+from repositories.team_analysis_repository import TeamAnalysisRepository
+from repositories.relationship_consultation_repository import RelationshipConsultationRepository
+from repositories.enterprise_repository import (
+    EnterpriseAccountRepository,
+    APIKeyRepository,
+    SyncLogRepository,
+)
 from repositories.system_log_repository import SystemLogRepository
+from repositories.billing_repository import BillingProfileRepository
 from repositories.payment_transaction_repository import PaymentTransactionRepository
 from repositories.stripe_event_repository import StripeEventRepository
 from repositories.ai_conversation_repository import AIConversationRepository
@@ -99,30 +121,32 @@ def get_ai_data_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> AIDataSer
 
 def get_store_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> StoreService:
     """
-    Get StoreService instance with database dependency
-    
-    Usage in routes:
-        @router.post("/store")
-        async def create_store(
-            store_service: StoreService = Depends(get_store_service)
-        ):
-            return await store_service.create_store(...)
+    Get StoreService instance with database dependency.
+    Phase 0: assembleur — instanciation des repos ici (StoreService n'accepte pas db).
     """
-    return StoreService(db)
+    return StoreService(
+        store_repo=StoreRepository(db),
+        workspace_repo=WorkspaceRepository(db),
+        user_repo=UserRepository(db),
+    )
 
 
 def get_gerant_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> GerantService:
     """
-    Get GerantService instance with database dependency
-    
-    Usage in routes:
-        @router.get("/dashboard/stats")
-        async def get_stats(
-            gerant_service: GerantService = Depends(get_gerant_service)
-        ):
-            return await gerant_service.get_dashboard_stats(...)
+    Get GerantService instance with database dependency.
+    Phase 0: assembleur — instanciation des repos ici.
     """
-    return GerantService(db)
+    return GerantService(
+        user_repo=UserRepository(db),
+        store_repo=StoreRepository(db),
+        workspace_repo=WorkspaceRepository(db),
+        gerant_invitation_repo=GerantInvitationRepository(db),
+        subscription_repo=SubscriptionRepository(db),
+        kpi_repo=KPIRepository(db),
+        manager_kpi_repo=ManagerKPIRepository(db),
+        billing_profile_repo=BillingProfileRepository(db),
+        system_log_repo=SystemLogRepository(db),
+    )
 
 
 def get_onboarding_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> OnboardingService:
@@ -141,40 +165,77 @@ def get_onboarding_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> Onboar
 
 def get_enterprise_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> EnterpriseService:
     """
-    Get EnterpriseService instance with database dependency
-    
-    Usage in routes:
-        @router.post("/users/bulk-import")
-        async def bulk_import(
-            enterprise_service: EnterpriseService = Depends(get_enterprise_service)
-        ):
-            return await enterprise_service.bulk_import_users(...)
+    Get EnterpriseService instance with database dependency.
+    Phase 0: assembleur — instanciation des repos ici.
     """
-    return EnterpriseService(db)
+    return EnterpriseService(
+        enterprise_repo=EnterpriseAccountRepository(db),
+        api_key_repo=APIKeyRepository(db),
+        sync_log_repo=SyncLogRepository(db),
+        user_repo=UserRepository(db),
+        store_repo=StoreRepository(db),
+    )
 
 
-def get_manager_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> ManagerService:
-    """Get ManagerService instance with database dependency"""
-    return ManagerService(db)
+def get_manager_service(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    notification_service: "NotificationService" = Depends(get_notification_service),
+) -> ManagerService:
+    """
+    Get ManagerService instance. Phase 0: assembleur — repos injectés, pas de db dans le service.
+    """
+    return ManagerService(
+        user_repo=UserRepository(db),
+        store_repo=StoreRepository(db),
+        invitation_repo=InvitationRepository(db),
+        kpi_config_repo=KPIConfigRepository(db),
+        team_bilan_repo=TeamBilanRepository(db),
+        kpi_repo=KPIRepository(db),
+        manager_kpi_repo=ManagerKPIRepository(db),
+        objective_repo=ObjectiveRepository(db),
+        challenge_repo=ChallengeRepository(db),
+        manager_diagnostic_repo=ManagerDiagnosticRepository(db),
+        api_key_repo=APIKeyRepository(db),
+        notification_service=notification_service,
+        store_kpi_repo=StoreKPIRepository(db),
+        morning_brief_repo=MorningBriefRepository(db),
+        diagnostic_repo=DiagnosticRepository(db),
+        debrief_repo=DebriefRepository(db),
+        team_analysis_repo=TeamAnalysisRepository(db),
+        relationship_consultation_repo=RelationshipConsultationRepository(db),
+    )
 
 
 def get_diagnostic_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> DiagnosticService:
-    """Get DiagnosticService instance with database dependency"""
-    return DiagnosticService(db)
+    """
+    Get DiagnosticService instance with database dependency.
+    Phase 0: assembleur — instanciation du repo ici.
+    """
+    return DiagnosticService(manager_diagnostic_repo=ManagerDiagnosticRepository(db))
 
 
 def get_seller_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> SellerService:
     """
-    Get SellerService instance with database dependency
-    
-    Usage in routes:
-        @router.get("/tasks")
-        async def get_tasks(
-            seller_service: SellerService = Depends(get_seller_service)
-        ):
-            return await seller_service.get_seller_tasks(...)
+    Get SellerService instance with database dependency.
+    Phase 0: assembleur — instanciation des repos ici.
     """
-    return SellerService(db)
+    return SellerService(
+        user_repo=UserRepository(db),
+        diagnostic_repo=DiagnosticRepository(db),
+        manager_request_repo=ManagerRequestRepository(db),
+        objective_repo=ObjectiveRepository(db),
+        challenge_repo=ChallengeRepository(db),
+        kpi_repo=KPIRepository(db),
+        manager_kpi_repo=ManagerKPIRepository(db),
+        achievement_notification_repo=AchievementNotificationRepository(db),
+        interview_note_repo=InterviewNoteRepository(db),
+        debrief_repo=DebriefRepository(db),
+        store_repo=StoreRepository(db),
+        workspace_repo=WorkspaceRepository(db),
+        kpi_config_repo=KPIConfigRepository(db),
+        daily_challenge_repo=DailyChallengeRepository(db),
+        seller_bilan_repo=SellerBilanRepository(db),
+    )
 
 
 # Integration Service
@@ -183,17 +244,13 @@ from repositories.integration_repository import IntegrationRepository
 
 def get_integration_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> IntegrationService:
     """
-    Get IntegrationService instance with database dependency
-    
-    Usage in routes:
-        @router.post("/api-keys")
-        async def create_key(
-            integration_service: IntegrationService = Depends(get_integration_service)
-        ):
-            return await integration_service.create_api_key(...)
+    Get IntegrationService instance with database dependency.
+    Phase 0: assembleur — instanciation des repos ici.
     """
-    integration_repo = IntegrationRepository(db)
-    return IntegrationService(integration_repo, db)
+    return IntegrationService(
+        integration_repo=IntegrationRepository(db),
+        user_repo=UserRepository(db),
+    )
 
 
 # API Key Service (for manager routes)
@@ -291,16 +348,10 @@ def get_competence_service(
     db: AsyncIOMotorDatabase = Depends(get_db)
 ) -> CompetenceService:
     """
-    Get CompetenceService instance with database dependency
-    
-    Usage in routes:
-        @router.get("/seller/{seller_id}/stats")
-        async def get_stats(
-            competence_service: CompetenceService = Depends(get_competence_service)
-        ):
-            scores = await competence_service.calculate_seller_performance_scores(...)
+    Get CompetenceService instance with database dependency.
+    Phase 0: assembleur — instanciation du repo ici.
     """
-    return CompetenceService(db)
+    return CompetenceService(diagnostic_repo=DiagnosticRepository(db))
 
 
 # Admin Service (PHASE 9 / Phase 1 Refactoring: repositories imported at top)
@@ -339,12 +390,8 @@ def get_admin_service(
 
 # ===== REPOSITORY DEPENDENCIES =====
 
-from repositories.objective_repository import ObjectiveRepository
-from repositories.challenge_repository import ChallengeRepository
-from repositories.debrief_repository import DebriefRepository
 from repositories.sale_repository import SaleRepository
 from repositories.evaluation_repository import EvaluationRepository
-from repositories.morning_brief_repository import MorningBriefRepository
 
 def get_objective_repository(
     db: AsyncIOMotorDatabase = Depends(get_db)

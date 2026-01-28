@@ -633,197 +633,170 @@ async def verify_store_ownership(
 
 
 async def verify_resource_store_access(
-    db,
-    resource_id: str,
-    resource_type: str,
-    user_store_id: str,
+    db=None,
+    resource_id: str = None,
+    resource_type: str = None,
+    user_store_id: str = None,
     user_role: str = None,
-    user_id: str = None
-) -> dict:
+    user_id: str = None,
+    objective_repo=None,
+    challenge_repo=None,
+):
     """
     Verify that a resource (objective, challenge) belongs to the user's store.
-    
-    This is a critical security function to prevent IDOR attacks.
-    
+    Phase 0: accepts optional objective_repo/challenge_repo instead of db.
+
     Args:
-        db: Database connection
+        db: Database connection (optional if objective_repo/challenge_repo provided)
         resource_id: ID of the resource to verify
         resource_type: Type of resource ('objective', 'challenge')
         user_store_id: Store ID of the authenticated user
         user_role: Optional role for additional checks
         user_id: Optional user ID for gérant ownership verification
-        
+        objective_repo: Optional ObjectiveRepository (for routes without db)
+        challenge_repo: Optional ChallengeRepository (for routes without db)
+
     Returns:
         Resource dict if found and accessible
-        
-    Raises:
-        HTTPException 403: If resource doesn't belong to user's store
-        HTTPException 404: If resource not found
     """
+    if resource_type == 'objective' and objective_repo is not None:
+        query = {"id": resource_id, "store_id": user_store_id}
+        resource = await objective_repo.find_one(query, {"_id": 0})
+        if not resource:
+            exists_elsewhere = await objective_repo.find_one({"id": resource_id}, {"_id": 0})
+            if exists_elsewhere:
+                raise HTTPException(status_code=403, detail="Objective non trouvé ou accès refusé")
+            raise HTTPException(status_code=404, detail="Objective non trouvé")
+        return resource
+    if resource_type == 'challenge' and challenge_repo is not None:
+        query = {"id": resource_id, "store_id": user_store_id}
+        resource = await challenge_repo.find_one(query, {"_id": 0})
+        if not resource:
+            exists_elsewhere = await challenge_repo.find_one({"id": resource_id}, {"_id": 0})
+            if exists_elsewhere:
+                raise HTTPException(status_code=403, detail="Challenge non trouvé ou accès refusé")
+            raise HTTPException(status_code=404, detail="Challenge non trouvé")
+        return resource
+    if db is None:
+        raise ValueError("verify_resource_store_access: db or (objective_repo/challenge_repo) required")
     if resource_type == 'objective':
         collection = db.objectives
     elif resource_type == 'challenge':
         collection = db.challenges
     else:
         raise ValueError(f"Type de ressource non supporté: {resource_type}")
-    
-    # Build query with store_id filter (CRITICAL: prevents IDOR)
     query = {"id": resource_id, "store_id": user_store_id}
-    
     resource = await collection.find_one(query, {"_id": 0})
-    
     if not resource:
-        # Check if resource exists but in different store (security: don't reveal existence)
-        exists_elsewhere = await collection.find_one({"id": resource_id}, {"_id": 0})  # Exclude _id, include all other fields (including store_id)
+        exists_elsewhere = await collection.find_one({"id": resource_id}, {"_id": 0})
         if exists_elsewhere:
-            raise HTTPException(
-                status_code=403,
-                detail=f"{resource_type.capitalize()} non trouvé ou accès refusé"
-            )
-        raise HTTPException(
-            status_code=404,
-            detail=f"{resource_type.capitalize()} non trouvé"
-        )
-    
+            raise HTTPException(status_code=403, detail=f"{resource_type.capitalize()} non trouvé ou accès refusé")
+        raise HTTPException(status_code=404, detail=f"{resource_type.capitalize()} non trouvé")
     return resource
 
 
 async def verify_seller_store_access(
-    db,
-    seller_id: str,
-    user_store_id: str,
+    db=None,
+    seller_id: str = None,
+    user_store_id: str = None,
     user_role: str = None,
-    user_id: str = None
+    user_id: str = None,
+    user_repo=None,
+    store_repo=None,
 ) -> dict:
     """
     Verify that a seller belongs to the user's store.
-    
-    ✅ SECURITY: Prevents IDOR attacks by verifying ownership hierarchy.
-    
-    Rules:
-    - Manager: Seller must have same store_id as manager
-    - Gérant: Seller's store must be owned by gérant (store.gerant_id = user_id)
-    - Seller: Can only access their own data (seller_id = user_id)
-    
-    Args:
-        db: Database connection
-        seller_id: ID of the seller to verify
-        user_store_id: Store ID of the authenticated user
-        user_role: Optional role for additional checks
-        user_id: Optional user ID for gérant ownership verification
-        
-    Returns:
-        Seller dict if found and accessible
-        
-    Raises:
-        HTTPException 403: If seller doesn't belong to user's store
-        HTTPException 404: If seller not found
+    Phase 0: accepts optional user_repo/store_repo instead of db.
     """
-    # ✅ SECURITY: Validate inputs
     if not user_store_id:
-        raise HTTPException(
-            status_code=400,
-            detail="store_id requis pour vérifier l'accès au vendeur"
-        )
-    
+        raise HTTPException(status_code=400, detail="store_id requis pour vérifier l'accès au vendeur")
     if not user_role:
-        raise HTTPException(
-            status_code=400,
-            detail="role requis pour vérifier l'accès au vendeur"
-        )
-    
-    # ✅ SECURITY: Role-based verification
-    
-    if user_role == 'seller':
-        # Seller can only access their own data
-        if seller_id != user_id:
-            raise HTTPException(
-                status_code=403,
-                detail="Un vendeur ne peut accéder qu'à ses propres données"
+        raise HTTPException(status_code=400, detail="role requis pour vérifier l'accès au vendeur")
+
+    proj = {"_id": 0, "password": 0}
+
+    if user_repo is not None and store_repo is not None:
+        if user_role == "seller":
+            if seller_id != user_id:
+                raise HTTPException(status_code=403, detail="Un vendeur ne peut accéder qu'à ses propres données")
+            seller = await user_repo.find_one({"id": seller_id, "role": "seller"}, proj)
+            if not seller:
+                raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            return seller
+        if user_role == "manager":
+            query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
+            seller = await user_repo.find_one(query, proj)
+            if not seller:
+                exists_elsewhere = await user_repo.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
+                if exists_elsewhere:
+                    raise HTTPException(status_code=403, detail="Vendeur non trouvé ou n'appartient pas à ce magasin")
+                raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            return seller
+        if user_role in ["gerant", "gérant"]:
+            if not user_id:
+                raise HTTPException(status_code=400, detail="user_id requis pour vérifier l'accès gérant")
+            seller = await user_repo.find_one({"id": seller_id, "role": "seller"}, proj)
+            if not seller:
+                raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            seller_store_id = seller.get("store_id")
+            if not seller_store_id:
+                raise HTTPException(status_code=403, detail="Vendeur sans magasin assigné")
+            store = await store_repo.find_one(
+                {"id": seller_store_id, "gerant_id": user_id, "active": True},
+                {"_id": 0, "id": 1}
             )
-        seller = await db.users.find_one(
-            {"id": seller_id, "role": "seller"},
-            {"_id": 0, "password": 0}
-        )
-        if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-        return seller
-    
-    elif user_role == 'manager':
-        # ✅ CRITICAL: Build query with store_id filter (prevents IDOR)
+            if not store:
+                raise HTTPException(status_code=403, detail="Ce vendeur n'appartient pas à l'un de vos magasins")
+            seller = await user_repo.find_one({"id": seller_id, "role": "seller"}, proj)
+            return seller
         query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
-        
-        seller = await db.users.find_one(query, {"_id": 0, "password": 0})
-        
+        seller = await user_repo.find_one(query, proj)
         if not seller:
-            # Check if seller exists but in different store (security: don't reveal existence)
-            exists_elsewhere = await db.users.find_one(
-                {"id": seller_id, "role": "seller"},
-                {"_id": 0}  # Exclude _id, include all other fields (including store_id)
-            )
+            exists_elsewhere = await user_repo.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
             if exists_elsewhere:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
-                )
+                raise HTTPException(status_code=403, detail="Vendeur non trouvé ou n'appartient pas à ce magasin")
             raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-        
         return seller
-    
-    elif user_role in ['gerant', 'gérant']:
-        # ✅ CRITICAL: Validate user_id for gérant
-        if not user_id:
-            raise HTTPException(
-                status_code=400,
-                detail="user_id requis pour vérifier l'accès gérant"
-            )
-        
-        # ✅ CRITICAL: Gérant must verify ownership via store hierarchy
-        # Step 1: Get seller with store_id
-        seller = await db.users.find_one(
-            {"id": seller_id, "role": "seller"},
-            {"_id": 0, "password": 0}  # Exclude _id and password, include all other fields (including store_id)
-        )
-        
+
+    if db is None:
+        raise ValueError("verify_seller_store_access: db or (user_repo, store_repo) required")
+
+    if user_role == "seller":
+        if seller_id != user_id:
+            raise HTTPException(status_code=403, detail="Un vendeur ne peut accéder qu'à ses propres données")
+        seller = await db.users.find_one({"id": seller_id, "role": "seller"}, proj)
         if not seller:
             raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-        
-        seller_store_id = seller.get('store_id')
+        return seller
+    elif user_role == "manager":
+        query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
+        seller = await db.users.find_one(query, proj)
+        if not seller:
+            exists_elsewhere = await db.users.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
+            if exists_elsewhere:
+                raise HTTPException(status_code=403, detail="Vendeur non trouvé ou n'appartient pas à ce magasin")
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        return seller
+    elif user_role in ["gerant", "gérant"]:
+        if not user_id:
+            raise HTTPException(status_code=400, detail="user_id requis pour vérifier l'accès gérant")
+        seller = await db.users.find_one({"id": seller_id, "role": "seller"}, proj)
+        if not seller:
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        seller_store_id = seller.get("store_id")
         if not seller_store_id:
-            raise HTTPException(
-                status_code=403,
-                detail="Vendeur sans magasin assigné"
-            )
-        
-        # Step 2: Verify store ownership (store.gerant_id = user_id)
-        # ✅ CRITICAL: Ownership check prevents IDOR
+            raise HTTPException(status_code=403, detail="Vendeur sans magasin assigné")
         store = await db.stores.find_one(
-            {
-                "id": seller_store_id,
-                "gerant_id": user_id,  # ⚠️ FILTRE CRITIQUE : prévient IDOR
-                "active": True
-            },
+            {"id": seller_store_id, "gerant_id": user_id, "active": True},
             {"_id": 0, "id": 1}
         )
-        
         if not store:
-            raise HTTPException(
-                status_code=403,
-                detail="Ce vendeur n'appartient pas à l'un de vos magasins"
-            )
-        
-        # Get full seller data now that ownership is verified
-        seller = await db.users.find_one(
-            {"id": seller_id, "role": "seller"},
-            {"_id": 0, "password": 0}
-        )
-        
+            raise HTTPException(status_code=403, detail="Ce vendeur n'appartient pas à l'un de vos magasins")
+        seller = await db.users.find_one({"id": seller_id, "role": "seller"}, proj)
         return seller
-    
     else:
-        # Default: Use store_id filter (for backward compatibility)
         query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
-        seller = await db.users.find_one(query, {"_id": 0, "password": 0})
+        seller = await db.users.find_one(query, proj)
         
         if not seller:
             exists_elsewhere = await db.users.find_one(
@@ -873,14 +846,17 @@ async def require_it_admin(
 
 
 async def verify_evaluation_employee_access(
-    db,
     current_user: dict,
     employee_id: str,
+    *,
+    db=None,
+    user_repo=None,
+    store_repo=None,
 ) -> dict:
     """
     Verify that the current user can generate an evaluation for the given employee_id.
-    Returns the employee dict if allowed. Reusable for evaluations routes.
-    Call from route: employee = await verify_evaluation_employee_access(db, current_user, request.employee_id)
+    Returns the employee dict if allowed.
+    Phase 0 Vague 2: Prefer user_repo and store_repo (from services); db is legacy.
     """
     from repositories.user_repository import UserRepository
     from repositories.store_repository import StoreRepository
@@ -894,8 +870,11 @@ async def verify_evaluation_employee_access(
         return current_user
 
     if role in ("manager", "gerant", "gérant"):
-        user_repo = UserRepository(db)
-        store_repo = StoreRepository(db)
+        if user_repo is None or store_repo is None:
+            if db is None:
+                raise ValueError("verify_evaluation_employee_access: provide (user_repo, store_repo) or db")
+            user_repo = UserRepository(db)
+            store_repo = StoreRepository(db)
         employee = await user_repo.find_one(
             {"id": employee_id, "role": "seller"},
             {"_id": 0},
@@ -915,3 +894,113 @@ async def verify_evaluation_employee_access(
         return employee
 
     raise ForbiddenError("Rôle non autorisé")
+
+
+# ===== API KEY VERIFICATION DEPENDENCIES (Phase 3: DRY) =====
+
+async def verify_integration_api_key(
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
+    integration_service = None,  # Injected via Depends in routes
+) -> Dict:
+    """
+    Verify API key from header for IntegrationService.
+    Supports both X-API-Key header and Authorization: Bearer <API_KEY>.
+    To use: Depends(verify_integration_api_key) with integration_service injected.
+    """
+    api_key = get_api_key_from_headers(x_api_key, authorization)
+    try:
+        api_key_data = await integration_service.verify_api_key(api_key)
+        return api_key_data
+    except ValueError as e:
+        raise UnauthorizedError(str(e))
+    except Exception:
+        raise UnauthorizedError("Invalid or inactive API Key")
+
+
+def make_verify_integration_api_key(integration_service):
+    """
+    Factory: create a verify_integration_api_key dependency with injected service.
+    Usage in routes:
+        api_key_data: Dict = Depends(make_verify_integration_api_key(integration_service))
+    """
+    async def _verify(
+        x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+        authorization: Optional[str] = Header(None),
+    ) -> Dict:
+        return await verify_integration_api_key(x_api_key, authorization, integration_service)
+    return _verify
+
+
+def verify_api_key_with_scope(required_scope: str):
+    """
+    Factory: create a dependency that verifies API key and checks scope.
+    Centralized from integrations.py.
+    
+    Usage:
+        @router.get("/stores")
+        async def list_stores(
+            api_key_data: Dict = Depends(verify_api_key_with_scope("stores:read")),
+            integration_service: IntegrationService = Depends(get_integration_service)
+        ):
+            ...
+    """
+    async def _verify_scope(
+        x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+        authorization: Optional[str] = Header(None),
+        integration_service = None,  # Must be injected via sub-dependency
+    ) -> Dict:
+        api_key_data = await verify_integration_api_key(x_api_key, authorization, integration_service)
+        permissions = api_key_data.get('permissions', [])
+        if required_scope not in permissions:
+            raise ForbiddenError(f"Insufficient permissions. Requires '{required_scope}'")
+        return api_key_data
+    return _verify_scope
+
+
+async def verify_integration_store_access(
+    store_id: str,
+    api_key_data: Dict,
+    integration_service,
+    store_service,
+) -> Dict:
+    """
+    Verify that the API key has access to the specified store_id.
+    Centralized from integrations.py (Phase 3: DRY).
+    Returns the store dict if allowed.
+    """
+    tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
+    if not tenant_id:
+        raise ForbiddenError("Invalid API key configuration: missing tenant_id")
+
+    store = await store_service.get_store_by_id(store_id)
+    if not store:
+        raise NotFoundError("Store not found")
+
+    store_gerant_id = str(store.get("gerant_id") or "")
+    tenant_id_str = str(tenant_id)
+    if store_gerant_id != tenant_id_str:
+        raise NotFoundError("Store not found or not accessible by this tenant")
+
+    store_ids = api_key_data.get("store_ids")
+    if store_ids is not None and "*" not in store_ids:
+        store_id_str = str(store_id)
+        if store_id_str not in [str(sid) for sid in store_ids]:
+            raise ForbiddenError("API key does not have access to this store (not in store_ids list)")
+    return store
+
+
+async def verify_enterprise_api_key(
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
+    enterprise_service = None,  # Injected via Depends in routes
+) -> Dict:
+    """
+    Verify API key from header for EnterpriseService.
+    Centralized from enterprise.py (Phase 3: DRY).
+    """
+    api_key_str = get_api_key_from_headers(x_api_key, authorization)
+    api_key = await enterprise_service.verify_api_key(api_key_str)
+    if not api_key:
+        raise UnauthorizedError("Invalid or expired API key")
+    return api_key

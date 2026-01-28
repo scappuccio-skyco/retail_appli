@@ -11,12 +11,10 @@ from pydantic import BaseModel
 from core.security import get_current_user, require_active_space, verify_evaluation_employee_access
 
 logger = logging.getLogger(__name__)
-from api.dependencies import get_db
+from api.dependencies import get_seller_service, get_store_service
 from services.ai_service import EvaluationGuideService
-from repositories.kpi_repository import KPIRepository
-from repositories.user_repository import UserRepository
-from repositories.diagnostic_repository import DiagnosticRepository
-from repositories.interview_note_repository import InterviewNoteRepository
+from services.seller_service import SellerService
+from services.store_service import StoreService
 
 router = APIRouter(
     prefix="/evaluations",
@@ -48,9 +46,10 @@ class EvaluationGuideResponse(BaseModel):
 
 # ===== HELPER FUNCTIONS =====
 
-async def get_employee_stats(db, employee_id: str, start_date: str, end_date: str) -> Dict:
+async def get_employee_stats(seller_service: SellerService, employee_id: str, start_date: str, end_date: str) -> Dict:
     """
     Récupère les statistiques agrégées d'un vendeur sur une période.
+    Phase 0 Vague 2: uses seller_service.kpi_repo (no db).
     """
     try:
         start = datetime.strptime(start_date, "%Y-%m-%d")
@@ -58,8 +57,7 @@ async def get_employee_stats(db, employee_id: str, start_date: str, end_date: st
     except ValueError:
         raise HTTPException(status_code=400, detail="Format de date invalide. Utilisez YYYY-MM-DD")
     
-    kpi_repo = KPIRepository(db)
-    kpis = await kpi_repo.find_by_date_range(
+    kpis = await seller_service.kpi_repo.find_by_date_range(
         employee_id,
         start.strftime("%Y-%m-%d"),
         end.strftime("%Y-%m-%d")
@@ -113,34 +111,22 @@ async def get_employee_stats(db, employee_id: str, start_date: str, end_date: st
     }
 
 
-async def get_disc_profile(db, user_id: str) -> Optional[Dict]:
+async def get_disc_profile(seller_service: SellerService, user_id: str) -> Optional[Dict]:
     """
-    🎨 Récupère le profil DISC d'un utilisateur depuis la base de données.
-    
-    Args:
-        db: Database connection
-        user_id: ID de l'utilisateur
-        
-    Returns:
-        Dict avec style, level, strengths, axes_de_developpement ou None
+    🎨 Récupère le profil DISC d'un utilisateur. Phase 0 Vague 2: seller_service (no db).
     """
     try:
-        # ✅ MIGRÉ: Utilisation du repository
-        diagnostic_repo = DiagnosticRepository(db)
-        diagnostic = await diagnostic_repo.find_one(
+        diagnostic = await seller_service.diagnostic_repo.find_one(
             {"seller_id": user_id},
             {"_id": 0, "style": 1, "level": 1, "strengths": 1, "weaknesses": 1, "axes_de_developpement": 1}
         )
         
         if diagnostic:
-            # Migration: convertir weaknesses en axes_de_developpement si nécessaire
             if 'weaknesses' in diagnostic and 'axes_de_developpement' not in diagnostic:
                 diagnostic['axes_de_developpement'] = diagnostic.pop('weaknesses')
             return diagnostic
         
-        # Fallback: chercher dans le profil utilisateur
-        user_repo = UserRepository(db)
-        user = await user_repo.find_one(
+        user = await seller_service.user_repo.find_one(
             {"id": user_id},
             {"_id": 0, "disc_profile": 1}
         )
@@ -161,26 +147,23 @@ async def get_disc_profile(db, user_id: str) -> Optional[Dict]:
 async def generate_evaluation_guide(
     request: EvaluationGenerateRequest,
     current_user: Dict = Depends(get_current_user),
-    db = Depends(get_db)
+    seller_service: SellerService = Depends(get_seller_service),
+    store_service: StoreService = Depends(get_store_service),
 ):
     """
-    🎯 Génère un guide d'entretien IA personnalisé.
-    
-    - **Manager/Gérant** : Reçoit une grille d'évaluation et questions clés
-    - **Vendeur** : Reçoit une fiche d'auto-bilan et arguments
-    
-    Le guide est basé sur les données réelles de performance du vendeur.
+    🎯 Génère un guide d'entretien IA personnalisé. Phase 0 Vague 2: services only (no db).
     """
-    # 1. Vérifier les droits d'accès (Phase 3: centralisé dans core.security)
-    employee = await verify_evaluation_employee_access(db, current_user, request.employee_id)
+    employee = await verify_evaluation_employee_access(
+        current_user, request.employee_id,
+        user_repo=seller_service.user_repo, store_repo=store_service.store_repo,
+    )
     employee_name = employee.get('name', 'Vendeur')
     
-    # 2. Récupérer les statistiques sur la période
     stats = await get_employee_stats(
-        db, 
-        request.employee_id, 
-        request.start_date, 
-        request.end_date
+        seller_service,
+        request.employee_id,
+        request.start_date,
+        request.end_date,
     )
     
     if stats.get('no_data'):
@@ -201,14 +184,11 @@ async def generate_evaluation_guide(
     except ValueError:
         period = f"{request.start_date} - {request.end_date}"
     
-    # 5. 🎨 Récupérer le profil DISC de l'employé pour personnalisation
-    disc_profile = await get_disc_profile(db, request.employee_id)
+    disc_profile = await get_disc_profile(seller_service, request.employee_id)
     
-    # 6. 📝 Récupérer les notes d'entretien du vendeur (si vendeur)
     interview_notes = []
-    if role_perspective == "seller":
-        interview_note_repo = InterviewNoteRepository(db)
-        notes = await interview_note_repo.find_by_seller(request.employee_id)
+    if role_perspective == "seller" and seller_service.interview_note_repo:
+        notes = await seller_service.interview_note_repo.find_by_seller(request.employee_id)
         notes_in_period = [
             note for note in notes
             if request.start_date <= note.get("date", "") <= request.end_date
@@ -244,17 +224,17 @@ async def get_evaluation_stats(
     start_date: str = Query(..., description="Date de début (YYYY-MM-DD)"),
     end_date: str = Query(..., description="Date de fin (YYYY-MM-DD)"),
     current_user: Dict = Depends(get_current_user),
-    db = Depends(get_db)
+    seller_service: SellerService = Depends(get_seller_service),
+    store_service: StoreService = Depends(get_store_service),
 ):
     """
-    📊 Récupère les statistiques d'un vendeur sur une période donnée.
-    Utile pour prévisualiser les données avant de générer le guide.
+    📊 Récupère les statistiques d'un vendeur sur une période. Phase 0 Vague 2: services only (no db).
     """
-    # Vérifier les droits d'accès
-    employee = await verify_access(db, current_user, employee_id)
-    
-    # Récupérer les stats
-    stats = await get_employee_stats(db, employee_id, start_date, end_date)
+    employee = await verify_evaluation_employee_access(
+        current_user, employee_id,
+        user_repo=seller_service.user_repo, store_repo=store_service.store_repo,
+    )
+    stats = await get_employee_stats(seller_service, employee_id, start_date, end_date)
     
     return {
         "employee_id": employee_id,

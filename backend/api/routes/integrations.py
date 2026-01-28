@@ -6,8 +6,6 @@ from typing import Dict, Optional, List
 from datetime import datetime, timezone
 from uuid import uuid4
 import logging
-from motor.motor_asyncio import AsyncIOMotorDatabase
-
 from exceptions.custom_exceptions import NotFoundError, ValidationError
 from models.integrations import (
     APIKeyCreate, KPISyncRequest, APIStoreCreate,
@@ -17,10 +15,11 @@ from services.kpi_service import KPIService
 from services.integration_service import IntegrationService
 from services.store_service import StoreService
 from services.gerant_service import GerantService
-from repositories.user_repository import UserRepository
-from repositories.store_repository import StoreRepository
-from api.dependencies import get_kpi_service, get_integration_service, get_db, get_store_service, get_gerant_service
-from core.security import get_current_gerant, get_password_hash, require_active_space, get_api_key_from_headers
+from api.dependencies import get_kpi_service, get_integration_service, get_store_service, get_gerant_service
+from core.security import (
+    get_current_gerant, get_password_hash, require_active_space, get_api_key_from_headers,
+    verify_integration_api_key, verify_integration_store_access, ForbiddenError
+)
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +58,7 @@ async def list_api_keys(
     return await integration_service.list_api_keys(current_user['id'])
 
 
-# ===== API KEY VERIFICATION =====
+# ===== API KEY VERIFICATION (Phase 3: centralized in core.security) =====
 
 async def verify_api_key(
     x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
@@ -67,47 +66,26 @@ async def verify_api_key(
     integration_service: IntegrationService = Depends(get_integration_service)
 ) -> Dict:
     """
-    Verify API key from header (Phase 3: uses centralised get_api_key_from_headers).
-    Supports both X-API-Key header and Authorization: Bearer <API_KEY> (not JWT).
+    Verify API key from header. Delegates to core.security.verify_integration_api_key.
     """
-    api_key = get_api_key_from_headers(x_api_key, authorization)
-    try:
-        api_key_data = await integration_service.verify_api_key(api_key)
-        return api_key_data
-    except ValueError as e:
-        error_message = str(e)
-        logger.warning("API key verification failed: %s", error_message)
-        raise HTTPException(status_code=401, detail=error_message)
-    except Exception as e:
-        logger.error("Unexpected error during API key verification: %s", e, exc_info=True)
-        raise HTTPException(status_code=401, detail="Invalid or inactive API Key")
+    return await verify_integration_api_key(x_api_key, authorization, integration_service)
 
 
-# ===== SECURITY MIDDLEWARES =====
+# ===== SECURITY MIDDLEWARES (Phase 3: centralized logic in core.security) =====
 
 def verify_api_key_with_scope(required_scope: str):
     """
-    Factory function to create a dependency that verifies API key and checks scope.
-    
-    Usage:
-        @router.get("/stores")
-        async def list_stores(
-            api_key_data: Dict = Depends(verify_api_key_with_scope("stores:read"))
-        ):
-            ...
+    Factory: verify API key and check scope. Logic delegated to core.security.
     """
     async def _verify_scope(
         x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
         authorization: Optional[str] = Header(None),
         integration_service: IntegrationService = Depends(get_integration_service)
     ) -> Dict:
-        api_key_data = await verify_api_key(x_api_key, authorization, integration_service)
+        api_key_data = await verify_integration_api_key(x_api_key, authorization, integration_service)
         permissions = api_key_data.get('permissions', [])
         if required_scope not in permissions:
-            raise HTTPException(
-                status_code=403,
-                detail=f"Insufficient permissions. Requires '{required_scope}'"
-            )
+            raise ForbiddenError(f"Insufficient permissions. Requires '{required_scope}'")
         return api_key_data
     return _verify_scope
 
@@ -119,30 +97,9 @@ async def verify_store_access(
     store_service: StoreService,
 ) -> Dict:
     """
-    Verify that the API key has access to the specified store_id (Phase 10: no db, use StoreService).
+    Verify store access for API key. Delegates to core.security.verify_integration_store_access.
     """
-    tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
-    if not tenant_id:
-        raise HTTPException(status_code=403, detail="Invalid API key configuration: missing tenant_id")
-
-    store = await store_service.get_store_by_id(store_id)
-    if not store:
-        raise NotFoundError("Store not found")
-
-    store_gerant_id = str(store.get("gerant_id") or "")
-    tenant_id_str = str(tenant_id)
-    if store_gerant_id != tenant_id_str:
-        raise NotFoundError("Store not found or not accessible by this tenant")
-
-    store_ids = api_key_data.get("store_ids")
-    if store_ids is not None and "*" not in store_ids:
-        store_id_str = str(store_id)
-        if store_id_str not in [str(sid) for sid in store_ids]:
-            raise HTTPException(
-                status_code=403,
-                detail="API key does not have access to this store (not in store_ids list)",
-            )
-    return store
+    return await verify_integration_store_access(store_id, api_key_data, integration_service, store_service)
 
 
 # ===== CRUD ENDPOINTS =====
@@ -170,9 +127,9 @@ async def create_store(
     api_key_data: Dict = Depends(verify_api_key_with_scope("stores:write")),
     integration_service: IntegrationService = Depends(get_integration_service),
     gerant_service: GerantService = Depends(get_gerant_service),
-    db: AsyncIOMotorDatabase = Depends(get_db),
+    store_service: StoreService = Depends(get_store_service),
 ):
-    """Create a new store (Phase 10: GerantService + StoreRepository for external_id)."""
+    """Create a new store. Phase 0 Vague 2: services only (no db)."""
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
     if not tenant_id:
         raise HTTPException(status_code=403, detail="Invalid API key configuration")
@@ -194,8 +151,7 @@ async def create_store(
 
     if store_data.external_id:
         store["external_id"] = store_data.external_id
-        store_repo = StoreRepository(db)
-        await store_repo.update_one(
+        await store_service.store_repo.update_one(
             {"id": store["id"]},
             {"$set": {"external_id": store_data.external_id}},
         )
@@ -224,13 +180,12 @@ async def create_manager(
     api_key_data: Dict = Depends(verify_api_key_with_scope("users:write")),
     integration_service: IntegrationService = Depends(get_integration_service),
     store_service: StoreService = Depends(get_store_service),
-    db: AsyncIOMotorDatabase = Depends(get_db),
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
-    """Create a new manager for a store (Phase 10: UserRepository.insert_one, no db.users)."""
+    """Create a new manager for a store. Phase 0 Vague 2: GerantService only (no db)."""
     await verify_store_access(store_id, api_key_data, integration_service, store_service)
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
-    user_repo = UserRepository(db)
-    existing_user = await user_repo.find_by_email(manager_data.email)
+    existing_user = await gerant_service.user_repo.find_by_email(manager_data.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
@@ -250,7 +205,7 @@ async def create_manager(
         "sync_mode": "api_sync",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    await user_repo.insert_one(manager)
+    await gerant_service.user_repo.insert_one(manager)
 
     return {
         "success": True,
@@ -291,25 +246,24 @@ async def create_seller(
     api_key_data: Dict = Depends(verify_api_key_with_scope("users:write")),
     integration_service: IntegrationService = Depends(get_integration_service),
     store_service: StoreService = Depends(get_store_service),
-    db: AsyncIOMotorDatabase = Depends(get_db),
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
-    """Create a new seller for a store (Phase 10: UserRepository.insert_one, no db.users)."""
+    """Create a new seller for a store. Phase 0 Vague 2: GerantService only (no db)."""
     await verify_store_access(store_id, api_key_data, integration_service, store_service)
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
-    user_repo = UserRepository(db)
-    existing_user = await user_repo.find_by_email(seller_data.email)
+    existing_user = await gerant_service.user_repo.find_by_email(seller_data.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     manager_id = seller_data.manager_id
     if manager_id:
-        manager = await user_repo.find_one(
+        manager = await gerant_service.user_repo.find_one(
             {"id": manager_id, "role": "manager", "store_id": store_id}
         )
         if not manager:
             raise NotFoundError("Manager not found in this store")
     else:
-        manager = await user_repo.find_one(
+        manager = await gerant_service.user_repo.find_one(
             {"role": "manager", "store_id": store_id, "status": "active"}
         )
         if manager:
@@ -332,7 +286,7 @@ async def create_seller(
         "sync_mode": "api_sync",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    await user_repo.insert_one(seller)
+    await gerant_service.user_repo.insert_one(seller)
 
     return {
         "success": True,
@@ -354,18 +308,16 @@ async def update_user(
     user_data: APIUserUpdate,
     api_key_data: Dict = Depends(verify_api_key_with_scope("users:write")),
     integration_service: IntegrationService = Depends(get_integration_service),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
-    Update a user (manager or seller).
-    CRITIQUE: Whitelist only, email is FORBIDDEN, tenant/store_id checks enforced.
+    Update a user (manager or seller). Phase 0 Vague 2: GerantService only (no db).
     """
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
     if not tenant_id:
         raise HTTPException(status_code=403, detail="Invalid API key configuration")
     
-    user_repo = UserRepository(db)
-    user = await user_repo.find_by_id(user_id)
+    user = await gerant_service.user_repo.find_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -461,16 +413,13 @@ async def delete_user(
     api_key_data: Dict = Depends(verify_api_key_with_scope("users:write")),
     integration_service: IntegrationService = Depends(get_integration_service),
     gerant_service: GerantService = Depends(get_gerant_service),
-    db: AsyncIOMotorDatabase = Depends(get_db),
 ):
-    """Delete (soft delete) a user (Phase 10: UserRepository + GerantService)."""
+    """Delete (soft delete) a user. Phase 0 Vague 2: GerantService only (no db)."""
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
     if not tenant_id:
         raise HTTPException(status_code=403, detail="Invalid API key configuration")
-    user_repo = UserRepository(db)
     
-    # Find user
-    user = await user_repo.find_by_id(user_id)
+    user = await gerant_service.user_repo.find_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -517,10 +466,9 @@ async def sync_kpi_data(
     api_key: Dict = Depends(verify_api_key),
     kpi_service: KPIService = Depends(get_kpi_service),
     gerant_service: GerantService = Depends(get_gerant_service),
-    db: AsyncIOMotorDatabase = Depends(get_db),
 ):
     """
-    Sync KPI data from external systems (Phase 10: GerantService via DI).
+    Sync KPI data from external systems. Phase 0 Vague 2: no db.
     Full path: /api/integrations/kpi/sync
     """
     try:
@@ -567,8 +515,7 @@ async def sync_kpi_data(
                 )
             
             try:
-                user_repo = UserRepository(db)
-                seller = await user_repo.find_one(
+                seller = await gerant_service.user_repo.find_one(
                     {"id": entry.seller_id},
                     projection={"_id": 0, "id": 1, "role": 1},
                 )
@@ -659,7 +606,6 @@ async def sync_kpi_data_legacy(
     api_key: Dict = Depends(verify_api_key),
     kpi_service: KPIService = Depends(get_kpi_service),
     gerant_service: GerantService = Depends(get_gerant_service),
-    db: AsyncIOMotorDatabase = Depends(get_db),
 ):
-    """Legacy endpoint for N8N compatibility. Full path: /api/integrations/v1/kpi/sync"""
-    return await sync_kpi_data(data, api_key, kpi_service, gerant_service, db)
+    """Legacy endpoint for N8N compatibility. Phase 0 Vague 2: no db."""
+    return await sync_kpi_data(data, api_key, kpi_service, gerant_service)

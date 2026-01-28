@@ -22,15 +22,21 @@ logger = logging.getLogger(__name__)
 
 
 class EnterpriseService:
-    """Service for enterprise account operations"""
-    
-    def __init__(self, db):
-        self.db = db
-        self.enterprise_repo = EnterpriseAccountRepository(db)
-        self.api_key_repo = APIKeyRepository(db)
-        self.sync_log_repo = SyncLogRepository(db)
-        self.user_repo = UserRepository(db)
-        self.store_repo = StoreRepository(db)
+    """Service for enterprise account operations. Phase 0: repositories only, no self.db."""
+
+    def __init__(
+        self,
+        enterprise_repo: EnterpriseAccountRepository,
+        api_key_repo: APIKeyRepository,
+        sync_log_repo: SyncLogRepository,
+        user_repo: UserRepository,
+        store_repo: StoreRepository,
+    ):
+        self.enterprise_repo = enterprise_repo
+        self.api_key_repo = api_key_repo
+        self.sync_log_repo = sync_log_repo
+        self.user_repo = user_repo
+        self.store_repo = store_repo
     
     # ============================================
     # ENTERPRISE ACCOUNT MANAGEMENT

@@ -214,7 +214,7 @@ async def bulk_update_workspace_status(
     """Mettre à jour le statut de plusieurs workspaces en masse"""
     try:
         if not bulk_data.workspace_ids:
-            raise HTTPException(status_code=400, detail="No workspace IDs provided")
+            raise ValidationError("No workspace IDs provided")
         return await admin_service.bulk_update_workspace_status(
             workspace_ids=bulk_data.workspace_ids,
             status=bulk_data.status,
@@ -381,15 +381,11 @@ async def get_all_invitations(
     current_admin: dict = Depends(get_super_admin)
 ):
     """Récupérer toutes les invitations (tous gérants) - Paginées"""
-    try:
-        return await admin_service.get_all_invitations(
-            status=status,
-            page=page,
-            size=size
-        )
-    except Exception as e:
-        logger.error(f"Error fetching invitations: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return await admin_service.get_all_invitations(
+        status=status,
+        page=page,
+        size=size
+    )
 
 
 @router.post("/ai-assistant/chat")

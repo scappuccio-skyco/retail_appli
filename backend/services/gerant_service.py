@@ -13,23 +13,36 @@ from repositories.store_repository import StoreRepository, WorkspaceRepository
 from repositories.gerant_invitation_repository import GerantInvitationRepository
 from repositories.subscription_repository import SubscriptionRepository
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
+from repositories.billing_repository import BillingProfileRepository
+from repositories.system_log_repository import SystemLogRepository
 
 logger = logging.getLogger(__name__)
 
 
 class GerantService:
-    """Service for gérant-specific operations"""
-    
-    def __init__(self, db):
-        self.db = db
-        # ✅ PHASE 7: Inject repositories instead of direct DB access
-        self.user_repo = UserRepository(db)
-        self.store_repo = StoreRepository(db)
-        self.workspace_repo = WorkspaceRepository(db)
-        self.gerant_invitation_repo = GerantInvitationRepository(db)
-        self.subscription_repo = SubscriptionRepository(db)
-        self.kpi_repo = KPIRepository(db)
-        self.manager_kpi_repo = ManagerKPIRepository(db)
+    """Service for gérant-specific operations. Phase 0: repositories only, no self.db."""
+
+    def __init__(
+        self,
+        user_repo: UserRepository,
+        store_repo: StoreRepository,
+        workspace_repo: WorkspaceRepository,
+        gerant_invitation_repo: GerantInvitationRepository,
+        subscription_repo: SubscriptionRepository,
+        kpi_repo: KPIRepository,
+        manager_kpi_repo: ManagerKPIRepository,
+        billing_profile_repo: Optional[BillingProfileRepository] = None,
+        system_log_repo: Optional[SystemLogRepository] = None,
+    ):
+        self.user_repo = user_repo
+        self.store_repo = store_repo
+        self.workspace_repo = workspace_repo
+        self.gerant_invitation_repo = gerant_invitation_repo
+        self.subscription_repo = subscription_repo
+        self.kpi_repo = kpi_repo
+        self.manager_kpi_repo = manager_kpi_repo
+        self.billing_profile_repo = billing_profile_repo
+        self.system_log_repo = system_log_repo
     
     async def check_gerant_active_access(
         self, 
@@ -1057,12 +1070,7 @@ class GerantService:
         
         # ✅ PHASE 6: Use aggregation for date aggregation instead of .to_list(10000)
         # We still need individual entries for priority logic, but we'll use cursor iteration
-        # instead of loading everything in memory at once
-        from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
-        
-        kpi_repo = KPIRepository(self.db)
-        manager_kpi_repo = ManagerKPIRepository(self.db)
-        
+        # instead of loading everything in memory at once. Phase 0: use injected repos.
         # Get KPI entries for this store (use cursor iteration with reasonable batch size)
         # Note: We need individual entries for priority logic (created_by='manager' > 'seller')
         # So we can't use pure aggregation here, but we'll process in batches

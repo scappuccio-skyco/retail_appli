@@ -1,7 +1,7 @@
 """
-Debriefs Routes
-🏺 LEGACY RESTORED - Endpoints for sales debriefs (success/failure analysis)
+Debriefs Routes. Phase 0 Vague 2: services only (no db, no Repository(db)).
 """
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Dict, List, Optional
 from datetime import datetime, timezone
@@ -9,11 +9,11 @@ from uuid import uuid4
 from pydantic import BaseModel
 
 from core.security import get_current_user, require_active_space
-from api.dependencies import get_db, get_ai_service
+from api.dependencies import get_ai_service, get_seller_service
 from services.ai_service import AIService
-from repositories.debrief_repository import DebriefRepository
-from repositories.diagnostic_repository import DiagnosticRepository
-from repositories.kpi_repository import KPIRepository
+from services.seller_service import SellerService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     tags=["Debriefs"],
@@ -40,23 +40,18 @@ class DebriefCreate(BaseModel):
 async def create_debrief(
     debrief_data: DebriefCreate,
     current_user: Dict = Depends(get_current_user),
-    ai_service: AIService = Depends(get_ai_service),  # ✅ ÉTAPE A: Injection de dépendance
-    db = Depends(get_db)
+    ai_service: AIService = Depends(get_ai_service),
+    seller_service: SellerService = Depends(get_seller_service),
 ):
     """
-    Create a new debrief (post-sale analysis).
-    Uses AI to generate coaching feedback.
+    Create a new debrief (post-sale analysis). Phase 0 Vague 2: SellerService only (no db).
     """
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can create debriefs")
     
     try:
         seller_id = current_user['id']
-        diagnostic_repo = DiagnosticRepository(db)
-        kpi_repo = KPIRepository(db)
-
-        # RC6: Use repositories instead of direct db access
-        diagnostic = await diagnostic_repo.find_by_seller(seller_id)
+        diagnostic = await seller_service.diagnostic_repo.find_by_seller(seller_id)
 
         current_scores = {
             'accueil': diagnostic.get('score_accueil', 3.0) if diagnostic else 3.0,
@@ -67,7 +62,7 @@ async def create_debrief(
         }
 
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-        today_kpi = await kpi_repo.find_by_seller_and_date(seller_id, today)
+        today_kpi = await seller_service.kpi_repo.find_by_seller_and_date(seller_id, today)
 
         kpi_context = ""
         if today_kpi:
@@ -135,16 +130,15 @@ async def create_debrief(
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
-        # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        debrief_repo = DebriefRepository(db)
-        debrief_id = await debrief_repo.create_debrief(
+        if not seller_service.debrief_repo:
+            raise HTTPException(status_code=500, detail="Debrief repository not available")
+        debrief_id = await seller_service.debrief_repo.create_debrief(
             debrief_data=debrief,
             seller_id=seller_id
         )
         
-        # RC6: Update diagnostic scores via repository
         if new_scores != current_scores:
-            await diagnostic_repo.update_scores_by_seller(seller_id, new_scores)
+            await seller_service.diagnostic_repo.update_scores_by_seller(seller_id, new_scores)
         
         if '_id' in debrief:
             del debrief['_id']
@@ -164,35 +158,31 @@ async def create_debrief(
 @router.get("/debriefs")
 async def get_debriefs(
     current_user: Dict = Depends(get_current_user),
-    db = Depends(get_db)
+    seller_service: SellerService = Depends(get_seller_service),
 ):
-    """Get debriefs for current user (seller sees own, manager sees shared)."""
+    """Get debriefs for current user. Phase 0 Vague 2: SellerService only (no db)."""
     try:
-        # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        debrief_repo = DebriefRepository(db)
+        if not seller_service.debrief_repo:
+            raise HTTPException(status_code=500, detail="Debrief repository not available")
         
         if current_user['role'] == 'seller':
-            debriefs = await debrief_repo.find_by_seller(
+            debriefs = await seller_service.debrief_repo.find_by_seller(
                 seller_id=current_user['id'],
                 projection={"_id": 0},
                 limit=100,
                 sort=[("created_at", -1)]
             )
         else:
-            # Manager sees shared debriefs from their team
             store_id = current_user.get('store_id')
             if store_id:
-                # Get seller IDs for the store (still need db.users for this)
-                from repositories.user_repository import UserRepository
-                user_repo = UserRepository(db)
-                sellers = await user_repo.find_many(
+                sellers = await seller_service.user_repo.find_many(
                     {"store_id": store_id, "role": "seller"},
                     projection={"_id": 0, "id": 1},
                     limit=100
                 )
                 seller_ids = [s['id'] for s in sellers]
                 
-                debriefs = await debrief_repo.find_by_store(
+                debriefs = await seller_service.debrief_repo.find_by_store(
                     store_id=store_id,
                     seller_ids=seller_ids,
                     visible_to_manager=True,
@@ -219,16 +209,14 @@ async def toggle_debrief_visibility(
     debrief_id: str,
     data: dict,
     current_user: Dict = Depends(get_current_user),
-    db = Depends(get_db)
+    seller_service: SellerService = Depends(get_seller_service),
 ):
-    """Toggle whether a debrief is shared with the manager."""
+    """Toggle whether a debrief is shared with the manager. Phase 0 Vague 2: SellerService only."""
     try:
-        # Accept both field names for compatibility (visible_to_manager or shared_with_manager)
         shared = data.get('shared_with_manager', data.get('visible_to_manager', False))
-        
-        # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        debrief_repo = DebriefRepository(db)
-        result = await debrief_repo.update_debrief(
+        if not seller_service.debrief_repo:
+            raise HTTPException(status_code=500, detail="Debrief repository not available")
+        result = await seller_service.debrief_repo.update_debrief(
             debrief_id=debrief_id,
             update_data={"shared_with_manager": shared},
             seller_id=current_user['id']
@@ -249,13 +237,13 @@ async def toggle_debrief_visibility(
 async def delete_debrief(
     debrief_id: str,
     current_user: Dict = Depends(get_current_user),
-    db = Depends(get_db)
+    seller_service: SellerService = Depends(get_seller_service),
 ):
-    """Delete a debrief."""
+    """Delete a debrief. Phase 0 Vague 2: SellerService only (no db)."""
     try:
-        # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        debrief_repo = DebriefRepository(db)
-        result = await debrief_repo.delete_debrief(
+        if not seller_service.debrief_repo:
+            raise HTTPException(status_code=500, detail="Debrief repository not available")
+        result = await seller_service.debrief_repo.delete_debrief(
             debrief_id=debrief_id,
             seller_id=current_user['id']
         )

@@ -11,7 +11,7 @@ from models.enterprise import (
 )
 from services.enterprise_service import EnterpriseService
 from api.dependencies import get_enterprise_service
-from core.security import get_current_user, require_active_space, get_api_key_from_headers, require_it_admin
+from core.security import get_current_user, require_active_space, get_api_key_from_headers, require_it_admin, verify_enterprise_api_key
 
 router = APIRouter(
     prefix="/enterprise",
@@ -21,7 +21,7 @@ router = APIRouter(
 
 
 # ============================================
-# API KEY AUTHENTICATION
+# API KEY AUTHENTICATION (Phase 3: centralized in core.security)
 # ============================================
 
 async def verify_api_key_header(
@@ -29,12 +29,8 @@ async def verify_api_key_header(
     authorization: Optional[str] = Header(None),
     enterprise_service: EnterpriseService = Depends(get_enterprise_service)
 ) -> dict:
-    """Verify API key from header (Phase 3: uses centralised get_api_key_from_headers)."""
-    api_key_str = get_api_key_from_headers(x_api_key, authorization)
-    api_key = await enterprise_service.verify_api_key(api_key_str)
-    if not api_key:
-        raise HTTPException(status_code=401, detail="Invalid or expired API key")
-    return api_key
+    """Verify API key from header. Delegates to core.security.verify_enterprise_api_key."""
+    return await verify_enterprise_api_key(x_api_key, authorization, enterprise_service)
 
 
 # ============================================

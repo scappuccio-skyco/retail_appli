@@ -17,16 +17,10 @@ from services.gerant_service import GerantService
 from services.payment_service import PaymentService
 from services.vat_service import validate_vat_number, calculate_vat_rate, is_eu_country
 from models.billing import BillingProfileCreate, BillingProfileUpdate, BillingProfile, BillingProfileResponse
-from api.dependencies import get_gerant_service, get_db, get_payment_service
+from api.dependencies import get_gerant_service, get_payment_service
 from email_service import send_staff_email_update_confirmation, send_staff_email_update_alert
 from models.pagination import PaginatedResponse, PaginationParams
 from utils.pagination import paginate, paginate_with_params
-from repositories.kpi_repository import KPIRepository
-from repositories.user_repository import UserRepository
-from repositories.store_repository import StoreRepository, WorkspaceRepository
-from repositories.subscription_repository import SubscriptionRepository
-from repositories.billing_repository import BillingProfileRepository
-from repositories.system_log_repository import SystemLogRepository
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,37 +37,28 @@ router = APIRouter(prefix="/gerant", tags=["Gérant"])
 @router.get("/profile")
 async def get_gerant_profile(
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Get gérant profile information (name, email, phone, company_name).
-    
-    Returns:
-        Dict with profile data including user info and workspace company name
     """
-    gerant_id = current_user['id']
-
-    user_repo = UserRepository(db)
-    workspace_repo = WorkspaceRepository(db)
-
-    user = await user_repo.find_by_id(user_id=gerant_id, include_password=False)
+    gerant_id = current_user["id"]
+    user = await gerant_service.user_repo.find_by_id(user_id=gerant_id, include_password=False)
     if not user:
         raise NotFoundError("Utilisateur non trouvé")
-
-    workspace_id = user.get('workspace_id')
+    workspace_id = user.get("workspace_id")
     company_name = None
     if workspace_id:
-        workspace = await workspace_repo.find_by_id(workspace_id=workspace_id)
+        workspace = await gerant_service.workspace_repo.find_by_id(workspace_id=workspace_id)
         if workspace:
-            company_name = workspace.get('name')
-
+            company_name = workspace.get("name")
     return {
-        "id": user.get('id'),
-        "name": user.get('name'),
-        "email": user.get('email'),
-        "phone": user.get('phone'),
+        "id": user.get("id"),
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "phone": user.get("phone"),
         "company_name": company_name,
-        "created_at": user.get('created_at')
+        "created_at": user.get("created_at")
     }
 
 
@@ -81,107 +66,58 @@ async def get_gerant_profile(
 async def update_gerant_profile(
     update_data: Dict,
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Update gérant profile information.
-    
     Allowed fields: name, email, phone, company_name
-    
-    If email is changed, validation and uniqueness checks are performed.
-    If company_name is changed, the workspace name is updated.
-    
-    Returns:
-        Updated profile data
     """
     try:
-        gerant_id = current_user['id']
-        
-        # ✅ PHASE 6: Use repositories instead of direct DB access
-        user_repo = UserRepository(db)
-        workspace_repo = WorkspaceRepository(db)
-        
-        # Get current user
-        user = await user_repo.find_by_id(user_id=gerant_id, include_password=True)
-        
+        gerant_id = current_user["id"]
+        user = await gerant_service.user_repo.find_by_id(user_id=gerant_id, include_password=True)
         if not user:
             raise NotFoundError("Utilisateur non trouvé")
-
-        # Whitelist allowed fields
-        ALLOWED_USER_FIELDS = ['name', 'email', 'phone']
+        ALLOWED_USER_FIELDS = ["name", "email", "phone"]
         user_updates = {}
         company_name_update = None
-        
         for field in ALLOWED_USER_FIELDS:
             if field in update_data and update_data[field] is not None:
                 user_updates[field] = update_data[field]
-        
-        # Handle company_name separately (it's in workspace, not user)
-        if 'company_name' in update_data and update_data['company_name'] is not None:
-            company_name_update = update_data['company_name'].strip()
+        if "company_name" in update_data and update_data["company_name"] is not None:
+            company_name_update = update_data["company_name"].strip()
             if not company_name_update:
                 raise ValidationError("Le nom de l'entreprise ne peut pas être vide")
-        
-        # Store old email for Stripe update and audit
-        old_email = user.get('email', '').lower().strip() if user.get('email') else None
+        old_email = user.get("email", "").lower().strip() if user.get("email") else None
         email_changed = False
-        
-        # Validate email format if provided
-        if 'email' in user_updates:
+        if "email" in user_updates:
             import re
-            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-            if not re.match(email_pattern, user_updates['email']):
+            email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            if not re.match(email_pattern, user_updates["email"]):
                 raise ValidationError("Format d'email invalide")
-            
-            # Normalize email to lowercase
-            email_lower = user_updates['email'].lower().strip()
-            
-            # Check if email has actually changed
+            email_lower = user_updates["email"].lower().strip()
             if old_email and old_email != email_lower:
                 email_changed = True
-            
-            user_updates['email'] = email_lower
-            
-            # ✅ PHASE 6: Use repository method for email check
-            existing_user = await user_repo.find_by_email(email_lower)
-            if existing_user and existing_user.get('id') != gerant_id:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Cet email est déjà utilisé par un autre utilisateur"
-                )
-        
-        # ✅ PHASE 6: Use repository update method
+            user_updates["email"] = email_lower
+            existing_user = await gerant_service.user_repo.find_by_email(email_lower)
+            if existing_user and existing_user.get("id") != gerant_id:
+                raise ValidationError("Cet email est déjà utilisé par un autre utilisateur")
         if user_updates:
-            user_updates['updated_at'] = datetime.now(timezone.utc).isoformat()
-            await user_repo.update_one(
-                {"id": gerant_id},
-                {"$set": user_updates}
-            )
-        
-        # Store old company name for audit
+            user_updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+            await gerant_service.user_repo.update_one({"id": gerant_id}, {"$set": user_updates})
         old_company_name = None
         if company_name_update:
-            workspace_id = user.get('workspace_id')
+            workspace_id = user.get("workspace_id")
             if workspace_id:
-                # Get old company name for audit
-                old_workspace = await workspace_repo.find_by_id(workspace_id=workspace_id)
+                old_workspace = await gerant_service.workspace_repo.find_by_id(workspace_id=workspace_id)
                 if old_workspace:
-                    old_company_name = old_workspace.get('name')
-                
-                await workspace_repo.update_one(
+                    old_company_name = old_workspace.get("name")
+                await gerant_service.workspace_repo.update_one(
                     {"id": workspace_id},
-                    {"$set": {
-                        "name": company_name_update,
-                        "updated_at": datetime.now(timezone.utc).isoformat()
-                    }}
+                    {"$set": {"name": company_name_update, "updated_at": datetime.now(timezone.utc).isoformat()}}
                 )
-                
-                # ✅ PHASE 6: Use SystemLogRepository
-                system_log_repo = SystemLogRepository(db)
-                # Audit log for company name change (important for legal/billing documents)
-                if old_company_name and old_company_name != company_name_update:
+                if gerant_service.system_log_repo and old_company_name and old_company_name != company_name_update:
                     try:
-                        await system_log_repo.create_log({
+                        await gerant_service.system_log_repo.create_log({
                             "timestamp": datetime.now(timezone.utc).isoformat(),
                             "level": "info",
                             "type": "audit",
@@ -195,24 +131,18 @@ async def update_gerant_profile(
                                 "workspace_id": workspace_id
                             }
                         })
-                        logger.info(f"Audit log: Company name changed from '{old_company_name}' to '{company_name_update}' by gérant {gerant_id}")
+                        logger.info("Audit log: Company name changed from '%s' to '%s' by gérant %s", old_company_name, company_name_update, gerant_id)
                     except Exception as audit_error:
-                        # Don't fail the request if audit logging fails
-                        logger.error(f"Failed to log company name change audit: {str(audit_error)}")
+                        logger.error("Failed to log company name change audit: %s", audit_error)
             else:
-                logger.warning(f"Gérant {gerant_id} has no workspace_id, cannot update company_name")
-        
-        # ✅ PHASE 6: Use repositories
-        # Fetch updated data
-        updated_user = await user_repo.find_by_id(user_id=gerant_id, include_password=False)
-        
-        # Get updated workspace name
-        workspace_id = updated_user.get('workspace_id') if updated_user else None
+                logger.warning("Gérant %s has no workspace_id, cannot update company_name", gerant_id)
+        updated_user = await gerant_service.user_repo.find_by_id(user_id=gerant_id, include_password=False)
+        workspace_id = updated_user.get("workspace_id") if updated_user else None
         company_name = None
         if workspace_id:
-            workspace = await workspace_repo.find_by_id(workspace_id=workspace_id)
+            workspace = await gerant_service.workspace_repo.find_by_id(workspace_id=workspace_id)
             if workspace:
-                company_name = workspace.get('name')
+                company_name = workspace.get("name")
         
         # Update Stripe customer email if email changed and customer exists
         if email_changed and old_email:
@@ -253,7 +183,7 @@ async def update_gerant_profile(
 async def change_gerant_password(
     password_data: Dict,
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Change gérant password.
@@ -282,10 +212,9 @@ async def change_gerant_password(
             raise ValidationError("Le nouveau mot de passe doit contenir au moins 8 caractères")
         
         # ✅ PHASE 6: Use UserRepository
-        user_repo = UserRepository(db)
         
         # Get current user with password
-        user = await user_repo.find_by_id(user_id=gerant_id, include_password=True)
+        user = await gerant_service.user_repo.find_by_id(user_id=gerant_id, include_password=True)
         
         if not user:
             raise NotFoundError("Utilisateur non trouvé")
@@ -298,7 +227,7 @@ async def change_gerant_password(
         hashed_password = get_password_hash(new_password)
         
         # Update password
-        await user_repo.update_one(
+        await gerant_service.user_repo.update_one(
             {"id": gerant_id},
             {"$set": {
                 "password": hashed_password,
@@ -362,7 +291,7 @@ async def update_subscription_seats(
     request: UpdateSeatsRequest,
     current_user: dict = Depends(get_current_gerant),
     payment_service: PaymentService = Depends(get_payment_service),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Update the number of seats in the subscription.
@@ -386,7 +315,7 @@ async def update_subscription_seats(
         
         # Validate seats count
         if new_seats < 1:
-            raise HTTPException(status_code=400, detail="Le nombre de sièges doit être au moins 1")
+            raise ValidationError("Le nombre de sièges doit être au moins 1")
         if new_seats > 50:
             raise ValidationError("Maximum 50 sièges. Contactez-nous pour un devis personnalisé.")
         
@@ -394,7 +323,7 @@ async def update_subscription_seats(
         # PaymentService will handle multiple active subscriptions check
         
         # ✅ PHASE 6: Use SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
+        subscription_repo = gerant_service.subscription_repo
         
         # Get current subscription to check if trial (for info only, PaymentService will re-fetch)
         subscription = await subscription_repo.find_by_user_and_status(
@@ -522,7 +451,7 @@ class PreviewSeatsResponse(BaseModel):
 async def preview_subscription_update(
     request: PreviewUpdateRequest,
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Preview ANY subscription change: seats AND/OR billing interval.
@@ -538,7 +467,7 @@ async def preview_subscription_update(
         gerant_id = current_user['id']
         
         # ✅ PHASE 6: Use SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
+        subscription_repo = gerant_service.subscription_repo
         
         # Get current subscription
         subscription = await subscription_repo.find_by_user_and_status(
@@ -602,9 +531,8 @@ async def preview_subscription_update(
                 stripe.api_key = settings.STRIPE_API_KEY
                 
                 # ✅ PHASE 6: Use UserRepository
-                user_repo = UserRepository(db)
                 # Get customer ID
-                gerant = await user_repo.find_by_id(user_id=gerant_id, include_password=False)
+                gerant = await gerant_service.user_repo.find_by_id(user_id=gerant_id, include_password=False)
                 stripe_customer_id = gerant.get('stripe_customer_id') if gerant else None
                 
                 if stripe_customer_id:
@@ -699,7 +627,7 @@ async def preview_subscription_update(
 async def preview_seat_change(
     request: PreviewSeatsRequest,
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Preview the cost of changing seat count.
@@ -720,12 +648,12 @@ async def preview_seat_change(
         
         # Validate
         if new_seats < 1:
-            raise HTTPException(status_code=400, detail="Le nombre de sièges doit être au moins 1")
+            raise ValidationError("Le nombre de sièges doit être au moins 1")
         if new_seats > 50:
             raise HTTPException(status_code=400, detail="Maximum 50 sièges")
         
         # ✅ PHASE 6: Use SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
+        subscription_repo = gerant_service.subscription_repo
         
         # Get current subscription
         subscription = await subscription_repo.find_by_user_and_status(
@@ -766,8 +694,7 @@ async def preview_seat_change(
                     
                     # Get customer_id from user
                     # ✅ PHASE 6: Use UserRepository
-                    user_repo = UserRepository(db)
-                    gerant = await user_repo.find_by_id(user_id=gerant_id, include_password=False)
+                    gerant = await gerant_service.user_repo.find_by_id(user_id=gerant_id, include_password=False)
                     stripe_customer_id = gerant.get('stripe_customer_id') if gerant else None
                     
                     if stripe_customer_id:
@@ -998,7 +925,7 @@ async def update_staff_member(
     update_data: Dict,
     background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Update staff member information (manager or seller).
@@ -1012,10 +939,9 @@ async def update_staff_member(
     """
     try:
         # ✅ PHASE 6: Use UserRepository
-        user_repo = UserRepository(db)
         
         # Find the user
-        user = await user_repo.find_by_id(user_id=user_id, include_password=True)
+        user = await gerant_service.user_repo.find_by_id(user_id=user_id, include_password=True)
         
         if not user:
             raise NotFoundError("Utilisateur non trouvé")
@@ -1073,7 +999,7 @@ async def update_staff_member(
             updates['email'] = email_lower  # Store normalized email
             
             # ✅ PHASE 6: Use repository method for email check
-            existing_user = await user_repo.find_by_email(email_lower)
+            existing_user = await gerant_service.user_repo.find_by_email(email_lower)
             if existing_user and existing_user.get('id') != user_id:
                 raise HTTPException(
                     status_code=400,
@@ -1084,13 +1010,13 @@ async def update_staff_member(
         updates['updated_at'] = datetime.now(timezone.utc).isoformat()
         
         # Update user
-        await user_repo.update_one(
+        await gerant_service.user_repo.update_one(
             {"id": user_id},
             {"$set": updates}
         )
         
         # Fetch updated user
-        updated_user = await user_repo.find_by_id(user_id=user_id, include_password=False)
+        updated_user = await gerant_service.user_repo.find_by_id(user_id=user_id, include_password=False)
         
         # Send email notifications if email was changed
         if email_changed and new_email and old_email:
@@ -1211,7 +1137,7 @@ async def get_store_available_years(
 async def get_store_kpi_dates(
     store_id: str,
     current_user: Dict = Depends(get_gerant_or_manager),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Get dates with KPI data for this store
@@ -1229,7 +1155,7 @@ async def get_store_kpi_dates(
         ]
         
         # ✅ MIGRÉ: Limite à 365 jours (agrégation, pas besoin de pagination)
-        kpi_repo = KPIRepository(db)
+        kpi_repo = gerant_service.kpi_repo
         results = await kpi_repo.aggregate(pipeline, max_results=365)
         dates = [r['_id'] for r in results if r['_id']]
         
@@ -1259,7 +1185,7 @@ async def transfer_manager_to_store(
             manager_id, transfer_data, current_user['id']
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
 
 
 # ===== SELLER MANAGEMENT ROUTES =====
@@ -1330,7 +1256,7 @@ async def send_invitation(
         )
         return result
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
 
 
 @router.get("/invitations")
@@ -1366,7 +1292,7 @@ async def resend_invitation(
     try:
         return await gerant_service.resend_invitation(invitation_id, current_user['id'])
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
 
 
 # ===== MANAGER SUSPEND/REACTIVATE/DELETE ROUTES =====
@@ -1468,15 +1394,11 @@ class GerantCheckoutRequest(BaseModel):
     origin_url: str  # URL d'origine pour les redirections
 
 
-from api.dependencies import get_db
-from motor.motor_asyncio import AsyncIOMotorDatabase
-
-
 @router.post("/stripe/checkout")
 async def create_gerant_checkout_session(
     checkout_data: GerantCheckoutRequest,
     current_user: dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Créer une session de checkout Stripe pour un gérant.
@@ -1504,7 +1426,7 @@ async def create_gerant_checkout_session(
         logger.info(f"✅ [CHECKOUT] STRIPE_API_KEY présente")
         
         # ✅ PHASE 6: Use BillingProfileRepository
-        billing_profile_repo = BillingProfileRepository(db)
+        billing_profile_repo = gerant_service.billing_profile_repo
         
         # 🔒 VALIDATION FISCALE B2B: Vérifier que le profil de facturation est complet
         logger.info(f"🔵 [CHECKOUT] Recherche profil de facturation pour gérant {current_user['id']}...")
@@ -1566,7 +1488,7 @@ async def create_gerant_checkout_session(
         
         # ✅ PHASE 6: Use UserRepository (déjà initialisé plus haut)
         # Compter les vendeurs ACTIFS uniquement
-        active_sellers_count = await user_repo.count_active_sellers(gerant_id=current_user['id'])
+        active_sellers_count = await gerant_service.user_repo.count_active_sellers(gerant_id=current_user['id'])
         logger.info(f"✅ [CHECKOUT] Vendeurs actifs: {active_sellers_count}")
         
         # Utiliser la quantité fournie ou celle calculée
@@ -1582,7 +1504,7 @@ async def create_gerant_checkout_session(
             )
         
         # Vérifier si le gérant a déjà un customer ID Stripe
-        gerant = await user_repo.find_by_id(user_id=current_user['id'], include_password=False)
+        gerant = await gerant_service.user_repo.find_by_id(user_id=current_user['id'], include_password=False)
         if not gerant:
             logger.error(f"❌ Gérant {current_user['id']} non trouvé dans la base de données")
             raise HTTPException(
@@ -1593,7 +1515,7 @@ async def create_gerant_checkout_session(
         
         # ✅ MIGRÉ: Limite à 10 pour validation (pas besoin de pagination complète)
         from repositories.subscription_repository import SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
+        subscription_repo = gerant_service.subscription_repo
         existing_subscriptions = await subscription_repo.find_many(
             {"user_id": current_user['id'], "status": {"$in": ["active", "trialing"]}},
             projection={"_id": 0},
@@ -1657,8 +1579,7 @@ async def create_gerant_checkout_session(
             stripe_customer_id = customer.id
             
             # ✅ PHASE 6: Use UserRepository
-            user_repo = UserRepository(db)
-            await user_repo.update_one(
+            await gerant_service.user_repo.update_one(
                 {"id": current_user['id']},
                 {"$set": {"stripe_customer_id": stripe_customer_id}}
             )
@@ -1887,7 +1808,7 @@ class SupportMessageResponse(BaseModel):
 async def send_support_message(
     request: SupportMessageRequest,
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Send a support message from the gérant to the support team.
@@ -1902,7 +1823,7 @@ async def send_support_message(
         if not request.message.strip():
             raise ValidationError("Le message est requis")
         if len(request.message) > 5000:
-            raise HTTPException(status_code=400, detail="Le message est trop long (max 5000 caractères)")
+            raise ValidationError("Le message est trop long (max 5000 caractères)")
         
         # Get user info
         user_email = current_user.get('email', 'inconnu')
@@ -1910,8 +1831,8 @@ async def send_support_message(
         user_id = current_user.get('id', 'N/A')
         
         # ✅ PHASE 6: Use repositories
-        workspace_repo = WorkspaceRepository(db)
-        subscription_repo = SubscriptionRepository(db)
+        workspace_repo = gerant_service.workspace_repo
+        subscription_repo = gerant_service.subscription_repo
         
         # Get workspace info
         workspace_id = current_user.get('workspace_id')
@@ -1983,7 +1904,7 @@ async def send_support_message(
         brevo_api_key = settings.BREVO_API_KEY
         if not brevo_api_key:
             logger.error("BREVO_API_KEY not configured")
-            raise HTTPException(status_code=500, detail="Service email non configuré")
+            raise ValidationError("Service email non configuré")
         
         # Send email via Brevo
         payload = {
@@ -2020,7 +1941,7 @@ async def send_support_message(
                 )
             else:
                 logger.error(f"❌ Brevo API error ({response.status_code}): {response.text}")
-                raise HTTPException(status_code=500, detail="Erreur lors de l'envoi du message")
+                raise ValidationError("Erreur lors de l'envoi du message")
                 
     except HTTPException:
         raise
@@ -2051,7 +1972,7 @@ class SwitchIntervalResponse(BaseModel):
 async def switch_billing_interval(
     request: SwitchIntervalRequest,
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Switch billing interval between monthly and yearly.
@@ -2075,7 +1996,7 @@ async def switch_billing_interval(
             raise ValidationError("Intervalle invalide. Utilisez 'month' ou 'year'.")
         
         # ✅ PHASE 6: Use SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
+        subscription_repo = gerant_service.subscription_repo
         
         # Get current subscription
         subscription = await subscription_repo.find_by_user_and_status(
@@ -2092,16 +2013,14 @@ async def switch_billing_interval(
         
         # Check if already on requested interval
         if current_interval == new_interval:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Vous êtes déjà sur un abonnement {'annuel' if new_interval == 'year' else 'mensuel'}."
+            raise ValidationError(
+                f"Vous êtes déjà sur un abonnement {'annuel' if new_interval == 'year' else 'mensuel'}."
             )
         
         # Block downgrade from annual to monthly
         if current_interval == 'year' and new_interval == 'month':
-            raise HTTPException(
-                status_code=400,
-                detail="Impossible de passer de l'annuel au mensuel. Pour changer, veuillez annuler votre abonnement actuel puis en souscrire un nouveau."
+            raise ValidationError(
+                "Impossible de passer de l'annuel au mensuel. Pour changer, veuillez annuler votre abonnement actuel puis en souscrire un nouveau."
             )
         
         # Get Stripe IDs
@@ -2118,8 +2037,8 @@ async def switch_billing_interval(
         next_billing_date = ""
         
         # ✅ PHASE 6: Use SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
-        workspace_repo = WorkspaceRepository(db)
+        subscription_repo = gerant_service.subscription_repo
+        workspace_repo = gerant_service.workspace_repo
         
         # For trial users, just update the database
         if is_trial:
@@ -2140,7 +2059,7 @@ async def switch_billing_interval(
             # Active subscriber - call Stripe API
             STRIPE_API_KEY = settings.STRIPE_API_KEY
             if not STRIPE_API_KEY:
-                raise HTTPException(status_code=500, detail="Configuration Stripe manquante")
+                raise ValidationError("Configuration Stripe manquante")
             
             stripe.api_key = STRIPE_API_KEY
             
@@ -2193,7 +2112,7 @@ async def switch_billing_interval(
                 
             except stripe.StripeError as e:
                 logger.error(f"❌ Stripe error: {str(e)}")
-                raise HTTPException(status_code=500, detail=f"Erreur Stripe: {str(e)}")
+                raise ValidationError(f"Erreur Stripe: {str(e)}")
             
             # Update local database
             update_data = {
@@ -2241,12 +2160,8 @@ async def switch_billing_interval(
             proration_amount=proration_amount,
             next_billing_date=next_billing_date
         )
-        
-    except HTTPException:
+    except Exception:
         raise
-    except Exception as e:
-        logger.error(f"Error switching interval: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 class CancelSubscriptionRequest(BaseModel):
@@ -2269,7 +2184,7 @@ class CancelSubscriptionResponse(BaseModel):
 async def cancel_subscription(
     request: CancelSubscriptionRequest,
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Annule l'abonnement actif du gérant.
@@ -2287,7 +2202,7 @@ async def cancel_subscription(
         
         # ✅ MIGRÉ: Limite à 10 pour validation (pas besoin de pagination complète)
         from repositories.subscription_repository import SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
+        subscription_repo = gerant_service.subscription_repo
         active_subscriptions = await subscription_repo.find_many(
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
             projection={"_id": 0},
@@ -2364,8 +2279,8 @@ async def cancel_subscription(
         # For trial users, just update the database
         # IDEMPOTENCE: Use stripe_subscription_id as key
         # ✅ PHASE 6: Use repositories
-        subscription_repo = SubscriptionRepository(db)
-        workspace_repo = WorkspaceRepository(db)
+        subscription_repo = gerant_service.subscription_repo
+        workspace_repo = gerant_service.workspace_repo
         
         if is_trial:
             update_data = {
@@ -2494,7 +2409,7 @@ async def cancel_subscription(
             raise HTTPException(status_code=400, detail=f"Erreur Stripe: {str(e)}")
         except stripe.StripeError as e:
             logger.error(f"❌ Stripe error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Erreur Stripe: {str(e)}")
+            raise ValidationError(f"Erreur Stripe: {str(e)}")
         
     except HTTPException:
         raise
@@ -2518,7 +2433,7 @@ class ReactivateSubscriptionResponse(BaseModel):
 async def reactivate_subscription(
     request: ReactivateSubscriptionRequest = Body(...),
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Réactive un abonnement qui a été programmé pour annulation (cancel_at_period_end=True).
@@ -2541,7 +2456,7 @@ async def reactivate_subscription(
         
         # ✅ MIGRÉ: Limite à 10 pour validation (pas besoin de pagination complète)
         from repositories.subscription_repository import SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
+        subscription_repo = gerant_service.subscription_repo
         active_subscriptions = await subscription_repo.find_many(
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
             projection={"_id": 0},
@@ -2625,8 +2540,8 @@ async def reactivate_subscription(
         is_trial = subscription.get('status') == 'trialing'
         
         # ✅ PHASE 6: Use repositories
-        subscription_repo = SubscriptionRepository(db)
-        workspace_repo = WorkspaceRepository(db)
+        subscription_repo = gerant_service.subscription_repo
+        workspace_repo = gerant_service.workspace_repo
         
         # For trial users, just update the database
         if is_trial:
@@ -2733,19 +2648,15 @@ async def reactivate_subscription(
             raise HTTPException(status_code=400, detail=f"Erreur Stripe: {str(e)}")
         except stripe.StripeError as e:
             logger.error(f"❌ Stripe error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Erreur Stripe: {str(e)}")
-        
-    except HTTPException:
+            raise ValidationError(f"Erreur Stripe: {str(e)}")
+    except Exception:
         raise
-    except Exception as e:
-        logger.error(f"Erreur réactivation abonnement: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la réactivation: {str(e)}")
 
 
 @router.get("/subscriptions")
 async def get_all_subscriptions(
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Liste tous les abonnements du gérant (actifs, annulés, expirés).
@@ -2763,7 +2674,7 @@ async def get_all_subscriptions(
         
         # ✅ MIGRÉ: Pagination avec limite par défaut
         from repositories.subscription_repository import SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
+        subscription_repo = gerant_service.subscription_repo
         subscriptions_result = await paginate(
             collection=subscription_repo.collection,
             query={"user_id": gerant_id},
@@ -2811,7 +2722,7 @@ async def get_all_subscriptions(
 @router.get("/subscription/audit")
 async def audit_subscription(
     current_user: dict = Depends(get_current_gerant),
-    db = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     🔍 Endpoint d'audit pour diagnostic rapide des problèmes d'abonnement.
@@ -2830,7 +2741,7 @@ async def audit_subscription(
         
         # ✅ MIGRÉ: Pagination avec limite par défaut
         from repositories.subscription_repository import SubscriptionRepository
-        subscription_repo = SubscriptionRepository(db)
+        subscription_repo = gerant_service.subscription_repo
         
         active_subscriptions_result = await paginate(
             collection=subscription_repo.collection,
@@ -2983,10 +2894,8 @@ async def audit_subscription(
             "recommended_action_details": recommended_action_details,
             "audit_timestamp": datetime.now(timezone.utc).isoformat()
         }
-        
-    except Exception as e:
-        logger.error(f"Erreur audit abonnement: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de l'audit: {str(e)}")
+    except Exception:
+        raise
 
 
 # ==========================================
@@ -2996,14 +2905,14 @@ async def audit_subscription(
 @router.get("/billing-profile")
 async def get_billing_profile(
     current_user: dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Récupère le profil de facturation B2B du gérant.
     """
     try:
         # ✅ PHASE 6: Use BillingProfileRepository
-        billing_profile_repo = BillingProfileRepository(db)
+        billing_profile_repo = gerant_service.billing_profile_repo
         billing_profile = await billing_profile_repo.find_by_gerant(gerant_id=current_user['id'])
         
         if not billing_profile:
@@ -3016,7 +2925,7 @@ async def get_billing_profile(
 async def create_billing_profile(
     profile_data: BillingProfileCreate,
     current_user: dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Crée ou met à jour le profil de facturation B2B du gérant.
@@ -3030,7 +2939,7 @@ async def create_billing_profile(
         gerant_id = current_user['id']
         
         # ✅ PHASE 6: Use BillingProfileRepository
-        billing_profile_repo = BillingProfileRepository(db)
+        billing_profile_repo = gerant_service.billing_profile_repo
         
         # Vérifier si un profil existe déjà
         existing_profile = await billing_profile_repo.find_by_gerant(gerant_id=gerant_id)
@@ -3130,9 +3039,8 @@ async def create_billing_profile(
             stripe.api_key = settings.STRIPE_API_KEY
             
             # ✅ PHASE 6: Use UserRepository
-            user_repo = UserRepository(db)
             # Récupérer le customer Stripe du gérant
-            gerant = await user_repo.find_by_id(user_id=gerant_id, include_password=False)
+            gerant = await gerant_service.user_repo.find_by_id(user_id=gerant_id, include_password=False)
             stripe_customer_id = gerant.get('stripe_customer_id')
             
             if stripe_customer_id:
@@ -3187,7 +3095,7 @@ async def create_billing_profile(
 async def update_billing_profile(
     profile_data: BillingProfileUpdate,
     current_user: dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Met à jour partiellement le profil de facturation B2B.
@@ -3198,7 +3106,7 @@ async def update_billing_profile(
         gerant_id = current_user['id']
         
         # ✅ PHASE 6: Use BillingProfileRepository
-        billing_profile_repo = BillingProfileRepository(db)
+        billing_profile_repo = gerant_service.billing_profile_repo
         
         # Récupérer le profil existant
         existing_profile = await billing_profile_repo.find_by_gerant(gerant_id=gerant_id)
@@ -3287,8 +3195,7 @@ async def update_billing_profile(
             stripe.api_key = settings.STRIPE_API_KEY
             
             # ✅ PHASE 6: Use UserRepository
-            user_repo = UserRepository(db)
-            gerant = await user_repo.find_by_id(user_id=gerant_id, include_password=False)
+            gerant = await gerant_service.user_repo.find_by_id(user_id=gerant_id, include_password=False)
             stripe_customer_id = gerant.get('stripe_customer_id')
             
             if stripe_customer_id:

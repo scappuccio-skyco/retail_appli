@@ -19,24 +19,13 @@ from core.security import (
 from models.pagination import PaginatedResponse, PaginationParams
 from utils.pagination import paginate_with_params, paginate
 from exceptions.custom_exceptions import NotFoundError, ValidationError, ForbiddenError
-from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
-from repositories.user_repository import UserRepository
-from repositories.store_repository import StoreRepository, WorkspaceRepository
-from repositories.kpi_config_repository import KPIConfigRepository
-from repositories.diagnostic_repository import DiagnosticRepository
-from repositories.team_analysis_repository import TeamAnalysisRepository
-from repositories.relationship_consultation_repository import RelationshipConsultationRepository
 from services.manager_service import ManagerService, APIKeyService
 from api.dependencies import (
-    get_manager_service, get_api_key_service, get_db, get_seller_service, 
+    get_manager_service, get_api_key_service, get_seller_service,
     get_gerant_service, get_ai_service, get_notification_service,
     get_conflict_service, get_relationship_service,
-    get_objective_repository, get_challenge_repository, get_debrief_repository,
     get_competence_service
 )
-from repositories.objective_repository import ObjectiveRepository
-from repositories.challenge_repository import ChallengeRepository
-from repositories.debrief_repository import DebriefRepository
 from api.dependencies_rate_limiting import rate_limit
 from services.seller_service import SellerService
 from services.gerant_service import GerantService
@@ -67,82 +56,43 @@ async def test_endpoint():
 async def get_store_context(
     request: Request,
     current_user: dict = Depends(verify_manager_or_gerant),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ) -> dict:
     """
-    Resolve store_id based on user role:
-    - Manager: Use their assigned store_id
-    - Gérant: Use store_id from query params (with ownership verification)
-    
-    Returns dict with user info + resolved store_id
+    Resolve store_id based on user role.
+    Manager: use assigned store_id. Gérant: store_id from query (with ownership verification).
     """
     try:
-        logger.debug(f"[get_store_context] Called for user {current_user.get('id')} with role {current_user.get('role')}")
-        role = current_user.get('role')
-        
-        if role == 'manager':
-            # Manager: use their store_id
-            store_id = current_user.get('store_id')
+        logger.debug("[get_store_context] Called for user %s with role %s", current_user.get("id"), current_user.get("role"))
+        role = current_user.get("role")
+        if role == "manager":
+            store_id = current_user.get("store_id")
             if not store_id:
                 raise ValidationError("Manager n'a pas de magasin assigné")
-            return {**current_user, 'resolved_store_id': store_id, 'view_mode': 'manager'}
-        
-        elif role in ['gerant', 'gérant']:
-            # Gérant: get store_id from query params
-            store_id = request.query_params.get('store_id')
-            
+            return {**current_user, "resolved_store_id": store_id, "view_mode": "manager"}
+        if role in ["gerant", "gérant"]:
+            store_id = request.query_params.get("store_id")
             if not store_id:
-                # Pas de store_id - retourner le context sans resolved_store_id
-                # Les endpoints doivent gérer ce cas
-                logger.debug(f"[get_store_context] Gérant {current_user.get('id')} - no store_id in query params")
-                return {
-                    **current_user, 
-                    'resolved_store_id': None, 
-                    'view_mode': 'gerant_overview'
-                }
-            
-            # Security: Verify the gérant owns this store
+                logger.debug("[get_store_context] Gérant %s - no store_id in query params", current_user.get("id"))
+                return {**current_user, "resolved_store_id": None, "view_mode": "gerant_overview"}
             try:
-                store_repo = StoreRepository(db)
-                store = await store_repo.find_by_id(
+                store = await manager_service.store_repo.find_by_id(
                     store_id=store_id,
-                    gerant_id=current_user['id'],
+                    gerant_id=current_user["id"],
                     projection={"_id": 0, "id": 1, "name": 1}
                 )
-                # Additional check for active status
                 if store and not store.get("active"):
                     store = None
-                
                 if not store:
-                    # Store doesn't exist or doesn't belong to gérant
-                    # Return context with None store_id instead of raising exception
-                    # This allows endpoints to handle the case gracefully
-                    logger.warning(f"Gérant {current_user['id']} attempted to access store {store_id} which doesn't exist or doesn't belong to them")
-                    return {
-                        **current_user, 
-                        'resolved_store_id': None, 
-                        'view_mode': 'gerant_overview'
-                    }
-                
-                logger.debug(f"[get_store_context] Gérant {current_user.get('id')} - store {store_id} verified")
-                return {
-                    **current_user, 
-                    'resolved_store_id': store_id, 
-                    'view_mode': 'gerant_as_manager',
-                    'store_name': store.get('name')
-                }
+                    logger.warning("Gérant %s attempted to access store %s which doesn't exist or doesn't belong to them", current_user["id"], store_id)
+                    return {**current_user, "resolved_store_id": None, "view_mode": "gerant_overview"}
+                logger.debug("[get_store_context] Gérant %s - store %s verified", current_user.get("id"), store_id)
+                return {**current_user, "resolved_store_id": store_id, "view_mode": "gerant_as_manager", "store_name": store.get("name")}
             except Exception as e:
-                logger.error(f"Error verifying store ownership: {e}", exc_info=True)
-                # Return context with None store_id on error
-                return {
-                    **current_user, 
-                    'resolved_store_id': None, 
-                    'view_mode': 'gerant_overview'
-                }
-        
-        else:
-            logger.warning(f"[get_store_context] Unauthorized role: {role}")
-            raise ForbiddenError("Rôle non autorisé")
+                logger.error("Error verifying store ownership: %s", e, exc_info=True)
+                return {**current_user, "resolved_store_id": None, "view_mode": "gerant_overview"}
+        logger.warning("[get_store_context] Unauthorized role: %s", role)
+        raise ForbiddenError("Rôle non autorisé")
     except HTTPException:
         raise
 
@@ -150,7 +100,7 @@ async def get_store_context(
 async def get_store_context_with_seller(
     request: Request,
     current_user: dict = Depends(verify_manager_gerant_or_seller),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ) -> dict:
     """
     Resolve store_id based on user role (includes sellers):
@@ -184,10 +134,9 @@ async def get_store_context_with_seller(
             raise ValidationError("Le paramètre store_id est requis pour un gérant. Ex: ?store_id=xxx")
         
         # Security: Verify the gérant owns this store
-        store_repo = StoreRepository(db)
-        store = await store_repo.find_by_id(
+        store = await manager_service.store_repo.find_by_id(
             store_id=store_id,
-            gerant_id=current_user['id'],
+            gerant_id=current_user["id"],
             projection={"_id": 0, "id": 1, "name": 1, "active": 1}
         )
         # Additional check for active status
@@ -196,7 +145,7 @@ async def get_store_context_with_seller(
         
         if not store:
             # Check if store exists but doesn't belong to gérant or is inactive
-            store_exists = await store_repo.find_by_id(
+            store_exists = await manager_service.store_repo.find_by_id(
                 store_id=store_id,
                 projection={"_id": 0, "id": 1, "gerant_id": 1, "active": 1}
             )
@@ -228,7 +177,8 @@ async def get_store_context_with_seller(
 async def get_subscription_status(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
+    gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """
     Check subscription status for access control.
@@ -244,7 +194,7 @@ async def get_subscription_status(
         if role in ['gerant', 'gérant']:
             workspace_id = context.get('workspace_id')
             if workspace_id:
-                workspace_repo = WorkspaceRepository(db)
+                workspace_repo = gerant_service.workspace_repo
                 workspace = await workspace_repo.find_by_id(workspace_id=workspace_id)
                 if workspace:
                     subscription_status = workspace.get('subscription_status', 'inactive')
@@ -271,7 +221,7 @@ async def get_subscription_status(
         if not gerant_id:
             return {"isReadOnly": True, "status": "no_gerant", "message": "Aucun gérant associé"}
         
-        user_repo = UserRepository(db)
+        user_repo = manager_service.user_repo
         gerant = await user_repo.find_by_id(user_id=gerant_id)
         
         if not gerant:
@@ -282,7 +232,7 @@ async def get_subscription_status(
         if not workspace_id:
             return {"isReadOnly": True, "status": "no_workspace", "message": "Aucun espace de travail"}
         
-        workspace_repo = WorkspaceRepository(db)
+        workspace_repo = gerant_service.workspace_repo
         workspace = await workspace_repo.find_by_id(workspace_id=workspace_id)
         
         if not workspace:
@@ -396,7 +346,7 @@ async def get_dates_with_data(
     month: int = Query(None),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get list of dates that have KPI data for the store.
@@ -419,8 +369,8 @@ async def get_dates_with_data(
         query["date"] = {"$gte": start_date, "$lt": end_date}
     
     # ✅ REPOSITORY: Use repositories for distinct dates
-    kpi_repo = KPIRepository(db)
-    manager_kpi_repo = ManagerKPIRepository(db)
+    kpi_repo = manager_service.kpi_repo
+    manager_kpi_repo = manager_service.manager_kpi_repo
     
     dates = await kpi_repo.distinct_dates(query)
     manager_dates = await manager_kpi_repo.distinct_dates(query)
@@ -441,14 +391,14 @@ async def get_dates_with_data(
 async def get_available_years(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Get list of years that have KPI data for the store"""
     resolved_store_id = context.get('resolved_store_id')
     
     # ✅ REPOSITORY: Use repositories for distinct dates
-    kpi_repo = KPIRepository(db)
-    manager_kpi_repo = ManagerKPIRepository(db)
+    kpi_repo = manager_service.kpi_repo
+    manager_kpi_repo = manager_service.manager_kpi_repo
     
     dates = await kpi_repo.distinct_dates({"store_id": resolved_store_id})
     manager_dates = await manager_kpi_repo.distinct_dates({"store_id": resolved_store_id})
@@ -604,7 +554,7 @@ async def update_kpi_config(
     config_update: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Update KPI configuration for the store.
@@ -662,7 +612,7 @@ async def update_kpi_config(
             query["manager_id"] = manager_id
         
         # ✅ REPOSITORY: Use KPIConfigRepository for upsert
-        kpi_config_repo = KPIConfigRepository(db)
+        kpi_config_repo = manager_service.kpi_config_repo
         config = await kpi_config_repo.upsert_config(
             store_id=resolved_store_id,
             manager_id=manager_id,
@@ -689,7 +639,7 @@ async def get_manager_kpis(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get manager KPI entries for a date range.
@@ -714,7 +664,7 @@ async def get_manager_kpis(
         }
         
         # ✅ MIGRÉ: Utilisation du repository avec pagination
-        manager_kpi_repo = ManagerKPIRepository(db)
+        manager_kpi_repo = manager_service.manager_kpi_repo
         result = await paginate(
             collection=manager_kpi_repo.collection,
             query=query,
@@ -736,7 +686,7 @@ async def save_manager_kpi(
     kpi_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Save manager KPI entries.
@@ -788,7 +738,7 @@ async def save_manager_kpi(
                 )
         
         # Vérifier que le store existe et est actif
-        store_repo = StoreRepository(db)
+        store_repo = manager_service.store_repo
         store = await store_repo.find_by_id(
             store_id=resolved_store_id,
             projection={"_id": 0, "id": 1, "name": 1, "gerant_id": 1, "active": 1}
@@ -828,7 +778,7 @@ async def save_manager_kpi(
         
         # 🔒 Vérifier si cette date est verrouillée (données API)
         # ✅ REPOSITORY: Use KPIRepository to check for locked entries
-        kpi_repo = KPIRepository(db)
+        kpi_repo = manager_service.kpi_repo
         locked_entries = await kpi_repo.find_many(
             {
                 "store_id": resolved_store_id,
@@ -876,7 +826,7 @@ async def save_manager_kpi(
             if seller_ids:
                 # ✅ MIGRÉ: Limite à 50 pour éviter chargement massif (validation de seller_ids)
                 from repositories.user_repository import UserRepository
-                user_repo = UserRepository(db)
+                user_repo = manager_service.user_repo
                 sellers = await user_repo.find_many(
                     {"id": {"$in": seller_ids}, "store_id": resolved_store_id, "role": "seller"},
                     projection={"_id": 0, "id": 1, "name": 1},
@@ -900,7 +850,7 @@ async def save_manager_kpi(
                     continue
                 
                 # Récupérer le nom du vendeur
-                user_repo = UserRepository(db)
+                user_repo = manager_service.user_repo
                 seller = await user_repo.find_by_id(
                     user_id=seller_id,
                     store_id=resolved_store_id,
@@ -910,7 +860,7 @@ async def save_manager_kpi(
                 seller_manager_id = seller.get('manager_id') if seller else manager_id
                 
                 # ✅ REPOSITORY: Vérifier si l'entrée existe déjà
-                kpi_repo = KPIRepository(db)
+                kpi_repo = manager_service.kpi_repo
                 existing = await kpi_repo.find_by_seller_and_date(seller_id, date)
                 
                 # 🔒 Vérifier si l'entrée existante est verrouillée
@@ -962,7 +912,7 @@ async def save_manager_kpi(
         nb_prospects = kpi_data.get('nb_prospects')
         if nb_prospects is not None and nb_prospects > 0:
             # ✅ REPOSITORY: Enregistrer les prospects globaux dans manager_kpis
-            manager_kpi_repo = ManagerKPIRepository(db)
+            manager_kpi_repo = manager_service.manager_kpi_repo
             existing_prospects = await manager_kpi_repo.find_by_store_and_date(resolved_store_id, date)
             
             # Vérifier si l'entrée existante est verrouillée
@@ -1069,7 +1019,7 @@ async def mark_challenge_achievement_seen_manager(
     challenge_id: str,
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Mark a challenge achievement notification as seen by the manager/gérant
@@ -1082,8 +1032,9 @@ async def mark_challenge_achievement_seen_manager(
         
         # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
         await verify_resource_store_access(
-            db, challenge_id, "challenge", resolved_store_id,
-            context.get('role'), context.get('id')
+            resource_id=challenge_id, resource_type="challenge", user_store_id=resolved_store_id,
+            user_role=context.get("role"), user_id=context.get("id"),
+            objective_repo=manager_service.objective_repo, challenge_repo=manager_service.challenge_repo,
         )
         
         manager_id = context.get('id')
@@ -1102,7 +1053,7 @@ async def mark_objective_achievement_seen_manager(
     objective_id: str,
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Mark an objective achievement notification as seen by the manager/gérant
@@ -1115,8 +1066,9 @@ async def mark_objective_achievement_seen_manager(
         
         # SECURITY: Verify objective belongs to user's store (prevents IDOR)
         await verify_resource_store_access(
-            db, objective_id, "objective", resolved_store_id,
-            context.get('role'), context.get('id')
+            resource_id=objective_id, resource_type="objective", user_store_id=resolved_store_id,
+            user_role=context.get("role"), user_id=context.get("id"),
+            objective_repo=manager_service.objective_repo, challenge_repo=manager_service.challenge_repo,
         )
         
         manager_id = context.get('id')
@@ -1277,7 +1229,7 @@ async def get_all_objectives(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),  # ✅ ÉTAPE A: Injection de dépendance
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get ALL objectives for the store (active + inactive)
@@ -1297,7 +1249,7 @@ async def get_all_objectives(
         manager_id = context.get('id')
         
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        objective_repo = ObjectiveRepository(db)
+        objective_repo = manager_service.objective_repo
         objectives = await objective_repo.find_by_store(
             store_id=resolved_store_id,
             projection={"_id": 0},
@@ -1396,7 +1348,7 @@ async def create_objective(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),  # ✅ ÉTAPE A: Injection
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Create a new team objective"""
     from uuid import uuid4
@@ -1472,7 +1424,7 @@ async def create_objective(
             )
         
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        objective_repo = ObjectiveRepository(db)
+        objective_repo = manager_service.objective_repo
         objective_id = await objective_repo.create_objective(
             objective_data=objective,
             store_id=resolved_store_id,
@@ -1513,7 +1465,7 @@ async def create_objective(
             )
             
             # ✅ MIGRÉ: Utilisation du repository avec sécurité
-            objective_repo = ObjectiveRepository(db)
+            objective_repo = manager_service.objective_repo
             await objective_repo.update_objective(
                 objective_id=objective["id"],
                 update_data={
@@ -1537,7 +1489,7 @@ async def create_objective(
                 end_date=objective.get('period_end')
             )
             # ✅ MIGRÉ: Utilisation du repository avec sécurité
-            objective_repo = ObjectiveRepository(db)
+            objective_repo = manager_service.objective_repo
             await objective_repo.update_objective(
                 objective_id=objective["id"],
                 update_data={"status": objective['status']},
@@ -1552,14 +1504,14 @@ async def update_objective(
     objective_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Update an existing objective"""
     try:
         resolved_store_id = context.get('resolved_store_id')
         
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        objective_repo = ObjectiveRepository(db)
+        objective_repo = manager_service.objective_repo
         existing = await objective_repo.find_by_id(
             objective_id=objective_id,
             store_id=resolved_store_id
@@ -1610,7 +1562,7 @@ async def delete_objective(
     objective_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Delete an objective"""
     try:
@@ -1620,12 +1572,13 @@ async def delete_objective(
         
         # SECURITY: Verify objective belongs to user's store (prevents IDOR)
         await verify_resource_store_access(
-            db, objective_id, "objective", resolved_store_id,
-            context.get('role'), context.get('id')
+            resource_id=objective_id, resource_type="objective", user_store_id=resolved_store_id,
+            user_role=context.get("role"), user_id=context.get("id"),
+            objective_repo=manager_service.objective_repo, challenge_repo=manager_service.challenge_repo,
         )
         
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        objective_repo = ObjectiveRepository(db)
+        objective_repo = manager_service.objective_repo
         result = await objective_repo.delete_objective(
             objective_id=objective_id,
             store_id=resolved_store_id
@@ -1646,7 +1599,8 @@ async def update_objective_progress(
     progress_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
+    seller_service: SellerService = Depends(get_seller_service),
 ):
     """
     Update progress on an objective.
@@ -1675,25 +1629,23 @@ async def update_objective_progress(
         
         # For gérants, store_id must be provided in query params
         if user_role in ['gerant', 'gérant'] and not resolved_store_id:
-            raise HTTPException(
-                status_code=400, 
-                detail="Le paramètre store_id est requis pour mettre à jour la progression d'un objectif"
+            raise ValidationError(
+                "Le paramètre store_id est requis pour mettre à jour la progression d'un objectif"
             )
         
         if not resolved_store_id:
-            raise HTTPException(status_code=400, detail="Impossible de déterminer le magasin")
+            raise ValidationError("Impossible de déterminer le magasin")
         
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        objective_repo = ObjectiveRepository(db)
+        objective_repo = manager_service.objective_repo
         existing = await objective_repo.find_by_id(
             objective_id=objective_id,
             store_id=resolved_store_id
         )
         
         if not existing:
-            raise HTTPException(
-                status_code=404, 
-                detail=f"Objectif non trouvé dans le magasin spécifié (store_id: {resolved_store_id})"
+            raise NotFoundError(
+                f"Objectif non trouvé dans le magasin spécifié (store_id: {resolved_store_id})"
             )
         
         # CONTROLE D'ACCÈS: Manager peut toujours mettre à jour
@@ -1724,7 +1676,7 @@ async def update_objective_progress(
         
         # Recompute status using centralized helper
         from services.seller_service import SellerService
-        seller_service = SellerService(db)
+        seller_service = seller_service_inj
         new_status = seller_service.compute_status(new_value, target_value, end_date)
         
         # Prepare update payload
@@ -1816,7 +1768,7 @@ async def get_all_challenges(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),  # ✅ ÉTAPE A: Injection
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get ALL challenges for the store (active + inactive)
@@ -1836,7 +1788,7 @@ async def get_all_challenges(
         manager_id = context.get('id')
         
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        challenge_repo = ChallengeRepository(db)
+        challenge_repo = manager_service.challenge_repo
         challenges = await challenge_repo.find_by_store(
             store_id=resolved_store_id,
             projection={"_id": 0},
@@ -1954,7 +1906,7 @@ async def create_challenge(
     challenge_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Create a new team challenge"""
     from uuid import uuid4
@@ -2001,7 +1953,7 @@ async def create_challenge(
         
         
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        challenge_repo = ChallengeRepository(db)
+        challenge_repo = manager_service.challenge_repo
         challenge_id = await challenge_repo.create_challenge(
             challenge_data=challenge,
             store_id=resolved_store_id,
@@ -2017,7 +1969,7 @@ async def update_challenge(
     challenge_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Update an existing challenge"""
     try:
@@ -2027,8 +1979,9 @@ async def update_challenge(
         
         # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
         existing = await verify_resource_store_access(
-            db, challenge_id, "challenge", resolved_store_id,
-            context.get('role'), context.get('id')
+            resource_id=challenge_id, resource_type="challenge", user_store_id=resolved_store_id,
+            user_role=context.get("role"), user_id=context.get("id"),
+            objective_repo=manager_service.objective_repo, challenge_repo=manager_service.challenge_repo,
         )
         
         update_fields = {
@@ -2059,7 +2012,7 @@ async def update_challenge(
         }
         
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        challenge_repo = ChallengeRepository(db)
+        challenge_repo = manager_service.challenge_repo
         await challenge_repo.update_challenge(
             challenge_id=challenge_id,
             update_data=update_fields,
@@ -2076,7 +2029,7 @@ async def delete_challenge(
     challenge_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Delete a challenge"""
     try:
@@ -2086,12 +2039,13 @@ async def delete_challenge(
         
         # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
         await verify_resource_store_access(
-            db, challenge_id, "challenge", resolved_store_id,
-            context.get('role'), context.get('id')
+            resource_id=challenge_id, resource_type="challenge", user_store_id=resolved_store_id,
+            user_role=context.get("role"), user_id=context.get("id"),
+            objective_repo=manager_service.objective_repo, challenge_repo=manager_service.challenge_repo,
         )
         
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        challenge_repo = ChallengeRepository(db)
+        challenge_repo = manager_service.challenge_repo
         result = await challenge_repo.delete_challenge(
             challenge_id=challenge_id,
             store_id=resolved_store_id
@@ -2112,7 +2066,8 @@ async def update_challenge_progress(
     progress_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
+    seller_service: SellerService = Depends(get_seller_service),
 ):
     """
     Update progress on a challenge.
@@ -2151,14 +2106,14 @@ async def update_challenge_progress(
         
         # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
         existing = await verify_resource_store_access(
-            db, challenge_id, "challenge", resolved_store_id,
-            user_role, manager_id
+            resource_id=challenge_id, resource_type="challenge", user_store_id=resolved_store_id,
+            user_role=user_role, user_id=manager_id,
+            objective_repo=manager_service.objective_repo, challenge_repo=manager_service.challenge_repo,
         )
         
         if not existing:
-            raise HTTPException(
-                status_code=404, 
-                detail=f"Challenge non trouvé dans le magasin spécifié (store_id: {resolved_store_id})"
+            raise NotFoundError(
+                f"Challenge non trouvé dans le magasin spécifié (store_id: {resolved_store_id})"
             )
         
         # CONTROLE D'ACCÈS: Manager peut toujours mettre à jour
@@ -2188,8 +2143,6 @@ async def update_challenge_progress(
             progress_percentage = round((new_value / target_value) * 100, 1)
         
         # Recompute status using centralized helper
-        from services.seller_service import SellerService
-        seller_service = SellerService(db)
         new_status = seller_service.compute_status(new_value, target_value, end_date)
         
         # Update challenge
@@ -2217,7 +2170,7 @@ async def update_challenge_progress(
         }
 
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        challenge_repo = ChallengeRepository(db)
+        challenge_repo = manager_service.challenge_repo
         await challenge_repo.update_challenge(
             challenge_id=challenge_id,
             update_data=update_data,
@@ -2269,7 +2222,7 @@ async def analyze_store_kpis(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     ai_service: AIService = Depends(get_ai_service),  # ✅ ÉTAPE A: Injection de dépendance
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Generate AI-powered analysis of store KPIs
@@ -2292,7 +2245,7 @@ async def analyze_store_kpis(
             )
         
         # Get store info
-        store_repo = StoreRepository(db)
+        store_repo = manager_service.store_repo
         store = await store_repo.find_by_id(
             store_id=resolved_store_id,
             projection={"_id": 0, "name": 1, "location": 1}
@@ -2329,8 +2282,8 @@ async def analyze_store_kpis(
             period_text = f"la période du {start_date} au {end_date}"
         
         # ✅ MIGRÉ: Utilisation d'agrégations MongoDB pour calculs optimisés (évite de charger tous les documents)
-        kpi_repo = KPIRepository(db)
-        manager_kpi_repo = ManagerKPIRepository(db)
+        kpi_repo = manager_service.kpi_repo
+        manager_kpi_repo = manager_service.manager_kpi_repo
         
         # Aggregate KPIs using MongoDB aggregation pipeline (much more efficient)
         kpi_aggregate_pipeline = [
@@ -2525,7 +2478,7 @@ async def get_seller_kpi_entries(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ) -> PaginatedResponse[dict]:
     """
     Get paginated KPI entries for a specific seller.
@@ -2542,8 +2495,9 @@ async def get_seller_kpi_entries(
     
     # SECURITY: Verify seller belongs to user's store (prevents IDOR)
     seller = await verify_seller_store_access(
-        db, seller_id, resolved_store_id,
-        context.get('role'), context.get('id')
+        seller_id=seller_id, user_store_id=resolved_store_id,
+        user_role=context.get("role"), user_id=context.get("id"),
+        user_repo=manager_service.user_repo, store_repo=manager_service.store_repo,
     )
     
     if not seller:
@@ -2568,7 +2522,7 @@ async def get_seller_kpi_entries(
         logger.debug(f"[get_kpi_entries] Using days={days} range: {start_date_str} to {end_date_str} for seller {seller_id}")
     
     # ✅ REPOSITORY: Fetch KPI entries with pagination (uses asyncio.gather for parallel execution)
-    kpi_repo = KPIRepository(db)
+    kpi_repo = manager_service.kpi_repo
     result = await paginate_with_params(
         collection=kpi_repo.collection,
         query=query,
@@ -2593,7 +2547,7 @@ async def get_seller_stats(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     competence_service: CompetenceService = Depends(get_competence_service),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get aggregated statistics for a specific seller.
@@ -2608,8 +2562,9 @@ async def get_seller_stats(
     
     # SECURITY: Verify seller belongs to user's store (prevents IDOR)
     seller = await verify_seller_store_access(
-        db, seller_id, resolved_store_id,
-        context.get('role'), context.get('id')
+        seller_id=seller_id, user_store_id=resolved_store_id,
+        user_role=context.get("role"), user_id=context.get("id"),
+        user_repo=manager_service.user_repo, store_repo=manager_service.store_repo,
     )
     
     # Calculate date range
@@ -2636,16 +2591,16 @@ async def get_seller_stats(
     ]
     
     # ✅ MIGRÉ: Agrégation retourne 1 résultat (pas besoin de pagination)
-    kpi_repo = KPIRepository(db)
+    kpi_repo = manager_service.kpi_repo
     result = await kpi_repo.aggregate(pipeline, max_results=1)
     
     # ✅ REFACTORED: Use CompetenceService instead of inline logic
     # ✅ REPOSITORY: Get diagnostic using DiagnosticRepository
-    diagnostic_repo = DiagnosticRepository(db)
+    diagnostic_repo = manager_service.diagnostic_repo
     diagnostic = await diagnostic_repo.find_by_seller(seller_id)
     
     # ✅ MIGRÉ: Utilisation du repository avec sécurité
-    debrief_repo = DebriefRepository(db)
+    debrief_repo = manager_service.debrief_repo
     debriefs = await debrief_repo.find_by_seller(
         seller_id=seller_id,
         projection={"_id": 0},
@@ -2706,7 +2661,7 @@ async def get_seller_diagnostic(
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get DISC diagnostic profile for a specific seller.
@@ -2720,12 +2675,13 @@ async def get_seller_diagnostic(
         
         # SECURITY: Verify seller belongs to user's store (prevents IDOR)
         seller = await verify_seller_store_access(
-            db, seller_id, resolved_store_id,
-            context.get('role'), context.get('id')
+            seller_id=seller_id, user_store_id=resolved_store_id,
+            user_role=context.get("role"), user_id=context.get("id"),
+            user_repo=manager_service.user_repo, store_repo=manager_service.store_repo,
         )
         
         # ✅ REPOSITORY: Fetch diagnostic using DiagnosticRepository
-        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic_repo = manager_service.diagnostic_repo
         diagnostic = await diagnostic_repo.find_by_seller(seller_id)
         
         if not diagnostic:
@@ -2756,7 +2712,7 @@ async def get_seller_diagnostic(
 async def get_archived_sellers(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get list of suspended (en veille) sellers for the store.
@@ -2769,7 +2725,7 @@ async def get_archived_sellers(
         
         # ✅ MIGRÉ: Pagination avec limite par défaut
         from repositories.user_repository import UserRepository
-        user_repo = UserRepository(db)
+        user_repo = manager_service.user_repo
         suspended_sellers_result = await paginate(
             collection=user_repo.collection,
             query={
@@ -2802,7 +2758,7 @@ async def get_seller_kpi_history(
     days: int = Query(90, description="Number of days"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get detailed KPI history for a seller with daily breakdown.
@@ -2815,8 +2771,9 @@ async def get_seller_kpi_history(
         
         # SECURITY: Verify seller belongs to user's store (prevents IDOR)
         seller = await verify_seller_store_access(
-            db, seller_id, resolved_store_id,
-            context.get('role'), context.get('id')
+            seller_id=seller_id, user_store_id=resolved_store_id,
+            user_role=context.get("role"), user_id=context.get("id"),
+            user_repo=manager_service.user_repo, store_repo=manager_service.store_repo,
         )
         
         # Calculate date range
@@ -2824,7 +2781,7 @@ async def get_seller_kpi_history(
         start_dt = end_dt - timedelta(days=days)
         
         # ✅ MIGRÉ: Utilisation du repository avec pagination (limite à 50 par défaut si pas de pagination frontend)
-        kpi_repo = KPIRepository(db)
+        kpi_repo = manager_service.kpi_repo
         entries = await paginate(
             collection=kpi_repo.collection,
             query={
@@ -2867,7 +2824,7 @@ async def get_seller_profile(
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get complete seller profile including diagnostic and recent performance.
@@ -2879,12 +2836,13 @@ async def get_seller_profile(
         
         # SECURITY: Verify seller belongs to user's store (prevents IDOR)
         seller = await verify_seller_store_access(
-            db, seller_id, resolved_store_id,
-            context.get('role'), context.get('id')
+            seller_id=seller_id, user_store_id=resolved_store_id,
+            user_role=context.get("role"), user_id=context.get("id"),
+            user_repo=manager_service.user_repo, store_repo=manager_service.store_repo,
         )
         
         # ✅ REPOSITORY: Fetch diagnostic using DiagnosticRepository
-        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic_repo = manager_service.diagnostic_repo
         diagnostic = await diagnostic_repo.find_by_seller(seller_id)
         
         # Get recent KPIs summary (last 7 days)
@@ -2892,7 +2850,7 @@ async def get_seller_profile(
         start_dt = end_dt - timedelta(days=7)
         
         # ✅ MIGRÉ: Utilisation du repository avec pagination
-        kpi_repo = KPIRepository(db)
+        kpi_repo = manager_service.kpi_repo
         recent_kpis_result = await paginate(
             collection=kpi_repo.collection,
             query={
@@ -2923,7 +2881,7 @@ async def get_seller_profile(
 async def get_team_analyses_history(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get history of team AI analyses for this store.
@@ -2932,7 +2890,7 @@ async def get_team_analyses_history(
         resolved_store_id = context.get('resolved_store_id')
         
         # ✅ REPOSITORY: Pagination avec limite par défaut
-        team_analysis_repo = TeamAnalysisRepository(db)
+        team_analysis_repo = manager_service.team_analysis_repo
         analyses_result = await paginate(
             collection=team_analysis_repo.collection,
             query={"store_id": resolved_store_id},
@@ -2963,7 +2921,7 @@ async def analyze_team(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     ai_service: AIService = Depends(get_ai_service),  # ✅ ÉTAPE A: Injection de dépendance
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Generate AI-powered analysis of team performance.
@@ -3042,7 +3000,7 @@ async def analyze_team(
         }
         
         # ✅ REPOSITORY: Use TeamAnalysisRepository
-        team_analysis_repo = TeamAnalysisRepository(db)
+        team_analysis_repo = manager_service.team_analysis_repo
         await team_analysis_repo.create_analysis(analysis_record)
         
         return {
@@ -3059,14 +3017,14 @@ async def delete_team_analysis(
     analysis_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Delete a team analysis from history."""
     try:
         resolved_store_id = context.get('resolved_store_id')
         
         # ✅ REPOSITORY: Use TeamAnalysisRepository
-        team_analysis_repo = TeamAnalysisRepository(db)
+        team_analysis_repo = manager_service.team_analysis_repo
         deleted = await team_analysis_repo.delete_one(
             {"id": analysis_id, "store_id": resolved_store_id}
         )
@@ -3108,7 +3066,7 @@ async def get_relationship_advice(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     relationship_service: RelationshipService = Depends(get_relationship_service),  # ✅ ÉTAPE B: Injection
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Generate AI-powered relationship/conflict management advice for managers.
@@ -3135,7 +3093,7 @@ async def get_relationship_advice(
         )
         
         # Get seller info for consultation
-        user_repo = UserRepository(db)
+        user_repo = manager_service.user_repo
         seller = await user_repo.find_by_id(
             user_id=request.seller_id,
             store_id=resolved_store_id,
@@ -3176,7 +3134,7 @@ async def get_relationship_history(
     seller_id: Optional[str] = Query(None, description="Filter by seller ID"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get manager's relationship consultation history.
@@ -3195,7 +3153,7 @@ async def get_relationship_history(
             query["seller_id"] = seller_id
         
         # ✅ REPOSITORY: Pagination avec limite par défaut
-        relationship_repo = RelationshipConsultationRepository(db)
+        relationship_repo = manager_service.relationship_consultation_repo
         consultations_result = await paginate(
             collection=relationship_repo.collection,
             query=query,
@@ -3223,7 +3181,7 @@ async def create_conflict_resolution(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     conflict_service: ConflictService = Depends(get_conflict_service),  # ✅ ÉTAPE B: Injection
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Generate AI-powered conflict resolution advice for managers.
@@ -3293,7 +3251,7 @@ async def get_conflict_history(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     conflict_service: ConflictService = Depends(get_conflict_service),  # ✅ ÉTAPE B: Injection
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get conflict resolution history for a specific seller.
@@ -3326,7 +3284,7 @@ async def delete_relationship_consultation(
     consultation_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Delete a relationship consultation from history."""
     try:
@@ -3334,7 +3292,7 @@ async def delete_relationship_consultation(
         manager_id = context.get('id')
         
         # ✅ REPOSITORY: Use RelationshipConsultationRepository
-        relationship_repo = RelationshipConsultationRepository(db)
+        relationship_repo = manager_service.relationship_consultation_repo
         deleted = await relationship_repo.delete_one(
             {"id": consultation_id, "manager_id": manager_id, "store_id": resolved_store_id}
         )
@@ -3356,7 +3314,7 @@ async def get_seller_debriefs(
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get all debriefs for a specific seller
@@ -3368,7 +3326,7 @@ async def get_seller_debriefs(
         resolved_store_id = context.get('resolved_store_id')
         
         # Get seller info
-        user_repo = UserRepository(db)
+        user_repo = manager_service.user_repo
         seller = await user_repo.find_by_id(
             user_id=seller_id,
             store_id=resolved_store_id
@@ -3387,7 +3345,7 @@ async def get_seller_debriefs(
             has_access = (seller_store_id == resolved_store_id)
         elif user_role in ['gerant', 'gérant']:
             # Gérant can see sellers from any store they own
-            store_repo = StoreRepository(db)
+            store_repo = manager_service.store_repo
             store = await store_repo.find_by_id(
                 store_id=seller_store_id,
                 gerant_id=user_id
@@ -3403,7 +3361,7 @@ async def get_seller_debriefs(
         
         # Get all debriefs for this seller
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        debrief_repo = DebriefRepository(db)
+        debrief_repo = manager_service.debrief_repo
         debriefs = await debrief_repo.find_by_seller(
             seller_id=seller_id,
             projection={"_id": 0},
@@ -3422,7 +3380,7 @@ async def get_seller_competences_history(
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
-    db = Depends(get_db)
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """
     Get seller's competences evolution history
@@ -3434,7 +3392,7 @@ async def get_seller_competences_history(
         resolved_store_id = context.get('resolved_store_id')
         
         # Get seller info
-        user_repo = UserRepository(db)
+        user_repo = manager_service.user_repo
         seller = await user_repo.find_by_id(
             user_id=seller_id,
             store_id=resolved_store_id
@@ -3451,7 +3409,7 @@ async def get_seller_competences_history(
         if user_role == 'manager':
             has_access = (seller_store_id == resolved_store_id)
         elif user_role in ['gerant', 'gérant']:
-            store_repo = StoreRepository(db)
+            store_repo = manager_service.store_repo
             store = await store_repo.find_by_id(
                 store_id=seller_store_id,
                 gerant_id=user_id
@@ -3465,7 +3423,7 @@ async def get_seller_competences_history(
         history = []
         
         # ✅ REPOSITORY: Get diagnostic using DiagnosticRepository
-        diagnostic_repo = DiagnosticRepository(db)
+        diagnostic_repo = manager_service.diagnostic_repo
         diagnostic = await diagnostic_repo.find_by_seller(seller_id)
         if diagnostic:
             history.append({
@@ -3480,7 +3438,7 @@ async def get_seller_competences_history(
         
         # Get all debriefs (evolution over time)
         # ✅ MIGRÉ: Utilisation du repository avec sécurité
-        debrief_repo = DebriefRepository(db)
+        debrief_repo = manager_service.debrief_repo
         debriefs = await debrief_repo.find_by_seller(
             seller_id=seller_id,
             projection={"_id": 0},

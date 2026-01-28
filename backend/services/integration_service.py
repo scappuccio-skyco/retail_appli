@@ -12,13 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class IntegrationService:
-    """Service for integration-related business logic"""
-    
-    def __init__(self, integration_repo: IntegrationRepository, db=None):
+    """Service for integration-related business logic. Phase 0: repositories only, no self.db."""
+
+    def __init__(self, integration_repo: IntegrationRepository, user_repo):
         self.integration_repo = integration_repo
-        self.db = db if db is not None else integration_repo.db  # Access to database for user lookups
-        if self.db is None:
-            raise RuntimeError("IntegrationService: db is required")
+        self.user_repo = user_repo
     
     async def create_api_key(
         self,
@@ -85,10 +83,7 @@ class IntegrationService:
         Calculate tenant_id from user_id.
         Source of truth: if user is gérant, tenant_id = user_id, else tenant_id = user.gerant_id
         """
-        from repositories.user_repository import UserRepository
-        user_repo = UserRepository(self.db)
-        
-        user = await user_repo.find_by_id(user_id)
+        user = await self.user_repo.find_by_id(user_id)
         if not user:
             return None
         

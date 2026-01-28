@@ -14,12 +14,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 logger = logging.getLogger(__name__)
 
 from core.security import require_active_space
-from api.dependencies import get_db
+from api.dependencies import get_diagnostic_service, get_seller_service
 from services.ai_service import AIService
+from services.manager_service import DiagnosticService
+from services.seller_service import SellerService
 from api.routes.manager import get_store_context, verify_manager_or_gerant
-from repositories.diagnostic_repository import DiagnosticRepository
-from repositories.manager_diagnostic_repository import ManagerDiagnosticRepository
-from repositories.user_repository import UserRepository
 
 router = APIRouter(
     prefix="/manager-diagnostic",
@@ -117,17 +116,17 @@ Ton style doit être positif, professionnel et orienté action. Pas de jargon RH
 async def create_manager_diagnostic(
     diagnostic_data: ManagerDiagnosticCreate,
     current_user: dict = Depends(verify_manager_or_gerant),
-    db=Depends(get_db),
+    diagnostic_service: DiagnosticService = Depends(get_diagnostic_service),
 ):
     """
     Create or update manager DISC diagnostic profile.
-    Phase 10: Uses ManagerDiagnosticRepository only (no db.*).
+    Phase 0 Vague 2: Uses DiagnosticService (no db, no Repository(db)).
     """
     try:
-        manager_diag_repo = ManagerDiagnosticRepository(db)
-        existing = await manager_diag_repo.find_latest_by_manager(current_user["id"])
+        repo = diagnostic_service.manager_diagnostic_repo
+        existing = await repo.find_latest_by_manager(current_user["id"])
         if existing:
-            await manager_diag_repo.delete_one({"manager_id": current_user["id"]})
+            await repo.delete_one({"manager_id": current_user["id"]})
 
         ai_analysis = await analyze_manager_diagnostic_with_ai(diagnostic_data.responses)
 
@@ -146,7 +145,7 @@ async def create_manager_diagnostic(
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
-        await manager_diag_repo.create_diagnostic(diagnostic_doc, current_user["id"])
+        await repo.create_diagnostic(diagnostic_doc, current_user["id"])
         diagnostic_doc.pop("_id", None)
 
         return {"status": "completed", "diagnostic": diagnostic_doc}
@@ -157,14 +156,13 @@ async def create_manager_diagnostic(
 @router.get("/me")
 async def get_my_diagnostic(
     current_user: dict = Depends(verify_manager_or_gerant),
-    db=Depends(get_db),
+    diagnostic_service: DiagnosticService = Depends(get_diagnostic_service),
 ):
     """
-    Get current user's DISC diagnostic profile (Phase 10: ManagerDiagnosticRepository).
+    Get current user's DISC diagnostic profile. Phase 0 Vague 2: DiagnosticService only.
     """
     try:
-        manager_diag_repo = ManagerDiagnosticRepository(db)
-        diagnostic = await manager_diag_repo.find_latest_by_manager(
+        diagnostic = await diagnostic_service.manager_diagnostic_repo.find_latest_by_manager(
             current_user["id"], projection={"_id": 0}
         )
         if not diagnostic:
@@ -185,17 +183,15 @@ async def get_seller_diagnostic_for_manager(
     seller_id: str,
     request: Request,
     context: dict = Depends(get_store_context),
-    db=Depends(get_db),
+    seller_service: SellerService = Depends(get_seller_service),
 ):
     """
-    Get a seller's diagnostic (Phase 10: UserRepository + DiagnosticRepository only).
+    Get a seller's diagnostic. Phase 0 Vague 2: SellerService only (no db).
     """
     try:
         resolved_store_id = context.get("resolved_store_id")
-        user_repo = UserRepository(db)
-        diagnostic_repo = DiagnosticRepository(db)
 
-        seller = await user_repo.find_one(
+        seller = await seller_service.user_repo.find_one(
             {"id": seller_id, "role": "seller"},
             projection={"_id": 0},
         )
@@ -207,7 +203,7 @@ async def get_seller_diagnostic_for_manager(
                 detail="Vendeur non trouvé ou n'appartient pas à ce magasin",
             )
 
-        diagnostic = await diagnostic_repo.find_by_seller(seller_id)
+        diagnostic = await seller_service.diagnostic_repo.find_by_seller(seller_id)
         if not diagnostic:
             return None
         return diagnostic

@@ -37,15 +37,14 @@ class CompetenceService:
     # All competences in order
     ALL_COMPETENCES = ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']
     
-    def __init__(self, db):
+    def __init__(self, diagnostic_repo: DiagnosticRepository):
         """
-        Initialize competence service.
-        
+        Initialize competence service. Phase 0: repository only, no self.db.
+
         Args:
-            db: MongoDB database instance
+            diagnostic_repo: Diagnostic repository for reading answers
         """
-        self.db = db
-        self.diagnostic_repo = DiagnosticRepository(db)
+        self.diagnostic_repo = diagnostic_repo
     
     def calculate_scores_from_numeric_answers(self, answers: Dict) -> Dict[str, float]:
         """

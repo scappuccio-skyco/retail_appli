@@ -9,8 +9,8 @@ import logging
 
 from core.security import get_current_user
 from core.config import settings
-from api.dependencies import get_db
-from repositories.store_repository import WorkspaceRepository, StoreRepository
+from api.dependencies import get_store_service
+from services.store_service import StoreService
 
 router = APIRouter(prefix="/support", tags=["Support"])
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class SupportMessageResponse(BaseModel):
 async def send_support_message(
     request: SupportMessageRequest,
     current_user: dict = Depends(get_current_user),
-    db = Depends(get_db)
+    store_service: StoreService = Depends(get_store_service),
 ):
     """
     Send a support message from any authenticated user to the support team.
@@ -54,15 +54,13 @@ async def send_support_message(
         user_role = current_user.get('role', 'N/A')
         store_id = current_user.get('store_id')
         
-        # Get store/workspace info based on role
+        # Get store/workspace info based on role (via StoreService, no db in route)
         context_info = "N/A"
-        workspace_repo = WorkspaceRepository(db)
-        store_repo = StoreRepository(db)
         if user_role == 'gerant' or user_role == 'gérant':
-            workspace = await workspace_repo.find_by_id(current_user.get('workspace_id'))
+            workspace = await store_service.workspace_repo.find_by_id(current_user.get('workspace_id'))
             context_info = workspace.get('name', 'N/A') if workspace else 'N/A'
         elif store_id:
-            store = await store_repo.find_by_id(store_id, None, {"_id": 0, "name": 1})
+            store = await store_service.store_repo.find_by_id(store_id, None, {"_id": 0, "name": 1})
             context_info = store.get('name', 'N/A') if store else 'N/A'
         
         # Role labels

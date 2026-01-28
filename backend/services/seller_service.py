@@ -14,25 +14,98 @@ from repositories.objective_repository import ObjectiveRepository
 from repositories.challenge_repository import ChallengeRepository
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.achievement_notification_repository import AchievementNotificationRepository
+from repositories.interview_note_repository import InterviewNoteRepository
+from repositories.debrief_repository import DebriefRepository
+from repositories.store_repository import StoreRepository, WorkspaceRepository
+from repositories.kpi_config_repository import KPIConfigRepository
+from repositories.daily_challenge_repository import DailyChallengeRepository
+from repositories.seller_bilan_repository import SellerBilanRepository
 
 logger = logging.getLogger(__name__)
 
 
 class SellerService:
-    """Service for seller-specific operations"""
-    
-    def __init__(self, db):
-        self.db = db
-        # ✅ PHASE 7: Inject repositories instead of direct DB access
-        self.user_repo = UserRepository(db)
-        self.diagnostic_repo = DiagnosticRepository(db)
-        self.manager_request_repo = ManagerRequestRepository(db)
-        self.objective_repo = ObjectiveRepository(db)
-        self.challenge_repo = ChallengeRepository(db)
-        self.kpi_repo = KPIRepository(db)
-        self.manager_kpi_repo = ManagerKPIRepository(db)
-        self.achievement_notification_repo = AchievementNotificationRepository(db)
-    
+    """Service for seller-specific operations. Phase 0: repositories only, no self.db."""
+
+    def __init__(
+        self,
+        user_repo: UserRepository,
+        diagnostic_repo: DiagnosticRepository,
+        manager_request_repo: ManagerRequestRepository,
+        objective_repo: ObjectiveRepository,
+        challenge_repo: ChallengeRepository,
+        kpi_repo: KPIRepository,
+        manager_kpi_repo: ManagerKPIRepository,
+        achievement_notification_repo: AchievementNotificationRepository,
+        interview_note_repo: Optional[InterviewNoteRepository] = None,
+        debrief_repo: Optional[DebriefRepository] = None,
+        store_repo: Optional[StoreRepository] = None,
+        workspace_repo: Optional[WorkspaceRepository] = None,
+        kpi_config_repo: Optional[KPIConfigRepository] = None,
+        daily_challenge_repo: Optional[DailyChallengeRepository] = None,
+        seller_bilan_repo: Optional[SellerBilanRepository] = None,
+    ):
+        self.user_repo = user_repo
+        self.diagnostic_repo = diagnostic_repo
+        self.manager_request_repo = manager_request_repo
+        self.objective_repo = objective_repo
+        self.challenge_repo = challenge_repo
+        self.kpi_repo = kpi_repo
+        self.manager_kpi_repo = manager_kpi_repo
+        self.achievement_notification_repo = achievement_notification_repo
+        self.interview_note_repo = interview_note_repo
+        self.debrief_repo = debrief_repo
+        self.store_repo = store_repo
+        self.workspace_repo = workspace_repo
+        self.kpi_config_repo = kpi_config_repo
+        self.daily_challenge_repo = daily_challenge_repo
+        self.seller_bilan_repo = seller_bilan_repo
+
+    # ===== SUBSCRIPTION & CONFIG (for seller routes without db) =====
+
+    async def get_seller_subscription_status(self, gerant_id: str) -> Dict:
+        """
+        Check if the seller's gérant has an active subscription (workspace).
+        Returns dict with isReadOnly, status, message, optional daysLeft.
+        """
+        if not gerant_id:
+            return {"isReadOnly": True, "status": "no_gerant", "message": "Aucun gérant associé"}
+        gerant = await self.user_repo.find_by_id(user_id=gerant_id)
+        if not gerant:
+            return {"isReadOnly": True, "status": "gerant_not_found", "message": "Gérant non trouvé"}
+        workspace_id = gerant.get("workspace_id")
+        if not workspace_id:
+            return {"isReadOnly": True, "status": "no_workspace", "message": "Aucun espace de travail"}
+        if not self.workspace_repo:
+            return {"isReadOnly": True, "status": "error", "message": "Service non configuré"}
+        workspace = await self.workspace_repo.find_by_id(workspace_id)
+        if not workspace:
+            return {"isReadOnly": True, "status": "workspace_not_found", "message": "Espace de travail non trouvé"}
+        subscription_status = workspace.get("subscription_status", "inactive")
+        if subscription_status == "active":
+            return {"isReadOnly": False, "status": "active", "message": "Abonnement actif"}
+        if subscription_status == "trialing":
+            trial_end = workspace.get("trial_end")
+            if trial_end:
+                from datetime import timezone as tz
+                now = datetime.now(tz.utc)
+                if isinstance(trial_end, str):
+                    trial_end_dt = datetime.fromisoformat(trial_end.replace("Z", "+00:00"))
+                else:
+                    trial_end_dt = trial_end
+                if trial_end_dt.tzinfo is None:
+                    trial_end_dt = trial_end_dt.replace(tzinfo=tz.utc)
+                if now < trial_end_dt:
+                    days_left = (trial_end_dt - now).days
+                    return {"isReadOnly": False, "status": "trialing", "message": f"Essai gratuit - {days_left} jours restants", "daysLeft": days_left}
+        return {"isReadOnly": True, "status": "trial_expired", "message": "Période d'essai terminée. Contactez votre administrateur."}
+
+    async def get_kpi_config_for_seller(self, store_id: Optional[str], manager_id: Optional[str]) -> Optional[Dict]:
+        """Find KPI config by store_id or manager_id. Returns None if kpi_config_repo not set."""
+        if not self.kpi_config_repo:
+            return None
+        return await self.kpi_config_repo.find_by_store_or_manager(store_id=store_id, manager_id=manager_id)
+
     # ===== ACHIEVEMENT NOTIFICATIONS =====
     
     async def check_achievement_notification(self, user_id: str, item_type: str, item_id: str) -> bool:
@@ -744,12 +817,7 @@ class SellerService:
         async for uid in self.user_repo.find_ids_by_query(seller_query):
             seller_ids.append(uid)
         
-        # ✅ PHASE 6: Use aggregation instead of .to_list(10000) for memory efficiency
-        from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
-        
-        kpi_repo = KPIRepository(self.db)
-        manager_kpi_repo = ManagerKPIRepository(self.db)
-        
+        # ✅ PHASE 6: Use aggregation instead of .to_list(10000) for memory efficiency. Phase 0: use injected repos.
         # Build KPI query with store_id filter if available
         kpi_query = {
             "seller_id": {"$in": seller_ids}
@@ -759,7 +827,7 @@ class SellerService:
         
         # Use aggregation to calculate totals (optimized - no .to_list(10000))
         date_range = {"$gte": start_date, "$lte": end_date}
-        seller_totals = await kpi_repo.aggregate_totals(kpi_query, date_range)
+        seller_totals = await self.kpi_repo.aggregate_totals(kpi_query, date_range)
         
         total_ca = seller_totals["total_ca"]
         total_ventes = seller_totals["total_ventes"]
@@ -771,7 +839,7 @@ class SellerService:
             if store_id:
                 manager_kpi_query["store_id"] = store_id
             
-            manager_totals = await manager_kpi_repo.aggregate_totals(manager_kpi_query, date_range)
+            manager_totals = await self.manager_kpi_repo.aggregate_totals(manager_kpi_query, date_range)
             
             if total_ca == 0:
                 total_ca = manager_totals["total_ca"]
@@ -1157,15 +1225,12 @@ class SellerService:
             total_ventes = seller_totals["total_ventes"]
             total_articles = seller_totals["total_articles"]
         else:
-            # Individual challenge
-            from repositories.kpi_repository import KPIRepository
-            
-            kpi_repo = KPIRepository(self.db)
+            # Individual challenge. Phase 0: use injected kpi_repo.
             target_seller_id = seller_id or challenge.get('seller_id')
             
             kpi_query = {"seller_id": target_seller_id}
             date_range = {"$gte": start_date, "$lte": end_date}
-            seller_totals = await kpi_repo.aggregate_totals(kpi_query, date_range)
+            seller_totals = await self.kpi_repo.aggregate_totals(kpi_query, date_range)
             
             total_ca = seller_totals["total_ca"]
             total_ventes = seller_totals["total_ventes"]
@@ -1173,15 +1238,12 @@ class SellerService:
         
         # Fallback to manager KPIs if seller data is missing
         if manager_id and (total_ca == 0 or total_ventes == 0 or total_articles == 0):
-            from repositories.kpi_repository import ManagerKPIRepository
-            
-            manager_kpi_repo = ManagerKPIRepository(self.db)
             manager_kpi_query = {"manager_id": manager_id}
             if store_id:
                 manager_kpi_query["store_id"] = store_id
             
             date_range = {"$gte": start_date, "$lte": end_date}
-            manager_totals = await manager_kpi_repo.aggregate_totals(manager_kpi_query, date_range)
+            manager_totals = await self.manager_kpi_repo.aggregate_totals(manager_kpi_query, date_range)
             
             if total_ca == 0:
                 total_ca = manager_totals["total_ca"]

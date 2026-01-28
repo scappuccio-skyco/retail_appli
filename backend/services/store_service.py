@@ -8,13 +8,17 @@ from repositories.user_repository import UserRepository
 
 
 class StoreService:
-    """Service for store and workspace management"""
-    
-    def __init__(self, db):
-        self.store_repo = StoreRepository(db)
-        self.workspace_repo = WorkspaceRepository(db)
-        self.user_repo = UserRepository(db)
-        self.db = db
+    """Service for store and workspace management. Phase 0: repositories only, no self.db."""
+
+    def __init__(
+        self,
+        store_repo: StoreRepository,
+        workspace_repo: WorkspaceRepository,
+        user_repo: UserRepository,
+    ):
+        self.store_repo = store_repo
+        self.workspace_repo = workspace_repo
+        self.user_repo = user_repo
     
     async def create_store(
         self,
