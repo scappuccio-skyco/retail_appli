@@ -103,6 +103,59 @@ class StoreRepository(BaseRepository):
         if active_only:
             filters["active"] = True
         return await self.count(filters)
+    
+    # ===== ADMIN OPERATIONS (Global search - Admin only) =====
+    
+    async def admin_find_all_paginated(
+        self,
+        active_only: Optional[bool] = None,
+        gerant_id: Optional[str] = None,
+        projection: Optional[Dict] = None,
+        limit: int = 100,
+        skip: int = 0,
+        sort: Optional[List[tuple]] = None
+    ) -> List[Dict]:
+        """
+        Find all stores with pagination (ADMIN ONLY - No security filter)
+        
+        Args:
+            active_only: Optional filter for active stores only
+            gerant_id: Optional filter by gérant_id
+            projection: MongoDB projection
+            limit: Maximum number of results (default: 100, max recommended: 100)
+            skip: Number of results to skip
+            sort: Optional sort order (default: [("created_at", -1)])
+        """
+        filters = {}
+        if active_only is not None:
+            filters["active"] = active_only
+        if gerant_id:
+            filters["gerant_id"] = gerant_id
+        
+        if sort is None:
+            sort = [("created_at", -1)]
+        
+        return await self.find_many(filters, projection, limit, skip, sort)
+    
+    async def admin_count_all(
+        self,
+        active_only: Optional[bool] = None,
+        gerant_id: Optional[str] = None
+    ) -> int:
+        """
+        Count all stores (ADMIN ONLY - No security filter)
+        
+        Args:
+            active_only: Optional filter for active stores only
+            gerant_id: Optional filter by gérant_id
+        """
+        filters = {}
+        if active_only is not None:
+            filters["active"] = active_only
+        if gerant_id:
+            filters["gerant_id"] = gerant_id
+        
+        return await self.count(filters)
 
 
 class WorkspaceRepository(BaseRepository):

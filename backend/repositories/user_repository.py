@@ -259,6 +259,62 @@ class UserRepository(BaseRepository):
             await self._invalidate_cache_for_update(filter)
         return modified
     
+    # ===== ADMIN OPERATIONS (Global search - Admin only) =====
+    
+    async def admin_find_all_paginated(
+        self,
+        role: Optional[str] = None,
+        status: Optional[str] = None,
+        projection: Optional[Dict] = None,
+        limit: int = 100,
+        skip: int = 0,
+        sort: Optional[List[tuple]] = None
+    ) -> List[Dict]:
+        """
+        Find all users with pagination (ADMIN ONLY - No security filter)
+        
+        Args:
+            role: Optional role filter (e.g., "gerant", "manager", "seller")
+            status: Optional status filter (e.g., "active", "suspended")
+            projection: MongoDB projection
+            limit: Maximum number of results (default: 100, max recommended: 100)
+            skip: Number of results to skip
+            sort: Optional sort order (default: [("created_at", -1)])
+        """
+        filters = {}
+        if role:
+            filters["role"] = role
+        if status:
+            filters["status"] = status
+        
+        if projection is None:
+            projection = {"_id": 0, "password": 0}
+        
+        if sort is None:
+            sort = [("created_at", -1)]
+        
+        return await self.find_many(filters, projection, limit, skip, sort)
+    
+    async def admin_count_all(
+        self,
+        role: Optional[str] = None,
+        status: Optional[str] = None
+    ) -> int:
+        """
+        Count all users (ADMIN ONLY - No security filter)
+        
+        Args:
+            role: Optional role filter
+            status: Optional status filter
+        """
+        filters = {}
+        if role:
+            filters["role"] = role
+        if status:
+            filters["status"] = status
+        
+        return await self.count(filters)
+    
     # ===== UTILITY OPERATIONS (No security filter needed) =====
     
     async def email_exists(self, email: str) -> bool:

@@ -54,3 +54,22 @@ class SubscriptionRepository(BaseRepository):
             {"stripe_subscription_id": stripe_subscription_id},
             {"$set": update_data}
         )
+    
+    async def update_by_workspace(self, workspace_id: str, update_data: Dict) -> bool:
+        """Update subscription by workspace ID"""
+        return await self.update_one(
+            {"workspace_id": workspace_id},
+            {"$set": update_data}
+        )
+    
+    async def find_many_by_user_status(
+        self,
+        user_id: str,
+        status_list: List[str],
+        limit: int = 100
+    ) -> List[Dict]:
+        """Find multiple subscriptions for a user with status in list (for duplicate resolution)"""
+        return await self.find_many(
+            {"user_id": user_id, "status": {"$in": status_list}},
+            limit=limit
+        )

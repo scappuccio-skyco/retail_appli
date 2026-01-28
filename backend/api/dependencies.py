@@ -19,6 +19,7 @@ from services.notification_service import NotificationService
 from services.conflict_service import ConflictService
 from services.relationship_service import RelationshipService
 from services.competence_service import CompetenceService
+from services.admin_service import AdminService
 
 
 # ===== SERVICE DEPENDENCIES =====
@@ -272,6 +273,71 @@ def get_competence_service(
             scores = await competence_service.calculate_seller_performance_scores(...)
     """
     return CompetenceService(db)
+
+
+# Admin Service (PHASE 9: Refactoring)
+def get_admin_service(
+    db: AsyncIOMotorDatabase = Depends(get_db)
+) -> AdminService:
+    """
+    Get AdminService instance with all required repositories
+    
+    PHASE 9: Refactoring - AdminService uses only repositories, no direct DB access
+    
+    Usage in routes:
+        @router.get("/superadmin/stats")
+        async def get_stats(
+            admin_service: AdminService = Depends(get_admin_service)
+        ):
+            return await admin_service.get_platform_stats()
+    """
+    from repositories.admin_repository import AdminRepository
+    from repositories.admin_log_repository import AdminLogRepository
+    from repositories.user_repository import UserRepository
+    from repositories.store_repository import StoreRepository, WorkspaceRepository
+    from repositories.subscription_repository import SubscriptionRepository
+    from repositories.gerant_invitation_repository import GerantInvitationRepository
+    from repositories.invitation_repository import InvitationRepository
+    from repositories.system_log_repository import SystemLogRepository
+    from repositories.base_repository import BaseRepository
+    
+    # Repositories pour collections sans repository dédié
+    class PaymentTransactionRepository(BaseRepository):
+        def __init__(self, db):
+            super().__init__(db, "payment_transactions")
+    
+    class StripeEventRepository(BaseRepository):
+        def __init__(self, db):
+            super().__init__(db, "stripe_events")
+    
+    class AIConversationRepository(BaseRepository):
+        def __init__(self, db):
+            super().__init__(db, "ai_conversations")
+    
+    class AIMessageRepository(BaseRepository):
+        def __init__(self, db):
+            super().__init__(db, "ai_messages")
+    
+    class AIUsageLogRepository(BaseRepository):
+        def __init__(self, db):
+            super().__init__(db, "ai_usage_logs")
+    
+    return AdminService(
+        admin_repo=AdminRepository(db),
+        admin_log_repo=AdminLogRepository(db),
+        user_repo=UserRepository(db),
+        store_repo=StoreRepository(db),
+        workspace_repo=WorkspaceRepository(db),
+        subscription_repo=SubscriptionRepository(db),
+        payment_transaction_repo=PaymentTransactionRepository(db),
+        stripe_event_repo=StripeEventRepository(db),
+        ai_conversation_repo=AIConversationRepository(db),
+        ai_message_repo=AIMessageRepository(db),
+        gerant_invitation_repo=GerantInvitationRepository(db),
+        invitation_repo=InvitationRepository(db),
+        system_log_repo=SystemLogRepository(db),
+        ai_usage_log_repo=AIUsageLogRepository(db)
+    )
 
 
 # ===== REPOSITORY DEPENDENCIES =====
