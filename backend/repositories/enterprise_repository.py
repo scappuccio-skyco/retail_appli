@@ -2,7 +2,7 @@
 Enterprise Repository
 Data access layer for enterprise accounts, API keys, and sync logs
 """
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 from repositories.base_repository import BaseRepository
 
