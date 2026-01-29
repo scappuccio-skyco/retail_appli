@@ -13,9 +13,12 @@ from repositories.store_repository import StoreRepository, WorkspaceRepository
 from repositories.subscription_repository import SubscriptionRepository
 from repositories.gerant_invitation_repository import GerantInvitationRepository
 from repositories.invitation_repository import InvitationRepository
+from repositories.password_reset_repository import PasswordResetRepository
+from repositories.onboarding_progress_repository import OnboardingProgressRepository
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository, StoreKPIRepository
 from repositories.diagnostic_repository import DiagnosticRepository
 from repositories.manager_diagnostic_repository import ManagerDiagnosticRepository
+from repositories.manager_diagnostic_results_repository import ManagerDiagnosticResultsRepository
 from repositories.achievement_notification_repository import AchievementNotificationRepository
 from repositories.interview_note_repository import InterviewNoteRepository
 from repositories.debrief_repository import DebriefRepository
@@ -62,30 +65,29 @@ from services.payment_service import PaymentService
 
 def get_auth_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> AuthService:
     """
-    Get AuthService instance with database dependency
-    
-    Usage in routes:
-        @router.post("/login")
-        async def login(
-            auth_service: AuthService = Depends(get_auth_service)
-        ):
-            return await auth_service.login(...)
+    Get AuthService instance. Repos assembled here (AuthService receives repos only).
     """
-    return AuthService(db)
+    return AuthService(
+        user_repo=UserRepository(db),
+        workspace_repo=WorkspaceRepository(db),
+        gerant_invitation_repo=GerantInvitationRepository(db),
+        invitation_repo=InvitationRepository(db),
+        password_reset_repo=PasswordResetRepository(db),
+    )
 
 
 def get_kpi_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> KPIService:
     """
-    Get KPIService instance with database dependency
-    
-    Usage in routes:
-        @router.post("/kpi")
-        async def create_kpi(
-            kpi_service: KPIService = Depends(get_kpi_service)
-        ):
-            return await kpi_service.create_or_update_seller_kpi(...)
+    Get KPIService instance. Repos assembled here (KPIService receives repos only).
     """
-    return KPIService(db)
+    return KPIService(
+        kpi_repo=KPIRepository(db),
+        manager_kpi_repo=ManagerKPIRepository(db),
+        user_repo=UserRepository(db),
+        workspace_repo=WorkspaceRepository(db),
+        store_repo=StoreRepository(db),
+        kpi_config_repo=KPIConfigRepository(db),
+    )
 
 
 def get_ai_service() -> AIService:
@@ -151,16 +153,11 @@ def get_gerant_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> GerantServ
 
 def get_onboarding_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> OnboardingService:
     """
-    Get OnboardingService instance with database dependency
-    
-    Usage in routes:
-        @router.get("/progress")
-        async def get_progress(
-            onboarding_service: OnboardingService = Depends(get_onboarding_service)
-        ):
-            return await onboarding_service.get_progress(...)
+    Get OnboardingService instance. Repo assembled here.
     """
-    return OnboardingService(db)
+    return OnboardingService(
+        onboarding_progress_repo=OnboardingProgressRepository(db),
+    )
 
 
 def get_enterprise_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> EnterpriseService:
@@ -181,11 +178,12 @@ def get_notification_service(
     db: AsyncIOMotorDatabase = Depends(get_db)
 ) -> NotificationService:
     """
-    Get NotificationService instance with database dependency.
-    Service partagé pour notifications (découplage). Défini avant get_manager_service
-    car ce dernier en dépend (Depends(get_notification_service)).
+    Get NotificationService instance. Repo assembled here.
+    Défini avant get_manager_service car ce dernier en dépend.
     """
-    return NotificationService(db)
+    return NotificationService(
+        achievement_notification_repo=AchievementNotificationRepository(db),
+    )
 
 
 def get_manager_service(
@@ -227,8 +225,7 @@ def get_diagnostic_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> Diagno
 
 def get_seller_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> SellerService:
     """
-    Get SellerService instance with database dependency.
-    Phase 0: assembleur — instanciation des repos ici.
+    Get SellerService instance. Repos assembled here (no self.db in service).
     """
     return SellerService(
         user_repo=UserRepository(db),
@@ -246,6 +243,8 @@ def get_seller_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> SellerServ
         kpi_config_repo=KPIConfigRepository(db),
         daily_challenge_repo=DailyChallengeRepository(db),
         seller_bilan_repo=SellerBilanRepository(db),
+        sale_repo=SaleRepository(db),
+        evaluation_repo=EvaluationRepository(db),
     )
 
 
@@ -295,44 +294,36 @@ def get_payment_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> PaymentSe
     return PaymentService(db)
 
 
-# Conflict Service (with injected AIService)
+# Conflict Service (repos + AIService injected)
 def get_conflict_service(
     db: AsyncIOMotorDatabase = Depends(get_db),
-    ai_service: AIService = Depends(get_ai_service)
+    ai_service: AIService = Depends(get_ai_service),
 ) -> ConflictService:
-    """
-    Get ConflictService with injected AIService
-    
-    ✅ ÉTAPE B : Injection de dépendance pour découplage
-    
-    Usage in routes:
-        @router.post("/conflict")
-        async def create_conflict(
-            conflict_service: ConflictService = Depends(get_conflict_service)
-        ):
-            ...
-    """
-    return ConflictService(db, ai_service)
+    """Get ConflictService. Repos assembled here (no self.db in service)."""
+    return ConflictService(
+        user_repo=UserRepository(db),
+        manager_diagnostic_results_repo=ManagerDiagnosticResultsRepository(db),
+        diagnostic_repo=DiagnosticRepository(db),
+        conflict_consultation_repo=ConflictConsultationRepository(db),
+        ai_service=ai_service,
+    )
 
 
-# Relationship Service (with injected AIService)
+# Relationship Service (repos + AIService injected)
 def get_relationship_service(
     db: AsyncIOMotorDatabase = Depends(get_db),
-    ai_service: AIService = Depends(get_ai_service)
+    ai_service: AIService = Depends(get_ai_service),
 ) -> RelationshipService:
-    """
-    Get RelationshipService with injected AIService
-    
-    ✅ ÉTAPE B : Injection de dépendance pour découplage
-    
-    Usage in routes:
-        @router.post("/relationship")
-        async def create_relationship(
-            relationship_service: RelationshipService = Depends(get_relationship_service)
-        ):
-            ...
-    """
-    return RelationshipService(db, ai_service)
+    """Get RelationshipService. Repos assembled here (no self.db in service)."""
+    return RelationshipService(
+        user_repo=UserRepository(db),
+        manager_diagnostic_results_repo=ManagerDiagnosticResultsRepository(db),
+        diagnostic_repo=DiagnosticRepository(db),
+        kpi_repo=KPIRepository(db),
+        debrief_repo=DebriefRepository(db),
+        relationship_consultation_repo=RelationshipConsultationRepository(db),
+        ai_service=ai_service,
+    )
 
 
 # Competence Service

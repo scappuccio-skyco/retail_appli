@@ -1,6 +1,7 @@
 """
 Authentication Service
-Handles user login, registration, password reset
+Handles user login, registration, password reset.
+All dependencies injected via __init__ (no self.db).
 """
 from typing import Optional, Dict
 from datetime import datetime, timezone, timedelta
@@ -9,8 +10,8 @@ import secrets
 import logging
 
 from core.security import (
-    get_password_hash, 
-    verify_password, 
+    get_password_hash,
+    verify_password,
     create_token
 )
 from repositories.user_repository import UserRepository
@@ -24,14 +25,21 @@ logger = logging.getLogger(__name__)
 
 
 class AuthService:
-    """Service for authentication operations (Phase 12: repositories only, no self.db)."""
+    """Service for authentication operations. All repos injected via __init__."""
 
-    def __init__(self, db):
-        self.user_repo = UserRepository(db)
-        self.workspace_repo = WorkspaceRepository(db)
-        self.gerant_invitation_repo = GerantInvitationRepository(db)
-        self.invitation_repo = InvitationRepository(db)
-        self.password_reset_repo = PasswordResetRepository(db)
+    def __init__(
+        self,
+        user_repo: UserRepository,
+        workspace_repo: WorkspaceRepository,
+        gerant_invitation_repo: GerantInvitationRepository,
+        invitation_repo: InvitationRepository,
+        password_reset_repo: PasswordResetRepository,
+    ):
+        self.user_repo = user_repo
+        self.workspace_repo = workspace_repo
+        self.gerant_invitation_repo = gerant_invitation_repo
+        self.invitation_repo = invitation_repo
+        self.password_reset_repo = password_reset_repo
     
     async def login(self, email: str, password: str) -> Dict:
         """
@@ -253,14 +261,11 @@ class AuthService:
             invitation_collection = "invitations"
         
         if not invitation:
-            raise Exception("Invitation invalide ou expirée")
-        
-        if invitation.get('status') != 'pending':
-            raise Exception("Cette invitation a déjà été utilisée")
-        
-        # Verify email matches
-        if invitation['email'] != email:
-            raise Exception("L'email ne correspond pas à l'invitation")
+            raise ValidationError("Invitation invalide ou expirée")
+        if invitation.get("status") != "pending":
+            raise ValidationError("Cette invitation a déjà été utilisée")
+        if invitation["email"] != email:
+            raise ValidationError("L'email ne correspond pas à l'invitation")
         
         # Create user
         user_id = str(uuid4())
@@ -313,9 +318,48 @@ class AuthService:
         
         return {
             "token": token,
-            "user": {k: v for k, v in user.items() if k != 'password'}
+            "user": {k: v for k, v in user.items() if k != "password"},
         }
-    
+
+    async def get_invitation_by_token(self, token: str) -> Optional[Dict]:
+        """
+        Get invitation by token (gerant_invitations then invitations). Used by legacy routes.
+        Returns raw invitation dict or None if not found.
+        """
+        invitation = await self.gerant_invitation_repo.find_by_token(
+            token, projection={"_id": 0}
+        )
+        if not invitation:
+            invitation = await self.invitation_repo.find_by_token(
+                token, projection={"_id": 0}
+            )
+        return invitation
+
+    async def verify_invitation_for_display(self, token: str) -> Dict:
+        """
+        Verify invitation token and return display payload for legacy verify endpoint.
+        Raises NotFoundError or ValidationError if invalid.
+        """
+        invitation = await self.get_invitation_by_token(token)
+        if not invitation:
+            raise UnauthorizedError("Invitation non trouvée ou expirée")
+        if invitation.get("status") == "accepted":
+            raise ValidationError("Cette invitation a déjà été utilisée")
+        if invitation.get("status") == "expired":
+            raise ValidationError("Cette invitation a expiré")
+        return {
+            "valid": True,
+            "email": invitation.get("email"),
+            "role": invitation.get("role", "seller"),
+            "store_name": invitation.get("store_name"),
+            "gerant_name": invitation.get("gerant_name"),
+            "manager_name": invitation.get("manager_name"),
+            "name": invitation.get("name", ""),
+            "gerant_id": invitation.get("gerant_id"),
+            "store_id": invitation.get("store_id"),
+            "manager_id": invitation.get("manager_id"),
+        }
+
     async def request_password_reset(self, email: str) -> str:
         """
         Generate password reset token and send email

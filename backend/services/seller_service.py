@@ -1,6 +1,6 @@
 """
 Seller Service
-Business logic for seller-specific operations (tasks, objectives, challenges)
+Business logic for seller-specific operations (tasks, objectives, challenges, sales, evaluations)
 """
 import logging
 from datetime import datetime, timezone
@@ -20,12 +20,17 @@ from repositories.store_repository import StoreRepository, WorkspaceRepository
 from repositories.kpi_config_repository import KPIConfigRepository
 from repositories.daily_challenge_repository import DailyChallengeRepository
 from repositories.seller_bilan_repository import SellerBilanRepository
+from repositories.sale_repository import SaleRepository
+from repositories.evaluation_repository import EvaluationRepository
+from models.pagination import PaginatedResponse
+from utils.pagination import paginate
+from exceptions.custom_exceptions import NotFoundError, ForbiddenError
 
 logger = logging.getLogger(__name__)
 
 
 class SellerService:
-    """Service for seller-specific operations. Phase 0: repositories only, no self.db."""
+    """Service for seller-specific operations. All repos injected via __init__ (no self.db)."""
 
     def __init__(
         self,
@@ -44,6 +49,8 @@ class SellerService:
         kpi_config_repo: Optional[KPIConfigRepository] = None,
         daily_challenge_repo: Optional[DailyChallengeRepository] = None,
         seller_bilan_repo: Optional[SellerBilanRepository] = None,
+        sale_repo: Optional[SaleRepository] = None,
+        evaluation_repo: Optional[EvaluationRepository] = None,
     ):
         self.user_repo = user_repo
         self.diagnostic_repo = diagnostic_repo
@@ -60,6 +67,8 @@ class SellerService:
         self.kpi_config_repo = kpi_config_repo
         self.daily_challenge_repo = daily_challenge_repo
         self.seller_bilan_repo = seller_bilan_repo
+        self.sale_repo = sale_repo
+        self.evaluation_repo = evaluation_repo
 
     # ===== SUBSCRIPTION & CONFIG (for seller routes without db) =====
 
@@ -1520,5 +1529,98 @@ class SellerService:
             if bulk_ops:
                 increment_db_op("db.challenges.bulk_write")
                 await self.challenge_repo.bulk_write(bulk_ops)
-        
+
         return challenges
+
+    # ===== SALES & EVALUATIONS (for sales_evaluations routes, no repo in route) =====
+
+    async def create_sale(self, seller_id: str, sale_data: Dict) -> Dict:
+        """Create a sale for a seller. Used by routes instead of instantiating SaleRepository."""
+        if not self.sale_repo:
+            raise ForbiddenError("Service non configuré pour les ventes")
+        await self.sale_repo.create_sale(sale_data=sale_data, seller_id=seller_id)
+        out = {k: v for k, v in sale_data.items() if k != "_id"}
+        return out
+
+    async def get_sales_paginated(
+        self, user_id: str, role: str, store_id: Optional[str], page: int, size: int
+    ) -> PaginatedResponse:
+        """Get sales paginated: seller sees own, manager sees store's sellers."""
+        if not self.sale_repo:
+            return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
+        if role == "seller":
+            return await paginate(
+                collection=self.sale_repo.collection,
+                query={"seller_id": user_id},
+                page=page,
+                size=size,
+                projection={"_id": 0},
+                sort=[("date", -1)],
+            )
+        if store_id:
+            sellers = await self.user_repo.find_many(
+                {"store_id": store_id, "role": "seller"},
+                projection={"_id": 0, "id": 1},
+                limit=100,
+            )
+            seller_ids = [s["id"] for s in sellers]
+            if seller_ids:
+                return await paginate(
+                    collection=self.sale_repo.collection,
+                    query={"seller_id": {"$in": seller_ids}},
+                    page=page,
+                    size=size,
+                    projection={"_id": 0},
+                    sort=[("date", -1)],
+                )
+        return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
+
+    async def get_sale_by_id_for_seller(self, sale_id: str, seller_id: str) -> Optional[Dict]:
+        """Get a sale by id for a seller (for validation before creating evaluation)."""
+        if not self.sale_repo:
+            return None
+        return await self.sale_repo.find_by_id(
+            sale_id=sale_id, seller_id=seller_id, projection={"_id": 0}
+        )
+
+    async def create_evaluation(self, seller_id: str, evaluation_data: Dict) -> Dict:
+        """Create an evaluation for a sale. Used by routes instead of instantiating EvaluationRepository."""
+        if not self.evaluation_repo:
+            raise ForbiddenError("Service non configuré pour les évaluations")
+        await self.evaluation_repo.create_evaluation(
+            evaluation_data=evaluation_data, seller_id=seller_id
+        )
+        return {k: v for k, v in evaluation_data.items() if k != "_id"}
+
+    async def get_evaluations_paginated(
+        self, user_id: str, role: str, store_id: Optional[str], page: int, size: int
+    ) -> PaginatedResponse:
+        """Get evaluations paginated: seller sees own, manager sees store's sellers."""
+        if not self.evaluation_repo:
+            return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
+        if role == "seller":
+            return await paginate(
+                collection=self.evaluation_repo.collection,
+                query={"seller_id": user_id},
+                page=page,
+                size=size,
+                projection={"_id": 0},
+                sort=[("created_at", -1)],
+            )
+        if store_id:
+            sellers = await self.user_repo.find_many(
+                {"store_id": store_id, "role": "seller"},
+                projection={"_id": 0, "id": 1},
+                limit=100,
+            )
+            seller_ids = [s["id"] for s in sellers]
+            if seller_ids:
+                return await paginate(
+                    collection=self.evaluation_repo.collection,
+                    query={"seller_id": {"$in": seller_ids}},
+                    page=page,
+                    size=size,
+                    projection={"_id": 0},
+                    sort=[("created_at", -1)],
+                )
+        return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)

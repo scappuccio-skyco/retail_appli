@@ -1,6 +1,6 @@
 """
 Notification Service
-Service for achievement notifications (Phase 12: repositories only).
+Service for achievement notifications. Dependencies injected via __init__.
 """
 import logging
 from datetime import datetime, timezone
@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 class NotificationService:
-    """Service for achievement notifications (repositories only)."""
-    
-    def __init__(self, db):
-        self.achievement_notification_repo = AchievementNotificationRepository(db)
+    """Service for achievement notifications. Repo injected via __init__."""
+
+    def __init__(self, achievement_notification_repo: AchievementNotificationRepository):
+        self.achievement_notification_repo = achievement_notification_repo
     
     async def check_achievement_notification(self, user_id: str, item_type: str, item_id: str) -> bool:
         """

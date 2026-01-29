@@ -1,23 +1,33 @@
-"""KPI Service - Business logic for KPI calculations and aggregations (Phase 12: repositories only)."""
+"""KPI Service - Business logic for KPI calculations and aggregations (repositories only)."""
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
-from fastapi import HTTPException
+from uuid import uuid4
+
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.user_repository import UserRepository
 from repositories.store_repository import WorkspaceRepository, StoreRepository
 from repositories.kpi_config_repository import KPIConfigRepository
+from exceptions.custom_exceptions import ForbiddenError, NotFoundError, BusinessLogicError
 
 
 class KPIService:
-    """Service for KPI calculations and aggregations (repositories only)."""
-    
-    def __init__(self, db):
-        self.kpi_repo = KPIRepository(db)
-        self.manager_kpi_repo = ManagerKPIRepository(db)
-        self.user_repo = UserRepository(db)
-        self.workspace_repo = WorkspaceRepository(db)
-        self.store_repo = StoreRepository(db)
-        self.kpi_config_repo = KPIConfigRepository(db)
+    """Service for KPI calculations and aggregations. All dependencies injected via __init__."""
+
+    def __init__(
+        self,
+        kpi_repo: KPIRepository,
+        manager_kpi_repo: ManagerKPIRepository,
+        user_repo: UserRepository,
+        workspace_repo: WorkspaceRepository,
+        store_repo: StoreRepository,
+        kpi_config_repo: KPIConfigRepository,
+    ):
+        self.kpi_repo = kpi_repo
+        self.manager_kpi_repo = manager_kpi_repo
+        self.user_repo = user_repo
+        self.workspace_repo = workspace_repo
+        self.store_repo = store_repo
+        self.kpi_config_repo = kpi_config_repo
     
     async def check_user_write_access(self, user_id: str) -> bool:
         """
@@ -202,11 +212,7 @@ class KPIService:
             return {**existing, **update_data}
         
         else:
-            # Calculate KPIs
             calculated = self.calculate_kpis(kpi_data)
-            
-            # Create new entry
-            from uuid import uuid4
             new_entry = {
                 "id": str(uuid4()),
                 "seller_id": seller_id,
@@ -291,9 +297,23 @@ class KPIService:
             }
         ]
         
-        result = await self.kpi_repo.aggregate(pipeline)
-        
+        result = await self.kpi_repo.aggregate(pipeline, max_results=1)
+
         if not result:
             return {"total_ca": 0, "total_ventes": 0, "seller_count": 0}
-        
+
         return result[0]
+
+    async def get_stores_kpi_summary_for_gerant(
+        self, gerant_id: str, date: str
+    ) -> List[Dict]:
+        """
+        Get KPI summary per store for a gérant on a given date.
+        Used by routes instead of instantiating StoreRepository in the route.
+        """
+        stores = await self.store_repo.find_by_gerant(gerant_id)
+        results: List[Dict] = []
+        for store in stores:
+            summary = await self.aggregate_store_kpis(store["id"], date)
+            results.append({"store": store, "kpis": summary})
+        return results

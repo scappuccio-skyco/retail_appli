@@ -1,6 +1,6 @@
 """
 Relationship & Conflict Advice Service
-Phase 12: repositories only (no direct db in services).
+All dependencies injected via __init__ (no self.db).
 """
 from typing import Dict, List, Optional
 from datetime import datetime, timezone, timedelta
@@ -14,25 +14,31 @@ from repositories.diagnostic_repository import DiagnosticRepository
 from repositories.kpi_repository import KPIRepository
 from repositories.debrief_repository import DebriefRepository
 from repositories.relationship_consultation_repository import RelationshipConsultationRepository
+from services.ai_service import AIService
 
 logger = logging.getLogger(__name__)
 
 
 class RelationshipService:
-    """Service for relationship advice generation (repositories only)."""
+    """Service for relationship advice generation. All repos and ai_service injected via __init__."""
 
-    def __init__(self, db, ai_service=None):
-        self.user_repo = UserRepository(db)
-        self.manager_diagnostic_results_repo = ManagerDiagnosticResultsRepository(db)
-        self.diagnostic_repo = DiagnosticRepository(db)
-        self.kpi_repo = KPIRepository(db)
-        self.debrief_repo = DebriefRepository(db)
-        self.relationship_consultation_repo = RelationshipConsultationRepository(db)
-        if ai_service is None:
-            from services.ai_service import AIService
-            self.ai_service = AIService(db)
-        else:
-            self.ai_service = ai_service
+    def __init__(
+        self,
+        user_repo: UserRepository,
+        manager_diagnostic_results_repo: ManagerDiagnosticResultsRepository,
+        diagnostic_repo: DiagnosticRepository,
+        kpi_repo: KPIRepository,
+        debrief_repo: DebriefRepository,
+        relationship_consultation_repo: RelationshipConsultationRepository,
+        ai_service: AIService,
+    ):
+        self.user_repo = user_repo
+        self.manager_diagnostic_results_repo = manager_diagnostic_results_repo
+        self.diagnostic_repo = diagnostic_repo
+        self.kpi_repo = kpi_repo
+        self.debrief_repo = debrief_repo
+        self.relationship_consultation_repo = relationship_consultation_repo
+        self.ai_service = ai_service
     
     async def generate_recommendation(
         self,

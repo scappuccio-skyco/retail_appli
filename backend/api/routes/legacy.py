@@ -1,18 +1,21 @@
 """
 Legacy / compatibility routes.
 Duplicate or old endpoints for backward compatibility (e.g. old invitation links, manager KPI paths).
-Tag: Legacy.
+Routes handle HTTP only; business logic in services. No repository or db in routes.
 """
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 
-from api.dependencies import get_db, get_competence_service
+from api.dependencies import get_auth_service, get_competence_service, get_manager_service
+from exceptions.custom_exceptions import ValidationError
 from models.pagination import PaginationParams
+from services.auth_service import AuthService
+from services.competence_service import CompetenceService
+from services.manager_service import ManagerService
 
 # Import from manager for delegation (store context + handlers)
 from api.routes.manager import get_store_context, get_seller_kpi_entries, get_seller_stats
-from services.competence_service import CompetenceService
 
 router = APIRouter(prefix="", tags=["Legacy"])
 
@@ -29,7 +32,7 @@ async def get_seller_kpi_entries_compat(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
-    db=Depends(get_db),
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Compatibility route for GET /api/manager/kpi-entries/{seller_id}. Delegates to manager handler."""
     return await get_seller_kpi_entries(
@@ -41,7 +44,7 @@ async def get_seller_kpi_entries_compat(
         store_id=store_id,
         pagination=pagination,
         context=context,
-        db=db,
+        manager_service=manager_service,
     )
 
 
@@ -53,7 +56,7 @@ async def get_seller_stats_compat(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     competence_service: CompetenceService = Depends(get_competence_service),
-    db=Depends(get_db),
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Compatibility route for GET /api/manager/seller/{seller_id}/stats. Delegates to manager handler."""
     return await get_seller_stats(
@@ -63,62 +66,39 @@ async def get_seller_stats_compat(
         store_id=store_id,
         context=context,
         competence_service=competence_service,
-        db=db,
+        manager_service=manager_service,
     )
 
 
 # ----- Invitation legacy (old RegisterManager / RegisterSeller pages) -----
 
 @router.get("/invitations/gerant/verify/{token}")
-async def verify_gerant_invitation_legacy(token: str, db=Depends(get_db)):
+async def verify_gerant_invitation_legacy(
+    token: str,
+    auth_service: AuthService = Depends(get_auth_service),
+):
     """
     Legacy endpoint for verifying gerant invitations.
     Used by old RegisterManager.js and RegisterSeller.js pages.
+    No db in route; delegates to AuthService.
     """
-    invitation = await db.gerant_invitations.find_one({"token": token}, {"_id": 0})
-    if not invitation:
-        invitation = await db.invitations.find_one({"token": token}, {"_id": 0})
-    if not invitation:
-        raise HTTPException(status_code=404, detail="Invitation non trouvée ou expirée")
-    if invitation.get("status") == "accepted":
-        raise HTTPException(status_code=400, detail="Cette invitation a déjà été utilisée")
-    if invitation.get("status") == "expired":
-        raise HTTPException(status_code=400, detail="Cette invitation a expiré")
-    return {
-        "valid": True,
-        "email": invitation.get("email"),
-        "role": invitation.get("role", "seller"),
-        "store_name": invitation.get("store_name"),
-        "gerant_name": invitation.get("gerant_name"),
-        "manager_name": invitation.get("manager_name"),
-        "name": invitation.get("name", ""),
-        "gerant_id": invitation.get("gerant_id"),
-        "store_id": invitation.get("store_id"),
-        "manager_id": invitation.get("manager_id"),
-    }
+    return await auth_service.verify_invitation_for_display(token)
 
 
 @router.post("/auth/register-with-gerant-invite")
-async def register_with_gerant_invite_legacy(request_data: dict, db=Depends(get_db)):
+async def register_with_gerant_invite_legacy(
+    request_data: dict,
+    auth_service: AuthService = Depends(get_auth_service),
+):
     """
     Legacy endpoint for registering with gerant invitation.
     Used by old RegisterManager.js and RegisterSeller.js pages.
+    No db or UserRepository in route; delegates to AuthService.
     """
-    from services.auth_service import AuthService
-    from repositories.user_repository import UserRepository
-
-    user_repo = UserRepository(db)
-    auth_service = AuthService(db, user_repo)
     invitation_token = request_data.get("invitation_token")
     email = request_data.get("email", "")
     if not email:
-        invitation = await db.gerant_invitations.find_one(
-            {"token": invitation_token}, {"_id": 0}
-        )
-        if not invitation:
-            invitation = await db.invitations.find_one(
-                {"token": invitation_token}, {"_id": 0}
-            )
+        invitation = await auth_service.get_invitation_by_token(invitation_token)
         if invitation:
             email = invitation.get("email", "")
     try:
@@ -128,5 +108,7 @@ async def register_with_gerant_invite_legacy(request_data: dict, db=Depends(get_
             name=request_data.get("name"),
             invitation_token=invitation_token,
         )
+    except ValidationError:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))

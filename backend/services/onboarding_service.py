@@ -1,6 +1,6 @@
 """
 Onboarding Service
-Business logic for user onboarding progress tracking (Phase 12: repositories only).
+Business logic for user onboarding progress tracking (repositories only).
 """
 from typing import Dict, List
 from datetime import datetime, timezone
@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 class OnboardingService:
-    """Service for onboarding progress operations (repositories only)."""
-    
-    def __init__(self, db):
-        self.onboarding_progress_repo = OnboardingProgressRepository(db)
+    """Service for onboarding progress operations. Dependencies injected via __init__."""
+
+    def __init__(self, onboarding_progress_repo: OnboardingProgressRepository):
+        self.onboarding_progress_repo = onboarding_progress_repo
     
     async def get_progress(self, user_id: str) -> Dict:
         """

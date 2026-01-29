@@ -188,35 +188,10 @@ async def get_all_stores_kpis(
     kpi_service: KPIService = Depends(get_kpi_service)
 ):
     """
-    Get KPI summary for all stores owned by gérant
-    
-    Args:
-        date: Date (YYYY-MM-DD)
-        current_user: Authenticated gérant
-        kpi_service: KPI service instance
-        
-    Returns:
-        List of store KPI summaries
+    Get KPI summary for all stores owned by gérant.
+    Route calls service method only (no repository instantiation).
     """
-    try:
-        from repositories.store_repository import StoreRepository
-        
-        # Use service's db connection
-        store_repo = StoreRepository(kpi_service.db)
-        stores = await store_repo.find_by_gerant(current_user['id'])
-        
-        # Aggregate KPIs for each store
-        results = []
-        for store in stores:
-            summary = await kpi_service.aggregate_store_kpis(
-                store_id=store['id'],
-                date=date
-            )
-            results.append({
-                "store": store,
-                "kpis": summary
-            })
-        
-        return results
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await kpi_service.get_stores_kpi_summary_for_gerant(
+        gerant_id=current_user["id"],
+        date=date,
+    )

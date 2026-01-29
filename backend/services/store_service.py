@@ -1,4 +1,5 @@
 """Store Service - Business logic for stores and workspaces"""
+import random
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -143,5 +144,33 @@ class StoreService:
             {"$set": {"manager_id": manager_id}}
         )
         await invalidate_store_cache(to_store_id)
-        
+
         return True
+
+    async def check_workspace_availability(self, name: str) -> Dict:
+        """
+        Check if a workspace name is available. Used by routes instead of instantiating WorkspaceRepository.
+        """
+        name = name.strip()
+        if len(name) < 3:
+            return {
+                "available": False,
+                "message": "Le nom doit contenir au moins 3 caractères",
+            }
+        existing = await self.workspace_repo.find_by_name_case_insensitive(name)
+        if existing:
+            suggestions = [
+                f"{name}{random.randint(1, 99)}",
+                f"{name}-{random.randint(100, 999)}",
+                f"{name.lower().replace(' ', '-')}",
+            ]
+            return {
+                "available": False,
+                "message": "Ce nom est déjà utilisé",
+                "suggestions": suggestions,
+            }
+        return {
+            "available": True,
+            "message": "Ce nom est disponible",
+            "slug": name.lower().replace(" ", "-"),
+        }
