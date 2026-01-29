@@ -6,6 +6,8 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone, timedelta
 import logging
 
+from models.pagination import PaginatedResponse
+from utils.pagination import paginate
 from repositories.user_repository import UserRepository
 from repositories.store_repository import StoreRepository
 from repositories.invitation_repository import InvitationRepository
@@ -67,7 +69,526 @@ class ManagerService:
         self.debrief_repo = debrief_repo
         self.team_analysis_repo = team_analysis_repo
         self.relationship_consultation_repo = relationship_consultation_repo
-    
+
+    # ===== STORE (for routes: no direct store_repo access) =====
+
+    async def get_store_by_id(
+        self,
+        store_id: str,
+        gerant_id: Optional[str] = None,
+        projection: Optional[Dict] = None,
+    ) -> Optional[Dict]:
+        """Get store by id (optionally verify gerant_id). Used by routes instead of store_repo.find_by_id."""
+        return await self.store_repo.find_by_id(
+            store_id=store_id,
+            gerant_id=gerant_id,
+            projection=projection or {"_id": 0},
+        )
+
+    async def get_store_by_id_simple(
+        self, store_id: str, projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Get store by id without gerant check (for existence/active check)."""
+        return await self.store_repo.find_one(
+            {"id": store_id}, projection or {"_id": 0}
+        )
+
+    # ===== USER (for routes: no direct user_repo access) =====
+
+    async def get_user_by_id(
+        self, user_id: str, projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Get user by id. Used by routes instead of user_repo.find_by_id/find_one."""
+        proj = projection or {"_id": 0, "password": 0}
+        return await self.user_repo.find_one({"id": user_id}, proj)
+
+    async def get_seller_by_id_and_store(
+        self, seller_id: str, store_id: str
+    ) -> Optional[Dict]:
+        """Get seller by id and store (for access verification)."""
+        return await self.user_repo.find_one(
+            {"id": seller_id, "store_id": store_id, "role": "seller"},
+            {"_id": 0, "password": 0},
+        )
+
+    async def get_users_by_ids_and_store(
+        self,
+        user_ids: List[str],
+        store_id: str,
+        role: str = "seller",
+        limit: int = 50,
+        projection: Optional[Dict] = None,
+    ) -> List[Dict]:
+        """Get users by ids and store (for validation). Used by routes instead of user_repo.find_many."""
+        if not user_ids:
+            return []
+        proj = projection or {"_id": 0, "id": 1, "name": 1}
+        return await self.user_repo.find_many(
+            {"id": {"$in": user_ids}, "store_id": store_id, "role": role},
+            proj,
+            limit=limit,
+        )
+
+    async def get_sellers_for_store_paginated(
+        self, store_id: str, page: int = 1, size: int = 100
+    ) -> PaginatedResponse:
+        """Get paginated sellers for store. Used by routes instead of paginate(collection=user_repo.collection)."""
+        query = {
+            "store_id": store_id,
+            "role": "seller",
+            "$or": [
+                {"status": {"$exists": False}},
+                {"status": None},
+                {"status": "active"},
+            ],
+        }
+        return await paginate(
+            collection=self.user_repo.collection,
+            query=query,
+            page=page,
+            size=size,
+            projection={"_id": 0, "password": 0},
+            sort=[("name", 1)],
+        )
+
+    async def get_sellers_by_status_paginated(
+        self, store_id: str, status: str, page: int = 1, size: int = 50
+    ) -> PaginatedResponse:
+        """Get paginated sellers for store by status (e.g. 'suspended' for archived). Used by routes."""
+        query = {
+            "store_id": store_id,
+            "role": "seller",
+            "status": status,
+        }
+        return await paginate(
+            collection=self.user_repo.collection,
+            query=query,
+            page=page,
+            size=size,
+            projection={"_id": 0, "password": 0},
+            sort=[("updated_at", -1)],
+        )
+
+    # ===== OBJECTIVE / CHALLENGE (for verify_resource_store_access) =====
+
+    async def get_objective_by_id(self, objective_id: str) -> Optional[Dict]:
+        """Get objective by id (any store). Used by security/routes."""
+        return await self.objective_repo.find_one(
+            {"id": objective_id}, {"_id": 0}
+        )
+
+    async def get_objective_by_id_and_store(
+        self, objective_id: str, store_id: str
+    ) -> Optional[Dict]:
+        """Get objective by id and store_id. Used by verify_resource_store_access."""
+        return await self.objective_repo.find_one(
+            {"id": objective_id, "store_id": store_id}, {"_id": 0}
+        )
+
+    async def get_challenge_by_id(self, challenge_id: str) -> Optional[Dict]:
+        """Get challenge by id (any store). Used by security/routes."""
+        return await self.challenge_repo.find_one(
+            {"id": challenge_id}, {"_id": 0}
+        )
+
+    async def get_challenge_by_id_and_store(
+        self, challenge_id: str, store_id: str
+    ) -> Optional[Dict]:
+        """Get challenge by id and store_id. Used by verify_resource_store_access."""
+        return await self.challenge_repo.find_one(
+            {"id": challenge_id, "store_id": store_id}, {"_id": 0}
+        )
+
+    # ===== KPI (for routes: no direct kpi_repo / manager_kpi_repo access) =====
+
+    async def get_kpi_distinct_dates(self, query: Dict) -> List[str]:
+        """Get distinct dates from seller KPIs. Used by routes."""
+        return await self.kpi_repo.distinct_dates(query)
+
+    async def get_manager_kpi_distinct_dates(self, query: Dict) -> List[str]:
+        """Get distinct dates from manager KPIs. Used by routes."""
+        return await self.manager_kpi_repo.distinct_dates(query)
+
+    async def get_manager_kpis_paginated(
+        self,
+        store_id: str,
+        start_date: str,
+        end_date: str,
+        page: int = 1,
+        size: int = 50,
+    ) -> PaginatedResponse:
+        """Get paginated manager KPI entries for store/date range. Used by routes."""
+        query = {
+            "store_id": store_id,
+            "date": {"$gte": start_date, "$lte": end_date},
+        }
+        return await paginate(
+            collection=self.manager_kpi_repo.collection,
+            query=query,
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("date", -1)],
+        )
+
+    async def get_kpi_locked_entries(
+        self, store_id: str, date: str, limit: int = 1
+    ) -> List[Dict]:
+        """Get locked KPI entries for store/date (for lock check)."""
+        return await self.kpi_repo.find_many(
+            {"store_id": store_id, "date": date, "locked": True},
+            {"_id": 0},
+            limit=limit,
+        )
+
+    async def get_kpi_entries_locked_or_api(
+        self, store_id: str, date: str, limit: int = 1
+    ) -> List[Dict]:
+        """Get KPI entries that are locked or from API (for save guard)."""
+        return await self.kpi_repo.find_many(
+            {
+                "store_id": store_id,
+                "date": date,
+                "$or": [{"locked": True}, {"source": "api"}],
+            },
+            {"_id": 0, "locked": 1},
+            limit=limit,
+        )
+
+    async def get_kpi_entry_by_seller_and_date(
+        self, seller_id: str, date: str
+    ) -> Optional[Dict]:
+        """Get KPI entry for seller on date. Used by routes."""
+        return await self.kpi_repo.find_by_seller_and_date(seller_id, date)
+
+    async def update_kpi_entry_one(self, filter: Dict, update: Dict) -> bool:
+        """Update one KPI entry. Used by routes instead of kpi_repo.update_one."""
+        return await self.kpi_repo.update_one(filter, {"$set": update})
+
+    async def insert_kpi_entry_one(self, data: Dict) -> str:
+        """Insert one KPI entry. Used by routes instead of kpi_repo.insert_one."""
+        return await self.kpi_repo.insert_one(data)
+
+    async def get_manager_kpi_by_store_and_date(
+        self, store_id: str, date: str
+    ) -> Optional[Dict]:
+        """Get manager KPI (prospects) for store/date. Used by routes."""
+        return await self.manager_kpi_repo.find_by_store_and_date(
+            store_id, date
+        )
+
+    async def update_manager_kpi_one(self, filter: Dict, update: Dict) -> bool:
+        """Update one manager KPI entry. Used by routes."""
+        return await self.manager_kpi_repo.update_one(filter, {"$set": update})
+
+    async def insert_manager_kpi_one(self, data: Dict) -> str:
+        """Insert one manager KPI entry. Used by routes."""
+        return await self.manager_kpi_repo.insert_one(data)
+
+    async def aggregate_kpi(
+        self, pipeline: List[Dict], max_results: int = 1
+    ) -> List[Dict]:
+        """Run KPI aggregation. Used by routes."""
+        return await self.kpi_repo.aggregate(pipeline, max_results=max_results)
+
+    async def aggregate_manager_kpi(
+        self, pipeline: List[Dict], max_results: int = 1
+    ) -> List[Dict]:
+        """Run manager KPI aggregation. Used by routes."""
+        return await self.manager_kpi_repo.aggregate(
+            pipeline, max_results=max_results
+        )
+
+    async def get_kpi_entries_paginated(
+        self,
+        query: Dict,
+        page: int = 1,
+        size: int = 50,
+    ) -> PaginatedResponse:
+        """Get paginated KPI entries (seller entries) by query. Used by routes."""
+        return await paginate(
+            collection=self.kpi_repo.collection,
+            query=query,
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("date", -1)],
+        )
+
+    # ===== KPI CONFIG =====
+
+    async def upsert_kpi_config(
+        self,
+        store_id: Optional[str],
+        manager_id: Optional[str],
+        update_data: Dict,
+    ) -> Dict:
+        """Upsert KPI config. Used by routes instead of kpi_config_repo.upsert_config."""
+        return await self.kpi_config_repo.upsert_config(
+            store_id=store_id,
+            manager_id=manager_id,
+            update_data=update_data,
+        )
+
+    # ===== OBJECTIVES (CRUD for routes) =====
+
+    async def get_objectives_by_store(
+        self, store_id: str, limit: int = 100
+    ) -> List[Dict]:
+        """Get objectives for store. Used by routes instead of objective_repo.find_by_store."""
+        return await self.objective_repo.find_by_store(
+            store_id, projection={"_id": 0}, limit=limit
+        )
+
+    async def create_objective(
+        self, data: Dict, store_id: str, manager_id: str
+    ) -> str:
+        """Create objective. Used by routes."""
+        return await self.objective_repo.create_objective(
+            data, store_id=store_id, manager_id=manager_id
+        )
+
+    async def update_objective(
+        self,
+        objective_id: str,
+        update_data: Dict,
+        store_id: Optional[str] = None,
+        manager_id: Optional[str] = None,
+    ) -> bool:
+        """Update objective. Used by routes."""
+        return await self.objective_repo.update_objective(
+            objective_id, update_data, store_id=store_id, manager_id=manager_id
+        )
+
+    async def get_objective_by_id_for_route(self, objective_id: str) -> Optional[Dict]:
+        """Get objective by id (for route logic). Alias for get_objective_by_id."""
+        return await self.get_objective_by_id(objective_id)
+
+    async def delete_objective(
+        self,
+        objective_id: str,
+        store_id: Optional[str] = None,
+        manager_id: Optional[str] = None,
+    ) -> bool:
+        """Delete objective. Used by routes."""
+        return await self.objective_repo.delete_objective(
+            objective_id, store_id=store_id, manager_id=manager_id
+        )
+
+    async def update_objective_with_progress_history(
+        self,
+        objective_id: str,
+        update_data: Dict,
+        progress_entry: Dict,
+        store_id: str,
+        manager_id: Optional[str] = None,
+    ) -> bool:
+        """Update objective and append to progress_history (single atomic update)."""
+        update_doc = {
+            "$set": update_data,
+            "$push": {
+                "progress_history": {"$each": [progress_entry], "$slice": -50}
+            },
+        }
+        filters = {"id": objective_id, "store_id": store_id}
+        return await self.objective_repo.update_one(filters, update_doc)
+
+    # ===== CHALLENGES (CRUD for routes) =====
+
+    async def get_challenges_by_store(
+        self, store_id: str, limit: int = 100
+    ) -> List[Dict]:
+        """Get challenges for store. Used by routes instead of challenge_repo.find_by_store."""
+        return await self.challenge_repo.find_by_store(
+            store_id, projection={"_id": 0}, limit=limit
+        )
+
+    async def create_challenge(
+        self, data: Dict, store_id: str, manager_id: str
+    ) -> str:
+        """Create challenge. Used by routes (store_id and manager_id required for security)."""
+        return await self.challenge_repo.create_challenge(
+            data, store_id=store_id, manager_id=manager_id
+        )
+
+    async def update_challenge(
+        self,
+        challenge_id: str,
+        update_data: Dict,
+        store_id: Optional[str] = None,
+        manager_id: Optional[str] = None,
+    ) -> bool:
+        """Update challenge. Used by routes."""
+        return await self.challenge_repo.update_challenge(
+            challenge_id, update_data, store_id=store_id, manager_id=manager_id
+        )
+
+    async def get_challenge_by_id_for_route(self, challenge_id: str) -> Optional[Dict]:
+        """Get challenge by id (for route logic). Alias for get_challenge_by_id."""
+        return await self.get_challenge_by_id(challenge_id)
+
+    async def delete_challenge(
+        self,
+        challenge_id: str,
+        store_id: Optional[str] = None,
+        manager_id: Optional[str] = None,
+    ) -> bool:
+        """Delete challenge. Used by routes."""
+        return await self.challenge_repo.delete_challenge(
+            challenge_id, store_id=store_id, manager_id=manager_id
+        )
+
+    async def update_challenge_with_progress_history(
+        self,
+        challenge_id: str,
+        update_data: Dict,
+        progress_entry: Dict,
+        store_id: str,
+        manager_id: Optional[str] = None,
+    ) -> bool:
+        """Update challenge and append to progress_history (single atomic update)."""
+        update_doc = {
+            "$set": update_data,
+            "$push": {
+                "progress_history": {"$each": [progress_entry], "$slice": -50}
+            },
+        }
+        filters = {"id": challenge_id, "store_id": store_id}
+        return await self.challenge_repo.update_one(filters, update_doc)
+
+    # ===== DIAGNOSTIC / DEBRIEF =====
+
+    async def get_diagnostic_by_seller(self, seller_id: str) -> Optional[Dict]:
+        """Get diagnostic for seller. Used by routes instead of diagnostic_repo.find_by_seller."""
+        if not self.diagnostic_repo:
+            return None
+        return await self.diagnostic_repo.find_by_seller(seller_id)
+
+    async def get_debriefs_by_seller(
+        self, seller_id: str, limit: int = 100
+    ) -> List[Dict]:
+        """Get debriefs for seller. Used by routes instead of debrief_repo.find_by_seller."""
+        if not self.debrief_repo:
+            return []
+        return await self.debrief_repo.find_by_seller(
+            seller_id, projection={"_id": 0}, limit=limit
+        )
+
+    # ===== MORNING BRIEF (for routes: no direct morning_brief_repo access) =====
+
+    async def create_morning_brief(
+        self, brief_data: Dict, store_id: str, manager_id: str
+    ) -> str:
+        """Create morning brief. Used by briefs route."""
+        if not self.morning_brief_repo:
+            raise ValueError("Morning brief repository not available")
+        return await self.morning_brief_repo.create_brief(
+            brief_data=brief_data, store_id=store_id, manager_id=manager_id
+        )
+
+    async def get_morning_briefs_by_store(
+        self,
+        store_id: str,
+        limit: int = 30,
+        sort: Optional[List[tuple]] = None,
+    ) -> List[Dict]:
+        """Get morning briefs for store. Used by briefs route."""
+        if not self.morning_brief_repo:
+            return []
+        s = sort or [("generated_at", -1)]
+        return await self.morning_brief_repo.find_by_store(
+            store_id=store_id, limit=limit, sort=s
+        )
+
+    async def count_morning_briefs_by_store(self, store_id: str) -> int:
+        """Count morning briefs for store. Used by briefs route."""
+        if not self.morning_brief_repo:
+            return 0
+        return await self.morning_brief_repo.count_by_store(store_id)
+
+    async def delete_morning_brief(self, brief_id: str, store_id: str) -> bool:
+        """Delete morning brief. Used by briefs route."""
+        if not self.morning_brief_repo:
+            return False
+        return await self.morning_brief_repo.delete_brief(
+            brief_id=brief_id, store_id=store_id
+        )
+
+    # ===== TEAM ANALYSIS =====
+
+    async def get_team_analyses_paginated(
+        self, store_id: str, page: int = 1, size: int = 50
+    ) -> PaginatedResponse:
+        """Get paginated team analyses for store. Used by routes."""
+        if not self.team_analysis_repo:
+            return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
+        return await paginate(
+            collection=self.team_analysis_repo.collection,
+            query={"store_id": store_id},
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("created_at", -1)],
+        )
+
+    async def create_team_analysis(self, data: Dict) -> str:
+        """Create team analysis. Used by routes."""
+        if not self.team_analysis_repo:
+            raise ValueError("Team analysis service not configured")
+        return await self.team_analysis_repo.create_analysis(data)
+
+    async def delete_team_analysis_one(self, filter: Dict) -> bool:
+        """Delete one team analysis. Used by routes."""
+        if not self.team_analysis_repo:
+            return False
+        return await self.team_analysis_repo.delete_one(filter)
+
+    # ===== RELATIONSHIP CONSULTATION =====
+
+    async def get_relationship_consultations_paginated(
+        self, store_id: str, page: int = 1, size: int = 50
+    ) -> PaginatedResponse:
+        """Get paginated relationship consultations for store. Used by routes."""
+        if not self.relationship_consultation_repo:
+            return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
+        return await paginate(
+            collection=self.relationship_consultation_repo.collection,
+            query={"store_id": store_id},
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("created_at", -1)],
+        )
+
+    async def get_relationship_consultations_for_manager_paginated(
+        self,
+        store_id: str,
+        manager_id: str,
+        seller_id: Optional[str] = None,
+        page: int = 1,
+        size: int = 50,
+    ) -> PaginatedResponse:
+        """Get paginated relationship consultations for manager (and optional seller). Used by relationship-history route."""
+        if not self.relationship_consultation_repo:
+            return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
+        query: Dict = {"store_id": store_id, "manager_id": manager_id}
+        if seller_id:
+            query["seller_id"] = seller_id
+        return await paginate(
+            collection=self.relationship_consultation_repo.collection,
+            query=query,
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("created_at", -1)],
+        )
+
+    async def delete_relationship_consultation_one(self, filter: Dict) -> bool:
+        """Delete one relationship consultation. Used by routes."""
+        if not self.relationship_consultation_repo:
+            return False
+        return await self.relationship_consultation_repo.delete_one(filter)
+
     async def get_sellers(self, manager_id: str, store_id: str) -> List[Dict]:
         """
         Get all sellers for a store
@@ -301,14 +822,32 @@ class DiagnosticService:
     def __init__(self, manager_diagnostic_repo: ManagerDiagnosticRepository):
         self.manager_diagnostic_repo = manager_diagnostic_repo
 
-    async def get_manager_diagnostic(self, manager_id: str) -> Optional[Dict]:
-        """Get manager's DISC diagnostic profile"""
-        diagnostic = await self.manager_diagnostic_repo.find_latest_by_manager(
-            manager_id,
-            projection={"_id": 0}
+    async def get_manager_diagnostic(
+        self, manager_id: str, projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Get manager's latest DISC diagnostic profile. Used by diagnostics route."""
+        proj = projection or {"_id": 0}
+        return await self.manager_diagnostic_repo.find_latest_by_manager(
+            manager_id, projection=proj
         )
-        
-        return diagnostic
+
+    async def get_latest_manager_diagnostic(
+        self, manager_id: str, projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Alias for get_manager_diagnostic. Used by diagnostics route."""
+        return await self.get_manager_diagnostic(manager_id, projection)
+
+    async def delete_manager_diagnostic_by_manager(self, manager_id: str) -> bool:
+        """Delete latest manager diagnostic (before creating new one). Used by diagnostics route."""
+        return await self.manager_diagnostic_repo.delete_one({"manager_id": manager_id})
+
+    async def create_manager_diagnostic(
+        self, diagnostic_doc: Dict, manager_id: str
+    ) -> str:
+        """Create manager diagnostic. Used by diagnostics route."""
+        return await self.manager_diagnostic_repo.create_diagnostic(
+            diagnostic_doc, manager_id
+        )
 
 
 class APIKeyService:

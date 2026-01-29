@@ -8,7 +8,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_auth_service, get_competence_service, get_manager_service
-from exceptions.custom_exceptions import ValidationError
+from core.exceptions import ValidationError
 from models.pagination import PaginationParams
 from services.auth_service import AuthService
 from services.competence_service import CompetenceService

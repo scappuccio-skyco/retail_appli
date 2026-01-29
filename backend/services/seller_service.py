@@ -24,7 +24,7 @@ from repositories.sale_repository import SaleRepository
 from repositories.evaluation_repository import EvaluationRepository
 from models.pagination import PaginatedResponse
 from utils.pagination import paginate
-from exceptions.custom_exceptions import NotFoundError, ForbiddenError
+from core.exceptions import NotFoundError, ForbiddenError
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +114,508 @@ class SellerService:
         if not self.kpi_config_repo:
             return None
         return await self.kpi_config_repo.find_by_store_or_manager(store_id=store_id, manager_id=manager_id)
+
+    async def get_kpi_config_by_store(self, store_id: str) -> Optional[Dict]:
+        """Get KPI config for a store. Used by routes instead of service.kpi_config_repo."""
+        if not self.kpi_config_repo:
+            return None
+        return await self.kpi_config_repo.find_by_store(store_id)
+
+    async def get_diagnostic_for_seller(self, seller_id: str) -> Optional[Dict]:
+        """Get diagnostic for a seller. Used by routes instead of service.diagnostic_repo."""
+        return await self.diagnostic_repo.find_by_seller(seller_id)
+
+    async def update_diagnostic_scores_by_seller(self, seller_id: str, scores: Dict) -> bool:
+        """Update diagnostic competence scores for a seller. Used by debriefs route."""
+        return await self.diagnostic_repo.update_scores_by_seller(seller_id, scores)
+
+    async def get_disc_profile_for_evaluation(self, user_id: str) -> Optional[Dict]:
+        """Get DISC profile for evaluation guide: diagnostic first, then user.disc_profile fallback."""
+        diagnostic = await self.diagnostic_repo.find_one(
+            {"seller_id": user_id},
+            {"_id": 0, "style": 1, "level": 1, "strengths": 1, "weaknesses": 1, "axes_de_developpement": 1},
+        )
+        if diagnostic:
+            if "weaknesses" in diagnostic and "axes_de_developpement" not in diagnostic:
+                diagnostic["axes_de_developpement"] = diagnostic.pop("weaknesses", [])
+            return diagnostic
+        user = await self.user_repo.find_one(
+            {"id": user_id},
+            {"_id": 0, "disc_profile": 1},
+        )
+        if user and user.get("disc_profile"):
+            return user["disc_profile"]
+        return None
+
+    async def get_kpi_distinct_dates(self, query: Dict) -> List[str]:
+        """Get distinct dates matching KPI query. Used by routes instead of service.kpi_repo."""
+        return await self.kpi_repo.distinct_dates(query)
+
+    async def get_kpi_entries_paginated(
+        self, seller_id: str, page: int, size: int, projection: Optional[Dict] = None
+    ) -> PaginatedResponse:
+        """Get paginated KPI entries for seller. Used by routes instead of service.kpi_repo.collection."""
+        proj = projection or {"_id": 0}
+        return await paginate(
+            collection=self.kpi_repo.collection,
+            query={"seller_id": seller_id},
+            page=page,
+            size=size,
+            projection=proj,
+            sort=[("date", -1)],
+        )
+
+    async def get_kpi_entry_for_seller_date(
+        self, seller_id: str, date: str
+    ) -> Optional[Dict]:
+        """Get KPI entry for seller on date. Used by routes instead of kpi_repo.find_by_seller_and_date."""
+        return await self.kpi_repo.find_by_seller_and_date(seller_id, date)
+
+    async def get_kpis_by_date_range(
+        self, seller_id: str, start_date: str, end_date: str
+    ) -> List[Dict]:
+        """Get KPI entries for seller in date range. Used by evaluations route."""
+        return await self.kpi_repo.find_by_date_range(seller_id, start_date, end_date)
+
+    async def check_kpi_date_locked(self, store_id: str, date: str) -> bool:
+        """Check if store/date has locked or API-sourced KPI entries. Used by routes instead of kpi_repo.find_many."""
+        entries = await self.kpi_repo.find_many(
+            {
+                "store_id": store_id,
+                "date": date,
+                "$or": [{"locked": True}, {"source": "api"}],
+            },
+            projection={"_id": 0, "locked": 1, "source": 1},
+            limit=1,
+        )
+        return len(entries) > 0
+
+    async def get_kpi_aggregate_for_period(
+        self, seller_id: str, start_date: Optional[str], end_date: Optional[str]
+    ) -> Dict:
+        """Aggregate KPI totals for seller in date range. Used by routes instead of kpi_repo.aggregate."""
+        query: Dict = {"seller_id": seller_id}
+        if start_date and end_date:
+            query["date"] = {"$gte": start_date, "$lte": end_date}
+        pipeline = [
+            {"$match": query},
+            {
+                "$group": {
+                    "_id": None,
+                    "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
+                    "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                    "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
+                }
+            },
+        ]
+        result = await self.kpi_repo.aggregate(pipeline, max_results=1)
+        return result[0] if result else {}
+
+    async def create_diagnostic_for_seller(self, diagnostic_data: Dict) -> str:
+        """Create diagnostic. Used by routes instead of service.diagnostic_repo."""
+        return await self.diagnostic_repo.create_diagnostic(diagnostic_data)
+
+    async def delete_diagnostic_by_seller(self, seller_id: str) -> int:
+        """Delete all diagnostics for a seller. Used by routes instead of service.diagnostic_repo."""
+        return await self.diagnostic_repo.delete_by_seller(seller_id)
+
+    async def update_kpi_entry_by_id(self, entry_id: str, update_data: Dict) -> bool:
+        """Update KPI entry by id. Used by routes instead of kpi_repo.update_one."""
+        return await self.kpi_repo.update_one(
+            {"id": entry_id}, {"$set": update_data}
+        )
+
+    async def create_kpi_entry(self, entry_data: Dict) -> str:
+        """Create KPI entry. Used by routes instead of kpi_repo.insert_one."""
+        return await self.kpi_repo.insert_one(entry_data)
+
+    async def get_kpis_for_period_paginated(
+        self,
+        seller_id: str,
+        start_date: Optional[str],
+        end_date: Optional[str],
+        page: int = 1,
+        size: int = 50,
+    ) -> PaginatedResponse:
+        """Get paginated KPI entries for seller in date range (e.g. for bilan)."""
+        query: Dict = {"seller_id": seller_id}
+        if start_date and end_date:
+            query["date"] = {"$gte": start_date, "$lte": end_date}
+        return await paginate(
+            collection=self.kpi_repo.collection,
+            query=query,
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("date", -1)],
+        )
+
+    async def get_bilans_paginated(
+        self, seller_id: str, page: int = 1, size: int = 50
+    ) -> PaginatedResponse:
+        """Get paginated bilans for seller. Used by routes instead of seller_bilan_repo.collection."""
+        if not self.seller_bilan_repo:
+            return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
+        return await paginate(
+            collection=self.seller_bilan_repo.collection,
+            query={"seller_id": seller_id},
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("created_at", -1)],
+        )
+
+    async def create_bilan(self, bilan_data: Dict) -> str:
+        """Create bilan. Used by routes instead of seller_bilan_repo.create_bilan."""
+        if not self.seller_bilan_repo:
+            raise ForbiddenError("Service bilan non configuré")
+        return await self.seller_bilan_repo.create_bilan(bilan_data)
+
+    # ===== SELLER PROFILE & USER ACCESS (for routes: no direct repo access) =====
+
+    async def get_seller_profile(
+        self, user_id: str, projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Get user/seller by id. Used by routes instead of service.user_repo.find_by_id."""
+        proj = projection if projection is not None else {"_id": 0, "password": 0}
+        return await self.user_repo.find_one({"id": user_id}, proj)
+
+    async def list_managers_for_store(
+        self,
+        store_id: str,
+        projection: Optional[Dict] = None,
+        limit: int = 1,
+    ) -> List[Dict]:
+        """List managers for a store. Used by routes instead of service.user_repo.find_by_store."""
+        proj = projection or {"_id": 0, "id": 1, "name": 1}
+        return await self.user_repo.find_by_store(
+            store_id=store_id, role="manager", projection=proj, limit=limit
+        )
+
+    async def get_user_by_id_and_role(
+        self, user_id: str, role: str, projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Get user by id and role. Used by evaluations/diagnostics and verify_evaluation_employee_access."""
+        proj = projection or {"_id": 0}
+        return await self.user_repo.find_one({"id": user_id, "role": role}, proj)
+
+    async def get_users_by_store_and_role(
+        self,
+        store_id: str,
+        role: str,
+        projection: Optional[Dict] = None,
+        limit: int = 100,
+    ) -> List[Dict]:
+        """Get users in store by role. Used by debriefs route for seller_ids."""
+        proj = projection or {"_id": 0, "id": 1}
+        return await self.user_repo.find_by_store(
+            store_id=store_id, role=role, projection=proj, limit=limit
+        )
+
+    async def update_seller_manager_id(self, seller_id: str, manager_id: str) -> None:
+        """Set manager_id on a seller. Used by routes instead of service.user_repo.update_one."""
+        await self.user_repo.update_one(
+            {"id": seller_id},
+            {"$set": {"manager_id": manager_id, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        )
+
+    async def ensure_seller_has_manager_link(self, seller_id: str) -> Optional[Dict]:
+        """
+        If seller has store_id but no manager_id, find first active manager for store and link.
+        Returns seller profile (possibly updated). Used by objectives/challenges routes.
+        """
+        user = await self.get_seller_profile(seller_id)
+        if not user or user.get("manager_id") or not user.get("store_id"):
+            return user
+        store_id = user["store_id"]
+        managers = await self.list_managers_for_store(store_id, limit=1)
+        manager = managers[0] if managers and managers[0].get("status") == "active" else None
+        if not manager:
+            return user
+        manager_id = manager.get("id")
+        await self.update_seller_manager_id(seller_id, manager_id)
+        user["manager_id"] = manager_id
+        return user
+
+    async def get_store_by_id(
+        self,
+        store_id: str,
+        gerant_id: Optional[str] = None,
+        projection: Optional[Dict] = None,
+    ) -> Optional[Dict]:
+        """Get store by id. Used by routes instead of service.store_repo."""
+        if not self.store_repo:
+            return None
+        return await self.store_repo.find_by_id(
+            store_id=store_id, gerant_id=gerant_id, projection=projection
+        )
+
+    async def get_objective_if_accessible(self, objective_id: str, store_id: str) -> Dict:
+        """Return objective if it belongs to store; else raise NotFoundError or ForbiddenError."""
+        resource = await self.objective_repo.find_one(
+            {"id": objective_id, "store_id": store_id}, {"_id": 0}
+        )
+        if resource:
+            return resource
+        exists = await self.objective_repo.find_one({"id": objective_id}, {"_id": 0})
+        if exists:
+            raise ForbiddenError("Objective non trouvé ou accès refusé")
+        raise NotFoundError("Objective non trouvé")
+
+    async def get_challenge_if_accessible(self, challenge_id: str, store_id: str) -> Dict:
+        """Return challenge if it belongs to store; else raise NotFoundError or ForbiddenError."""
+        resource = await self.challenge_repo.find_one(
+            {"id": challenge_id, "store_id": store_id}, {"_id": 0}
+        )
+        if resource:
+            return resource
+        exists = await self.challenge_repo.find_one({"id": challenge_id}, {"_id": 0})
+        if exists:
+            raise ForbiddenError("Challenge non trouvé ou accès refusé")
+        raise NotFoundError("Challenge non trouvé")
+
+    async def update_objective_progress(
+        self,
+        objective_id: str,
+        store_id: str,
+        update_data: Dict,
+        progress_entry: Dict,
+    ) -> Optional[Dict]:
+        """Update objective progress and progress_history. Returns updated objective or None."""
+        await self.objective_repo.update_one(
+            {"id": objective_id, "store_id": store_id},
+            {
+                "$set": update_data,
+                "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}},
+            },
+        )
+        return await self.objective_repo.find_by_id(
+            objective_id=objective_id, store_id=store_id, projection={"_id": 0}
+        )
+
+    async def update_challenge_progress(
+        self,
+        challenge_id: str,
+        store_id: str,
+        update_data: Dict,
+        progress_entry: Dict,
+    ) -> Optional[Dict]:
+        """Update challenge progress and progress_history. Returns updated challenge or None."""
+        await self.challenge_repo.update_one(
+            {"id": challenge_id, "store_id": store_id},
+            {
+                "$set": update_data,
+                "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}},
+            },
+        )
+        return await self.challenge_repo.find_by_id(
+            challenge_id=challenge_id, store_id=store_id, projection={"_id": 0}
+        )
+
+    # ===== DAILY CHALLENGE (for routes: no direct daily_challenge_repo access) =====
+
+    async def get_daily_challenge_for_seller_date(
+        self, seller_id: str, date: str
+    ) -> Optional[Dict]:
+        """Get daily challenge for seller on date. Returns None if not set."""
+        if not self.daily_challenge_repo:
+            return None
+        return await self.daily_challenge_repo.find_by_seller_and_date(seller_id, date)
+
+    async def get_daily_challenge_completed_today(
+        self, seller_id: str, date: str
+    ) -> Optional[Dict]:
+        """Get completed daily challenge for seller on date."""
+        if not self.daily_challenge_repo:
+            return None
+        return await self.daily_challenge_repo.find_completed_today(seller_id, date)
+
+    async def create_daily_challenge(self, challenge_data: Dict) -> str:
+        """Create a daily challenge. Returns challenge id."""
+        if not self.daily_challenge_repo:
+            raise ForbiddenError("Service non configuré pour les défis quotidiens")
+        return await self.daily_challenge_repo.create_challenge(challenge_data)
+
+    async def update_daily_challenge(
+        self, seller_id: str, date: str, update_data: Dict
+    ) -> bool:
+        """Update daily challenge for seller on date."""
+        if not self.daily_challenge_repo:
+            return False
+        return await self.daily_challenge_repo.update_challenge(
+            seller_id, date, update_data
+        )
+
+    async def delete_daily_challenges_for_seller(self, seller_id: str) -> int:
+        """Delete all daily challenges for a seller."""
+        if not self.daily_challenge_repo:
+            return 0
+        return await self.daily_challenge_repo.delete_by_seller(seller_id)
+
+    async def get_daily_challenges_paginated(
+        self, seller_id: str, page: int, size: int
+    ) -> PaginatedResponse:
+        """Get paginated daily challenges for seller."""
+        if not self.daily_challenge_repo:
+            return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
+        return await paginate(
+            collection=self.daily_challenge_repo.collection,
+            query={"seller_id": seller_id},
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("date", -1)],
+        )
+
+    async def delete_daily_challenges_by_filter(self, filters: Dict) -> int:
+        """Delete daily challenges matching filters (e.g. for reset)."""
+        if not self.daily_challenge_repo:
+            return 0
+        return await self.daily_challenge_repo.delete_many(filters)
+
+    # ===== INTERVIEW NOTES (for routes: no direct interview_note_repo access) =====
+
+    async def get_interview_notes_paginated(
+        self, seller_id: str, page: int = 1, size: int = 50
+    ) -> PaginatedResponse:
+        """Get paginated interview notes for seller."""
+        if not self.interview_note_repo:
+            return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
+        return await paginate(
+            collection=self.interview_note_repo.collection,
+            query={"seller_id": seller_id},
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("date", -1)],
+        )
+
+    async def get_interview_note_by_seller_and_date(
+        self, seller_id: str, date: str
+    ) -> Optional[Dict]:
+        """Get interview note for seller on date."""
+        if not self.interview_note_repo:
+            return None
+        return await self.interview_note_repo.find_by_seller_and_date(seller_id, date)
+
+    async def get_interview_notes_by_seller(self, seller_id: str) -> List[Dict]:
+        """Get all interview notes for a seller. Used by evaluations route."""
+        if not self.interview_note_repo:
+            return []
+        return await self.interview_note_repo.find_by_seller(seller_id)
+
+    async def create_interview_note(self, note_data: Dict) -> str:
+        """Create interview note. Returns note id."""
+        if not self.interview_note_repo:
+            raise ForbiddenError("Service notes d'entretien non configuré")
+        return await self.interview_note_repo.create_note(note_data)
+
+    async def update_interview_note_by_date(
+        self, seller_id: str, date: str, update_data: Dict
+    ) -> bool:
+        """Update interview note by seller and date."""
+        if not self.interview_note_repo:
+            return False
+        return await self.interview_note_repo.update_note_by_date(
+            seller_id, date, update_data
+        )
+
+    async def get_interview_note_by_id_and_seller(
+        self, note_id: str, seller_id: str
+    ) -> Optional[Dict]:
+        """Get interview note by id and seller (for ownership check)."""
+        if not self.interview_note_repo:
+            return None
+        return await self.interview_note_repo.find_one(
+            {"id": note_id, "seller_id": seller_id}, {"_id": 0}
+        )
+
+    async def update_interview_note_by_id(
+        self, note_id: str, seller_id: str, update_data: Dict
+    ) -> bool:
+        """Update interview note by id (with seller_id for security)."""
+        if not self.interview_note_repo:
+            return False
+        return await self.interview_note_repo.update_one(
+            {"id": note_id, "seller_id": seller_id}, {"$set": update_data}
+        )
+
+    async def delete_interview_note_by_id(self, note_id: str, seller_id: str) -> bool:
+        """Delete interview note by id (with seller_id for security)."""
+        if not self.interview_note_repo:
+            return False
+        return await self.interview_note_repo.delete_note_by_id(note_id, seller_id)
+
+    async def delete_interview_note_by_date(self, seller_id: str, date: str) -> bool:
+        """Delete interview note by seller and date."""
+        if not self.interview_note_repo:
+            return False
+        return await self.interview_note_repo.delete_note_by_date(seller_id, date)
+
+    # ===== DEBRIEFS (for routes: no direct debrief_repo access) =====
+
+    async def create_debrief(self, debrief_data: Dict, seller_id: str) -> str:
+        """Create debrief. Used by debriefs route."""
+        if not self.debrief_repo:
+            raise ForbiddenError("Debrief repository not available")
+        return await self.debrief_repo.create_debrief(debrief_data=debrief_data, seller_id=seller_id)
+
+    async def get_debriefs_by_seller(
+        self,
+        seller_id: str,
+        projection: Optional[Dict] = None,
+        limit: int = 100,
+        sort: Optional[List[tuple]] = None,
+    ) -> List[Dict]:
+        """Get debriefs for a seller. Used by debriefs route."""
+        if not self.debrief_repo:
+            return []
+        proj = projection or {"_id": 0}
+        s = sort or [("created_at", -1)]
+        return await self.debrief_repo.find_by_seller(
+            seller_id=seller_id, projection=proj, limit=limit, sort=s
+        )
+
+    async def get_debriefs_by_store(
+        self,
+        store_id: str,
+        seller_ids: List[str],
+        visible_to_manager: bool = True,
+        projection: Optional[Dict] = None,
+        limit: int = 100,
+        sort: Optional[List[tuple]] = None,
+    ) -> List[Dict]:
+        """Get debriefs for a store (manager view). Used by debriefs route."""
+        if not self.debrief_repo:
+            return []
+        proj = projection or {"_id": 0}
+        s = sort or [("created_at", -1)]
+        return await self.debrief_repo.find_by_store(
+            store_id=store_id,
+            seller_ids=seller_ids,
+            visible_to_manager=visible_to_manager,
+            projection=proj,
+            limit=limit,
+            sort=s,
+        )
+
+    async def update_debrief(
+        self, debrief_id: str, update_data: Dict, seller_id: str
+    ) -> bool:
+        """Update debrief. Used by debriefs route."""
+        if not self.debrief_repo:
+            return False
+        return await self.debrief_repo.update_debrief(
+            debrief_id=debrief_id, update_data=update_data, seller_id=seller_id
+        )
+
+    async def delete_debrief(self, debrief_id: str, seller_id: str) -> bool:
+        """Delete debrief. Used by debriefs route."""
+        if not self.debrief_repo:
+            return False
+        return await self.debrief_repo.delete_debrief(
+            debrief_id=debrief_id, seller_id=seller_id
+        )
 
     # ===== ACHIEVEMENT NOTIFICATIONS =====
     

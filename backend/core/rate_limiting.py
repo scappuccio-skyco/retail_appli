@@ -1,18 +1,27 @@
 """
-Rate Limiting Utilities
-Helper functions for role-based rate limiting
+Rate limiting: slowapi setup, get_remote_address, dummy limiter (Audit 2.1).
+Single source for api.dependencies_rate_limiting and core.startup_helpers.
 """
-from fastapi import Request
+import logging
 from typing import Callable, Optional
 
-# Optional: slowapi for rate limiting
+logger = logging.getLogger(__name__)
+
 try:
+    import slowapi
     from slowapi import Limiter
     from slowapi.util import get_remote_address
+    from slowapi.errors import RateLimitExceeded
+    from slowapi.middleware import SlowAPIMiddleware
     SLOWAPI_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     SLOWAPI_AVAILABLE = False
-    # Create dummy classes for graceful degradation
+    logger.critical(
+        "SECURITY WARNING: slowapi not found. Rate limiting DISABLED. Error: %s", e
+    )
+    RateLimitExceeded = type("RateLimitExceeded", (Exception,), {})
+    SlowAPIMiddleware = None
+
     class Limiter:
         def __init__(self, *args, **kwargs):
             pass
@@ -20,58 +29,79 @@ except ImportError:
             def decorator(func):
                 return func
             return decorator
-    
+
     def get_remote_address(*args, **kwargs):
         return "unknown"
 
 
+def get_dummy_limiter():
+    """Dummy limiter when slowapi unavailable (no-op @limiter.limit())."""
+    class DummyLimiter:
+        def __init__(self, *args, **kwargs):
+            pass
+        def limit(self, *args, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+    return DummyLimiter()
+
+
+def rate_limit_exceeded_handler(request, exc: "RateLimitExceeded"):
+    """JSON response for RateLimitExceeded (error_code + detail)."""
+    from fastapi.responses import JSONResponse
+    detail = getattr(exc, "description", None) or "Trop de requêtes. Veuillez réessayer plus tard."
+    return JSONResponse(
+        status_code=429,
+        content={"error_code": "RATE_LIMIT_EXCEEDED", "detail": detail},
+    )
+
+
+# Role-based helpers (use get_remote_address from above)
+try:
+    from fastapi import Request
+except ImportError:
+    Request = None
+
+
 def get_rate_limit_key_func_by_role() -> Callable:
-    """
-    Returns a key function for rate limiting based on user role.
-    Uses user_id if authenticated, otherwise falls back to IP address.
-    """
-    def key_func(request: Request) -> str:
-        # Try to get user from request state (set by auth middleware)
-        if hasattr(request.state, 'user_id'):
-            user_id = request.state.user_id
-            return f"user:{user_id}"
-        
-        # Fallback to IP address
+    """Key func: user_id if authenticated, else get_remote_address."""
+    def key_func(request: "Request") -> str:
+        if hasattr(request.state, "user_id"):
+            return f"user:{request.state.user_id}"
         return get_remote_address(request)
-    
     return key_func
 
 
 def get_rate_limit_by_role(role: str) -> str:
-    """
-    Get rate limit string based on user role.
-    
-    Args:
-        role: User role (seller, manager, gerant, super_admin)
-        
-    Returns:
-        Rate limit string (e.g., "10/minute", "100/minute")
-    """
-    # Rate limits by role
     limits = {
-        'seller': '10/minute',      # Sellers: 10 req/min
-        'manager': '50/minute',     # Managers: 50 req/min
-        'gerant': '100/minute',     # Gérants: 100 req/min
-        'gérant': '100/minute',     # Gérants: 100 req/min
-        'super_admin': '200/minute' # Super admins: 200 req/min
+        "seller": "10/minute",
+        "manager": "50/minute",
+        "gerant": "100/minute",
+        "gérant": "100/minute",
+        "super_admin": "200/minute",
     }
-    
-    return limits.get(role, '10/minute')  # Default: 10 req/min
+    return limits.get(role, "10/minute")
 
 
-# Global rate limiter instance (will be initialized in main.py)
-limiter: Optional[Limiter] = None
+_global_limiter: Optional[Limiter] = None
 
 
 def init_rate_limiter(app_limiter: Limiter):
-    """
-    Initialize the global rate limiter instance.
-    Called from main.py during startup.
-    """
-    global limiter
-    limiter = app_limiter
+    """Set global limiter (called from main.py)."""
+    global _global_limiter
+    _global_limiter = app_limiter
+
+
+def init_global_limiter(limiter: Limiter):
+    """Alias for init_rate_limiter. Used by main.py and dependencies_rate_limiting."""
+    init_rate_limiter(limiter)
+
+
+def get_rate_limiter() -> Limiter:
+    """Return app limiter or fallback (new Limiter or dummy if slowapi missing)."""
+    global _global_limiter
+    if _global_limiter is not None:
+        return _global_limiter
+    if SLOWAPI_AVAILABLE:
+        return Limiter(key_func=get_remote_address)
+    return get_dummy_limiter()

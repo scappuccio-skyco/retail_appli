@@ -76,6 +76,34 @@ class StoreService:
             Store dict or None
         """
         return await self.store_repo.find_by_id(store_id)
+
+    async def get_store_by_id_and_gerant(
+        self, store_id: str, gerant_id: str
+    ) -> Optional[Dict]:
+        """Get store by ID only if owned by gerant. Used by verify_evaluation_employee_access."""
+        return await self.store_repo.find_by_id(
+            store_id, gerant_id=gerant_id, projection={"_id": 0}
+        )
+
+    async def update_store_objective_daily(
+        self, store_id: str, objective_daily: float
+    ) -> bool:
+        """Update store objective_daily. Used by briefs route."""
+        return await self.store_repo.update_one(
+            {"id": store_id},
+            {"$set": {"objective_daily": objective_daily}},
+        )
+
+    async def update_store_one(self, store_id: str, update_data: Dict) -> bool:
+        """Update store by id (e.g. external_id). Used by integrations route."""
+        return await self.store_repo.update_one(
+            {"id": store_id},
+            {"$set": update_data},
+        )
+
+    async def get_workspace_by_id(self, workspace_id: str) -> Optional[Dict]:
+        """Get workspace by id. Used by support route."""
+        return await self.workspace_repo.find_by_id(workspace_id)
     
     async def get_store_hierarchy(self, store_id: str) -> Dict:
         """

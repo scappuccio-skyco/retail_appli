@@ -11,7 +11,7 @@ from motor.motor_asyncio import AsyncIOMotorCollection
 
 from models.pagination import PaginatedResponse, PaginationParams
 from config.limits import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-from exceptions.custom_exceptions import ValidationError
+from core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 

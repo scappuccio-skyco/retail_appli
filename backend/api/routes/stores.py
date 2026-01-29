@@ -1,12 +1,15 @@
 """Store & Workspace Routes"""
-from fastapi import APIRouter, Depends, HTTPException
+import logging
+from fastapi import APIRouter, Depends
 from typing import Dict
 
+from core.exceptions import NotFoundError, ForbiddenError, ValidationError
 from models.stores import StoreCreate, StoreUpdate
 from services.store_service import StoreService
 from api.dependencies import get_store_service
 from core.security import get_current_gerant, get_gerant_or_manager, get_current_user, require_active_space
 
+logger = logging.getLogger(__name__)
 router = APIRouter(
     prefix="/stores",
     tags=["Stores & Workspaces"],
@@ -31,16 +34,12 @@ async def create_store(
     Returns:
         Created store
     """
-    try:
-        store = await store_service.create_store(
-            gerant_id=current_user['id'],
-            name=store_data.name,
-            location=store_data.location,
-            manager_id=store_data.manager_id
-        )
-        return store
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await store_service.create_store(
+        gerant_id=current_user['id'],
+        name=store_data.name,
+        location=store_data.location,
+        manager_id=store_data.manager_id
+    )
 
 
 @router.get("/my-stores")
@@ -58,11 +57,7 @@ async def get_my_stores(
     Returns:
         List of stores
     """
-    try:
-        stores = await store_service.get_stores_by_gerant(current_user['id'])
-        return stores
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await store_service.get_stores_by_gerant(current_user['id'])
 
 
 @router.get("/{store_id}/hierarchy")
@@ -86,34 +81,20 @@ async def get_store_hierarchy(
     Returns:
         Store hierarchy
     """
-    try:
-        hierarchy = await store_service.get_store_hierarchy(store_id)
-        
-        if not hierarchy:
-            raise HTTPException(status_code=404, detail="Store not found")
-        
-        # Verify access rights
-        store = hierarchy['store']
-        user_role = current_user.get('role')
-        
-        # Gérant: must own the store
-        if user_role in ['gerant', 'gérant']:
-            if store.get('gerant_id') != current_user['id']:
-                raise HTTPException(status_code=403, detail="Access denied")
-        
-        # Manager: must be assigned to this store
-        elif user_role == 'manager':
-            if current_user.get('store_id') != store_id:
-                raise HTTPException(status_code=403, detail="Access denied: not your store")
-        
-        else:
-            raise HTTPException(status_code=403, detail="Access denied")
-        
-        return hierarchy
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    hierarchy = await store_service.get_store_hierarchy(store_id)
+    if not hierarchy:
+        raise NotFoundError("Store not found")
+    store = hierarchy['store']
+    user_role = current_user.get('role')
+    if user_role in ['gerant', 'gérant']:
+        if store.get('gerant_id') != current_user['id']:
+            raise ForbiddenError("Access denied")
+    elif user_role == 'manager':
+        if current_user.get('store_id') != store_id:
+            raise ForbiddenError("Access denied: not your store")
+    else:
+        raise ForbiddenError("Access denied")
+    return hierarchy
 
 
 @router.get("/{store_id}/info")
@@ -137,63 +118,37 @@ async def get_store_info(
     Returns:
         Store info
     """
-    try:
-        store = await store_service.get_store_by_id(store_id)
-        
-        if not store:
-            raise HTTPException(status_code=404, detail="Store not found")
-        
-        # Check if store is active
-        if not store.get('active', True):
-            raise HTTPException(status_code=403, detail="Store is inactive")
-        
-        # Verify access rights
-        user_role = current_user.get('role')
-        
-        # Gérant: must own the store
-        if user_role in ['gerant', 'gérant']:
-            store_gerant_id = store.get('gerant_id')
-            user_id = current_user.get('id')
-            
-            if store_gerant_id != user_id:
-                logger.warning(f"Gérant {user_id} attempted to access store {store_id} owned by {store_gerant_id}")
-                raise HTTPException(
-                    status_code=403, 
-                    detail=f"Accès refusé: ce magasin appartient à un autre gérant (store_id: {store_id}, your_id: {user_id}, store_gerant_id: {store_gerant_id})"
-                )
-        
-        # Manager: must be assigned to this store
-        elif user_role == 'manager':
-            user_store_id = current_user.get('store_id')
-            if user_store_id != store_id:
-                raise HTTPException(
-                    status_code=403, 
-                    detail=f"Access denied: manager is assigned to store {user_store_id}, not {store_id}"
-                )
-        
-        # Seller: must be assigned to this store (return limited info)
-        elif user_role == 'seller':
-            user_store_id = current_user.get('store_id')
-            if user_store_id != store_id:
-                raise HTTPException(
-                    status_code=403, 
-                    detail=f"Access denied: seller is assigned to store {user_store_id}, not {store_id}"
-                )
-            # Return only basic info for sellers
-            return {
-                "id": store.get('id'),
-                "name": store.get('name'),
-                "location": store.get('location')
-            }
-        
-        else:
-            raise HTTPException(status_code=403, detail="Access denied: invalid role")
-        
-        return store
-    except HTTPException:
-        raise
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error fetching store info: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+    store = await store_service.get_store_by_id(store_id)
+    if not store:
+        raise NotFoundError("Store not found")
+    if not store.get('active', True):
+        raise ForbiddenError("Store is inactive")
+    user_role = current_user.get('role')
+    if user_role in ['gerant', 'gérant']:
+        store_gerant_id = store.get('gerant_id')
+        user_id = current_user.get('id')
+        if store_gerant_id != user_id:
+            logger.warning(f"Gérant {user_id} attempted to access store {store_id} owned by {store_gerant_id}")
+            raise ForbiddenError(
+                f"Accès refusé: ce magasin appartient à un autre gérant (store_id: {store_id}, your_id: {user_id}, store_gerant_id: {store_gerant_id})"
+            )
+    elif user_role == 'manager':
+        user_store_id = current_user.get('store_id')
+        if user_store_id != store_id:
+            raise ForbiddenError(
+                f"Access denied: manager is assigned to store {user_store_id}, not {store_id}"
+            )
+    elif user_role == 'seller':
+        user_store_id = current_user.get('store_id')
+        if user_store_id != store_id:
+            raise ForbiddenError(
+                f"Access denied: seller is assigned to store {user_store_id}, not {store_id}"
+            )
+        return {
+            "id": store.get('id'),
+            "name": store.get('name'),
+            "location": store.get('location')
+        }
+    else:
+        raise ForbiddenError("Access denied: invalid role")
+    return store

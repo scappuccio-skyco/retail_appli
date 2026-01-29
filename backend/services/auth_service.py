@@ -19,7 +19,7 @@ from repositories.store_repository import WorkspaceRepository
 from repositories.gerant_invitation_repository import GerantInvitationRepository
 from repositories.invitation_repository import InvitationRepository
 from repositories.password_reset_repository import PasswordResetRepository
-from exceptions.custom_exceptions import UnauthorizedError, ValidationError
+from core.exceptions import UnauthorizedError, ValidationError
 
 logger = logging.getLogger(__name__)
 

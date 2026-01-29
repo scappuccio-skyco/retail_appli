@@ -6,9 +6,10 @@ RC6: DI for PaymentService, BackgroundTasks for async processing (return 200 imm
 import stripe
 import os
 import logging
-from fastapi import APIRouter, Request, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, Request, Depends, BackgroundTasks
 from fastapi.responses import JSONResponse
 
+from core.exceptions import ValidationError
 from services.payment_service import PaymentService
 from api.dependencies import get_payment_service
 
@@ -56,10 +57,10 @@ async def stripe_webhook(
         )
     except ValueError as e:
         logger.error(f"❌ Invalid webhook payload: {str(e)}")
-        raise HTTPException(status_code=400, detail="Invalid payload")
+        raise ValidationError("Invalid payload")
     except stripe.error.SignatureVerificationError as e:
         logger.error(f"❌ Invalid webhook signature: {str(e)}")
-        raise HTTPException(status_code=400, detail="Invalid signature")
+        raise ValidationError("Invalid signature")
 
     logger.info(f"📥 Stripe webhook received: {event['type']}")
 

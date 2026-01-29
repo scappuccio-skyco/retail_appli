@@ -4,13 +4,13 @@ Security utilities: JWT, password hashing, authentication
 import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends, HTTPException, Header
+from fastapi import Depends, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, Dict
 import logging
 
 from core.config import settings
-from exceptions.custom_exceptions import UnauthorizedError, ForbiddenError, NotFoundError
+from core.exceptions import UnauthorizedError, ForbiddenError, NotFoundError, ValidationError
 
 # Security scheme
 # Use auto_error=False to control 401 vs 403 at dependency level
@@ -87,14 +87,14 @@ def decode_token(token: str) -> dict:
         Decoded token payload
         
     Raises:
-        HTTPException: If token is expired or invalid
+        UnauthorizedError: If token is expired or invalid
     """
     try:
         return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
+        raise UnauthorizedError("Token expired")
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise UnauthorizedError("Invalid token")
 
 
 # ===== AUTHENTICATION DEPENDENCIES =====
@@ -121,23 +121,66 @@ def _extract_user_id(payload: dict) -> Optional[str]:
 def _get_token_payload(credentials: Optional[HTTPAuthorizationCredentials]) -> dict:
     if not credentials or not isinstance(credentials, HTTPAuthorizationCredentials):
         logger.warning("Auth rejected: missing bearer credentials")
-        raise HTTPException(status_code=401, detail="Missing token")
+        raise UnauthorizedError("Missing token")
     if not credentials.credentials:
         logger.warning("Auth rejected: missing bearer token")
-        raise HTTPException(status_code=401, detail="Missing token")
+        raise UnauthorizedError("Missing token")
     token = credentials.credentials
     return decode_token(token)
 
 
-async def _resolve_workspace(db, user: dict) -> Optional[dict]:
+async def _get_current_user_from_token(
+    credentials: Optional[HTTPAuthorizationCredentials],
+) -> dict:
+    """
+    Single point of JWT decoding and user resolution (Token -> User).
+    Used by all role-specific dependencies. Uses cache for user lookups (5 min).
+    """
+    from core.database import get_db
+    from core.cache import get_cache_service, CacheKeys
+    from repositories.user_repository import UserRepository
+    from repositories.store_repository import WorkspaceRepository
+
+    payload = _get_token_payload(credentials)
+    user_id = _extract_user_id(payload)
+    if not user_id:
+        logger.warning("Auth rejected: missing user_id in token payload")
+        raise UnauthorizedError("Invalid token payload")
+
+    cache = await get_cache_service()
+    cache_key = CacheKeys.user(user_id)
+    user = await cache.get(cache_key)
+
+    if user is None:
+        db = await get_db()
+        user_repo = UserRepository(db)
+        user = await user_repo.find_one({"id": user_id}, {"_id": 0, "password": 0})
+        if not user:
+            logger.warning("Auth rejected: user not found for id %s", user_id)
+            raise UnauthorizedError("User not found")
+        await cache.set(cache_key, user, ttl=300)
+    else:
+        logger.debug("Cache hit for user %s", user_id)
+
+    db = await get_db()
+    workspace_repo = WorkspaceRepository(db)
+    await _attach_space_context(workspace_repo, user)
+
+    normalized_role = _normalize_role(user.get("role"))
+    if normalized_role and normalized_role != user.get("role"):
+        user["role"] = normalized_role
+    return user
+
+
+async def _resolve_workspace(workspace_repo, user: dict) -> Optional[dict]:
     """
     Resolve workspace for a user without enforcing access rules.
     Returns minimal workspace info or None.
-    
+    Uses WorkspaceRepository (no direct DB access).
     ✅ CACHED: Workspace lookups are cached for 2 minutes.
     """
     from core.cache import get_cache_service, CacheKeys
-    
+
     if _normalize_role(user.get('role')) == 'super_admin':
         return None
 
@@ -146,41 +189,38 @@ async def _resolve_workspace(db, user: dict) -> Optional[dict]:
     user_id = user.get('id')
     user_role = _normalize_role(user.get('role'))
 
-    # ✅ CACHE: Try to get workspace from cache
     cache = await get_cache_service()
     workspace = None
-    
+
     if workspace_id:
         cache_key = CacheKeys.workspace(workspace_id)
         workspace = await cache.get(cache_key)
         if workspace is None:
-            projection = {"_id": 0, "id": 1, "status": 1, "subscription_status": 1, "trial_end": 1}
-            workspace = await db.workspaces.find_one({"id": workspace_id}, projection)
+            workspace = await workspace_repo.find_by_id(workspace_id)
             if workspace:
-                await cache.set(cache_key, workspace, ttl=120)  # 2 minutes
+                workspace = {k: workspace[k] for k in ("id", "status", "subscription_status", "trial_end") if k in workspace}
+                await cache.set(cache_key, workspace, ttl=120)
     elif gerant_id:
-        # For gerant lookup, we can't cache easily by gerant_id, so skip cache
-        projection = {"_id": 0, "id": 1, "status": 1, "subscription_status": 1, "trial_end": 1}
-        workspace = await db.workspaces.find_one({"gerant_id": gerant_id}, projection)
+        workspace = await workspace_repo.find_by_gerant(gerant_id)
         if workspace:
-            # Cache by workspace_id once we have it
+            workspace = {k: workspace[k] for k in ("id", "status", "subscription_status", "trial_end") if k in workspace}
             cache_key = CacheKeys.workspace(workspace.get('id'))
             await cache.set(cache_key, workspace, ttl=120)
     elif user_role == 'gerant':
-        projection = {"_id": 0, "id": 1, "status": 1, "subscription_status": 1, "trial_end": 1}
-        workspace = await db.workspaces.find_one({"gerant_id": user_id}, projection)
+        workspace = await workspace_repo.find_by_gerant(user_id)
         if workspace:
+            workspace = {k: workspace[k] for k in ("id", "status", "subscription_status", "trial_end") if k in workspace}
             cache_key = CacheKeys.workspace(workspace.get('id'))
             await cache.set(cache_key, workspace, ttl=120)
-    
+
     return workspace
 
 
-async def _attach_space_context(db, user: dict) -> dict:
+async def _attach_space_context(workspace_repo, user: dict) -> dict:
     """
     Attach space info to the user without blocking auth.
     """
-    workspace = await _resolve_workspace(db, user)
+    workspace = await _resolve_workspace(workspace_repo, user)
     status = workspace.get('status', 'active') if workspace else 'unknown'
     user['space'] = {
         "id": workspace.get('id') if workspace else None,
@@ -195,107 +235,27 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
     """
-    Dependency to get current authenticated user
-    Injects user data into route handlers
-    
-    ✅ CACHED: User lookups are cached for 5 minutes to reduce MongoDB load.
-    Cache is automatically invalidated on user updates.
-    
+    Dependency to get current authenticated user.
+    Delegates to _get_current_user_from_token (single JWT + cache path).
+
     Usage:
         @router.get("/me")
         async def get_me(current_user: dict = Depends(get_current_user)):
             return current_user
-    
-    Args:
-        credentials: HTTP Bearer token from Authorization header
-        
-    Returns:
-        User dict without password
-        
-    Raises:
-        HTTPException: If token invalid or user not found
-        HTTPException 403: If subscription is inactive/expired
     """
-    from core.database import get_db
-    from core.cache import get_cache_service, CacheKeys
-    
-    payload = _get_token_payload(credentials)
-    user_id = _extract_user_id(payload)
-    if not user_id:
-        logger.warning("Auth rejected: missing user_id in token payload")
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    
-    # ✅ CACHE: Try to get user from cache first
-    cache = await get_cache_service()
-    cache_key = CacheKeys.user(user_id)
-    user = await cache.get(cache_key)
-    
-    if user is None:
-        # Cache miss - fetch from MongoDB
-        db = await get_db()
-        user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
-        
-        if not user:
-            logger.warning("Auth rejected: user not found for id %s", user_id)
-            raise HTTPException(status_code=401, detail="User not found")
-        
-        # ✅ CACHE: Store in cache for 5 minutes (300 seconds)
-        await cache.set(cache_key, user, ttl=300)
-    else:
-        logger.debug(f"Cache hit for user {user_id}")
-    
-    db = await get_db()
-    await _attach_space_context(db, user)
-
-    normalized_role = _normalize_role(user.get('role'))
-    if normalized_role and normalized_role != user.get('role'):
-        user['role'] = normalized_role
-    return user
+    return await _get_current_user_from_token(credentials)
 
 
 async def get_current_gerant(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
     """
-    Dependency to get current user and verify they are a gérant
-    
-    Usage:
-        @router.get("/gerant/dashboard")
-        async def dashboard(current_user: dict = Depends(get_current_gerant)):
-            # Only gérants can access this
-    
-    Args:
-        credentials: HTTP Bearer token
-        
-    Returns:
-        Gérant user dict
-        
-    Raises:
-        HTTPException: If not a gérant or user not found
+    Dependency to get current user and verify they are a gérant.
+    Uses _get_current_user_from_token (JWT + cache), then checks role.
     """
-    from core.database import get_db
-    
-    payload = _get_token_payload(credentials)
-    user_id = _extract_user_id(payload)
-    if not user_id:
-        logger.warning("Auth rejected: missing user_id in token payload")
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    
-    db = await get_db()
-    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
-    
-    if not user:
-        logger.warning("Auth rejected: user not found for id %s", user_id)
-        raise HTTPException(status_code=401, detail="User not found")
-    
-    normalized_role = _normalize_role(user.get('role'))
-    if normalized_role != 'gerant':
-        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
-    
-    await _attach_space_context(db, user)
-
-    if normalized_role and normalized_role != user.get('role'):
-        user['role'] = normalized_role
+    user = await _get_current_user_from_token(credentials)
+    if _normalize_role(user.get("role")) != "gerant":
+        raise ForbiddenError("Accès réservé aux gérants")
     return user
 
 
@@ -303,40 +263,12 @@ async def get_current_manager(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
     """
-    Dependency to get current user and verify they are a manager
-    
-    Args:
-        credentials: HTTP Bearer token
-        
-    Returns:
-        Manager user dict
-        
-    Raises:
-        HTTPException: If not a manager or user not found
+    Dependency to get current user and verify they are a manager.
+    Uses _get_current_user_from_token (JWT + cache), then checks role.
     """
-    from core.database import get_db
-    
-    payload = _get_token_payload(credentials)
-    user_id = _extract_user_id(payload)
-    if not user_id:
-        logger.warning("Auth rejected: missing user_id in token payload")
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    
-    db = await get_db()
-    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
-    
-    if not user:
-        logger.warning("Auth rejected: user not found for id %s", user_id)
-        raise HTTPException(status_code=401, detail="User not found")
-    
-    normalized_role = _normalize_role(user.get('role'))
-    if normalized_role != 'manager':
-        raise HTTPException(status_code=403, detail="Accès réservé aux managers")
-    
-    await _attach_space_context(db, user)
-
-    if normalized_role and normalized_role != user.get('role'):
-        user['role'] = normalized_role
+    user = await _get_current_user_from_token(credentials)
+    if _normalize_role(user.get("role")) != "manager":
+        raise ForbiddenError("Accès réservé aux managers")
     return user
 
 
@@ -344,40 +276,12 @@ async def get_current_seller(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
     """
-    Dependency to get current user and verify they are a seller
-    
-    Args:
-        credentials: HTTP Bearer token
-        
-    Returns:
-        Seller user dict
-        
-    Raises:
-        HTTPException: If not a seller or user not found
+    Dependency to get current user and verify they are a seller.
+    Uses _get_current_user_from_token (JWT + cache), then checks role.
     """
-    from core.database import get_db
-    
-    payload = _get_token_payload(credentials)
-    user_id = _extract_user_id(payload)
-    if not user_id:
-        logger.warning("Auth rejected: missing user_id in token payload")
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    
-    db = await get_db()
-    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
-    
-    if not user:
-        logger.warning("Auth rejected: user not found for id %s", user_id)
-        raise HTTPException(status_code=401, detail="User not found")
-    
-    normalized_role = _normalize_role(user.get('role'))
-    if normalized_role != 'seller':
-        raise HTTPException(status_code=403, detail="Accès réservé aux vendeurs")
-    
-    await _attach_space_context(db, user)
-
-    if normalized_role and normalized_role != user.get('role'):
-        user['role'] = normalized_role
+    user = await _get_current_user_from_token(credentials)
+    if _normalize_role(user.get("role")) != "seller":
+        raise ForbiddenError("Accès réservé aux vendeurs")
     return user
 
 
@@ -385,38 +289,12 @@ async def get_super_admin(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
     """
-    Dependency to get current user and verify they are a super admin
-    
-    Args:
-        credentials: HTTP Bearer token
-        
-    Returns:
-        Super admin user dict
-        
-    Raises:
-        HTTPException: If not a super admin or user not found
+    Dependency to get current user and verify they are a super admin.
+    Uses _get_current_user_from_token (JWT + cache), then checks role.
     """
-    from core.database import get_db
-    
-    payload = _get_token_payload(credentials)
-    user_id = _extract_user_id(payload)
-    if not user_id:
-        logger.warning("Auth rejected: missing user_id in token payload")
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    
-    db = await get_db()
-    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
-    
-    if not user:
-        logger.warning("Auth rejected: user not found for id %s", user_id)
-        raise HTTPException(status_code=401, detail="User not found")
-    
-    normalized_role = _normalize_role(user.get('role'))
-    if normalized_role != 'super_admin':
-        raise HTTPException(status_code=403, detail="Super admin access required")
-    
-    if normalized_role and normalized_role != user.get('role'):
-        user['role'] = normalized_role
+    user = await _get_current_user_from_token(credentials)
+    if _normalize_role(user.get("role")) != "super_admin":
+        raise ForbiddenError("Super admin access required")
     return user
 
 
@@ -424,42 +302,12 @@ async def get_gerant_or_manager(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
     """
-    Dependency to get current user and verify they are a gérant OR manager
-    
-    Used for endpoints that should be accessible to both roles
-    
-    Args:
-        credentials: HTTP Bearer token
-        
-    Returns:
-        User dict (gérant or manager)
-        
-    Raises:
-        HTTPException: If not a gérant or manager
+    Dependency to get current user and verify they are a gérant OR manager.
+    Uses _get_current_user_from_token (JWT + cache), then checks role.
     """
-    from core.database import get_db
-    
-    payload = _get_token_payload(credentials)
-    user_id = _extract_user_id(payload)
-    if not user_id:
-        logger.warning("Auth rejected: missing user_id in token payload")
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    
-    db = await get_db()
-    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
-    
-    if not user:
-        logger.warning("Auth rejected: user not found for id %s", user_id)
-        raise HTTPException(status_code=401, detail="User not found")
-    
-    normalized_role = _normalize_role(user.get('role'))
-    if normalized_role not in ['gerant', 'manager']:
-        raise HTTPException(status_code=403, detail="Accès réservé aux gérants et managers")
-    
-    await _attach_space_context(db, user)
-
-    if normalized_role and normalized_role != user.get('role'):
-        user['role'] = normalized_role
+    user = await _get_current_user_from_token(credentials)
+    if _normalize_role(user.get("role")) not in ("gerant", "manager"):
+        raise ForbiddenError("Accès réservé aux gérants et managers")
     return user
 
 
@@ -475,7 +323,7 @@ async def verify_manager(
     """
     role = _normalize_role(current_user.get('role'))
     if role != 'manager':
-        raise HTTPException(status_code=403, detail="Access restricted to managers")
+        raise ForbiddenError("Access restricted to managers")
     return current_user
 
 
@@ -488,7 +336,7 @@ async def verify_manager_or_gerant(
     """
     role = _normalize_role(current_user.get('role'))
     if role not in ('manager', 'gerant'):
-        raise HTTPException(status_code=403, detail="Access restricted to managers and gérants")
+        raise ForbiddenError("Access restricted to managers and gérants")
     return current_user
 
 
@@ -501,7 +349,7 @@ async def verify_manager_gerant_or_seller(
     """
     role = _normalize_role(current_user.get('role'))
     if role not in ('manager', 'gerant', 'seller'):
-        raise HTTPException(status_code=403, detail="Access restricted to managers, gérants, and sellers")
+        raise ForbiddenError("Access restricted to managers, gérants, and sellers")
     return current_user
 
 
@@ -513,11 +361,12 @@ async def require_active_space(
     Returns current_user if subscription is active or trialing (not expired).
     """
     from core.database import get_db
+    from repositories.store_repository import WorkspaceRepository
 
     space = current_user.get('space') or {}
     space_status = space.get('status')
     if space_status == 'deleted':
-        raise HTTPException(status_code=403, detail="Espace supprimé")
+        raise ForbiddenError("Espace supprimé")
 
     subscription_status = space.get('subscription_status') or 'inactive'
     if subscription_status == 'active':
@@ -538,28 +387,47 @@ async def require_active_space(
             if now <= trial_end_dt:
                 return current_user
 
-        # Trial expired: update workspace status to reflect expiry
         workspace_id = space.get('id')
         if workspace_id:
             db = await get_db()
-            await db.workspaces.update_one(
-                {"id": workspace_id},
-                {"$set": {
-                    "subscription_status": "trial_expired",
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
+            workspace_repo = WorkspaceRepository(db)
+            await workspace_repo.update_by_id(
+                workspace_id,
+                {"subscription_status": "trial_expired", "updated_at": datetime.now(timezone.utc).isoformat()}
             )
 
-        raise HTTPException(
-            status_code=403,
-            detail="Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer."
+        raise ForbiddenError(
+            "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer."
         )
 
-    raise HTTPException(
-        status_code=403,
-        detail="Abonnement inactif ou paiement en échec : accès aux fonctionnalités bloqué"
+    raise ForbiddenError(
+        "Abonnement inactif ou paiement en échec : accès aux fonctionnalités bloqué"
     )
-    return current_user
+
+
+# ===== STORE ACCESS HELPERS =====
+
+
+def verify_store_access_for_user(store: dict, user: dict) -> None:
+    """
+    Verify that the user has access to the store (manager or gérant).
+    Raises ForbiddenError if not. Use after fetching store (e.g. via StoreService).
+
+    - Manager: access if store.manager_id == user.id OR store.id == user.store_id
+    - Gérant: access if store.gerant_id == user.id
+    """
+    role = _normalize_role(user.get("role"))
+    user_id = user.get("id")
+    user_store_id = user.get("store_id")
+
+    if role == "manager":
+        if store.get("manager_id") != user_id and store.get("id") != user_store_id:
+            raise ForbiddenError("Accès refusé à ce magasin")
+        return
+    if role == "gerant":
+        if store.get("gerant_id") != user_id:
+            raise ForbiddenError("Accès refusé à ce magasin")
+        return
 
 
 # ===== STORE OWNERSHIP VERIFICATION =====
@@ -567,250 +435,154 @@ async def require_active_space(
 async def verify_store_ownership(
     current_user: dict,
     target_store_id: str,
-    db = None
+    store_repo=None,
 ) -> None:
     """
     Verify that the current user has access to the target store.
-    
+    Uses StoreRepository (no direct DB access).
+
     Rules:
     - Manager: Must have store_id matching target_store_id
     - Gérant: Must own the store (gerant_id matches)
     - Seller: Must have store_id matching target_store_id
-    
+
     Args:
         current_user: Authenticated user dict
         target_store_id: Store ID to verify access to
-        db: Database connection (optional, will fetch if not provided)
-        
+        store_repo: StoreRepository (optional, will create from get_db if not provided)
+
     Raises:
-        HTTPException 403: If user doesn't have access to the store
-        HTTPException 404: If store doesn't exist
+        ForbiddenError: If user doesn't have access to the store
+        NotFoundError: If store doesn't exist
     """
-    if not db:
+    if store_repo is None:
         from core.database import get_db
+        from repositories.store_repository import StoreRepository
         db = await get_db()
-    
+        store_repo = StoreRepository(db)
+
     if not target_store_id:
-        raise HTTPException(status_code=400, detail="store_id requis")
-    
-    role = current_user.get('role')
+        raise ValidationError("store_id requis")
+
+    role = _normalize_role(current_user.get('role'))
     user_id = current_user.get('id')
     user_store_id = current_user.get('store_id')
-    
-    # Manager: Must be assigned to this store
+
     if role == 'manager':
         if user_store_id != target_store_id:
-            raise HTTPException(
-                status_code=403,
-                detail="Accès refusé : ce magasin ne vous est pas assigné"
-            )
+            raise ForbiddenError("Accès refusé : ce magasin ne vous est pas assigné")
         return
-    
-    # Gérant: Must own the store (verify in database)
-    if role in ['gerant', 'gérant']:
-        store = await db.stores.find_one(
+
+    if role == 'gerant':
+        store = await store_repo.find_one(
             {"id": target_store_id, "gerant_id": user_id, "active": True},
             {"_id": 0, "id": 1}
         )
         if not store:
-            raise HTTPException(
-                status_code=403,
-                detail="Accès refusé : ce magasin ne vous appartient pas ou n'existe pas"
-            )
+            raise ForbiddenError("Accès refusé : ce magasin ne vous appartient pas ou n'existe pas")
         return
-    
-    # Seller: Must be assigned to this store
+
     if role == 'seller':
         if user_store_id != target_store_id:
-            raise HTTPException(
-                status_code=403,
-                detail="Accès refusé : ce magasin ne vous est pas assigné"
-            )
+            raise ForbiddenError("Accès refusé : ce magasin ne vous est pas assigné")
         return
-    
-    # Unknown role
-    raise HTTPException(status_code=403, detail="Rôle non autorisé")
+
+    raise ForbiddenError("Rôle non autorisé")
 
 
 async def verify_resource_store_access(
-    db=None,
-    resource_id: str = None,
-    resource_type: str = None,
-    user_store_id: str = None,
-    user_role: str = None,
-    user_id: str = None,
-    objective_repo=None,
-    challenge_repo=None,
-):
+    *,
+    resource_id: str,
+    resource_type: str,
+    user_store_id: str,
+    manager_service,
+) -> dict:
     """
     Verify that a resource (objective, challenge) belongs to the user's store.
-    Phase 0: accepts optional objective_repo/challenge_repo instead of db.
+    Uses ManagerService only (no direct DB access).
 
     Args:
-        db: Database connection (optional if objective_repo/challenge_repo provided)
         resource_id: ID of the resource to verify
-        resource_type: Type of resource ('objective', 'challenge')
+        resource_type: 'objective' or 'challenge'
         user_store_id: Store ID of the authenticated user
-        user_role: Optional role for additional checks
-        user_id: Optional user ID for gérant ownership verification
-        objective_repo: Optional ObjectiveRepository (for routes without db)
-        challenge_repo: Optional ChallengeRepository (for routes without db)
+        manager_service: ManagerService (required)
 
     Returns:
         Resource dict if found and accessible
     """
-    if resource_type == 'objective' and objective_repo is not None:
-        query = {"id": resource_id, "store_id": user_store_id}
-        resource = await objective_repo.find_one(query, {"_id": 0})
-        if not resource:
-            exists_elsewhere = await objective_repo.find_one({"id": resource_id}, {"_id": 0})
-            if exists_elsewhere:
-                raise HTTPException(status_code=403, detail="Objective non trouvé ou accès refusé")
-            raise HTTPException(status_code=404, detail="Objective non trouvé")
-        return resource
-    if resource_type == 'challenge' and challenge_repo is not None:
-        query = {"id": resource_id, "store_id": user_store_id}
-        resource = await challenge_repo.find_one(query, {"_id": 0})
-        if not resource:
-            exists_elsewhere = await challenge_repo.find_one({"id": resource_id}, {"_id": 0})
-            if exists_elsewhere:
-                raise HTTPException(status_code=403, detail="Challenge non trouvé ou accès refusé")
-            raise HTTPException(status_code=404, detail="Challenge non trouvé")
-        return resource
-    if db is None:
-        raise ValueError("verify_resource_store_access: db or (objective_repo/challenge_repo) required")
     if resource_type == 'objective':
-        collection = db.objectives
-    elif resource_type == 'challenge':
-        collection = db.challenges
-    else:
-        raise ValueError(f"Type de ressource non supporté: {resource_type}")
-    query = {"id": resource_id, "store_id": user_store_id}
-    resource = await collection.find_one(query, {"_id": 0})
-    if not resource:
-        exists_elsewhere = await collection.find_one({"id": resource_id}, {"_id": 0})
-        if exists_elsewhere:
-            raise HTTPException(status_code=403, detail=f"{resource_type.capitalize()} non trouvé ou accès refusé")
-        raise HTTPException(status_code=404, detail=f"{resource_type.capitalize()} non trouvé")
-    return resource
+        resource = await manager_service.get_objective_by_id_and_store(resource_id, user_store_id)
+        if not resource:
+            exists = await manager_service.get_objective_by_id(resource_id)
+            if exists:
+                raise ForbiddenError("Objective non trouvé ou accès refusé")
+            raise NotFoundError("Objective non trouvé")
+        return resource
+    if resource_type == 'challenge':
+        resource = await manager_service.get_challenge_by_id_and_store(resource_id, user_store_id)
+        if not resource:
+            exists = await manager_service.get_challenge_by_id(resource_id)
+            if exists:
+                raise ForbiddenError("Challenge non trouvé ou accès refusé")
+            raise NotFoundError("Challenge non trouvé")
+        return resource
+    raise ValueError(f"Type de ressource non supporté: {resource_type}")
 
 
 async def verify_seller_store_access(
-    db=None,
-    seller_id: str = None,
-    user_store_id: str = None,
-    user_role: str = None,
-    user_id: str = None,
-    user_repo=None,
-    store_repo=None,
+    *,
+    seller_id: str,
+    user_store_id: str,
+    user_role: str,
+    user_id: str,
+    manager_service,
 ) -> dict:
     """
     Verify that a seller belongs to the user's store.
-    Phase 0: accepts optional user_repo/store_repo instead of db.
+    Uses ManagerService only (no direct DB access).
     """
     if not user_store_id:
-        raise HTTPException(status_code=400, detail="store_id requis pour vérifier l'accès au vendeur")
+        raise ValidationError("store_id requis pour vérifier l'accès au vendeur")
     if not user_role:
-        raise HTTPException(status_code=400, detail="role requis pour vérifier l'accès au vendeur")
+        raise ValidationError("role requis pour vérifier l'accès au vendeur")
 
     proj = {"_id": 0, "password": 0}
+    role = _normalize_role(user_role)
 
-    if user_repo is not None and store_repo is not None:
-        if user_role == "seller":
-            if seller_id != user_id:
-                raise HTTPException(status_code=403, detail="Un vendeur ne peut accéder qu'à ses propres données")
-            seller = await user_repo.find_one({"id": seller_id, "role": "seller"}, proj)
-            if not seller:
-                raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-            return seller
-        if user_role == "manager":
-            query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
-            seller = await user_repo.find_one(query, proj)
-            if not seller:
-                exists_elsewhere = await user_repo.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
-                if exists_elsewhere:
-                    raise HTTPException(status_code=403, detail="Vendeur non trouvé ou n'appartient pas à ce magasin")
-                raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-            return seller
-        if user_role in ["gerant", "gérant"]:
-            if not user_id:
-                raise HTTPException(status_code=400, detail="user_id requis pour vérifier l'accès gérant")
-            seller = await user_repo.find_one({"id": seller_id, "role": "seller"}, proj)
-            if not seller:
-                raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-            seller_store_id = seller.get("store_id")
-            if not seller_store_id:
-                raise HTTPException(status_code=403, detail="Vendeur sans magasin assigné")
-            store = await store_repo.find_one(
-                {"id": seller_store_id, "gerant_id": user_id, "active": True},
-                {"_id": 0, "id": 1}
-            )
-            if not store:
-                raise HTTPException(status_code=403, detail="Ce vendeur n'appartient pas à l'un de vos magasins")
-            seller = await user_repo.find_one({"id": seller_id, "role": "seller"}, proj)
-            return seller
-        query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
-        seller = await user_repo.find_one(query, proj)
-        if not seller:
-            exists_elsewhere = await user_repo.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
-            if exists_elsewhere:
-                raise HTTPException(status_code=403, detail="Vendeur non trouvé ou n'appartient pas à ce magasin")
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-        return seller
-
-    if db is None:
-        raise ValueError("verify_seller_store_access: db or (user_repo, store_repo) required")
-
-    if user_role == "seller":
+    if role == "seller":
         if seller_id != user_id:
-            raise HTTPException(status_code=403, detail="Un vendeur ne peut accéder qu'à ses propres données")
-        seller = await db.users.find_one({"id": seller_id, "role": "seller"}, proj)
-        if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            raise ForbiddenError("Un vendeur ne peut accéder qu'à ses propres données")
+        seller = await manager_service.get_user_by_id(seller_id, projection=proj)
+        if not seller or seller.get("role") != "seller":
+            raise NotFoundError("Vendeur non trouvé")
         return seller
-    elif user_role == "manager":
-        query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
-        seller = await db.users.find_one(query, proj)
+
+    if role == "manager":
+        seller = await manager_service.get_seller_by_id_and_store(seller_id, user_store_id)
         if not seller:
-            exists_elsewhere = await db.users.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
-            if exists_elsewhere:
-                raise HTTPException(status_code=403, detail="Vendeur non trouvé ou n'appartient pas à ce magasin")
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            other = await manager_service.get_user_by_id(seller_id, projection={"_id": 0})
+            if other and other.get("role") == "seller":
+                raise ForbiddenError("Vendeur non trouvé ou n'appartient pas à ce magasin")
+            raise NotFoundError("Vendeur non trouvé")
         return seller
-    elif user_role in ["gerant", "gérant"]:
+
+    if role == "gerant":
         if not user_id:
-            raise HTTPException(status_code=400, detail="user_id requis pour vérifier l'accès gérant")
-        seller = await db.users.find_one({"id": seller_id, "role": "seller"}, proj)
-        if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+            raise ValidationError("user_id requis pour vérifier l'accès gérant")
+        seller = await manager_service.get_user_by_id(seller_id, projection=proj)
+        if not seller or seller.get("role") != "seller":
+            raise NotFoundError("Vendeur non trouvé")
         seller_store_id = seller.get("store_id")
         if not seller_store_id:
-            raise HTTPException(status_code=403, detail="Vendeur sans magasin assigné")
-        store = await db.stores.find_one(
-            {"id": seller_store_id, "gerant_id": user_id, "active": True},
-            {"_id": 0, "id": 1}
+            raise ForbiddenError("Vendeur sans magasin assigné")
+        store = await manager_service.get_store_by_id(
+            seller_store_id, gerant_id=user_id, projection={"_id": 0, "id": 1, "active": 1}
         )
-        if not store:
-            raise HTTPException(status_code=403, detail="Ce vendeur n'appartient pas à l'un de vos magasins")
-        seller = await db.users.find_one({"id": seller_id, "role": "seller"}, proj)
+        if not store or not store.get("active"):
+            raise ForbiddenError("Ce vendeur n'appartient pas à l'un de vos magasins")
         return seller
-    else:
-        query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
-        seller = await db.users.find_one(query, proj)
-        
-        if not seller:
-            exists_elsewhere = await db.users.find_one(
-                {"id": seller_id, "role": "seller"},
-                {"_id": 0}  # Exclude _id, include all other fields (including store_id)
-            )
-            if exists_elsewhere:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
-                )
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-        
-        return seller
+
+    raise ForbiddenError("Rôle non autorisé")
 
 
 # ===== API KEY & ROLE HELPERS (Phase 3: centralisation) =====
@@ -852,15 +624,14 @@ async def verify_evaluation_employee_access(
     db=None,
     user_repo=None,
     store_repo=None,
+    seller_service=None,
+    store_service=None,
 ) -> dict:
     """
     Verify that the current user can generate an evaluation for the given employee_id.
     Returns the employee dict if allowed.
-    Phase 0 Vague 2: Prefer user_repo and store_repo (from services); db is legacy.
+    Phase 0: Prefer seller_service and store_service (Zero Repo in Route); user_repo/store_repo or db is legacy.
     """
-    from repositories.user_repository import UserRepository
-    from repositories.store_repository import StoreRepository
-
     role = (current_user or {}).get("role")
     user_id = (current_user or {}).get("id")
 
@@ -870,9 +641,27 @@ async def verify_evaluation_employee_access(
         return current_user
 
     if role in ("manager", "gerant", "gérant"):
+        if seller_service is not None and store_service is not None:
+            employee = await seller_service.get_user_by_id_and_role(
+                employee_id, "seller", {"_id": 0}
+            )
+            if not employee:
+                raise NotFoundError("Vendeur non trouvé")
+            if role == "manager":
+                if employee.get("store_id") != current_user.get("store_id"):
+                    raise ForbiddenError("Ce vendeur n'appartient pas à votre magasin")
+            else:
+                store = await store_service.get_store_by_id_and_gerant(
+                    employee.get("store_id"), user_id
+                )
+                if not store:
+                    raise ForbiddenError("Ce vendeur n'appartient pas à l'un de vos magasins")
+            return employee
+        from repositories.user_repository import UserRepository
+        from repositories.store_repository import StoreRepository
         if user_repo is None or store_repo is None:
             if db is None:
-                raise ValueError("verify_evaluation_employee_access: provide (user_repo, store_repo) or db")
+                raise ValueError("verify_evaluation_employee_access: provide (seller_service, store_service), (user_repo, store_repo), or db")
             user_repo = UserRepository(db)
             store_repo = StoreRepository(db)
         employee = await user_repo.find_one(

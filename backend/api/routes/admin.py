@@ -3,12 +3,12 @@ Admin-only endpoints for subscription management and support operations.
 Phase 9 - Vague 3: Routes ne contiennent que définition HTTP + validation, logique dans AdminService.
 Phase 3: Pagination obligatoire pour GET /workspaces (items, total, page, size, pages).
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Body
+from fastapi import APIRouter, Depends, Query, Request, Body
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, EmailStr
 from api.dependencies import get_admin_service
-from exceptions.custom_exceptions import NotFoundError, ValidationError
+from core.exceptions import NotFoundError, ValidationError
 from core.security import get_super_admin
 from services.admin_service import AdminService
 from models.chat import ChatRequest
@@ -92,40 +92,43 @@ async def get_all_users(
 
 @router.get("/logs")
 async def get_audit_logs(
-    limit: int = Query(50, ge=1, le=1000, description="Nombre maximum de logs"),
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
     days: int = Query(7, ge=1, le=365, description="Nombre de jours à remonter"),
     action: Optional[str] = Query(None, description="Filtrer par type d'action"),
     admin_emails: Optional[str] = Query(None, description="Emails admin séparés par des virgules"),
     admin_service: AdminService = Depends(get_admin_service),
     current_admin: dict = Depends(get_super_admin)
 ):
-    """Récupère les logs d'audit administrateur"""
-    try:
-        hours = days * 24
-        emails_list = None
-        if admin_emails:
-            emails_list = [email.strip() for email in admin_emails.split(",") if email.strip()]
-        return await admin_service.get_admin_audit_logs(
-            hours=hours,
-            limit=limit,
-            action=action,
-            admin_emails=emails_list
-        )
+    """Récupère les logs d'audit administrateur (paginé: items, total, page, size, pages)."""
+    hours = days * 24
+    emails_list = None
+    if admin_emails:
+        emails_list = [email.strip() for email in admin_emails.split(",") if email.strip()]
+    return await admin_service.get_admin_audit_logs(
+        hours=hours,
+        page=page,
+        size=size,
+        action=action,
+        admin_emails=emails_list
+    )
 
 
 @router.get("/system-logs")
 async def get_system_logs(
-    limit: int = Query(100, ge=1, le=1000),
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
     hours: int = Query(24, ge=1, le=168),
     level: Optional[str] = Query(None, description="Filtrer par niveau (info, warning, error)"),
     type: Optional[str] = Query(None, description="Filtrer par type"),
     admin_service: AdminService = Depends(get_admin_service),
     current_admin: dict = Depends(get_super_admin)
 ):
-    """Récupère les logs système"""
+    """Récupère les logs système (paginé: items, total, page, size, pages)."""
     return await admin_service.get_system_logs(
         hours=hours,
-        limit=limit,
+        page=page,
+        size=size,
         level=level,
         type_filter=type
     )
@@ -251,7 +254,7 @@ async def add_super_admin(
         )
     except ValueError as e:
         raise ValidationError(str(e))
-    except HTTPException:
+    except AppException:
         raise
 
 

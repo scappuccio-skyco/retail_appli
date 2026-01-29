@@ -1,6 +1,8 @@
 """Documentation Routes - PDF generation for API documentation"""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import Response
+
+from core.exceptions import AppException, NotFoundError, BusinessLogicError
 from typing import Dict
 import os
 import markdown
@@ -28,9 +30,8 @@ async def get_integrations_pdf(
     """
     if pisa is None:
         logger.error("xhtml2pdf library not available. Please install: pip install xhtml2pdf")
-        raise HTTPException(
-            status_code=500,
-            detail="PDF generation library not available. Please install xhtml2pdf. Check server logs for details."
+        raise BusinessLogicError(
+            "PDF generation library not available. Please install xhtml2pdf. Check server logs for details."
         )
     
     try:
@@ -39,7 +40,7 @@ async def get_integrations_pdf(
         md_path = ROOT_DIR / "docs" / "NOTICE_API_INTEGRATIONS.md"
         
         if not md_path.exists():
-            raise HTTPException(status_code=404, detail=f"Documentation file not found at {md_path}")
+            raise NotFoundError(f"Documentation file not found at {md_path}")
         
         # Read markdown file
         with open(md_path, "r", encoding="utf-8") as f:
@@ -160,7 +161,7 @@ async def get_integrations_pdf(
         
         if pisa_status.err:
             logger.error(f"PDF generation error: {pisa_status.err}")
-            raise HTTPException(status_code=500, detail="Failed to generate PDF")
+            raise BusinessLogicError("Failed to generate PDF")
         
         pdf_buffer.seek(0)
         pdf_content = pdf_buffer.read()
@@ -176,9 +177,9 @@ async def get_integrations_pdf(
             }
         )
         
-    except HTTPException:
+    except AppException:
         raise
     except Exception as e:
         logger.error(f"Error generating PDF: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
+        raise BusinessLogicError(f"Failed to generate PDF: {str(e)}")
 

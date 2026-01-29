@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 import logging
 
 from repositories.diagnostic_repository import DiagnosticRepository
-from exceptions.custom_exceptions import BusinessLogicError
+from core.exceptions import BusinessLogicError
 
 logger = logging.getLogger(__name__)
 

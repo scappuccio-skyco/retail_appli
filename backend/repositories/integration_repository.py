@@ -1,5 +1,6 @@
-"""Integration Repository - Database operations for API keys and sync logs"""
-from typing import Dict, List, Optional
+"""Integration Repository - Database operations for API keys and sync logs.
+Phase 2: Pagination (page/size) for list operations."""
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
@@ -16,20 +17,39 @@ class IntegrationRepository:
         await self.api_keys.insert_one(key_doc)
         return key_doc['id']
     
-    async def find_api_keys_by_user(self, user_id: str) -> List[Dict]:
-        """Find all API keys for a user"""
-        keys = await self.api_keys.find(
-            {"user_id": user_id},
-            {"_id": 0, "key_hash": 0}
-        ).to_list(100)
-        return keys
+    async def find_api_keys_by_user(
+        self,
+        user_id: str,
+        page: int = 1,
+        size: int = 50,
+    ) -> Tuple[List[Dict], int]:
+        """Find API keys for a user (paginated). Returns (items, total_count)."""
+        query = {"user_id": user_id}
+        projection = {"_id": 0, "key_hash": 0}
+        skip = (page - 1) * size
+        total = await self.api_keys.count_documents(query)
+        items = await self.api_keys.find(
+            query,
+            projection
+        ).skip(skip).limit(size).to_list(size)
+        return (items, total)
     
-    async def find_api_keys_by_prefix(self, prefix: str) -> List[Dict]:
-        """Find API keys by prefix for verification"""
-        return await self.api_keys.find(
-            {"key_prefix": prefix, "active": True},
-            {"_id": 0}
-        ).to_list(10)
+    async def find_api_keys_by_prefix(
+        self,
+        prefix: str,
+        page: int = 1,
+        size: int = 20,
+    ) -> Tuple[List[Dict], int]:
+        """Find API keys by prefix for verification. Returns (items, total_count)."""
+        query = {"key_prefix": prefix, "active": True}
+        projection = {"_id": 0}
+        skip = (page - 1) * size
+        total = await self.api_keys.count_documents(query)
+        items = await self.api_keys.find(
+            query,
+            projection
+        ).skip(skip).limit(size).to_list(size)
+        return (items, total)
     
     async def deactivate_api_key(self, key_id: str, user_id: str) -> bool:
         """Deactivate an API key"""

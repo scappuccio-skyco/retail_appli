@@ -99,6 +99,44 @@ class UserRepository(BaseRepository):
             filters["status"] = status
         
         return await self.find_many(filters, projection, limit, skip)
+
+    async def find_by_ids(
+        self,
+        user_ids: List[str],
+        projection: Optional[Dict] = None,
+    ) -> List[Dict]:
+        """
+        Batch fetch users by IDs ($in). Used to avoid N+1 (e.g. gérants for workspaces).
+        """
+        if not user_ids:
+            return []
+        projection = projection or {"_id": 0}
+        return await self.find_many(
+            {"id": {"$in": list(user_ids)}},
+            projection,
+            limit=max(len(user_ids), 1),
+            allow_over_limit=True,
+        )
+
+    async def find_by_store_ids(
+        self,
+        store_ids: List[str],
+        role: str,
+        projection: Optional[Dict] = None,
+        limit: int = 5000,
+    ) -> List[Dict]:
+        """
+        Batch fetch users by store IDs ($in). Used to avoid N+1 (managers/sellers per store).
+        """
+        if not store_ids:
+            return []
+        projection = projection or {"_id": 0}
+        return await self.find_many(
+            {"store_id": {"$in": list(store_ids)}, "role": role},
+            projection,
+            limit=limit,
+            allow_over_limit=True,
+        )
     
     async def find_by_gerant(
         self,

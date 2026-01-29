@@ -1,39 +1,20 @@
 """
 Startup helpers for main.py: rate limiter (slowapi) and CORS allowed origins.
-Keeps main.py under single responsibility.
+Imports get_remote_address, get_dummy_limiter, etc. from core.rate_limiting (Audit 2.1).
 """
 import logging
 
+from core.rate_limiting import (
+    SLOWAPI_AVAILABLE,
+    Limiter,
+    get_remote_address,
+    get_dummy_limiter,
+    RateLimitExceeded,
+    rate_limit_exceeded_handler,
+    SlowAPIMiddleware,
+)
+
 logger = logging.getLogger(__name__)
-
-try:
-    import slowapi
-    from slowapi import Limiter, _rate_limit_exceeded_handler
-    from slowapi.util import get_remote_address
-    from slowapi.errors import RateLimitExceeded
-    SLOWAPI_AVAILABLE = True
-except ImportError as e:
-    SLOWAPI_AVAILABLE = False
-    logger.critical(
-        "SECURITY WARNING: slowapi not found. Rate limiting DISABLED. "
-        "Application vulnerable to cost abuse and scraping. Error: %s", e
-    )
-    Limiter = None
-    RateLimitExceeded = type("RateLimitExceeded", (Exception,), {})
-    _rate_limit_exceeded_handler = lambda *a, **k: None
-    get_remote_address = lambda *a, **k: "unknown"
-
-
-def get_dummy_limiter():
-    """Dummy limiter when slowapi is not available (prevents AttributeError on @limiter.limit())."""
-    class DummyLimiter:
-        def __init__(self, *args, **kwargs):
-            pass
-        def limit(self, *args, **kwargs):
-            def decorator(func):
-                return func
-            return decorator
-    return DummyLimiter()
 
 
 def get_allowed_origins(settings) -> list:

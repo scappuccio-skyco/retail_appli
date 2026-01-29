@@ -2,12 +2,14 @@
 Gérant Service
 Business logic for gérant dashboard, subscription, and workspace management
 """
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from datetime import datetime, timezone, timedelta
 import logging
 import os
-from fastapi import HTTPException
+from core.exceptions import ForbiddenError, BusinessLogicError
 
+from models.pagination import PaginatedResponse
+from utils.pagination import paginate
 from repositories.user_repository import UserRepository
 from repositories.store_repository import StoreRepository, WorkspaceRepository
 from repositories.gerant_invitation_repository import GerantInvitationRepository
@@ -43,7 +45,204 @@ class GerantService:
         self.manager_kpi_repo = manager_kpi_repo
         self.billing_profile_repo = billing_profile_repo
         self.system_log_repo = system_log_repo
-    
+
+    # ===== USER (for routes: no direct user_repo access) =====
+
+    async def get_gerant_by_id(
+        self, gerant_id: str, include_password: bool = False
+    ) -> Optional[Dict]:
+        """Get gérant user by id. Used by routes instead of user_repo.find_by_id."""
+        return await self.user_repo.find_by_id(
+            user_id=gerant_id, include_password=include_password
+        )
+
+    async def find_user_by_email(self, email: str) -> Optional[Dict]:
+        """Find user by email. Used by routes for duplicate check."""
+        return await self.user_repo.find_by_email(email)
+
+    async def update_gerant_user_one(
+        self, gerant_id: str, update_data: Dict
+    ) -> bool:
+        """Update gérant user. Used by routes instead of user_repo.update_one."""
+        return await self.user_repo.update_one(
+            {"id": gerant_id}, {"$set": update_data}
+        )
+
+    async def update_user_one(self, user_id: str, update_data: Dict) -> bool:
+        """Update any user by id (e.g. password for manager/seller). Used by routes."""
+        return await self.user_repo.update_one(
+            {"id": user_id}, {"$set": update_data}
+        )
+
+    async def get_user_by_id(
+        self, user_id: str, include_password: bool = False
+    ) -> Optional[Dict]:
+        """Get any user by id (e.g. manager/seller for password change). Used by routes."""
+        return await self.user_repo.find_by_id(
+            user_id=user_id, include_password=include_password
+        )
+
+    async def insert_user(self, user_doc: Dict) -> None:
+        """Insert a user (manager or seller). Used by integrations route."""
+        await self.user_repo.insert_one(user_doc)
+
+    async def get_manager_in_store(
+        self, store_id: str, manager_id: Optional[str] = None
+    ) -> Optional[Dict]:
+        """Get manager in store: by manager_id if provided, else first active manager. Used by integrations route."""
+        if manager_id:
+            return await self.user_repo.find_one(
+                {"id": manager_id, "role": "manager", "store_id": store_id},
+                {"_id": 0},
+            )
+        return await self.user_repo.find_one(
+            {"role": "manager", "store_id": store_id, "status": "active"},
+            {"_id": 0},
+        )
+
+    async def count_active_sellers_for_gerant(self, gerant_id: str) -> int:
+        """Count active sellers for gérant. Used by routes instead of user_repo.count_active_sellers."""
+        return await self.user_repo.count_active_sellers(gerant_id)
+
+    # ===== WORKSPACE (for routes: no direct workspace_repo access) =====
+
+    async def get_workspace_by_id(
+        self, workspace_id: str, projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """Get workspace by id. Used by routes instead of workspace_repo.find_by_id."""
+        return await self.workspace_repo.find_by_id(
+            workspace_id, projection=projection or {"_id": 0}
+        )
+
+    async def update_workspace_one(
+        self, workspace_id: str, update_data: Dict
+    ) -> bool:
+        """Update workspace. Used by routes instead of workspace_repo.update_one."""
+        return await self.workspace_repo.update_one(
+            {"id": workspace_id}, {"$set": update_data}
+        )
+
+    async def log_company_name_change(
+        self, old_name: str, new_name: str, workspace_id: str
+    ) -> None:
+        """Log company name change for audit. Used by routes instead of system_log_repo."""
+        if not self.system_log_repo or not old_name or old_name == new_name:
+            return
+        try:
+            await self.system_log_repo.create_log({
+                "event": "company_name_updated",
+                "workspace_id": workspace_id,
+                "old_name": old_name,
+                "new_name": new_name,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+        except Exception as e:
+            logger.warning("Failed to log company name change: %s", e)
+
+    # ===== SUBSCRIPTION (for routes: no direct subscription_repo access) =====
+
+    async def get_subscription_by_user_and_status(
+        self, user_id: str, status_list: List[str]
+    ) -> Optional[Dict]:
+        """Get subscription for user with status in list. Used by routes."""
+        return await self.subscription_repo.find_by_user_and_status(
+            user_id, status_list
+        )
+
+    async def get_subscription_by_user(self, user_id: str) -> Optional[Dict]:
+        """Get subscription for user (any status). Used by routes."""
+        return await self.subscription_repo.find_by_user(user_id)
+
+    async def get_active_subscriptions_for_gerant(
+        self, gerant_id: str, limit: int = 10
+    ) -> List[Dict]:
+        """Get active/trialing subscriptions for gérant. Used by routes instead of find_many."""
+        return await self.subscription_repo.find_many(
+            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            projection={"_id": 0},
+            limit=limit,
+        )
+
+    async def update_subscription_by_user(
+        self, user_id: str, update_data: Dict
+    ) -> bool:
+        """Update subscription by user. Used by routes."""
+        return await self.subscription_repo.update_by_user(user_id, update_data)
+
+    async def update_subscription_by_stripe_id(
+        self, stripe_subscription_id: str, update_data: Dict
+    ) -> bool:
+        """Update subscription by Stripe subscription ID. Used by routes."""
+        return await self.subscription_repo.update_by_stripe_subscription(
+            stripe_subscription_id, update_data
+        )
+
+    async def get_subscription_by_stripe_id(
+        self, stripe_subscription_id: str
+    ) -> Optional[Dict]:
+        """Get subscription by Stripe subscription ID. Used by routes."""
+        return await self.subscription_repo.find_by_stripe_subscription(
+            stripe_subscription_id
+        )
+
+    async def get_subscriptions_paginated(
+        self, gerant_id: str, page: int = 1, size: int = 50
+    ) -> PaginatedResponse:
+        """Get paginated subscriptions for gérant. Used by routes instead of paginate(collection=...)."""
+        return await paginate(
+            collection=self.subscription_repo.collection,
+            query={"user_id": gerant_id},
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("created_at", -1)],
+        )
+
+    async def get_active_subscriptions_paginated(
+        self, gerant_id: str, page: int = 1, size: int = 20
+    ) -> PaginatedResponse:
+        """Get paginated active subscriptions for gérant. Used by audit route."""
+        return await paginate(
+            collection=self.subscription_repo.collection,
+            query={"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            page=page,
+            size=size,
+            projection={"_id": 0},
+            sort=[("created_at", -1)],
+        )
+
+    # ===== KPI (for routes: no direct kpi_repo access) =====
+
+    async def aggregate_kpi(
+        self, pipeline: List[Dict], max_results: int = 365
+    ) -> List[Dict]:
+        """Run KPI aggregation pipeline. Used by routes instead of kpi_repo.aggregate."""
+        return await self.kpi_repo.aggregate(pipeline, max_results=max_results)
+
+    # ===== BILLING PROFILE (for routes: no direct billing_profile_repo access) =====
+
+    async def get_billing_profile_by_gerant(self, gerant_id: str) -> Optional[Dict]:
+        """Get billing profile for gérant. Used by routes instead of billing_profile_repo.find_by_gerant."""
+        if not self.billing_profile_repo:
+            return None
+        return await self.billing_profile_repo.find_by_gerant(gerant_id)
+
+    async def update_billing_profile_by_gerant(
+        self, gerant_id: str, update_data: Dict
+    ) -> bool:
+        """Update billing profile for gérant. Used by routes."""
+        if not self.billing_profile_repo:
+            return False
+        return await self.billing_profile_repo.update_by_gerant(
+            gerant_id, update_data
+        )
+
+    async def create_billing_profile(self, profile_data: Dict) -> str:
+        """Create billing profile. Used by routes."""
+        if not self.billing_profile_repo:
+            raise ForbiddenError("Service de facturation non configuré")
+        return await self.billing_profile_repo.create(profile_data)
+
     async def check_gerant_active_access(
         self, 
         gerant_id: str, 
@@ -51,7 +250,7 @@ class GerantService:
     ) -> bool:
         """
         Guard clause: Check if gérant has active subscription for write operations.
-        Raises HTTPException 403 if trial expired or no active subscription.
+        Raises ForbiddenError if trial expired or no active subscription.
         
         Args:
             gerant_id: Gérant user ID
@@ -62,7 +261,7 @@ class GerantService:
             True if access is granted
             
         Raises:
-            HTTPException 403 if access denied
+            ForbiddenError if access denied
         """
         # Get gérant info
         gerant = await self.user_repo.find_one(
@@ -71,25 +270,25 @@ class GerantService:
         )
         
         if not gerant:
-            raise HTTPException(status_code=403, detail="Utilisateur non trouvé")
+            raise ForbiddenError("Utilisateur non trouvé")
         
         # ✅ EXCEPTION: Si allow_user_management=True, on autorise même si trial_expired
         # Mais on vérifie toujours que le gérant existe et n'est pas supprimé
         if allow_user_management:
             if gerant.get('status') == 'deleted':
-                raise HTTPException(status_code=403, detail="Gérant supprimé")
+                raise ForbiddenError("Gérant supprimé")
             # ✅ Autorise l'action même si trial_expired (pour gestion personnel uniquement)
             return True
         
         workspace_id = gerant.get('workspace_id')
         
         if not workspace_id:
-            raise HTTPException(status_code=403, detail="Aucun espace de travail associé")
+            raise ForbiddenError("Aucun espace de travail associé")
         
         workspace = await self.workspace_repo.find_by_id(workspace_id, projection={"_id": 0})
         
         if not workspace:
-            raise HTTPException(status_code=403, detail="Espace de travail non trouvé")
+            raise ForbiddenError("Espace de travail non trouvé")
         
         subscription_status = workspace.get('subscription_status', 'inactive')
         
@@ -125,15 +324,13 @@ class GerantService:
                     )
                     from core.cache import invalidate_workspace_cache
                     await invalidate_workspace_cache(workspace_id)
-                    raise HTTPException(
-                        status_code=403, 
-                        detail="Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
+                    raise ForbiddenError(
+                        "Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
                     )
         
         # Trial expired or other inactive status
-        raise HTTPException(
-            status_code=403, 
-            detail="Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
+        raise ForbiddenError(
+            "Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
         )
     
     async def check_user_write_access(self, user_id: str) -> bool:
@@ -147,7 +344,7 @@ class GerantService:
             True if access is granted
             
         Raises:
-            HTTPException 403 if access denied
+            ForbiddenError if access denied
         """
         user = await self.user_repo.find_one(
             {"id": user_id},
@@ -155,14 +352,14 @@ class GerantService:
         )
         
         if not user:
-            raise HTTPException(status_code=403, detail="Utilisateur non trouvé")
+            raise ForbiddenError("Utilisateur non trouvé")
         
         # Get parent gérant_id
         gerant_id = user.get('gerant_id')
         
         if not gerant_id:
             # Safety: If no parent chain, deny by default
-            raise HTTPException(status_code=403, detail="Accès refusé: chaîne de parenté non trouvée")
+            raise ForbiddenError("Accès refusé: chaîne de parenté non trouvée")
         
         # Delegate to gérant check
         return await self.check_gerant_active_access(gerant_id)

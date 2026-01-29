@@ -2,8 +2,10 @@
 Early Access / Programme Pilote Routes
 Gestion des candidatures au programme Early Adopter
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel, EmailStr
+
+from core.exceptions import BusinessLogicError
 from typing import Optional
 import logging
 
@@ -71,7 +73,6 @@ async def qualify_early_access(request: EarlyAccessQualifyRequest):
         
     except Exception as e:
         logger.error(f"Error processing early access qualification: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="Erreur lors de l'enregistrement de votre candidature. Veuillez réessayer."
+        raise BusinessLogicError(
+            "Erreur lors de l'enregistrement de votre candidature. Veuillez réessayer."
         )

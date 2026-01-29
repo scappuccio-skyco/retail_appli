@@ -9,10 +9,12 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 from pydantic import BaseModel
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 
 logger = logging.getLogger(__name__)
 
+from api.dependencies_rate_limiting import rate_limit
+from core.exceptions import NotFoundError
 from core.security import require_active_space
 from api.dependencies import get_diagnostic_service, get_seller_service
 from services.ai_service import AIService
@@ -112,7 +114,7 @@ Ton style doit être positif, professionnel et orienté action. Pas de jargon RH
         }
 
 
-@router.post("")
+@router.post("", dependencies=[rate_limit("5/minute")])
 async def create_manager_diagnostic(
     diagnostic_data: ManagerDiagnosticCreate,
     current_user: dict = Depends(verify_manager_or_gerant),
@@ -122,35 +124,27 @@ async def create_manager_diagnostic(
     Create or update manager DISC diagnostic profile.
     Phase 0 Vague 2: Uses DiagnosticService (no db, no Repository(db)).
     """
-    try:
-        repo = diagnostic_service.manager_diagnostic_repo
-        existing = await repo.find_latest_by_manager(current_user["id"])
-        if existing:
-            await repo.delete_one({"manager_id": current_user["id"]})
-
-        ai_analysis = await analyze_manager_diagnostic_with_ai(diagnostic_data.responses)
-
-        diagnostic_doc = {
-            "id": str(uuid4()),
-            "manager_id": current_user["id"],
-            "responses": diagnostic_data.responses,
-            "profil_nom": ai_analysis.get("profil_nom", "Le Coach"),
-            "profil_description": ai_analysis.get("profil_description", ""),
-            "force_1": ai_analysis.get("force_1", ""),
-            "force_2": ai_analysis.get("force_2", ""),
-            "axe_progression": ai_analysis.get("axe_progression", ""),
-            "recommandation": ai_analysis.get("recommandation", ""),
-            "exemple_concret": ai_analysis.get("exemple_concret", ""),
-            "completed": True,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
-
-        await repo.create_diagnostic(diagnostic_doc, current_user["id"])
-        diagnostic_doc.pop("_id", None)
-
-        return {"status": "completed", "diagnostic": diagnostic_doc}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating diagnostic: {str(e)}")
+    existing = await diagnostic_service.get_latest_manager_diagnostic(current_user["id"])
+    if existing:
+        await diagnostic_service.delete_manager_diagnostic_by_manager(current_user["id"])
+    ai_analysis = await analyze_manager_diagnostic_with_ai(diagnostic_data.responses)
+    diagnostic_doc = {
+        "id": str(uuid4()),
+        "manager_id": current_user["id"],
+        "responses": diagnostic_data.responses,
+        "profil_nom": ai_analysis.get("profil_nom", "Le Coach"),
+        "profil_description": ai_analysis.get("profil_description", ""),
+        "force_1": ai_analysis.get("force_1", ""),
+        "force_2": ai_analysis.get("force_2", ""),
+        "axe_progression": ai_analysis.get("axe_progression", ""),
+        "recommandation": ai_analysis.get("recommandation", ""),
+        "exemple_concret": ai_analysis.get("exemple_concret", ""),
+        "completed": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await diagnostic_service.create_manager_diagnostic(diagnostic_doc, current_user["id"])
+    diagnostic_doc.pop("_id", None)
+    return {"status": "completed", "diagnostic": diagnostic_doc}
 
 
 @router.get("/me")
@@ -161,20 +155,17 @@ async def get_my_diagnostic(
     """
     Get current user's DISC diagnostic profile. Phase 0 Vague 2: DiagnosticService only.
     """
-    try:
-        diagnostic = await diagnostic_service.manager_diagnostic_repo.find_latest_by_manager(
-            current_user["id"], projection={"_id": 0}
-        )
-        if not diagnostic:
-            return {
-                "status": "not_completed",
-                "manager_id": current_user["id"],
-                "completed": False,
-                "message": "Diagnostic not completed yet",
-            }
-        return {"status": "completed", "diagnostic": diagnostic}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    diagnostic = await diagnostic_service.get_latest_manager_diagnostic(
+        current_user["id"], projection={"_id": 0}
+    )
+    if not diagnostic:
+        return {
+            "status": "not_completed",
+            "manager_id": current_user["id"],
+            "completed": False,
+            "message": "Diagnostic not completed yet",
+        }
+    return {"status": "completed", "diagnostic": diagnostic}
 
 
 
@@ -188,26 +179,17 @@ async def get_seller_diagnostic_for_manager(
     """
     Get a seller's diagnostic. Phase 0 Vague 2: SellerService only (no db).
     """
-    try:
-        resolved_store_id = context.get("resolved_store_id")
+    resolved_store_id = context.get("resolved_store_id")
 
-        seller = await seller_service.user_repo.find_one(
-            {"id": seller_id, "role": "seller"},
-            projection={"_id": 0},
-        )
-        if not seller:
-            return None
-        if resolved_store_id and seller.get("store_id") != resolved_store_id:
-            raise HTTPException(
-                status_code=404,
-                detail="Vendeur non trouvé ou n'appartient pas à ce magasin",
-            )
+    seller = await seller_service.get_user_by_id_and_role(
+        seller_id, "seller", projection={"_id": 0}
+    )
+    if not seller:
+        return None
+    if resolved_store_id and seller.get("store_id") != resolved_store_id:
+        raise NotFoundError("Vendeur non trouvé ou n'appartient pas à ce magasin")
 
-        diagnostic = await seller_service.diagnostic_repo.find_by_seller(seller_id)
-        if not diagnostic:
-            return None
-        return diagnostic
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    diagnostic = await seller_service.get_diagnostic_for_seller(seller_id)
+    if not diagnostic:
+        return None
+    return diagnostic

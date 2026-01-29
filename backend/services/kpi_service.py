@@ -7,7 +7,7 @@ from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.user_repository import UserRepository
 from repositories.store_repository import WorkspaceRepository, StoreRepository
 from repositories.kpi_config_repository import KPIConfigRepository
-from exceptions.custom_exceptions import ForbiddenError, NotFoundError, BusinessLogicError
+from core.exceptions import ForbiddenError, NotFoundError, BusinessLogicError
 
 
 class KPIService:
@@ -29,6 +29,22 @@ class KPIService:
         self.store_repo = store_repo
         self.kpi_config_repo = kpi_config_repo
     
+    async def get_kpi_by_seller_and_date(
+        self, seller_id: str, date: str
+    ) -> Optional[Dict]:
+        """Get KPI entry for seller on date. Used by integrations sync route."""
+        return await self.kpi_repo.find_by_seller_and_date(seller_id, date)
+
+    async def get_kpis_by_date_range(
+        self, seller_id: str, start_date: str, end_date: str
+    ) -> List[Dict]:
+        """Get KPI entries for seller in date range. Used by kpis route."""
+        return await self.kpi_repo.find_by_date_range(seller_id, start_date, end_date)
+
+    async def bulk_write_kpis(self, operations: list) -> Dict:
+        """Execute bulk KPI write (insert/update). Used by integrations sync route."""
+        return await self.kpi_repo.bulk_write(operations)
+
     async def check_user_write_access(self, user_id: str) -> bool:
         """
         Guard clause for Sellers/Managers: Get parent Gérant and check subscription access.
@@ -40,7 +56,7 @@ class KPIService:
             True if access is granted
             
         Raises:
-            HTTPException 403 if access denied (trial expired)
+            ForbiddenError if access denied (trial expired)
         """
         user = await self.user_repo.find_one(
             {"id": user_id},
@@ -48,14 +64,14 @@ class KPIService:
         )
         
         if not user:
-            raise HTTPException(status_code=403, detail="Utilisateur non trouvé")
+            raise ForbiddenError("Utilisateur non trouvé")
         
         # Get parent gérant_id
         gerant_id = user.get('gerant_id')
         
         if not gerant_id:
             # Safety: If no parent chain, deny by default
-            raise HTTPException(status_code=403, detail="Accès refusé: chaîne de parenté non trouvée")
+            raise ForbiddenError("Accès refusé: chaîne de parenté non trouvée")
         
         # Get gérant info
         gerant = await self.user_repo.find_one(
@@ -64,17 +80,17 @@ class KPIService:
         )
         
         if not gerant:
-            raise HTTPException(status_code=403, detail="Gérant non trouvé")
+            raise ForbiddenError("Gérant non trouvé")
         
         workspace_id = gerant.get('workspace_id')
         
         if not workspace_id:
-            raise HTTPException(status_code=403, detail="Aucun espace de travail associé")
+            raise ForbiddenError("Aucun espace de travail associé")
         
         workspace = await self.workspace_repo.find_by_id(workspace_id)
         
         if not workspace:
-            raise HTTPException(status_code=403, detail="Espace de travail non trouvé")
+            raise ForbiddenError("Espace de travail non trouvé")
         
         subscription_status = workspace.get('subscription_status', 'inactive')
         
@@ -107,10 +123,7 @@ class KPIService:
                     )
         
         # Trial expired or other inactive status
-        raise HTTPException(
-            status_code=403, 
-            detail="Période d'essai terminée. Veuillez contacter votre administrateur."
-        )
+        raise ForbiddenError("Période d'essai terminée. Veuillez contacter votre administrateur.")
     
     async def check_kpi_entry_enabled(self, store_id: str) -> dict:
         """Check if KPI entry is enabled for a store"""
@@ -179,7 +192,7 @@ class KPIService:
             
         Raises:
             Exception: If KPI is locked (from API)
-            HTTPException 403: If trial expired
+            ForbiddenError if trial expired
         """
         # === GUARD CLAUSE: Check subscription access ===
         await self.check_user_write_access(seller_id)
@@ -190,7 +203,7 @@ class KPIService:
         if existing:
             # Check if locked (from API/POS)
             if existing.get('locked', False):
-                raise Exception(
+                raise ForbiddenError(
                     "Ces données proviennent de votre logiciel de caisse et ne peuvent pas être modifiées manuellement."
                 )
             

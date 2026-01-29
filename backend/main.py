@@ -2,6 +2,7 @@
 import sys
 import os
 import logging
+import traceback
 
 sys.stdout.reconfigure(line_buffering=True) if hasattr(sys.stdout, "reconfigure") else None
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", stream=sys.stdout)
@@ -20,10 +21,13 @@ except Exception as e:
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from core.lifespan import lifespan
+from core.exceptions import AppException
 from core.startup_helpers import (
     SLOWAPI_AVAILABLE, Limiter, get_remote_address, RateLimitExceeded,
-    _rate_limit_exceeded_handler, get_allowed_origins, get_dummy_limiter,
+    rate_limit_exceeded_handler, get_allowed_origins, get_dummy_limiter,
+    SlowAPIMiddleware,
 )
 
 try:
@@ -42,20 +46,63 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# --- Rate limiter ---
+# --- Phase 1: Error Handling - FastAPI Exception Handlers (single point of truth) ---
+async def _app_exception_handler(request, exc: AppException):
+    """Convert AppException (and subclasses) to consistent JSON response."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.detail,
+            "error_code": exc.error_code,
+        },
+    )
+
+
+async def _unhandled_exception_handler(request, exc: Exception):
+    """Log unexpected errors with traceback and return clean 500. No internal details to client."""
+    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)) if exc.__traceback__ else str(exc)
+    logger.error(
+        "Unexpected error: %s",
+        exc,
+        extra={
+            "error_type": type(exc).__name__,
+            "path": getattr(getattr(request, "url", None), "path", None),
+            "method": getattr(request, "method", None),
+            "traceback": tb,
+        },
+        exc_info=True,
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Une erreur interne s'est produite. Veuillez réessayer plus tard.",
+            "error_code": "INTERNAL_SERVER_ERROR",
+        },
+    )
+
+
+app.add_exception_handler(AppException, _app_exception_handler)
+app.add_exception_handler(Exception, _unhandled_exception_handler)
+
+# --- Rate limiter (slowapi). Redis storage when REDIS_URL set (Audit 1.6 & 3.3) ---
 if SLOWAPI_AVAILABLE and Limiter:
-    limiter = Limiter(key_func=get_remote_address)
+    limiter_kw: dict = {
+        "key_func": get_remote_address,
+        "default_limits": ["100/minute"],
+    }
+    redis_url = getattr(settings, "REDIS_URL", None)
+    if redis_url and str(redis_url).strip():
+        limiter_kw["storage_uri"] = redis_url
+    limiter = Limiter(**limiter_kw)
     app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-    try:
-        from core.rate_limiting import init_rate_limiter
-        init_rate_limiter(limiter)
-    except ImportError:
-        pass
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+    if SlowAPIMiddleware:
+        app.add_middleware(SlowAPIMiddleware)
     from api.dependencies_rate_limiting import init_global_limiter
     init_global_limiter(limiter)
 else:
     limiter = get_dummy_limiter()
+    app.state.limiter = limiter
     from api.dependencies_rate_limiting import init_global_limiter
     init_global_limiter(limiter)
 
@@ -77,11 +124,7 @@ except Exception as e:
     health_router = None
 
 # --- Middlewares (order: last added = first executed) ---
-try:
-    from api.middleware.error_handler import ErrorHandlerMiddleware
-    app.add_middleware(ErrorHandlerMiddleware)
-except Exception as e:
-    logger.error("ErrorHandlerMiddleware not loaded: %s", e)
+# Error handling: FastAPI exception handlers only (AppException + Exception). No ErrorHandlerMiddleware.
 try:
     from middleware.logging import LoggingMiddleware
     app.add_middleware(LoggingMiddleware)

@@ -2,6 +2,8 @@
 Application lifespan: startup and shutdown.
 Handles MongoDB connection (with retry), Redis cache, and background index creation.
 Index creation runs after a delay so it does not block the healthcheck.
+Uses core.indexes as single source of truth (Audit 2.6). init_database runs in
+thread pool to avoid blocking the event loop (Audit 1.7).
 """
 import asyncio
 import logging
@@ -16,10 +18,11 @@ logger = logging.getLogger(__name__)
 async def _create_indexes_background() -> None:
     """
     Create MongoDB indexes in background (called after delay).
-    Does not block healthcheck. Runs once per worker.
+    Uses core.indexes.apply_indexes. Then runs init_database in thread pool.
     """
     try:
         from core.database import database
+        from core.indexes import apply_indexes
 
         await asyncio.sleep(5)  # Let healthcheck pass and DB stabilize
         db = database.db
@@ -27,75 +30,12 @@ async def _create_indexes_background() -> None:
             logger.warning("Database not connected, skipping index creation")
             return
 
-        try:
-            await db.users.create_index("stripe_customer_id", sparse=True, background=True)
-            await db.subscriptions.create_index("stripe_customer_id", sparse=True, background=True)
-
-            try:
-                await db.subscriptions.create_index(
-                    "stripe_subscription_id",
-                    unique=True,
-                    partialFilterExpression={
-                        "stripe_subscription_id": {"$exists": True, "$type": "string", "$gt": ""}
-                    },
-                    background=True,
-                    name="unique_stripe_subscription_id",
-                )
-                logger.info("Created unique index on stripe_subscription_id (partial filter)")
-            except Exception as e:
-                logger.error("Failed to create unique index on stripe_subscription_id: %s", e)
-                duplicates = await db.subscriptions.aggregate([
-                    {"$match": {"stripe_subscription_id": {"$exists": True, "$ne": None, "$ne": ""}}},
-                    {"$group": {"_id": "$stripe_subscription_id", "count": {"$sum": 1}}},
-                    {"$match": {"count": {"$gt": 1}}},
-                ]).to_list(length=10)
-                if duplicates:
-                    logger.error("Duplicate stripe_subscription_id values: %s", [d["_id"] for d in duplicates])
-                else:
-                    logger.warning("Index creation failed but no duplicates found: %s", e)
-
-            await db.subscriptions.create_index(
-                [("user_id", 1), ("status", 1)], background=True, name="user_status_idx"
-            )
-            await db.subscriptions.create_index(
-                [("workspace_id", 1), ("status", 1)],
-                sparse=True,
-                background=True,
-                name="workspace_status_idx",
-            )
-            await db.subscriptions.create_index(
-                [("user_id", 1), ("workspace_id", 1), ("status", 1)],
-                sparse=True,
-                background=True,
-                name="user_workspace_status_idx",
-            )
-            await db.workspaces.create_index("stripe_customer_id", sparse=True, background=True)
-
-            await db.kpi_entries.create_index([("seller_id", 1), ("date", -1)], background=True)
-            await db.kpi_entries.create_index([("store_id", 1), ("date", -1)], background=True)
-            await db.kpi_entries.create_index(
-                [("seller_id", 1), ("store_id", 1), ("date", -1)], background=True
-            )
-
-            await db.objectives.create_index([("store_id", 1), ("status", 1)], background=True)
-            await db.objectives.create_index([("seller_id", 1), ("status", 1)], background=True)
-            await db.challenges.create_index([("store_id", 1), ("status", 1)], background=True)
-
-            await db.users.create_index(
-                [("store_id", 1), ("role", 1), ("status", 1)], background=True
-            )
-            await db.users.create_index([("store_id", 1), ("role", 1)], background=True)
-
-            await db.sales.create_index([("seller_id", 1), ("date", -1)], background=True)
-            await db.debriefs.create_index([("seller_id", 1), ("created_at", -1)], background=True)
-
-            logger.info("Database indexes created/verified")
-        except Exception as e:
-            logger.warning("Index creation warning: %s", e)
+        created, skipped, errors = await apply_indexes(db, logger=logger)
+        logger.info("Indexes: %s created, %s skipped, %s errors", created, skipped, len(errors))
 
         try:
             from init_db import init_database
-            init_database()
+            await asyncio.to_thread(init_database)
             logger.info("Database initialization complete")
         except Exception as e:
             logger.debug("Database initialization skipped: %s", e)

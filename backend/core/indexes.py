@@ -1,0 +1,121 @@
+"""
+Centralized MongoDB index definitions (Audit 2.6 & 3.1).
+Single source of truth for lifespan, ensure_indexes script, and any migration.
+Includes mandatory indexes on users.id, workspaces.id, workspaces.gerant_id.
+"""
+from typing import Any, Dict, List, Union
+
+# Index spec: "field" or [("field", 1)|(-1), ...]
+# Options: background, unique, sparse, name, partialFilterExpression, etc.
+IndexSpec = Dict[str, Any]
+
+
+def _spec(keys: Union[str, List], **kwargs: Any) -> IndexSpec:
+    """Build index spec. keys: field name or list of (field, direction)."""
+    return {"keys": keys, "kwargs": {**kwargs}}
+
+
+# ---------------------------------------------------------------------------
+# Index definitions by collection
+# ---------------------------------------------------------------------------
+
+INDEXES: Dict[str, List[IndexSpec]] = {
+    "users": [
+        _spec("id", unique=True, background=True, name="id_unique"),
+        _spec([("store_id", 1), ("role", 1), ("status", 1)], background=True, name="store_role_status_idx"),
+        _spec([("store_id", 1), ("role", 1)], background=True, name="store_role_idx"),
+        _spec("stripe_customer_id", sparse=True, background=True),
+    ],
+    "workspaces": [
+        _spec("id", unique=True, background=True, name="id_unique"),
+        _spec("gerant_id", background=True, name="gerant_id_idx"),
+        _spec("stripe_customer_id", sparse=True, background=True),
+    ],
+    "subscriptions": [
+        _spec("stripe_customer_id", sparse=True, background=True),
+        _spec(
+            "stripe_subscription_id",
+            unique=True,
+            partialFilterExpression={
+                "stripe_subscription_id": {"$exists": True, "$type": "string", "$gt": ""}
+            },
+            background=True,
+            name="unique_stripe_subscription_id",
+        ),
+        _spec([("user_id", 1), ("status", 1)], background=True, name="user_status_idx"),
+        _spec(
+            [("workspace_id", 1), ("status", 1)],
+            sparse=True,
+            background=True,
+            name="workspace_status_idx",
+        ),
+        _spec(
+            [("user_id", 1), ("workspace_id", 1), ("status", 1)],
+            sparse=True,
+            background=True,
+            name="user_workspace_status_idx",
+        ),
+    ],
+    "kpi_entries": [
+        _spec([("seller_id", 1), ("date", -1)], background=True, name="seller_date_idx"),
+        _spec([("store_id", 1), ("date", -1)], background=True, name="store_date_idx"),
+        _spec([("seller_id", 1), ("store_id", 1), ("date", -1)], background=True),
+    ],
+    "objectives": [
+        _spec([("store_id", 1), ("status", 1)], background=True, name="store_status_idx"),
+        _spec([("seller_id", 1), ("status", 1)], background=True),
+    ],
+    "challenges": [
+        _spec([("store_id", 1), ("status", 1)], background=True, name="store_status_idx"),
+    ],
+    "sales": [
+        _spec([("seller_id", 1), ("date", -1)], background=True, name="seller_date_idx"),
+    ],
+    "debriefs": [
+        _spec([("seller_id", 1), ("created_at", -1)], background=True, name="seller_created_at_idx"),
+    ],
+    "diagnostics": [
+        _spec([("seller_id", 1), ("created_at", -1)], background=True, name="seller_created_at_idx"),
+    ],
+    "manager_kpis": [
+        _spec(
+            [("manager_id", 1), ("date", -1), ("store_id", 1)],
+            background=True,
+            name="manager_date_store_idx",
+        ),
+    ],
+}
+
+
+def get_indexes_for_collection(collection: str) -> List[IndexSpec]:
+    """Return index specs for a collection, or empty list if unknown."""
+    return INDEXES.get(collection, [])
+
+
+async def apply_indexes(db, *, logger=None):
+    """
+    Create all indexes from INDEXES on the given Motor database.
+    Returns (created, skipped, errors).
+    """
+    import logging
+    if logger is None:
+        logger = logging.getLogger(__name__)
+    created = skipped = 0
+    errors: List[tuple] = []
+    for coll_name, specs in INDEXES.items():
+        col = getattr(db, coll_name)
+        for s in specs:
+            keys = s["keys"]
+            kwargs = {k: v for k, v in s["kwargs"].items()}
+            try:
+                await col.create_index(keys, **kwargs)
+                created += 1
+                logger.debug("Index created: %s on %s", keys, coll_name)
+            except Exception as e:
+                msg = str(e).lower()
+                if "already exists" in msg or "duplicate" in msg:
+                    skipped += 1
+                else:
+                    errors.append((coll_name, keys, e))
+                    logger.warning("Index creation failed %s %s: %s", coll_name, keys, e)
+    return created, skipped, errors

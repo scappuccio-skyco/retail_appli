@@ -2,8 +2,9 @@
 Authentication Routes - Login, registration, password reset.
 Phase 10 RC6: No direct db access - AuthService only.
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
+from api.dependencies_rate_limiting import rate_limit
 from models.users import (
     UserLogin,
     UserCreate,
@@ -14,7 +15,7 @@ from models.users import (
 from services.auth_service import AuthService
 from api.dependencies import get_auth_service
 from core.security import get_current_user
-from exceptions.custom_exceptions import UnauthorizedError
+from core.exceptions import UnauthorizedError, ValidationError, NotFoundError
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -31,11 +32,11 @@ async def verify_invitation_token(
     except ValueError as e:
         detail = str(e)
         if "déjà été utilisée" in detail or "expiré" in detail:
-            raise HTTPException(status_code=400, detail=detail)
-        raise HTTPException(status_code=404, detail=detail)
+            raise ValidationError(detail)
+        raise NotFoundError(detail)
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[rate_limit("10/minute")])
 async def login(
     credentials: UserLogin,
     auth_service: AuthService = Depends(get_auth_service)
@@ -75,37 +76,28 @@ async def register_gerant(
         Dict with token and user info
         
     Raises:
-        HTTPException 400: Email already exists or validation error
+        ValidationError: Email already exists or validation error
     """
+    company_name = user_data.company_name or user_data.workspace_name
+    if not company_name:
+        raise ValidationError("Le nom de l'entreprise est requis")
+    result = await auth_service.register_gerant(
+        name=user_data.name,
+        email=user_data.email,
+        password=user_data.password,
+        company_name=company_name,
+        phone=user_data.phone
+    )
     try:
-        # Use company_name or workspace_name (for backward compatibility)
-        company_name = user_data.company_name or user_data.workspace_name
-        if not company_name:
-            raise Exception("Le nom de l'entreprise est requis")
-        
-        result = await auth_service.register_gerant(
-            name=user_data.name,
-            email=user_data.email,
-            password=user_data.password,
-            company_name=company_name,
-            phone=user_data.phone
+        from email_service import send_gerant_welcome_email
+        send_gerant_welcome_email(
+            recipient_email=user_data.email,
+            recipient_name=user_data.name
         )
-        
-        # Envoyer l'email de bienvenue au nouveau gérant
-        try:
-            from email_service import send_gerant_welcome_email
-            send_gerant_welcome_email(
-                recipient_email=user_data.email,
-                recipient_name=user_data.name
-            )
-        except Exception as email_error:
-            # Log l'erreur mais ne bloque pas l'inscription
-            import logging
-            logging.error(f"Failed to send welcome email to gérant {user_data.email}: {email_error}")
-        
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as email_error:
+        import logging
+        logging.error(f"Failed to send welcome email to gérant {user_data.email}: {email_error}")
+    return result
 
 
 @router.post("/register/invitation")
@@ -123,18 +115,14 @@ async def register_with_invitation(
         Dict with token and user info
         
     Raises:
-        HTTPException 400: Invalid invitation or validation error
+        ValidationError: Invalid invitation or validation error
     """
-    try:
-        result = await auth_service.register_with_invitation(
-            email=registration_data.email,
-            password=registration_data.password,
-            name=registration_data.name,
-            invitation_token=registration_data.invitation_token
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await auth_service.register_with_invitation(
+        email=registration_data.email,
+        password=registration_data.password,
+        name=registration_data.name,
+        invitation_token=registration_data.invitation_token
+    )
 
 
 @router.post("/forgot-password")
@@ -181,7 +169,7 @@ async def verify_reset_token(
     try:
         return await auth_service.verify_reset_token(token)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
 
 
 @router.post("/reset-password")
@@ -199,16 +187,13 @@ async def reset_password(
         Success message
         
     Raises:
-        HTTPException 400: Invalid or expired token
+        ValidationError: Invalid or expired token
     """
-    try:
-        await auth_service.reset_password(
-            token=request.token,
-            new_password=request.new_password
-        )
-        return {"message": "Mot de passe réinitialisé avec succès"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    await auth_service.reset_password(
+        token=request.token,
+        new_password=request.new_password
+    )
+    return {"message": "Mot de passe réinitialisé avec succès"}
 
 
 @router.get("/me")

@@ -2,7 +2,7 @@
 Onboarding Routes
 User onboarding progress tracking
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from typing import Dict
 
 from core.security import get_current_user, require_active_space
@@ -11,7 +11,7 @@ from api.dependencies import get_onboarding_service
 
 router = APIRouter(
     prefix="/onboarding",
-    tags=["Onboarding"]
+    tags=["Onboarding"],
     # ✅ Note: require_active_space retiré pour permettre la lecture de progression même si trial_expired
     # La sauvegarde (POST) reste protégée par require_active_space dans les routes individuelles
 )
@@ -30,11 +30,7 @@ async def get_onboarding_progress(
     Returns:
         Dict with user_id, current_step, completed_steps, is_completed
     """
-    try:
-        progress = await onboarding_service.get_progress(current_user['id'])
-        return progress
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return await onboarding_service.get_progress(current_user['id'])
 
 
 @router.post("/progress")
@@ -52,16 +48,12 @@ async def save_onboarding_progress(
     Returns:
         Updated progress document
     """
-    try:
-        progress = await onboarding_service.save_progress(
-            user_id=current_user['id'],
-            current_step=progress_data.get('current_step', 0),
-            completed_steps=progress_data.get('completed_steps', []),
-            is_completed=progress_data.get('is_completed', False)
-        )
-        return progress
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return await onboarding_service.save_progress(
+        user_id=current_user['id'],
+        current_step=progress_data.get('current_step', 0),
+        completed_steps=progress_data.get('completed_steps', []),
+        is_completed=progress_data.get('is_completed', False)
+    )
 
 
 @router.post("/complete")
@@ -81,8 +73,5 @@ async def mark_onboarding_complete(
     # ✅ Vérifier l'abonnement pour l'écriture
     await require_active_space(current_user)
     
-    try:
-        await onboarding_service.mark_complete(current_user['id'])
-        return {"success": True, "message": "Onboarding marked as complete"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    await onboarding_service.mark_complete(current_user['id'])
+    return {"success": True, "message": "Onboarding marked as complete"}

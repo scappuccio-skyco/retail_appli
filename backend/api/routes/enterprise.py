@@ -2,9 +2,10 @@
 Enterprise Routes
 API endpoints for enterprise account management, API keys, and bulk synchronization
 """
-from fastapi import APIRouter, HTTPException, Depends, Header
+from fastapi import APIRouter, Depends, Header
 from typing import Optional
 
+from core.exceptions import AppException, ValidationError, NotFoundError, BusinessLogicError
 from models.enterprise import (
     EnterpriseAccountCreate, EnterpriseAccountUpdate,
     APIKeyCreate, BulkUserImport, BulkStoreImport
@@ -63,9 +64,9 @@ async def register_enterprise_account(
         }
         
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise ValidationError(str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create enterprise account: {str(e)}")
+        raise BusinessLogicError(f"Failed to create enterprise account: {str(e)}")
 
 
 @router.get("/config")
@@ -81,9 +82,9 @@ async def get_enterprise_config(
         return config
         
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise NotFoundError(str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
 @router.put("/config")
@@ -102,14 +103,14 @@ async def update_enterprise_config(
         )
         
         if not success:
-            raise HTTPException(status_code=404, detail="Enterprise account not found")
+            raise NotFoundError("Enterprise account not found")
         
         return {"success": True, "message": "Enterprise configuration updated successfully"}
         
-    except HTTPException:
+    except AppException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
 # ============================================
@@ -138,7 +139,7 @@ async def generate_api_key(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
 @router.get("/api-keys")
@@ -155,7 +156,7 @@ async def list_api_keys(
         return {"api_keys": api_keys}
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
 @router.delete("/api-keys/{key_id}")
@@ -172,14 +173,14 @@ async def revoke_api_key(
         )
         
         if not success:
-            raise HTTPException(status_code=404, detail="API key not found")
+            raise NotFoundError("API key not found")
         
         return {"success": True, "message": "API key revoked successfully"}
         
-    except HTTPException:
+    except AppException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
 # ============================================
@@ -199,9 +200,9 @@ async def get_sync_status(
         return status
         
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise NotFoundError(str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
 @router.get("/sync-logs")
@@ -224,7 +225,7 @@ async def get_sync_logs(
         return {"logs": logs, "total": len(logs)}
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
 # ============================================
@@ -269,7 +270,7 @@ async def bulk_import_users(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
 @router.post("/stores/bulk-import")
@@ -308,4 +309,4 @@ async def bulk_import_stores(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))

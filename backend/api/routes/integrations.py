@@ -1,12 +1,12 @@
 """Integration Routes - API Keys and External Systems - Clean Architecture.
-Phase 10 RC6: No direct db.* - use StoreRepository, UserRepository, services only.
-Phase 2: Exceptions métier (NotFoundError, ValidationError) ; pas de try/except 500."""
-from fastapi import APIRouter, Depends, HTTPException, Header
+Phase 0: Zero Repo in Route - services only (StoreService, GerantService, KPIService, IntegrationService).
+Phase 2: Exceptions métier (NotFoundError, ValidationError)."""
+from fastapi import APIRouter, Depends, Header, Query
 from typing import Dict, Optional, List
 from datetime import datetime, timezone
 from uuid import uuid4
 import logging
-from exceptions.custom_exceptions import NotFoundError, ValidationError
+from core.exceptions import NotFoundError, ValidationError, ForbiddenError, ConflictError, BusinessLogicError
 from models.integrations import (
     APIKeyCreate, KPISyncRequest, APIStoreCreate,
     APIManagerCreate, APISellerCreate, APIUserUpdate
@@ -18,7 +18,7 @@ from services.gerant_service import GerantService
 from api.dependencies import get_kpi_service, get_integration_service, get_store_service, get_gerant_service
 from core.security import (
     get_current_gerant, get_password_hash, require_active_space, get_api_key_from_headers,
-    verify_integration_api_key, verify_integration_store_access, ForbiddenError
+    verify_integration_api_key, verify_integration_store_access,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,12 +50,16 @@ async def create_api_key(
 
 @router.get("/api-keys")
 async def list_api_keys(
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    size: int = Query(50, ge=1, le=100, description="Nombre d'éléments par page"),
     current_user: Dict = Depends(get_current_gerant),
     _active_space: Dict = Depends(require_active_space),
     integration_service: IntegrationService = Depends(get_integration_service)
 ):
-    """List all API keys for current user"""
-    return await integration_service.list_api_keys(current_user['id'])
+    """Liste les clés API du gérant (paginé: items, total, page, size, pages)."""
+    return await integration_service.list_api_keys(
+        current_user['id'], page=page, size=size
+    )
 
 
 # ===== API KEY VERIFICATION (Phase 3: centralized in core.security) =====
@@ -113,7 +117,7 @@ async def list_stores(
     """List all stores accessible by the API key (Phase 10: StoreService via DI)."""
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
     if not tenant_id:
-        raise HTTPException(status_code=403, detail="Invalid API key configuration")
+        raise ForbiddenError("Invalid API key configuration")
     stores = await store_service.get_stores_by_gerant(tenant_id)
     store_ids = api_key_data.get("store_ids")
     if store_ids is not None and "*" not in store_ids:
@@ -132,7 +136,7 @@ async def create_store(
     """Create a new store. Phase 0 Vague 2: services only (no db)."""
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
     if not tenant_id:
-        raise HTTPException(status_code=403, detail="Invalid API key configuration")
+        raise ForbiddenError("Invalid API key configuration")
 
     store_dict = {
         "name": store_data.name,
@@ -151,10 +155,7 @@ async def create_store(
 
     if store_data.external_id:
         store["external_id"] = store_data.external_id
-        await store_service.store_repo.update_one(
-            {"id": store["id"]},
-            {"$set": {"external_id": store_data.external_id}},
-        )
+        await store_service.update_store_one(store["id"], {"external_id": store_data.external_id})
     return {"success": True, "store": store}
 
 
@@ -185,9 +186,9 @@ async def create_manager(
     """Create a new manager for a store. Phase 0 Vague 2: GerantService only (no db)."""
     await verify_store_access(store_id, api_key_data, integration_service, store_service)
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
-    existing_user = await gerant_service.user_repo.find_by_email(manager_data.email)
+    existing_user = await gerant_service.find_user_by_email(manager_data.email)
     if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise ConflictError("Email already registered")
 
     manager_id = str(uuid4())
     temp_password = "TempPassword123!"
@@ -205,7 +206,7 @@ async def create_manager(
         "sync_mode": "api_sync",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    await gerant_service.user_repo.insert_one(manager)
+    await gerant_service.insert_user(manager)
 
     return {
         "success": True,
@@ -236,7 +237,7 @@ async def list_sellers(
         return {"sellers": sellers}
     except Exception as e:
         logger.error(f"Error listing sellers: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
 @router.post("/stores/{store_id}/sellers")
@@ -251,23 +252,18 @@ async def create_seller(
     """Create a new seller for a store. Phase 0 Vague 2: GerantService only (no db)."""
     await verify_store_access(store_id, api_key_data, integration_service, store_service)
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
-    existing_user = await gerant_service.user_repo.find_by_email(seller_data.email)
+    existing_user = await gerant_service.find_user_by_email(seller_data.email)
     if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise ConflictError("Email already registered")
 
     manager_id = seller_data.manager_id
-    if manager_id:
-        manager = await gerant_service.user_repo.find_one(
-            {"id": manager_id, "role": "manager", "store_id": store_id}
-        )
-        if not manager:
-            raise NotFoundError("Manager not found in this store")
+    manager = await gerant_service.get_manager_in_store(store_id, manager_id)
+    if manager_id and not manager:
+        raise NotFoundError("Manager not found in this store")
+    if manager:
+        manager_id = str(manager.get("id") or manager.get("_id"))
     else:
-        manager = await gerant_service.user_repo.find_one(
-            {"role": "manager", "store_id": store_id, "status": "active"}
-        )
-        if manager:
-            manager_id = str(manager.get("id") or manager.get("_id"))
+        manager_id = None
 
     seller_id = str(uuid4())
     temp_password = "TempPassword123!"
@@ -286,7 +282,7 @@ async def create_seller(
         "sync_mode": "api_sync",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    await gerant_service.user_repo.insert_one(seller)
+    await gerant_service.insert_user(seller)
 
     return {
         "success": True,
@@ -315,11 +311,11 @@ async def update_user(
     """
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
     if not tenant_id:
-        raise HTTPException(status_code=403, detail="Invalid API key configuration")
+        raise ForbiddenError("Invalid API key configuration")
     
-    user = await gerant_service.user_repo.find_by_id(user_id)
+    user = await gerant_service.get_user_by_id(user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundError("User not found")
     
     # Normalize user data
     user_id_normalized = str(user.get("id") or user.get("_id"))
@@ -333,7 +329,7 @@ async def update_user(
     
     # Verify tenant access
     if not user_tenant_id or str(user_tenant_id) != str(tenant_id):
-        raise HTTPException(status_code=403, detail="User does not belong to this tenant")
+        raise ForbiddenError("User does not belong to this tenant")
     
     # VERROUILLAGE STORE_IDS STRICT
     store_ids = api_key_data.get('store_ids')
@@ -347,10 +343,7 @@ async def update_user(
         else:
             # Non-gérant: check store_id
             if not user_store_id or str(user_store_id) not in [str(sid) for sid in store_ids]:
-                raise HTTPException(
-                    status_code=403,
-                    detail="API key does not have access to this user's store"
-                )
+                raise ForbiddenError("API key does not have access to this user's store")
     
     # WHITELIST: Only allow specific fields (email is FORBIDDEN)
     ALLOWED_FIELDS = ["name", "phone", "status", "external_id"]
@@ -358,20 +351,17 @@ async def update_user(
     updates = {k: v for k, v in user_data.model_dump(exclude_unset=True).items() if k in ALLOWED_FIELDS}
     
     if not updates:
-        raise HTTPException(status_code=400, detail="No fields to update")
+        raise ValidationError("No fields to update")
     
     # Validate status if provided
     if "status" in updates:
         if updates["status"] not in ["active", "suspended"]:
-            raise HTTPException(status_code=400, detail="Status must be 'active' or 'suspended'")
+            raise ValidationError("Status must be 'active' or 'suspended'")
         if updates["status"] == "suspended":
             updates["deactivated_at"] = datetime.now(timezone.utc).isoformat()
     
-    await user_repo.update_one(
-        {"id": user_id_normalized},
-        {"$set": updates},
-    )
-    updated_user = await user_repo.find_by_id(user_id_normalized)
+    await gerant_service.update_user_one(user_id_normalized, updates)
+    updated_user = await gerant_service.get_user_by_id(user_id_normalized)
     
     return {
         "success": True,
@@ -417,11 +407,11 @@ async def delete_user(
     """Delete (soft delete) a user. Phase 0 Vague 2: GerantService only (no db)."""
     tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
     if not tenant_id:
-        raise HTTPException(status_code=403, detail="Invalid API key configuration")
+        raise ForbiddenError("Invalid API key configuration")
     
-    user = await gerant_service.user_repo.find_by_id(user_id)
+    user = await gerant_service.get_user_by_id(user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundError("User not found")
     
     # Normalize user data
     user_id_normalized = str(user.get("id") or user.get("_id"))
@@ -429,14 +419,14 @@ async def delete_user(
     
     # Verify it's a manager or seller (not gérant)
     if role_norm in ["gerant", "gérant"]:
-        raise HTTPException(status_code=403, detail="Cannot delete gérant via API")
+        raise ForbiddenError("Cannot delete gérant via API")
     
     # Calculate user's tenant_id
     user_tenant_id = user.get("gerant_id")
     
     # Verify tenant access
     if not user_tenant_id or str(user_tenant_id) != str(tenant_id):
-        raise HTTPException(status_code=403, detail="User does not belong to this tenant")
+        raise ForbiddenError("User does not belong to this tenant")
     
     # VERROUILLAGE STORE_IDS STRICT
     store_ids = api_key_data.get('store_ids')
@@ -445,10 +435,7 @@ async def delete_user(
     if store_ids is not None and "*" not in store_ids:
         # Key is restricted
         if not user_store_id or str(user_store_id) not in [str(sid) for sid in store_ids]:
-            raise HTTPException(
-                status_code=403,
-                detail="API key does not have access to this user's store"
-            )
+            raise ForbiddenError("API key does not have access to this user's store")
     
     try:
         role = "manager" if role_norm == "manager" else "seller"
@@ -478,14 +465,11 @@ async def sync_kpi_data(
         
         # Limit to 100 items per request
         if len(data.kpi_entries) > 100:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Maximum 100 KPI entries per request. Received {len(data.kpi_entries)}."
-            )
+            raise ValidationError(f"Maximum 100 KPI entries per request. Received {len(data.kpi_entries)}.")
         
         # Verify permissions
         if "write:kpi" not in api_key.get('permissions', []):
-            raise HTTPException(status_code=403, detail="Insufficient permissions")
+            raise ForbiddenError("Insufficient permissions")
         
         # Process entries via bulk operations
         from pymongo import InsertOne, UpdateOne
@@ -504,21 +488,12 @@ async def sync_kpi_data(
             
             # Validate that we have both date and store_id
             if not entry_date:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"Date is required for seller_id {entry.seller_id}. Provide it either at root level or in each kpi_entry."
-                )
+                raise BusinessLogicError(f"Date is required for seller_id {entry.seller_id}. Provide it either at root level or in each kpi_entry.")
             if not entry_store_id:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"store_id is required for seller_id {entry.seller_id}. Provide it either at root level or in each kpi_entry."
-                )
+                raise BusinessLogicError(f"store_id is required for seller_id {entry.seller_id}. Provide it either at root level or in each kpi_entry.")
             
             try:
-                seller = await gerant_service.user_repo.find_one(
-                    {"id": entry.seller_id},
-                    projection={"_id": 0, "id": 1, "role": 1},
-                )
+                seller = await gerant_service.get_user_by_id(entry.seller_id)
                 if not seller:
                     logger.warning(f"Seller {entry.seller_id} not found in database, but continuing with KPI creation")
                 elif seller.get("role") != "seller":
@@ -528,9 +503,9 @@ async def sync_kpi_data(
             
             # Check if exists
             try:
-                existing = await kpi_service.kpi_repo.find_by_seller_and_date(
+                existing = await kpi_service.get_kpi_by_seller_and_date(
                     entry.seller_id,
-                    entry_date
+                    entry_date,
                 )
             except Exception as find_error:
                 logger.error(
@@ -573,8 +548,8 @@ async def sync_kpi_data(
         # Execute bulk operations
         if seller_operations:
             try:
-                result = await kpi_service.kpi_repo.bulk_write(seller_operations)
-                logger.info(f"Bulk write completed: {result}")
+                result = await kpi_service.bulk_write_kpis(seller_operations)
+                logger.info("Bulk write completed: %s", result)
             except Exception as bulk_error:
                 logger.error("Bulk write failed: %s", bulk_error, exc_info=True)
                 raise ValidationError(f"Failed to write KPI data to database: {str(bulk_error)}")
@@ -595,7 +570,7 @@ async def sync_kpi_data(
             "entries_updated": entries_updated,
             "total": entries_created + entries_updated
         }
-    except (HTTPException, ValidationError, NotFoundError):
+    except AppException:
         raise
 
 

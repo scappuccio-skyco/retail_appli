@@ -2,7 +2,7 @@
 Morning Brief Routes
 API endpoints for generating morning briefs for managers
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, Body, Request
+from fastapi import APIRouter, Depends, Query, Body, Request
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, List
 from datetime import datetime, timezone
@@ -10,14 +10,12 @@ from uuid import uuid4
 import logging
 
 from api.dependencies import get_ai_service, get_manager_service, get_store_service
-from api.dependencies_rate_limiting import rate_limit, get_rate_limiter
-from core.security import get_current_user, require_active_space
+from api.dependencies_rate_limiting import rate_limit
+from core.exceptions import ForbiddenError, ValidationError, NotFoundError, BusinessLogicError
+from core.security import get_current_user, require_active_space, verify_store_access_for_user
 from services.ai_service import AIService
 from services.manager_service import ManagerService
 from services.store_service import StoreService
-from models.pagination import PaginatedResponse, PaginationParams
-
-limiter = get_rate_limiter()
 
 router = APIRouter(
     prefix="/briefs",
@@ -127,14 +125,8 @@ async def generate_morning_brief(
     - Récupère automatiquement les stats du magasin d'hier
     - Retourne un brief formaté en Markdown
     """
-    try:
-        if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
-            raise HTTPException(
-                status_code=403,
-                detail="Seuls les managers peuvent générer des briefs matinaux"
-            )
-    except HTTPException:
-        raise
+    if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
+        raise ForbiddenError("Seuls les managers peuvent générer des briefs matinaux")
 
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
@@ -145,12 +137,7 @@ async def generate_morning_brief(
     if effective_store_id:
         store = await store_service.get_store_by_id(effective_store_id)
         if store:
-            if current_user.get("role") == "manager":
-                if store.get("manager_id") != user_id and store.get("id") != user_store_id:
-                    raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
-            elif current_user.get("role") == "gerant":
-                if store.get("gerant_id") != user_id:
-                    raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
+            verify_store_access_for_user(store, current_user)
 
     if not store:
         if current_user.get("role") == "gerant":
@@ -164,10 +151,7 @@ async def generate_morning_brief(
 
     if brief_request.objective_daily is not None and final_store_id:
         try:
-            await store_service.store_repo.update_one(
-                {"id": final_store_id},
-                {"$set": {"objective_daily": brief_request.objective_daily, "updated_at": datetime.now(timezone.utc).isoformat()}}
-            )
+            await store_service.update_store_objective_daily(final_store_id, brief_request.objective_daily)
             logger.info("Objectif CA du jour mis à jour pour le magasin %s: %s€", final_store_id, brief_request.objective_daily)
         except Exception as e:
             logger.error("Erreur lors de la sauvegarde de l'objectif CA: %s", e)
@@ -188,7 +172,7 @@ async def generate_morning_brief(
             objective_daily=brief_request.objective_daily
         )
 
-        if result.get("success") and manager_service.morning_brief_repo:
+        if result.get("success"):
             brief_id = str(uuid4())
             brief_record = {
                 "brief_id": brief_id,
@@ -205,27 +189,20 @@ async def generate_morning_brief(
                 "fallback": result.get("fallback", False)
             }
             try:
-                await manager_service.morning_brief_repo.create_brief(
-                    brief_data=brief_record,
-                    store_id=final_store_id,
-                    manager_id=user_id
+                await manager_service.create_morning_brief(
+                    brief_record, final_store_id, user_id
                 )
                 result["brief_id"] = brief_id
-            except Exception as e:
+            except (ValueError, Exception) as e:
                 logger.error("Error saving brief to history: %s", e)
 
         return result
-    except HTTPException:
-        raise
     except Exception as e:
         logger.exception(
             "Morning brief generation failed",
             extra={"store_id": final_store_id, "user_id": user_id, "manager_name": manager_name, "store_name": store_name}
         )
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erreur lors de la génération du brief matinal: {str(e)}"
-        )
+        raise BusinessLogicError(f"Erreur lors de la génération du brief matinal: {str(e)}")
 
 
 @router.get("/morning/preview")
@@ -242,7 +219,7 @@ async def preview_morning_brief_data(
     - **store_id**: ID du magasin (optionnel, pour gérant visualisant un magasin spécifique)
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
-        raise HTTPException(status_code=403, detail="Accès refusé")
+        raise ForbiddenError("Accès refusé")
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
     effective_store_id = store_id if store_id else user_store_id
@@ -250,12 +227,7 @@ async def preview_morning_brief_data(
     if effective_store_id:
         store = await store_service.get_store_by_id(effective_store_id)
         if store:
-            if current_user.get("role") == "manager":
-                if store.get("manager_id") != user_id and store.get("id") != user_store_id:
-                    raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
-            elif current_user.get("role") == "gerant":
-                if store.get("gerant_id") != user_id:
-                    raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
+            verify_store_access_for_user(store, current_user)
     if not store:
         if current_user.get("role") == "gerant":
             stores = await store_service.get_stores_by_gerant(user_id)
@@ -286,7 +258,7 @@ async def get_morning_briefs_history(
     Limité aux 30 derniers briefs.
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
-        raise HTTPException(status_code=403, detail="Accès refusé")
+        raise ForbiddenError("Accès refusé")
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
     effective_store_id = store_id if store_id else user_store_id
@@ -303,19 +275,12 @@ async def get_morning_briefs_history(
     if store is None and effective_store_id:
         store = await store_service.get_store_by_id(effective_store_id)
     if store:
-        if current_user.get("role") == "manager":
-            if store.get("manager_id") != user_id and store.get("id") != user_store_id:
-                raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
-        elif current_user.get("role") == "gerant":
-            if store.get("gerant_id") != user_id:
-                raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
+        verify_store_access_for_user(store, current_user)
     try:
-        if not manager_service.morning_brief_repo:
-            return {"briefs": [], "total": 0}
-        briefs = await manager_service.morning_brief_repo.find_by_store(
+        briefs = await manager_service.get_morning_briefs_by_store(
             effective_store_id, limit=30, sort=[("generated_at", -1)]
         )
-        total = await manager_service.morning_brief_repo.count_by_store(effective_store_id)
+        total = await manager_service.count_morning_briefs_by_store(effective_store_id)
         return {
             "briefs": briefs,
             "total": total,
@@ -338,7 +303,7 @@ async def delete_morning_brief(
     Supprime un brief de l'historique.
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
-        raise HTTPException(status_code=403, detail="Accès refusé")
+        raise ForbiddenError("Accès refusé")
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
     effective_store_id = store_id if store_id else user_store_id
@@ -351,25 +316,14 @@ async def delete_morning_brief(
             store = await store_service.get_store_by_id(user_store_id)
         effective_store_id = store.get("id") if store else None
     if not effective_store_id:
-        raise HTTPException(status_code=400, detail="Impossible de déterminer le magasin")
+        raise ValidationError("Impossible de déterminer le magasin")
+    if store is None and effective_store_id:
+        store = await store_service.get_store_by_id(effective_store_id)
     if store:
-        if current_user.get("role") == "manager":
-            if store.get("manager_id") != user_id and store.get("id") != user_store_id:
-                raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
-        elif current_user.get("role") == "gerant":
-            if store.get("gerant_id") != user_id:
-                raise HTTPException(status_code=403, detail="Accès refusé à ce magasin")
-    try:
-        if not manager_service.morning_brief_repo:
-            raise HTTPException(status_code=404, detail="Brief non trouvé")
-        result = await manager_service.morning_brief_repo.delete_brief(
-            brief_id=brief_id, store_id=effective_store_id
-        )
-        if not result:
-            raise HTTPException(status_code=404, detail="Brief non trouvé")
-        return {"success": True, "message": "Brief supprimé"}
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("Error deleting brief: %s", e)
-        raise HTTPException(status_code=500, detail=str(e))
+        verify_store_access_for_user(store, current_user)
+    result = await manager_service.delete_morning_brief(
+        brief_id=brief_id, store_id=effective_store_id
+    )
+    if not result:
+        raise NotFoundError("Brief non trouvé")
+    return {"success": True, "message": "Brief supprimé"}

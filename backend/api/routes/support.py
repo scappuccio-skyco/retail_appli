@@ -2,11 +2,12 @@
 Support Routes
 Generic support contact for all user roles (gérant, manager, seller)
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 import httpx
 import logging
 
+from core.exceptions import AppException, ValidationError, BusinessLogicError
 from core.security import get_current_user
 from core.config import settings
 from api.dependencies import get_store_service
@@ -41,11 +42,11 @@ async def send_support_message(
     try:
         # Validate input
         if not request.subject.strip():
-            raise HTTPException(status_code=400, detail="Le sujet est requis")
+            raise ValidationError("Le sujet est requis")
         if not request.message.strip():
-            raise HTTPException(status_code=400, detail="Le message est requis")
+            raise ValidationError("Le message est requis")
         if len(request.message) > 5000:
-            raise HTTPException(status_code=400, detail="Le message est trop long (max 5000 caractères)")
+            raise ValidationError("Le message est trop long (max 5000 caractères)")
         
         # Get user info
         user_email = current_user.get('email', 'inconnu')
@@ -54,13 +55,13 @@ async def send_support_message(
         user_role = current_user.get('role', 'N/A')
         store_id = current_user.get('store_id')
         
-        # Get store/workspace info based on role (via StoreService, no db in route)
+        # Get store/workspace info based on role (Zero Repo: StoreService methods only)
         context_info = "N/A"
         if user_role == 'gerant' or user_role == 'gérant':
-            workspace = await store_service.workspace_repo.find_by_id(current_user.get('workspace_id'))
+            workspace = await store_service.get_workspace_by_id(current_user.get('workspace_id'))
             context_info = workspace.get('name', 'N/A') if workspace else 'N/A'
         elif store_id:
-            store = await store_service.store_repo.find_by_id(store_id, None, {"_id": 0, "name": 1})
+            store = await store_service.get_store_by_id(store_id)
             context_info = store.get('name', 'N/A') if store else 'N/A'
         
         # Role labels
@@ -133,7 +134,7 @@ async def send_support_message(
         brevo_api_key = settings.BREVO_API_KEY
         if not brevo_api_key:
             logger.error("BREVO_API_KEY not configured")
-            raise HTTPException(status_code=500, detail="Service email non configuré")
+            raise BusinessLogicError("Service email non configuré")
         
         # Send email via Brevo
         payload = {
@@ -170,10 +171,7 @@ async def send_support_message(
                 )
             else:
                 logger.error(f"❌ Brevo API error ({response.status_code}): {response.text}")
-                raise HTTPException(status_code=500, detail="Erreur lors de l'envoi du message")
-                
-    except HTTPException:
-        raise
+                raise BusinessLogicError("Erreur lors de l'envoi du message")
     except Exception as e:
         logger.error(f"Error sending support message: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise BusinessLogicError(str(e))

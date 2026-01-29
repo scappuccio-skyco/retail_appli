@@ -32,6 +32,7 @@ from repositories.daily_challenge_repository import DailyChallengeRepository
 from repositories.seller_bilan_repository import SellerBilanRepository
 from repositories.team_analysis_repository import TeamAnalysisRepository
 from repositories.relationship_consultation_repository import RelationshipConsultationRepository
+from repositories.conflict_consultation_repository import ConflictConsultationRepository
 from repositories.enterprise_repository import (
     EnterpriseAccountRepository,
     APIKeyRepository,

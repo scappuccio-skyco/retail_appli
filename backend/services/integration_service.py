@@ -97,9 +97,26 @@ class IntegrationService:
             gerant_id = user.get("gerant_id")
             return str(gerant_id) if gerant_id else None
     
-    async def list_api_keys(self, user_id: str) -> List[Dict]:
-        """List all API keys for a user (without hash)"""
-        return await self.integration_repo.find_api_keys_by_user(user_id)
+    async def list_api_keys(
+        self,
+        user_id: str,
+        page: int = 1,
+        size: int = 50,
+    ) -> Dict:
+        """List API keys for a user (paginated). Returns items + meta (total, page, size, pages)."""
+        from config.limits import MAX_PAGE_SIZE
+        size = min(size, MAX_PAGE_SIZE) if size else 50
+        items, total = await self.integration_repo.find_api_keys_by_user(
+            user_id, page=page, size=size
+        )
+        pages = (total + size - 1) // size if total > 0 else 0
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "size": size,
+            "pages": pages,
+        }
     
     async def verify_api_key(self, api_key: str) -> Dict:
         """
@@ -122,9 +139,11 @@ class IntegrationService:
             logger.warning(f"Invalid API key format. Expected prefix 'sk_live_', got: {api_key[:12]}...")
             raise ValueError("Invalid API Key format. API keys must start with 'sk_live_'")
         
-        # Find key by prefix
+        # Find key by prefix (first page, enough for verification)
         key_prefix = api_key[:12]
-        possible_keys = await self.integration_repo.find_api_keys_by_prefix(key_prefix)
+        possible_keys, _ = await self.integration_repo.find_api_keys_by_prefix(
+            key_prefix, page=1, size=20
+        )
         
         if not possible_keys:
             logger.warning(f"No API keys found with prefix: {key_prefix}...")

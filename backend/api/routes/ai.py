@@ -1,7 +1,8 @@
 """AI & Diagnostic Routes - Clean Architecture"""
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from typing import Dict, List, Union
 
+from core.exceptions import ValidationError
 from services.ai_service import AIService, AIDataService
 from api.dependencies import get_ai_service, get_ai_data_service
 from api.dependencies_rate_limiting import rate_limit
@@ -15,7 +16,7 @@ router = APIRouter(
 )
 
 
-@router.post("/diagnostic", dependencies=[rate_limit("10/minute")])
+@router.post("/diagnostic", dependencies=[rate_limit("5/minute")])
 async def generate_diagnostic(
     request: Request,
     responses: List[Union[DiagnosticResponse, Dict]],
@@ -33,51 +34,37 @@ async def generate_diagnostic(
     Returns:
         Diagnostic result with style, level, strengths, weaknesses
     """
-    try:
-        # Normaliser les réponses au format attendu par le service AI
-        normalized_responses = []
-        for r in responses:
-            if isinstance(r, dict):
-                # Ancien format ou nouveau format dict
-                if 'question_id' in r:
-                    # Nouveau format avec question_id
-                    normalized_responses.append({
-                        'question_id': r['question_id'],
-                        'question': r.get('question', f"Question {r['question_id']}"),
-                        'answer': str(r['answer'])
-                    })
-                elif 'question' in r:
-                    # Ancien format avec question text
-                    normalized_responses.append({
-                        'question': r['question'],
-                        'answer': str(r['answer'])
-                    })
-                else:
-                    # Format inconnu, essayer de convertir
-                    raise HTTPException(status_code=422, detail=f"Format de réponse invalide: {r}")
-            elif isinstance(r, DiagnosticResponse):
-                # Nouveau format Pydantic
+    normalized_responses = []
+    for r in responses:
+        if isinstance(r, dict):
+            if 'question_id' in r:
                 normalized_responses.append({
-                    'question_id': r.question_id,
-                    'question': r.question or f"Question {r.question_id}",
-                    'answer': r.answer
+                    'question_id': r['question_id'],
+                    'question': r.get('question', f"Question {r['question_id']}"),
+                    'answer': str(r['answer'])
+                })
+            elif 'question' in r:
+                normalized_responses.append({
+                    'question': r['question'],
+                    'answer': str(r['answer'])
                 })
             else:
-                raise HTTPException(status_code=422, detail=f"Type de réponse invalide: {type(r)}")
-        
-        result = await ai_service.generate_diagnostic(
-            responses=normalized_responses,
-            seller_name=current_user['name']
-        )
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+                raise ValidationError(f"Format de réponse invalide: {r}")
+        elif isinstance(r, DiagnosticResponse):
+            normalized_responses.append({
+                'question_id': r.question_id,
+                'question': r.question or f"Question {r.question_id}",
+                'answer': r.answer
+            })
+        else:
+            raise ValidationError(f"Type de réponse invalide: {type(r)}")
+    return await ai_service.generate_diagnostic(
+        responses=normalized_responses,
+        seller_name=current_user['name']
+    )
 
 
-@router.post("/daily-challenge")
-@limiter.limit("10/minute")  # ⚠️ SECURITY: Rate limit 10 req/min to prevent cost abuse
+@router.post("/daily-challenge", dependencies=[rate_limit("5/minute")])
 async def generate_daily_challenge(
     request: Request,
     current_user: Dict = Depends(get_current_seller),
@@ -99,10 +86,10 @@ async def generate_daily_challenge(
         )
         return challenge
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BusinessLogicError(str(e))
 
 
-@router.post("/seller-bilan", dependencies=[rate_limit("10/minute")])
+@router.post("/seller-bilan", dependencies=[rate_limit("5/minute")])
 async def generate_seller_bilan(
     request: Request,
     current_user: Dict = Depends(get_current_seller),
@@ -118,11 +105,8 @@ async def generate_seller_bilan(
     Returns:
         Performance bilan
     """
-    try:
-        return await ai_data_service.generate_seller_bilan_with_data(
-            seller_id=current_user['id'],
-            seller_data=current_user,
-            days=30
-        )
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await ai_data_service.generate_seller_bilan_with_data(
+        seller_id=current_user['id'],
+        seller_data=current_user,
+        days=30
+    )

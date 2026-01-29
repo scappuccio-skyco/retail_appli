@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from api.dependencies import get_seller_service
 from core.security import get_current_user, require_active_space
-from exceptions.custom_exceptions import ForbiddenError, NotFoundError
+from core.exceptions import ForbiddenError, NotFoundError
 from models.pagination import PaginationParams
 from services.seller_service import SellerService
 

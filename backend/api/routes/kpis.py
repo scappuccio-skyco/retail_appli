@@ -2,9 +2,10 @@
 KPI Routes
 Seller and manager KPI management
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from typing import Dict
 
+from core.exceptions import ValidationError
 from models.kpis import KPIEntryCreate
 from services.kpi_service import KPIService
 from api.dependencies import get_kpi_service
@@ -30,18 +31,10 @@ async def check_kpi_enabled(
     Checks store configuration to see if manual KPI entry is allowed
     Returns whether seller can submit KPIs manually
     """
-    try:
-        store_id = current_user.get('store_id')
-        
-        # If no store, KPI entry is enabled by default
-        if not store_id:
-            return {"enabled": True, "sync_mode": "manual"}
-        
-        # Check store sync mode
-        result = await kpi_service.check_kpi_entry_enabled(store_id)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    store_id = current_user.get('store_id')
+    if not store_id:
+        return {"enabled": True, "sync_mode": "manual"}
+    return await kpi_service.check_kpi_entry_enabled(store_id)
 
 
 # ===== SELLER KPI ENDPOINTS =====
@@ -64,26 +57,20 @@ async def create_seller_kpi(
         Created/updated KPI entry
         
     Raises:
-        HTTPException 403: If KPI is locked (from API)
-        HTTPException 400: Validation error
+        ForbiddenError: If KPI is locked (from API)
+        ValidationError: Validation error
     """
-    try:
-        result = await kpi_service.create_or_update_seller_kpi(
-            seller_id=current_user['id'],
-            date=kpi_data.date,
-            kpi_data={
-                'ca_journalier': kpi_data.ca_journalier,
-                'nb_ventes': kpi_data.nb_ventes,
-                'nb_articles': kpi_data.nb_articles,
-                'nb_prospects': kpi_data.nb_prospects,
-                'comment': kpi_data.comment
-            }
-        )
-        return result
-    except Exception as e:
-        if "logiciel de caisse" in str(e):
-            raise HTTPException(status_code=403, detail=str(e))
-        raise HTTPException(status_code=400, detail=str(e))
+    return await kpi_service.create_or_update_seller_kpi(
+        seller_id=current_user['id'],
+        date=kpi_data.date,
+        kpi_data={
+            'ca_journalier': kpi_data.ca_journalier,
+            'nb_ventes': kpi_data.nb_ventes,
+            'nb_articles': kpi_data.nb_articles,
+            'nb_prospects': kpi_data.nb_prospects,
+            'comment': kpi_data.comment
+        }
+    )
 
 
 @router.get("/seller/entries")
@@ -105,16 +92,11 @@ async def get_seller_kpis(
     Returns:
         List of KPI entries
     """
-    try:
-        entries = await kpi_service.kpi_repo.find_by_date_range(
-            seller_id=current_user['id'],
-            start_date=start_date,
-            end_date=end_date
-        )
-        
-        return entries
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await kpi_service.get_kpis_by_date_range(
+        current_user['id'],
+        start_date,
+        end_date,
+    )
 
 
 @router.get("/seller/summary")
@@ -136,15 +118,11 @@ async def get_seller_kpi_summary(
     Returns:
         Aggregated KPI summary
     """
-    try:
-        summary = await kpi_service.get_seller_kpi_summary(
-            seller_id=current_user['id'],
-            start_date=start_date,
-            end_date=end_date
-        )
-        return summary
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await kpi_service.get_seller_kpi_summary(
+        seller_id=current_user['id'],
+        start_date=start_date,
+        end_date=end_date
+    )
 
 
 # ===== MANAGER KPI ENDPOINTS =====
@@ -166,17 +144,14 @@ async def get_store_kpi_summary(
     Returns:
         Store KPI summary
     """
-    try:
-        if not current_user.get('store_id'):
-            raise HTTPException(status_code=400, detail="Manager has no assigned store")
-        
-        summary = await kpi_service.aggregate_store_kpis(
-            store_id=current_user['store_id'],
-            date=date
-        )
-        return summary
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    if not current_user.get('store_id'):
+        raise ValidationError("Manager has no assigned store")
+    
+    summary = await kpi_service.aggregate_store_kpis(
+        store_id=current_user['store_id'],
+        date=date
+    )
+    return summary
 
 
 # ===== GERANT KPI ENDPOINTS =====

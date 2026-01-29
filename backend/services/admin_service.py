@@ -102,97 +102,91 @@ class AdminService:
         - Managers and sellers count
         - Each store with its manager and sellers
         - Subscription with guaranteed plan field
-        
-        Args:
-            include_deleted: If True, includes deleted/inactive workspaces
+
+        Uses batch fetching ($in) to avoid N+1: gérants, managers, sellers, counts in bulk.
         """
         workspaces = await self.admin_repo.get_all_workspaces(include_deleted=include_deleted)
-        
+        return await self._enrich_workspaces_with_details(workspaces)
+
+    async def _enrich_workspaces_with_details(self, workspaces: List[Dict]) -> List[Dict]:
+        """Enrich workspaces with gérants, stores, managers, sellers (batch fetch)."""
+        if not workspaces:
+            return []
+
+        gerant_ids = [w.get('gerant_id') for w in workspaces if w.get('gerant_id')]
+        all_gerants = await self.admin_repo.get_gerants_by_ids(gerant_ids)
+        gerant_map = {g['id']: g for g in all_gerants}
+
+        count_by_gerant = await self.admin_repo.count_active_sellers_by_gerant_ids(gerant_ids)
+
+        store_ids = []
+        workspace_stores: List[List[Dict]] = []
         for workspace in workspaces:
             workspace_id = workspace.get('id')
             gerant_id = workspace.get('gerant_id')
-            
-            # CRITICAL: Ensure workspace has a status field with default 'active'
-            # Frontend displays "Supprimé" if status is not 'active' or 'suspended'
-            # Only set default if status is missing, None, or empty string
-            # If status is explicitly 'deleted', keep it as is
-            current_status = workspace.get('status')
-            if not current_status or current_status == '' or current_status is None:
-                workspace['status'] = 'active'
-            
-            # Get gérant info
-            if gerant_id:
-                gerant = await self.admin_repo.get_gerant_by_id(gerant_id)
-                workspace['gerant'] = gerant
-            else:
-                workspace['gerant'] = None
-            
-            # Get stores for this workspace - try both gerant_id and workspace_id
             stores = []
             if gerant_id:
                 stores = await self.admin_repo.get_stores_by_gerant(gerant_id)
-            
-            # If no stores found via gerant_id, try workspace_id
             if not stores and workspace_id:
                 stores = await self.admin_repo.get_stores_by_workspace(workspace_id)
-            
-            # Enrich each store with its manager and sellers
+            workspace_stores.append(stores)
+            store_ids.extend(s.get('id') for s in stores if s.get('id'))
+
+        all_managers = await self.admin_repo.get_managers_for_stores(store_ids)
+        manager_map = {m['store_id']: m for m in all_managers}
+        all_sellers = await self.admin_repo.get_sellers_for_stores(store_ids)
+        sellers_map: Dict[str, List[Dict]] = {}
+        for sid in set(store_ids):
+            sellers_map[sid] = []
+        for s in all_sellers:
+            sid = s.get('store_id')
+            if sid and sid in sellers_map:
+                sellers_map[sid].append(s)
+
+        for i, workspace in enumerate(workspaces):
+            workspace_id = workspace.get('id')
+            gerant_id = workspace.get('gerant_id')
+            current_status = workspace.get('status')
+            if not current_status or current_status == '' or current_status is None:
+                workspace['status'] = 'active'
+            workspace['gerant'] = gerant_map.get(gerant_id) if gerant_id else None
+
+            stores = workspace_stores[i]
             total_managers = 0
             total_sellers = 0
-            
             for store in stores:
-                # Get manager for this store
-                manager = await self.admin_repo.get_manager_for_store(store.get('id'))
+                sid = store.get('id')
+                manager = manager_map.get(sid) if sid else None
                 store['manager'] = manager
                 if manager:
                     total_managers += 1
-                
-                # Get sellers for this store
-                sellers = await self.admin_repo.get_sellers_for_store(store.get('id'))
+                sellers = sellers_map.get(sid, []) if sid else []
                 store['sellers'] = sellers
                 store['sellers_count'] = len([s for s in sellers if s.get('status') == 'active'])
                 store['total_sellers'] = len(sellers)
                 total_sellers += store['sellers_count']
-                
-                # Ensure store has a status
                 if not store.get('status'):
                     store['status'] = 'active' if store.get('active', True) else 'inactive'
-            
+
             workspace['stores'] = stores
             workspace['stores_count'] = len(stores)
             workspace['managers_count'] = total_managers
             workspace['sellers_count'] = total_sellers
-            
-            # Also get total users directly from users collection for accuracy
-            if gerant_id:
-                total_workspace_sellers = await self.admin_repo.count_users_by_criteria({
-                    "gerant_id": gerant_id,
-                    "role": "seller",
-                    "status": "active"
-                })
-            else:
-                total_workspace_sellers = total_sellers
-            workspace['total_sellers'] = total_workspace_sellers
-            
-            # CRITICAL: FORCE subscription object - NEVER null
-            # Frontend WILL crash if subscription or subscription.plan is missing
+            workspace['total_sellers'] = count_by_gerant.get(gerant_id, total_sellers) if gerant_id else total_sellers
+
             default_subscription = {
                 "plan": "free",
                 "status": "active",
                 "created_at": workspace.get('created_at'),
                 "trial_ends_at": workspace.get('trial_ends_at')
             }
-            
-            # If workspace has subscription data in DB, use it
-            if workspace.get('subscription') and isinstance(workspace['subscription'], dict):
+            if workspace.get('subscription') and isinstance(workspace.get('subscription'), dict):
                 workspace['subscription']['plan'] = workspace['subscription'].get('plan') or workspace.get('subscription_plan', 'free')
                 workspace['subscription']['status'] = workspace['subscription'].get('status') or workspace.get('subscription_status', 'active')
             else:
-                # No subscription or it's null/invalid, force default
                 workspace['subscription'] = default_subscription
                 workspace['subscription']['plan'] = workspace.get('subscription_plan', 'free')
                 workspace['subscription']['status'] = workspace.get('subscription_status', 'active')
-        
         return workspaces
 
     async def get_workspaces_with_details_paginated(
@@ -203,82 +197,14 @@ class AdminService:
     ) -> PaginatedResponse:
         """
         Get workspaces paginated with enriched details (Phase 3: scalable admin).
-        Same enrichment as get_workspaces_with_details but on a single page.
+        Same enrichment as get_workspaces_with_details but on a single page (batch fetch).
         """
         result = await self.admin_repo.get_all_workspaces_paginated(
             page=page,
             size=size,
             include_deleted=include_deleted,
         )
-        workspaces = result.items
-
-        for workspace in workspaces:
-            workspace_id = workspace.get('id')
-            gerant_id = workspace.get('gerant_id')
-
-            current_status = workspace.get('status')
-            if not current_status or current_status == '' or current_status is None:
-                workspace['status'] = 'active'
-
-            if gerant_id:
-                gerant = await self.admin_repo.get_gerant_by_id(gerant_id)
-                workspace['gerant'] = gerant
-            else:
-                workspace['gerant'] = None
-
-            stores = []
-            if gerant_id:
-                stores = await self.admin_repo.get_stores_by_gerant(gerant_id)
-            if not stores and workspace_id:
-                stores = await self.admin_repo.get_stores_by_workspace(workspace_id)
-
-            total_managers = 0
-            total_sellers = 0
-
-            for store in stores:
-                manager = await self.admin_repo.get_manager_for_store(store.get('id'))
-                store['manager'] = manager
-                if manager:
-                    total_managers += 1
-
-                sellers = await self.admin_repo.get_sellers_for_store(store.get('id'))
-                store['sellers'] = sellers
-                store['sellers_count'] = len([s for s in sellers if s.get('status') == 'active'])
-                store['total_sellers'] = len(sellers)
-                total_sellers += store['sellers_count']
-
-                if not store.get('status'):
-                    store['status'] = 'active' if store.get('active', True) else 'inactive'
-
-            workspace['stores'] = stores
-            workspace['stores_count'] = len(stores)
-            workspace['managers_count'] = total_managers
-            workspace['sellers_count'] = total_sellers
-
-            if gerant_id:
-                total_workspace_sellers = await self.admin_repo.count_users_by_criteria({
-                    "gerant_id": gerant_id,
-                    "role": "seller",
-                    "status": "active"
-                })
-            else:
-                total_workspace_sellers = total_sellers
-            workspace['total_sellers'] = total_workspace_sellers
-
-            default_subscription = {
-                "plan": "free",
-                "status": "active",
-                "created_at": workspace.get('created_at'),
-                "trial_ends_at": workspace.get('trial_ends_at')
-            }
-            if workspace.get('subscription') and isinstance(workspace['subscription'], dict):
-                workspace['subscription']['plan'] = workspace['subscription'].get('plan') or workspace.get('subscription_plan', 'free')
-                workspace['subscription']['status'] = workspace['subscription'].get('status') or workspace.get('subscription_status', 'active')
-            else:
-                workspace['subscription'] = default_subscription
-                workspace['subscription']['plan'] = workspace.get('subscription_plan', 'free')
-                workspace['subscription']['status'] = workspace.get('subscription_status', 'active')
-
+        workspaces = await self._enrich_workspaces_with_details(result.items)
         return PaginatedResponse(
             items=workspaces,
             total=result.total,
@@ -424,25 +350,29 @@ class AdminService:
     async def get_system_logs(
         self,
         hours: int = 24,
-        limit: int = 100,
+        page: int = 1,
+        size: int = 50,
         level: Optional[str] = None,
         type_filter: Optional[str] = None
     ) -> Dict:
         """
-        Get system logs filtered by time window
+        Get system logs filtered by time window (paginated).
         
         Args:
             hours: Number of hours to look back
-            limit: Maximum number of logs to return
+            page: Page number (1-indexed)
+            size: Number of items per page
         
         Returns:
-            Dict with logs list and metadata
+            Dict with items, total, page, size, pages and optional available_actions/admins
         """
+        size = min(size, MAX_PAGE_SIZE)
         now = datetime.now(timezone.utc)
         time_threshold = now - timedelta(hours=hours)
         
-        # Get logs from repository
-        logs = await self.admin_repo.get_system_logs(time_threshold, limit)
+        logs, total = await self.admin_repo.get_system_logs(
+            time_threshold, page=page, size=size
+        )
         
         # Normalize logs to ensure required fields exist
         normalized_logs = []
@@ -488,11 +418,13 @@ class AdminService:
                 filtered_logs.append(log)
             normalized_logs = filtered_logs
         
-        # ⚠️ IMPORTANT: Ne pas créer de logs mockés
-        # Les logs doivent être créés automatiquement par l'application lors d'événements réels
+        pages = (total + size - 1) // size if total > 0 else 0
         return {
-            "logs": normalized_logs,
-            "total": len(normalized_logs),
+            "items": normalized_logs,
+            "total": total,
+            "page": page,
+            "size": size,
+            "pages": pages,
             "period_hours": hours,
             "timestamp": now.isoformat(),
             "available_actions": sorted(list(all_actions)),
@@ -502,19 +434,23 @@ class AdminService:
     async def get_admin_audit_logs(
         self,
         hours: int = 24,
-        limit: int = 100,
+        page: int = 1,
+        size: int = 50,
         action: Optional[str] = None,
         admin_emails: Optional[List[str]] = None
     ) -> Dict:
         """
-        Get admin audit logs filtered by time window
+        Get admin audit logs filtered by time window (paginated).
+        Returns dict with items, total, page, size, pages.
         """
+        size = min(size, MAX_PAGE_SIZE)
         now = datetime.now(timezone.utc)
         time_threshold = now - timedelta(hours=hours)
 
-        logs = await self.admin_repo.get_admin_logs(
+        logs, total = await self.admin_repo.get_admin_logs(
             time_threshold=time_threshold,
-            limit=limit,
+            page=page,
+            size=size,
             action=action,
             admin_emails=admin_emails
         )
@@ -536,12 +472,14 @@ class AdminService:
             })
 
         actions = await self.admin_repo.get_admin_actions(time_threshold)
-        admins = await self.admin_repo.get_admins_from_logs(time_threshold)
+        admins_list, _ = await self.admin_repo.get_admins_from_logs(
+            time_threshold, page=1, size=500
+        )
 
-        # Normalize admin list for UI
+        # Normalize admin list for UI (filter dropdown)
         available_admins = []
         seen_emails = set()
-        for admin in admins:
+        for admin in admins_list:
             email = admin.get('email')
             if not email or email in seen_emails:
                 continue
@@ -551,9 +489,13 @@ class AdminService:
                 "name": admin.get('name') or email
             })
 
+        pages = (total + size - 1) // size if total > 0 else 0
         return {
-            "logs": normalized_logs,
-            "total": len(normalized_logs),
+            "items": normalized_logs,
+            "total": total,
+            "page": page,
+            "size": size,
+            "pages": pages,
             "period_hours": hours,
             "timestamp": now.isoformat(),
             "available_actions": sorted([a for a in actions if a]),

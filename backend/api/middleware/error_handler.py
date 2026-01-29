@@ -1,9 +1,11 @@
 """
-Global Error Handler Middleware
+Global Error Handler Middleware (DEPRECATED – unused).
 
-Intercepts all exceptions and converts them to appropriate HTTP responses.
-- AppException subclasses → Return their status_code and detail
-- Unexpected errors → Log with traceback and return clean 500
+Error handling is done via FastAPI exception handlers in main.py:
+- AppException → _app_exception_handler
+- Exception → _unhandled_exception_handler (log + 500)
+
+This middleware is no longer registered. Kept for reference only.
 """
 import logging
 import traceback
@@ -13,7 +15,7 @@ from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from exceptions.custom_exceptions import AppException
+from core.exceptions import AppException
 
 logger = logging.getLogger(__name__)
 

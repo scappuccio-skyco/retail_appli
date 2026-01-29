@@ -3,11 +3,12 @@ Evaluation Guide Routes (Entretien Annuel)
 🎯 Génère des guides d'entretien IA adaptés au rôle (Manager vs Vendeur)
 """
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from typing import Dict, Optional
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
 
+from core.exceptions import ValidationError, NotFoundError
 from core.security import get_current_user, require_active_space, verify_evaluation_employee_access
 
 logger = logging.getLogger(__name__)
@@ -49,18 +50,18 @@ class EvaluationGuideResponse(BaseModel):
 async def get_employee_stats(seller_service: SellerService, employee_id: str, start_date: str, end_date: str) -> Dict:
     """
     Récupère les statistiques agrégées d'un vendeur sur une période.
-    Phase 0 Vague 2: uses seller_service.kpi_repo (no db).
+    Phase 0: Zero Repo in Route - seller_service.get_kpis_by_date_range.
     """
     try:
         start = datetime.strptime(start_date, "%Y-%m-%d")
         end = datetime.strptime(end_date, "%Y-%m-%d")
     except ValueError:
-        raise HTTPException(status_code=400, detail="Format de date invalide. Utilisez YYYY-MM-DD")
+        raise ValidationError("Format de date invalide. Utilisez YYYY-MM-DD")
     
-    kpis = await seller_service.kpi_repo.find_by_date_range(
+    kpis = await seller_service.get_kpis_by_date_range(
         employee_id,
         start.strftime("%Y-%m-%d"),
-        end.strftime("%Y-%m-%d")
+        end.strftime("%Y-%m-%d"),
     )
     
     if not kpis:
@@ -113,30 +114,11 @@ async def get_employee_stats(seller_service: SellerService, employee_id: str, st
 
 async def get_disc_profile(seller_service: SellerService, user_id: str) -> Optional[Dict]:
     """
-    🎨 Récupère le profil DISC d'un utilisateur. Phase 0 Vague 2: seller_service (no db).
+    Récupère le profil DISC pour le guide d'entretien. Phase 0: Zero Repo - seller_service.get_disc_profile_for_evaluation.
     """
     try:
-        diagnostic = await seller_service.diagnostic_repo.find_one(
-            {"seller_id": user_id},
-            {"_id": 0, "style": 1, "level": 1, "strengths": 1, "weaknesses": 1, "axes_de_developpement": 1}
-        )
-        
-        if diagnostic:
-            if 'weaknesses' in diagnostic and 'axes_de_developpement' not in diagnostic:
-                diagnostic['axes_de_developpement'] = diagnostic.pop('weaknesses')
-            return diagnostic
-        
-        user = await seller_service.user_repo.find_one(
-            {"id": user_id},
-            {"_id": 0, "disc_profile": 1}
-        )
-        if user and user.get("disc_profile"):
-            return user["disc_profile"]
-        
-        return None
-        
+        return await seller_service.get_disc_profile_for_evaluation(user_id)
     except Exception as e:
-        # Log l'erreur mais ne bloque pas la génération
         logger.warning("Erreur récupération profil DISC pour user_id=%s: %s", user_id, e, exc_info=True)
         return None
 
@@ -155,7 +137,7 @@ async def generate_evaluation_guide(
     """
     employee = await verify_evaluation_employee_access(
         current_user, request.employee_id,
-        user_repo=seller_service.user_repo, store_repo=store_service.store_repo,
+        seller_service=seller_service, store_service=store_service,
     )
     employee_name = employee.get('name', 'Vendeur')
     
@@ -167,10 +149,7 @@ async def generate_evaluation_guide(
     )
     
     if stats.get('no_data'):
-        raise HTTPException(
-            status_code=404,
-            detail=f"Aucune donnée KPI trouvée pour {employee_name} sur cette période"
-        )
+        raise NotFoundError(f"Aucune donnée KPI trouvée pour {employee_name} sur cette période")
     
     # 3. Déterminer le rôle pour la perspective du guide
     caller_role = current_user.get('role')
@@ -187,8 +166,8 @@ async def generate_evaluation_guide(
     disc_profile = await get_disc_profile(seller_service, request.employee_id)
     
     interview_notes = []
-    if role_perspective == "seller" and seller_service.interview_note_repo:
-        notes = await seller_service.interview_note_repo.find_by_seller(request.employee_id)
+    if role_perspective == "seller":
+        notes = await seller_service.get_interview_notes_by_seller(request.employee_id)
         notes_in_period = [
             note for note in notes
             if request.start_date <= note.get("date", "") <= request.end_date
@@ -232,7 +211,7 @@ async def get_evaluation_stats(
     """
     employee = await verify_evaluation_employee_access(
         current_user, employee_id,
-        user_repo=seller_service.user_repo, store_repo=store_service.store_repo,
+        seller_service=seller_service, store_service=store_service,
     )
     stats = await get_employee_stats(seller_service, employee_id, start_date, end_date)
     
