@@ -1204,6 +1204,10 @@ async def get_invitations(
     """Get all invitations sent by this gérant"""
     try:
         return await gerant_service.get_invitations(current_user['id'])
+    except ValueError as e:
+        raise NotFoundError(str(e))
+    except Exception as e:
+        raise AppException(detail=str(e), status_code=500)
 
 
 @router.delete("/invitations/{invitation_id}")
@@ -1663,6 +1667,10 @@ async def bulk_import_stores(
             failed=results['failed'],
             errors=results['errors'][:20]  # Limiter les erreurs retournées
         )
+    except AppException:
+        raise
+    except Exception as e:
+        raise AppException(detail=str(e), status_code=500)
 
 
 # === SUPPORT CONTACT ===
@@ -2502,7 +2510,8 @@ async def get_all_subscriptions(
             "subscriptions": formatted_subscriptions,
             "warning": f"⚠️ {active_count} abonnement(s) actif(s) détecté(s)" if active_count > 1 else None
         }
-        
+    except Exception as e:
+        raise AppException(detail=str(e), status_code=500)
 
 
 @router.get("/subscription/audit")
@@ -2689,6 +2698,8 @@ async def get_billing_profile(
             return {"exists": False, "profile": None}
         
         return {"exists": True, "profile": billing_profile}
+    except Exception as e:
+        raise AppException(detail=str(e), status_code=500)
 
 
 @router.post("/billing-profile")
