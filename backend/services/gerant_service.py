@@ -468,10 +468,12 @@ class GerantService:
         await self.store_repo.update_one(
             {"id": store_id, "gerant_id": gerant_id},
             {
-                "active": False,
-                "deleted_at": datetime.now(timezone.utc).isoformat(),
-                "deleted_by": gerant_id
-            }
+                "$set": {
+                    "active": False,
+                    "deleted_at": datetime.now(timezone.utc).isoformat(),
+                    "deleted_by": gerant_id,
+                }
+            },
         )
         from core.cache import invalidate_store_cache, invalidate_user_cache
         await invalidate_store_cache(store_id)
@@ -486,10 +488,12 @@ class GerantService:
         await self.user_repo.update_many(
             {"store_id": store_id, "status": "active"},
             {
-                "status": "suspended",
-                "suspended_reason": "Store deleted",
-                "suspended_at": datetime.now(timezone.utc).isoformat()
-            }
+                "$set": {
+                    "status": "suspended",
+                    "suspended_reason": "Store deleted",
+                    "suspended_at": datetime.now(timezone.utc).isoformat(),
+                }
+            },
         )
         for u in affected_users:
             if u.get("id"):
@@ -520,7 +524,7 @@ class GerantService:
             update_fields['updated_at'] = datetime.now(timezone.utc).isoformat()
             await self.store_repo.update_one(
                 {"id": store_id, "gerant_id": gerant_id},
-                update_fields
+                {"$set": update_fields},
             )
         
         # Return updated store
@@ -555,9 +559,11 @@ class GerantService:
         await self.user_repo.update_one(
             {"id": manager_id},
             {
-                "store_id": new_store_id,
-                "updated_at": datetime.now(timezone.utc).isoformat()
-            }
+                "$set": {
+                    "store_id": new_store_id,
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }
+            },
         )
         from core.cache import invalidate_user_cache
         await invalidate_user_cache(manager_id)
@@ -2332,11 +2338,13 @@ class GerantService:
         await self.user_repo.update_one(
             {"id": user_id},
             {
-                "status": "suspended",
-                "suspended_at": datetime.now(timezone.utc).isoformat(),
-                "suspended_by": gerant_id,
-                "suspended_reason": "Suspendu par le gérant"
-            }
+                "$set": {
+                    "status": "suspended",
+                    "suspended_at": datetime.now(timezone.utc).isoformat(),
+                    "suspended_by": gerant_id,
+                    "suspended_reason": "Suspendu par le gérant",
+                }
+            },
         )
         
         return {"message": f"{role.capitalize()} suspendu avec succès"}
@@ -2411,10 +2419,12 @@ class GerantService:
         await self.user_repo.update_one(
             {"id": user_id},
             {
-                "status": "deleted",
-                "deleted_at": datetime.now(timezone.utc).isoformat(),
-                "deleted_by": gerant_id
-            }
+                "$set": {
+                    "status": "deleted",
+                    "deleted_at": datetime.now(timezone.utc).isoformat(),
+                    "deleted_by": gerant_id,
+                }
+            },
         )
         from core.cache import invalidate_user_cache
         await invalidate_user_cache(user_id)
