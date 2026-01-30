@@ -285,8 +285,7 @@ const GerantDashboard = ({ user, onLogout }) => {
       toast.info(message, { duration: 4000 });
       navigate(location.pathname, { replace: true, state: {} });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state?.message]);
+  }, [location.state?.message, location.pathname, navigate]);
 
   // Charger les données au montage
   useEffect(() => {
