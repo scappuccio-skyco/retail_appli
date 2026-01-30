@@ -40,7 +40,17 @@ safe_import('api.routes.integrations', 'router')
 safe_import('api.routes.gerant', 'router')
 safe_import('api.routes.onboarding', 'router')
 safe_import('api.routes.enterprise', 'router')
-safe_import('api.routes.manager', 'router')
+# Manager: import from package .manager (not file manager.py)
+try:
+    from api.routes.manager import router as manager_router
+    routers.append(manager_router)
+    logger.info(
+        "Loaded api.routes.manager (prefix: %s, routes: %s)",
+        manager_router.prefix,
+        len(manager_router.routes),
+    )
+except Exception as e:
+    logger.exception("Failed to load api.routes.manager package: %s", e)
 safe_import('api.routes.diagnostics', 'router')
 safe_import('api.routes.sellers', 'router')
 safe_import('api.routes.sellers', 'diagnostic_router')

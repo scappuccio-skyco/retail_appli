@@ -1,6 +1,5 @@
 """Main FastAPI Application Entry Point - Phase 11: single responsibility."""
 import sys
-import os
 import logging
 import traceback
 
@@ -8,16 +7,7 @@ sys.stdout.reconfigure(line_buffering=True) if hasattr(sys.stdout, "reconfigure"
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
-try:
-    from core.config import settings
-except Exception as e:
-    logger.warning("Settings import failed, using fallback: %s", e)
-    class MinimalSettings:
-        ENVIRONMENT = os.environ.get("ENVIRONMENT", "production")
-        DEBUG = False
-        CORS_ORIGINS = "*"
-        DB_NAME = os.environ.get("DB_NAME", "retail_coach")
-    settings = MinimalSettings()
+from core.config import settings
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

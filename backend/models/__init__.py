@@ -30,6 +30,7 @@ from models.kpis import (
     ManagerKPI, ManagerKPICreate,
     StoreKPI, StoreKPICreate
 )
+from models.kpi_config import DEFAULT_KPI_CONFIG, get_default_kpi_config, KPIConfig
 
 # Subscription models
 from models.subscriptions import (
@@ -101,6 +102,7 @@ __all__ = [
     'KPIConfiguration', 'KPIConfigUpdate',
     'ManagerKPI', 'ManagerKPICreate',
     'StoreKPI', 'StoreKPICreate',
+    'DEFAULT_KPI_CONFIG', 'get_default_kpi_config', 'KPIConfig',
     
     # Subscriptions
     'Subscription', 'SubscriptionHistory',

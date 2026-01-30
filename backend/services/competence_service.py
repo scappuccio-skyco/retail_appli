@@ -4,7 +4,7 @@ Business logic for calculating seller performance scores from diagnostics and de
 
 This service centralizes all competence calculation logic that was previously
 scattered across routes. It does NOT know about HTTP - it raises business exceptions
-that are handled by the ErrorHandlerMiddleware.
+that are handled by the FastAPI exception handlers in main.py.
 """
 from typing import Dict, List, Optional
 import logging

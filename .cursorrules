@@ -2,7 +2,7 @@
 ## Source de Vérité pour le Développement
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 28 Janvier 2026
+**Dernière mise à jour**: 30 Janvier 2026
 
 ---
 
@@ -19,7 +19,7 @@
    - Le `ErrorHandlerMiddleware` convertit ces exceptions en réponses HTTP avec le bon status_code.
 
 3. **Pagination**
-   - Toute **liste** retournée par l’API doit être **paginée**. Pas de `.to_list(1000)`. Utiliser `paginate()`, `PaginatedResponse`, et les paramètres `page`/`limit` (max 100 par page).
+   - Toute **liste** retournée par l’API doit être **paginée**. Pas de `.to_list(1000)`. Utiliser `paginate()`, `PaginatedResponse`, et **`PaginationParams = Depends()`** en route (page/size en query). Défaut 20–50, max 100 par page (voir `models/pagination.py`). Pour listes potentiellement massives (ex. debriefs, competences-history), paginer ou documenter une limite (ex. cap 200).
 
 4. **Logs**
    - Utiliser **`logger`** (module `logging`), **jamais** `print`. Exemple : `logger.info(...)`, `logger.warning(...)`, `logger.error(...)`.
@@ -60,21 +60,35 @@ backend/
 │   ├── kpi_repository.py
 │   ├── store_repository.py
 │   └── ...
-├── services/                  # Business Logic layer (16 services)
+├── services/                  # Business Logic layer
 │   ├── auth_service.py
 │   ├── kpi_service.py
 │   ├── ai_service.py         # OpenAI integration
 │   ├── gerant_service.py
-│   ├── manager_service.py
+│   ├── manager_service.py    # Façade (délègue aux services manager/)
+│   ├── manager/              # Services spécialisés manager
+│   │   ├── store_service.py
+│   │   ├── seller_management_service.py
+│   │   ├── kpi_service.py
+│   │   └── achievement_service.py
 │   ├── seller_service.py
 │   ├── payment_service.py     # Stripe integration
 │   └── ...
-└── api/routes/                # Presentation layer (21 routers)
-    ├── auth.py               # 8 routes
-    ├── manager.py            # 53 routes ⚠️ Le plus volumineux
-    ├── gerant.py             # 45 routes
-    ├── sellers.py            # 38 routes
-    ├── stores.py             # 4 routes
+└── api/routes/                # Presentation layer
+    ├── auth.py
+    ├── manager/               # Package manager (découpage post-audit, Phase 3–4)
+    │   ├── __init__.py        # Agrége les routeurs (store, sellers, analytics, objectives, challenges, evaluations, consultations)
+    │   ├── dependencies.py   # Ré-exports: get_store_context, get_verified_seller, verify_manager_or_gerant
+    │   ├── store.py           # Config magasin, sync, KPI config, abonnement, clés API
+    │   ├── sellers.py         # Vendeurs, invitations, stats, debriefs, competences-history (paginés)
+    │   ├── analytics.py       # KPIs, graphiques, analyses IA (analyze-store-kpis, analyze-team)
+    │   ├── objectives.py      # Objectifs équipe (CRUD)
+    │   ├── challenges.py      # Défis équipe (CRUD)
+    │   ├── evaluations.py     # Diagnostics, debriefs, compétences (évaluations)
+    │   └── consultations.py   # Conseils relationnels, résolutions conflits (IA)
+    ├── gerant.py
+    ├── sellers.py
+    ├── stores.py
     └── ...
 ```
 
@@ -116,13 +130,15 @@ backend/
 | `subscriptions` | Abonnements Stripe | `user_id`, `stripe_subscription_id` (unique) |
 | `api_keys` | Clés API entreprise | `key_hash` (unique) |
 
-### ⚠️ Indexes MongoDB (Vérifiés)
+### ⚠️ Indexes MongoDB (Vérifiés – cf. core/indexes.py, Audit 3.2)
 
-- ✅ `manager_kpis.manager_date_store_idx`: `(manager_id, date, store_id)`
+- ✅ `users.store_role_status_idx`: `(store_id, role, status)` – vendeurs paginés
 - ✅ `kpi_entries.seller_date_idx`: `(seller_id, date)`
+- ✅ `debriefs.seller_created_at_idx`: `(seller_id, created_at)`
+- ✅ `manager_kpis.manager_date_store_idx`: `(manager_id, date, store_id)`
 - ✅ `subscriptions.stripe_subscription_id_idx`: `(stripe_subscription_id)` unique
 
-**⚠️ À VÉRIFIER**: Indexes sur `debriefs(seller_id, created_at)` et autres collections fréquentes
+Création au démarrage (lifespan) ou via `python -m backend.scripts.ensure_indexes`.
 
 ---
 
@@ -194,10 +210,10 @@ from api.dependencies import (
 
 **⚠️ EXISTE DÉJÀ** - NE PAS DUPLIQUER:
 
-- `backend/calculate_competences_and_levels.py` - Fonction `calculate_competence_scores_from_numeric_answers()`
-- Utilisée dans: `backend/api/routes/manager.py:2724-2751` (inline - À REFACTORER)
+- `backend/services/competence_service.py` – `CompetenceService` (calculs compétences, agrégation diagnostic + debriefs)
+- `backend/calculate_competences_and_levels.py` – Fonction `calculate_competence_scores_from_numeric_answers()` (legacy)
 
-**Pattern à suivre**: Créer `services/competence_service.py` pour centraliser tous les calculs.
+**Pattern**: Utiliser `get_competence_service` (dependencies) pour les calculs centralisés.
 
 ---
 
@@ -344,29 +360,27 @@ DEBRIEFS_LIMIT=5            # derniers debriefs
 
 ### Structure des Docs
 
+Les fichiers `.md` (documentation) sont rangés dans `docs/`, triés par mois de dernière modification dans `docs/archive/YYYY-MM/`. Seul `README.md` reste à la racine.
+
 ```
 docs/
-├── archive/              # Documents archivés par date
-│   ├── 2024-12/         # Décembre 2024
-│   ├── 2025-01/         # Janvier 2025
-│   └── 2025-02/         # Février 2025
-└── [docs actifs]        # Documents de référence actuels
+├── archive/              # Documents archivés par mois (date de modification)
+│   └── 2026-01/         # Janvier 2026 (audits, phases, rapports, guides…)
+└── [docs actifs]        # Corrections, index (INDEX_DOCUMENTS.md, etc.)
 ```
 
 ### Documents de Référence (À GARDER À JOUR)
 
-- `AUDIT_ARCHITECTURAL_CRITIQUE.md` - Audit complet (27 Jan 2026)
-- `SYNTHESE_ARCHITECTURE_POST_REFACTORING.md` - Architecture actuelle
-- `REFACTORING_SUMMARY.md` - Résumé refactoring
-- `CHANGELOG.md` - Historique des changements
-- `.cursorrules` - **CE DOCUMENT** (source de vérité)
+- `docs/archive/2026-01/AUDIT_ARCHITECTURAL_CRITIQUE.md` - Audit complet (27 Jan 2026)
+- `docs/archive/2026-01/SYNTHESE_ARCHITECTURE_POST_REFACTORING.md` - Architecture actuelle
+- `docs/archive/2026-01/REFACTORING_SUMMARY.md` - Résumé refactoring
+- `docs/archive/2026-01/CHANGELOG.md` - Historique des changements
+- `.cursorrules` - **CE DOCUMENT** (source de vérité, à la racine)
 
-### Documents à Archiver
+### Règle d’archivage
 
-- Tous les `AUDIT_*.md` (sauf le dernier)
-- Tous les `VAGUE_*.md` (optimisations terminées)
-- Tous les `CORRECTION_*.md` (corrections appliquées)
-- Tous les `RESUME_*.md` (résumés de tâches terminées)
+- Nouveaux `.md` à la racine : les déplacer vers `docs/archive/YYYY-MM/` selon leur date de modification.
+- Documents actifs (corrections en cours, index) : restent dans `docs/` à la racine du dossier docs.
 
 ---
 
@@ -550,12 +564,12 @@ Avant chaque commit, vérifier:
 - ✅ Ajouté: `backend/models/pagination.py` - Modèle `PaginatedResponse` générique
 - ✅ Ajouté: `backend/utils/pagination.py` - Fonction `paginate()` avec `asyncio.gather` pour performance
 - ✅ Ajouté: `backend/config/limits.py` - Constantes centralisées (DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, etc.)
-- ✅ Modifié: `backend/api/routes/manager.py` - Refactoring `get_seller_kpi_entries()` avec pagination
+- ✅ Modifié: `backend/api/routes/manager/` - Pagination `get_seller_kpi_entries()` (analytics)
 - ✅ Modifié: `backend/models/__init__.py` - Export de `PaginatedResponse` et `PaginationParams`
 
 ### [27 Janvier 2026] - Phase 3: Extraction Logique Métier
 - ✅ Ajouté: `backend/services/competence_service.py` - Service centralisé pour calculs de compétences
-- ✅ Modifié: `backend/api/routes/manager.py` - Refactoring `get_seller_stats()` (175 lignes → ~60 lignes)
+- ✅ Modifié: `backend/api/routes/manager/` - Refactoring `get_seller_stats()` (analytics)
 - ✅ Modifié: `backend/api/dependencies.py` - Ajout `get_competence_service()`
 - ✅ Modifié: `backend/services/__init__.py` - Export de `CompetenceService`
 
@@ -564,6 +578,18 @@ Avant chaque commit, vérifier:
 - ✅ Modifié: `backend/core/database.py` - Pool size augmenté à 50, timeouts optimisés (production-ready)
 - ✅ Ajouté: `backend/scripts/ensure_indexes.py` - Script d'indexation pour déploiement
 - ✅ Modifié: `.cursorrules` - Documentation configuration production-ready
+
+### [29 Janvier 2026] - Organisation des documents par mois
+- ✅ Déplacé tous les fichiers `.md` de la racine (sauf README.md) vers `docs/archive/YYYY-MM/` (tri par mois de dernière modification)
+- ✅ Créé `docs/archive/2026-01/` et déplacé ~130 documents
+- ✅ Mis à jour section **ORGANISATION DES DOCUMENTS** dans `.cursorrules` et `docs/INDEX_DOCUMENTS.md`
+
+### [29 Janvier 2026] - Refactoring Manager + Pagination + Indexes
+- ✅ Routes manager: package `api/routes/manager/` (store, sellers, analytics, objectives, challenges, evaluations)
+- ✅ Services manager: package `services/manager/` (store, seller_management, kpi, achievement) + façade `manager_service.py`
+- ✅ Pagination: vendeurs (page/size), debriefs et competences-history (evaluations.py), défaut 50
+- ✅ Indexes: documentation Audit 3.2 dans `core/indexes.py` (users, kpi_entries, debriefs)
+- ✅ Supprimé `api/routes/manager_legacy.py`
 
 ### [28 Janvier 2026] - Phase 5: Qualité & Pérennité (Finalisation)
 - ✅ Section **RÈGLES CRITIQUES (Architecture Backend)** - Architecture (Services/Repositories injectés), Erreurs (pas HTTPException 500), Pagination (pas .to_list(1000)), Logs (logger jamais print)

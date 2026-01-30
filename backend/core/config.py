@@ -75,71 +75,16 @@ _settings = None
 
 def get_settings() -> Settings:
     """
-    Get application settings (singleton pattern)
-    Validates all required environment variables at first call
+    Get application settings (singleton pattern).
+    Validates all required environment variables at first call.
+    If validation fails, raises immediately — no fallback (fail-fast at startup).
     """
     global _settings
     if _settings is not None:
         return _settings
-
-    try:
-        _settings = Settings()
-        return _settings
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-
-        env = os.environ.get("ENVIRONMENT", "development").lower()
-
-        # ✅ FAIL-FAST en production
-        if env == "production":
-            logger.error(f"❌ Settings validation failed in production: {e}")
-            raise
-
-        # ✅ Fallback uniquement hors prod
-        logger.warning(f"⚠️ Settings validation failed ({e}), using os.environ fallback (env={env})")
-
-        class FallbackSettings:
-            ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
-            DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
-            CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*")
-            MONGO_URL = os.environ.get("MONGO_URL", "")
-            DB_NAME = os.environ.get("DB_NAME", "retail_coach")
-            MONGO_MAX_POOL_SIZE = int(os.environ.get("MONGO_MAX_POOL_SIZE", "50"))
-            MONGO_MIN_POOL_SIZE = int(os.environ.get("MONGO_MIN_POOL_SIZE", "1"))
-            MONGO_CONNECT_TIMEOUT_MS = int(os.environ.get("MONGO_CONNECT_TIMEOUT_MS", "5000"))
-            MONGO_SOCKET_TIMEOUT_MS = int(os.environ.get("MONGO_SOCKET_TIMEOUT_MS", "30000"))
-            MONGO_SERVER_SELECTION_TIMEOUT_MS = int(os.environ.get("MONGO_SERVER_SELECTION_TIMEOUT_MS", "5000"))
-            REDIS_URL = os.environ.get("REDIS_URL")
-            REDIS_ENABLED = os.environ.get("REDIS_ENABLED", "true").lower() == "true"
-            JWT_SECRET = os.environ.get("JWT_SECRET", "")
-            API_RATE_LIMIT = int(os.environ.get("API_RATE_LIMIT", "60"))
-
-            OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-            STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
-            STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
-            BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
-
-            STRIPE_PRICE_ID_MONTHLY = os.environ.get("STRIPE_PRICE_ID_MONTHLY", "")
-            STRIPE_PRICE_ID_YEARLY = os.environ.get("STRIPE_PRICE_ID_YEARLY", "")
-
-            SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "hello@retailperformerai.com")
-            SENDER_NAME = os.environ.get("SENDER_NAME", "Retail Performer AI")
-
-            FRONTEND_URL = os.environ.get("FRONTEND_URL", "")
-            BACKEND_URL = os.environ.get("BACKEND_URL")  # None si absent
-
-            ADMIN_CREATION_SECRET = os.environ.get("ADMIN_CREATION_SECRET", "")
-            DEFAULT_ADMIN_EMAIL = os.environ.get("DEFAULT_ADMIN_EMAIL", "")
-            DEFAULT_ADMIN_PASSWORD = os.environ.get("DEFAULT_ADMIN_PASSWORD", "")
-            DEFAULT_ADMIN_NAME = os.environ.get("DEFAULT_ADMIN_NAME", "Super Admin")
-
-            def __getattr__(self, name):
-                return os.environ.get(name, "")
-
-        _settings = FallbackSettings()
-        return _settings
+    _settings = Settings()
+    return _settings
 
 
-# Export for convenience
+# Single point of access: module-level export calls get_settings() once at import
 settings = get_settings()

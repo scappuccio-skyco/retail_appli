@@ -53,6 +53,12 @@ from services.gerant_service import GerantService
 from services.onboarding_service import OnboardingService
 from services.enterprise_service import EnterpriseService
 from services.manager_service import ManagerService, DiagnosticService
+from services.manager import (
+    ManagerStoreService,
+    ManagerSellerManagementService,
+    ManagerKpiService,
+    ManagerAchievementService,
+)
 from services.seller_service import SellerService
 from services.notification_service import NotificationService
 from services.conflict_service import ConflictService
@@ -187,27 +193,76 @@ def get_notification_service(
     )
 
 
-def get_manager_service(
+# ----- Manager specialized services (repos injectés, pas db) -----
+
+def get_manager_store_service(
     db: AsyncIOMotorDatabase = Depends(get_db),
-    notification_service: "NotificationService" = Depends(get_notification_service),
-) -> ManagerService:
-    """
-    Get ManagerService instance. Phase 0: assembleur — repos injectés, pas de db dans le service.
-    """
-    return ManagerService(
-        user_repo=UserRepository(db),
+) -> ManagerStoreService:
+    """ManagerStoreService: config magasin, sync, KPI config."""
+    return ManagerStoreService(
         store_repo=StoreRepository(db),
-        invitation_repo=InvitationRepository(db),
         kpi_config_repo=KPIConfigRepository(db),
-        team_bilan_repo=TeamBilanRepository(db),
+    )
+
+
+def get_manager_seller_management_service(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+) -> ManagerSellerManagementService:
+    """ManagerSellerManagementService: vendeurs, invitations."""
+    return ManagerSellerManagementService(
+        user_repo=UserRepository(db),
+        invitation_repo=InvitationRepository(db),
+    )
+
+
+def get_manager_kpi_service(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+) -> ManagerKpiService:
+    """ManagerKpiService: KPIs, agrégations, bilans équipe."""
+    return ManagerKpiService(
         kpi_repo=KPIRepository(db),
         manager_kpi_repo=ManagerKPIRepository(db),
+        team_bilan_repo=TeamBilanRepository(db),
+    )
+
+
+def get_manager_achievement_service(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    notification_service: "NotificationService" = Depends(get_notification_service),
+) -> ManagerAchievementService:
+    """ManagerAchievementService: objectifs et défis."""
+    return ManagerAchievementService(
         objective_repo=ObjectiveRepository(db),
         challenge_repo=ChallengeRepository(db),
+        notification_service=notification_service,
+    )
+
+
+def get_manager_service(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    store_svc: "ManagerStoreService" = Depends(get_manager_store_service),
+    seller_mgmt_svc: "ManagerSellerManagementService" = Depends(
+        get_manager_seller_management_service
+    ),
+    kpi_svc: "ManagerKpiService" = Depends(get_manager_kpi_service),
+    achievement_svc: "ManagerAchievementService" = Depends(
+        get_manager_achievement_service
+    ),
+) -> ManagerService:
+    """
+    Get ManagerService instance (facade over specialized manager services + remaining repos).
+    """
+    return ManagerService(
+        store_svc=store_svc,
+        seller_mgmt_svc=seller_mgmt_svc,
+        kpi_svc=kpi_svc,
+        achievement_svc=achievement_svc,
         manager_diagnostic_repo=ManagerDiagnosticRepository(db),
         api_key_repo=APIKeyRepository(db),
-        notification_service=notification_service,
+        store_repo=StoreRepository(db),
+        user_repo=UserRepository(db),
         store_kpi_repo=StoreKPIRepository(db),
+        kpi_repo=KPIRepository(db),
         morning_brief_repo=MorningBriefRepository(db),
         diagnostic_repo=DiagnosticRepository(db),
         debrief_repo=DebriefRepository(db),
@@ -269,16 +324,10 @@ from services.manager_service import APIKeyService
 
 def get_api_key_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> APIKeyService:
     """
-    Get APIKeyService instance with database dependency
-    
-    Usage in routes:
-        @router.post("/api-keys")
-        async def create_key(
-            api_key_service: APIKeyService = Depends(get_api_key_service)
-        ):
-            return await api_key_service.create_api_key(...)
+    Get APIKeyService instance with database dependency.
+    Phase 0: repo injecté (APIKeyService n'accepte pas db).
     """
-    return APIKeyService(db)
+    return APIKeyService(api_key_repo=APIKeyRepository(db))
 
 
 def get_payment_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> PaymentService:

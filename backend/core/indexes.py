@@ -2,6 +2,16 @@
 Centralized MongoDB index definitions (Audit 2.6 & 3.1).
 Single source of truth for lifespan, ensure_indexes script, and any migration.
 Includes mandatory indexes on users.id, workspaces.id, workspaces.gerant_id.
+
+Audit Point 3.2 – Index composés recommandés (déjà présents ici) :
+- Vendeurs / users : (store_id, role, status) → store_role_status_idx
+  → Requêtes paginées get_sellers_for_store, get_sellers_by_status.
+- KPIs : (seller_id, date) → seller_date_idx sur kpi_entries
+  → Requêtes par vendeur et période.
+- Débriefs : (seller_id, created_at) → seller_created_at_idx sur debriefs
+  → Requêtes get_debriefs_by_seller paginées.
+Création au démarrage via lifespan (_create_indexes_background) ou script :
+  python -m backend.scripts.ensure_indexes
 """
 from typing import Any, Dict, List, Union
 

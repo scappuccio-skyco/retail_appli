@@ -1,6 +1,7 @@
 """
-API Middleware modules
-"""
-from api.middleware.error_handler import ErrorHandlerMiddleware
+API Middleware modules.
 
-__all__ = ['ErrorHandlerMiddleware']
+Note: Error handling is centralized in main.py via FastAPI exception handlers
+(AppException and Exception). No ErrorHandlerMiddleware.
+"""
+__all__ = []

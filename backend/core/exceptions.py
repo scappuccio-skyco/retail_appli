@@ -1,9 +1,8 @@
 """
 Phase 1 - Error Handling : hiérarchie d'exceptions métier.
 
-Toutes les exceptions héritent d'AppException. Le middleware (ErrorHandlerMiddleware)
-et le gestionnaire FastAPI (main.py) les convertissent en réponses JSON avec status_code,
-detail et error_code.
+Toutes les exceptions héritent d'AppException. Les gestionnaires d'exception FastAPI
+dans main.py les convertissent en réponses JSON avec status_code, detail et error_code.
 
 À utiliser dans la couche Service (pas HTTPException) :
 - NotFoundError       → 404 (ressource absente)

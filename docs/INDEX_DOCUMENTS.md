@@ -1,6 +1,6 @@
 # 📚 INDEX DES DOCUMENTS - RETAIL PERFORMER AI
 
-**Dernière mise à jour**: 27 Janvier 2026  
+**Dernière mise à jour**: 30 Janvier 2026  
 **Objectif**: Navigation rapide dans la documentation du projet
 
 ---
@@ -9,72 +9,59 @@
 
 ### Source de Vérité
 - **`.cursorrules`** ⭐⭐⭐ - **SOURCE DE VÉRITÉ** - Règles de développement, architecture, patterns
-- **`README.md`** - Documentation principale du projet
-- **`CHANGELOG.md`** - Historique des versions et changements
+- **`README.md`** - Documentation principale du projet (racine)
+- **`docs/archive/2026-01/CHANGELOG.md`** - Historique des versions et changements
 
 ### Architecture & Design
-- **`AUDIT_ARCHITECTURAL_CRITIQUE.md`** ⭐⭐ - Audit complet (27 Jan 2026) - Anti-patterns, redondances, scalabilité
-- **`SYNTHESE_ARCHITECTURE_POST_REFACTORING.md`** - Architecture actuelle (Clean Architecture)
-- **`REFACTORING_SUMMARY.md`** - Résumé du refactoring (avant/après)
-- **`ARCHITECTURE_DIAGRAM.md`** - Diagrammes d'architecture
+- **`docs/RAPPORT_AUDIT_REFACTORISATION.md`** ⭐ - Rapport d'audit refactorisation (découpage manager, services, pagination, Phase 3–4)
+- **`docs/archive/2026-01/AUDIT_ARCHITECTURAL_CRITIQUE.md`** ⭐⭐ - Audit complet (27 Jan 2026) - Anti-patterns, redondances, scalabilité
+- **`docs/archive/2026-01/SYNTHESE_ARCHITECTURE_POST_REFACTORING.md`** - Architecture actuelle (Clean Architecture)
+- **`docs/archive/2026-01/REFACTORING_SUMMARY.md`** - Résumé du refactoring (avant/après)
+- **`docs/archive/2026-01/ARCHITECTURE_DIAGRAM.md`** - Diagrammes d'architecture
 
 ---
 
 ## 📖 DOCUMENTATION API
 
 ### Guides API
-- `API_README.md` - Documentation API principale
-- `API_INTEGRATION_GUIDE.md` - Guide d'intégration API
-- `API_EXAMPLES.md` - Exemples d'utilisation API
-- `GUIDE_API_MANAGER.md` - Guide endpoints Manager
-- `GUIDE_API_SELLER.md` - Guide endpoints Vendeur
-- `GUIDE_API_STORES.md` - Guide endpoints Stores
+- `docs/archive/2026-01/API_README.md` - Documentation API principale
+- `docs/archive/2026-01/API_INTEGRATION_GUIDE.md` - Guide d'intégration API
+- `docs/archive/2026-01/API_EXAMPLES.md` - Exemples d'utilisation API
+- `docs/archive/2026-01/GUIDE_API_MANAGER.md` - Guide endpoints Manager
+- `docs/archive/2026-01/GUIDE_API_SELLER.md` - Guide endpoints Vendeur
+- `docs/archive/2026-01/GUIDE_API_STORES.md` - Guide endpoints Stores
 
 ### Documentation Technique
-- `ENTERPRISE_API_DOCUMENTATION.md` - API entreprise
-- `ENDPOINTS_STRIPE.md` - Endpoints Stripe
-- `EXEMPLES_CURL_INTEGRATIONS_CRUD.md` - Exemples cURL
+- `docs/archive/2026-01/ENTERPRISE_API_DOCUMENTATION.md` - API entreprise
+- `docs/archive/2026-01/ENDPOINTS_STRIPE.md` - Endpoints Stripe
+- `docs/archive/2026-01/EXEMPLES_CURL_INTEGRATIONS_CRUD.md` - Exemples cURL
 
 ---
 
 ## 🔧 CONFIGURATION & DÉPLOIEMENT
 
-- `DEPLOYMENT_GUIDE.md` - Guide de déploiement
-- `TROUBLESHOOTING_API_KEYS.md` - Dépannage clés API
-- `PATCH_VERCEL_UV_RESOLUTION.md` - Correctifs Vercel
-- `AUDIT_VERCEL_UV_RESOLUTION.md` - Audit Vercel
+- `docs/archive/2026-01/DEPLOYMENT_GUIDE.md` - Guide de déploiement
+- `docs/archive/2026-01/TROUBLESHOOTING_API_KEYS.md` - Dépannage clés API
+- `docs/archive/2026-01/PATCH_VERCEL_UV_RESOLUTION.md` - Correctifs Vercel
+- `docs/archive/2026-01/AUDIT_VERCEL_UV_RESOLUTION.md` - Audit Vercel
 
 ---
 
 ## 📊 AUDITS & ANALYSES
 
 ### Audits Actifs (Référence)
-- `AUDIT_ARCHITECTURAL_CRITIQUE.md` ⭐ - Audit architectural complet (27 Jan 2026)
+- `docs/RAPPORT_AUDIT_REFACTORISATION.md` - Rapport refactorisation manager (package routes store/sellers/analytics/objectives/challenges/consultations, dependencies, pagination Phase 4, main_legacy supprimé)
+- `docs/archive/2026-01/AUDIT_ARCHITECTURAL_CRITIQUE.md` ⭐ - Audit architectural complet (27 Jan 2026)
 
-### Audits à Archiver (Terminés)
-- `AUDIT_FINAL_PROJET.md` → `docs/archive/2025-01/`
-- `AUDIT_PRODUCTION_READY_HIGH_SCALE.md` → `docs/archive/2025-01/`
-- `AUDIT_TECHNIQUE_PRODUCTION.md` → `docs/archive/2025-01/`
-- `AUDIT_ROUTES_*.md` (3 fichiers) → `docs/archive/2025-01/`
-- `AUDIT_VERCEL_*.md` (3 fichiers) → `docs/archive/2025-01/`
+### Audits (déjà dans docs/archive/2026-01/)
+- Les audits et rapports sont dans `docs/archive/2026-01/` (tri par mois).
 
 ---
 
 ## 🚀 OPTIMISATIONS (Terminées - À Archiver)
 
-### Vagues d'Optimisation
-- `VAGUE_1_CORRECTIONS_MEMOIRE.md` → `docs/archive/2025-01/`
-- `VAGUE_2_CORRECTIONS_N+1.md` → `docs/archive/2025-01/`
-- `VAGUE_3_CORRECTIONS_INDEXES.md` → `docs/archive/2025-01/`
-- `VAGUE_3_TEST_INDEXES.md` → `docs/archive/2025-01/`
-- `VAGUE_4_CORRECTIONS_SECURITY.md` → `docs/archive/2025-01/`
-- `RESUME_4_VAGUES_OPTIMISATION.md` → `docs/archive/2025-01/`
-
-### Découplage (Terminé)
-- `BILAN_COMPLET_DECOUPLAGE.md` → `docs/archive/2025-01/`
-- `DECOUPLAGE_3_ETAPES_COMPLETE.md` → `docs/archive/2025-01/`
-- `PLAN_REFACTORING_DECOUPLAGE.md` → `docs/archive/2025-01/`
-- `ANALYSE_DECOUPLAGE_SERVICES.md` → `docs/archive/2025-01/`
+### Vagues d'Optimisation & Découplage
+- Tous dans `docs/archive/2026-01/` (VAGUE_*.md, RESUME_4_VAGUES_OPTIMISATION.md, BILAN_COMPLET_DECOUPLAGE.md, etc.)
 
 ---
 
@@ -84,8 +71,7 @@
 - `docs/CORRECTION_*.md` (8 fichiers) - Corrections récentes de bugs
 
 ### Corrections à Archiver
-- `CORRECTIF_BLOCAGE_TRIAL_EXPIRED.md` → `docs/archive/2025-01/`
-- `RESOLUTION_CADENAS_BLOCAGE.md` → `docs/archive/2025-01/`
+- Déjà dans `docs/archive/2026-01/` (CORRECTIF_*, RESOLUTION_*, etc.)
 
 ---
 
@@ -103,24 +89,17 @@
 
 ```
 .
-├── .cursorrules                    # ⭐ SOURCE DE VÉRITÉ
-├── README.md                       # Documentation principale
-├── CHANGELOG.md                    # Historique versions
-├── AUDIT_ARCHITECTURAL_CRITIQUE.md # Audit actuel
-├── SYNTHESE_ARCHITECTURE_POST_REFACTORING.md
-├── REFACTORING_SUMMARY.md
+├── .cursorrules                    # ⭐ SOURCE DE VÉRITÉ (à jour 30 Jan 2026)
+├── README.md                       # Documentation principale (seul .md à la racine)
 │
 ├── docs/
-│   ├── archive/                   # Documents archivés
-│   │   ├── 2024-12/
-│   │   ├── 2025-01/              # Janvier 2025
-│   │   └── 2025-02/              # Février 2025
+│   ├── archive/                   # Documents archivés par mois (YYYY-MM)
+│   │   └── 2026-01/              # Janvier 2026 (audits, phases, CHANGELOG, guides…)
 │   │
 │   ├── INDEX_DOCUMENTS.md        # Ce fichier
 │   ├── ORGANISATION_DOCUMENTS.md  # Guide d'organisation
-│   └── [docs actifs]             # Corrections, audits récents
-│
-└── [autres docs racine]          # Documentation API, guides
+│   ├── RAPPORT_AUDIT_REFACTORISATION.md  # Refactorisation Phase 3–4 (manager, pagination)
+│   └── [docs actifs]             # CORRECTION_*, AUDIT_*, MIGRATION_*, etc.
 ```
 
 ---
@@ -128,16 +107,14 @@
 ## 🔍 COMMENT TROUVER UN DOCUMENT
 
 ### Par Type
-- **Architecture**: `AUDIT_ARCHITECTURAL_CRITIQUE.md`, `SYNTHESE_ARCHITECTURE_*.md`
-- **API**: `API_*.md`, `GUIDE_API_*.md`
-- **Optimisations**: `VAGUE_*.md` (archivés), `RESUME_*.md` (archivés)
+- **Architecture**: `docs/archive/2026-01/AUDIT_ARCHITECTURAL_CRITIQUE.md`, `docs/archive/2026-01/SYNTHESE_ARCHITECTURE_*.md`
+- **API**: `docs/archive/2026-01/API_*.md`, `docs/archive/2026-01/GUIDE_API_*.md`
+- **Optimisations**: `docs/archive/2026-01/VAGUE_*.md`, `docs/archive/2026-01/RESUME_*.md`
 - **Corrections**: `docs/CORRECTION_*.md`
-- **Déploiement**: `DEPLOYMENT_*.md`, `AUDIT_VERCEL_*.md`
+- **Déploiement**: `docs/archive/2026-01/DEPLOYMENT_*.md`, `docs/archive/2026-01/AUDIT_VERCEL_*.md`
 
 ### Par Date
-- **Décembre 2024**: `docs/archive/2024-12/`
-- **Janvier 2025**: `docs/archive/2025-01/`
-- **Février 2025**: `docs/archive/2025-02/`
+- **Janvier 2026**: `docs/archive/2026-01/` (tous les docs déplacés de la racine, triés par mois)
 
 ---
 
@@ -152,10 +129,10 @@
 
 ### Archivage Manuel
 
-1. Vérifier que le document est terminé et documenté dans CHANGELOG
-2. Déplacer vers `docs/archive/YYYY-MM/`
+1. Vérifier que le document est terminé et documenté dans `docs/archive/2026-01/CHANGELOG.md`
+2. Déplacer tout nouveau .md de la racine vers `docs/archive/YYYY-MM/` (mois de dernière modification)
 3. Mettre à jour cet index si nécessaire
 
 ---
 
-*Index créé le 27 Janvier 2026*
+*Index créé le 27 Janvier 2026 – Dernière mise à jour 30 Janvier 2026*
