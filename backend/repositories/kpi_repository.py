@@ -64,9 +64,14 @@ class KPIRepository(BaseRepository):
             "date": {"$gte": start_date, "$lte": end_date}
         }, sort=[("date", 1)])
     
-    async def find_by_store(self, store_id: str, date: str) -> List[Dict]:
+    async def find_by_store(
+        self, store_id: str, date: str, projection: Optional[Dict] = None
+    ) -> List[Dict]:
         """Find all KPI entries for a store on a specific date"""
-        return await self.find_many({"store_id": store_id, "date": date})
+        return await self.find_many(
+            {"store_id": store_id, "date": date},
+            projection=projection,
+        )
     
     async def distinct_dates(self, query: Dict) -> List[str]:
         """
