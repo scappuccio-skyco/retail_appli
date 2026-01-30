@@ -164,9 +164,11 @@ class WorkspaceRepository(BaseRepository):
     def __init__(self, db):
         super().__init__(db, "workspaces")
     
-    async def find_by_id(self, workspace_id: str) -> Optional[Dict]:
+    async def find_by_id(
+        self, workspace_id: str, projection: Optional[Dict] = None
+    ) -> Optional[Dict]:
         """Find workspace by ID"""
-        return await self.find_one({"id": workspace_id})
+        return await self.find_one({"id": workspace_id}, projection)
     
     async def find_by_gerant(self, gerant_id: str) -> Optional[Dict]:
         """Find workspace by gérant ID"""

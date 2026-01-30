@@ -32,6 +32,16 @@
 
 ---
 
+## 📤 GIT – PUSH APRÈS MODIFICATIONS
+
+**À chaque fois qu’une modification de code est terminée** (fix, feature, refactor) :
+1. Faire un **commit** avec un message clair (ex. `fix: WorkspaceRepository.find_by_id accepte projection`).
+2. **Pusher** sur GitHub : `git push origin` (ou la branche courante).
+
+Cela garantit que le dépôt distant reste à jour après chaque intervention.
+
+---
+
 ## 📐 ARCHITECTURE ACTUELLE
 
 ### Structure Backend (Clean Architecture)
