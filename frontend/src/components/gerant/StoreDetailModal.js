@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Users, TrendingUp, UserPlus, RefreshCw, Trash2, Pause, Lock } from 'lucide-react';
+import { X, Users, UserPlus, RefreshCw, Trash2, Pause, Lock } from 'lucide-react';
 import StoreKPIModal from '../StoreKPIModal';
 import { toast } from 'sonner';
 import { API_BASE } from '../../lib/api';
@@ -251,17 +251,6 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
             >
               👥 Vendeurs ({sellers.filter(s => s.status === 'active').length})
             </button>
-            <button
-              onClick={() => setActiveTab('manager-access')}
-              className={`py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors flex items-center gap-1 sm:gap-2 whitespace-nowrap ${
-                activeTab === 'manager-access'
-                  ? colorConfig.accent
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-              Espace Manager
-            </button>
           </div>
         </div>
 
@@ -483,22 +472,6 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
                   ))}
                 </>
               )}
-            </div>
-          ) : activeTab === 'manager-access' ? (
-            <div className="max-w-2xl mx-auto px-2 sm:px-0">
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-8">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-gray-200 rounded-full mb-3 sm:mb-4">
-                    <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-gray-500" />
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">
-                    Gestion opérationnelle réservée au manager
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-600">
-                    La saisie des KPI, les objectifs, les debriefs et la gestion quotidienne des vendeurs sont assurés par le manager du magasin. En tant que gérant, vous avez accès au <strong>tableau de bord global</strong> et aux <strong>statistiques par magasin</strong> (onglet Statistiques).
-                  </p>
-                </div>
-              </div>
             </div>
           ) : null}
         </div>
