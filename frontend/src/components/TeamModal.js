@@ -123,7 +123,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           ]);
 
           const stats = statsRes.data;
-          const kpiEntries = kpiRes.data;
+          // API manager/kpi-entries renvoie { items: [...], total, page, size, pages }
+          const kpiEntries = Array.isArray(kpiRes.data?.items) ? kpiRes.data.items : (Array.isArray(kpiRes.data) ? kpiRes.data : []);
           const diagnostic = diagRes.data;
 
           // Debug logging
@@ -294,11 +295,12 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
       const sellersKpiData = await Promise.all(chartDataPromises);
       
-      // Group data by date
+      // Group data by date (API renvoie { items: [...] } ou tableau)
       const dateMap = new Map();
       
       sellersKpiData.forEach(({ sellerId, sellerName, data }) => {
-        data.forEach(entry => {
+        const entries = Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
+        entries.forEach(entry => {
           const date = entry.date;
           if (!dateMap.has(date)) {
             dateMap.set(date, { date });
