@@ -482,7 +482,9 @@ export default function ManagerDashboard({ user, onLogout }) {
         api.get(`/manager/sellers${apiStoreIdParam}`),
         api.get(`/manager/invitations${apiStoreIdParam}`)
       ]);
-      setSellers(Array.isArray(sellersRes.data) ? sellersRes.data : []);
+      // API manager/sellers renvoie { sellers: [...], pagination: {...} }
+      const sellersList = sellersRes.data?.sellers ?? sellersRes.data;
+      setSellers(Array.isArray(sellersList) ? sellersList : []);
       setInvitations(Array.isArray(invitesRes.data) ? invitesRes.data : []);
       
       // Récupérer le nom du magasin si on a un store_id

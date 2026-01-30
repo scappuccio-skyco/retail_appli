@@ -638,7 +638,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                   )}
                 </div>
               </div>
-              )}
 
               {/* Summary Cards */}
               <>
