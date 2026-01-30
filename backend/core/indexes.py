@@ -1,15 +1,16 @@
 """
 Centralized MongoDB index definitions (Audit 2.6 & 3.1).
 Single source of truth for lifespan, ensure_indexes script, and any migration.
-Includes mandatory indexes on users.id, workspaces.id, workspaces.gerant_id.
+Includes mandatory indexes on users.id, users.email (UNIQUE), users.gerant_id,
+workspaces.id, workspaces.gerant_id, stores.id, stores.gerant_id.
 
 Audit Point 3.2 – Index composés recommandés (déjà présents ici) :
-- Vendeurs / users : (store_id, role, status) → store_role_status_idx
-  → Requêtes paginées get_sellers_for_store, get_sellers_by_status.
-- KPIs : (seller_id, date) → seller_date_idx sur kpi_entries
-  → Requêtes par vendeur et période.
-- Débriefs : (seller_id, created_at) → seller_created_at_idx sur debriefs
-  → Requêtes get_debriefs_by_seller paginées.
+- Users : email_unique (contrainte d’unicité comptes), gerant_id_idx (recherches par gérant).
+- Stores : gerant_id_idx (find_by_gerant).
+- Vendeurs / users : (store_id, role, status) → store_role_status_idx.
+- KPIs : (seller_id, date) → seller_date_idx sur kpi_entries.
+- Objectives : manager_period_start_idx, store_period_idx (centralisés ici).
+- Débriefs : (seller_id, created_at) → seller_created_at_idx sur debriefs.
 Création au démarrage via lifespan (_create_indexes_background) ou script :
   python -m backend.scripts.ensure_indexes
 """
@@ -32,6 +33,8 @@ def _spec(keys: Union[str, List], **kwargs: Any) -> IndexSpec:
 INDEXES: Dict[str, List[IndexSpec]] = {
     "users": [
         _spec("id", unique=True, background=True, name="id_unique"),
+        _spec("email", unique=True, background=True, name="email_unique"),
+        _spec("gerant_id", background=True, name="gerant_id_idx"),
         _spec([("store_id", 1), ("role", 1), ("status", 1)], background=True, name="store_role_status_idx"),
         _spec([("store_id", 1), ("role", 1)], background=True, name="store_role_idx"),
         _spec("stripe_customer_id", sparse=True, background=True),
@@ -40,6 +43,10 @@ INDEXES: Dict[str, List[IndexSpec]] = {
         _spec("id", unique=True, background=True, name="id_unique"),
         _spec("gerant_id", background=True, name="gerant_id_idx"),
         _spec("stripe_customer_id", sparse=True, background=True),
+    ],
+    "stores": [
+        _spec("id", unique=True, background=True, name="id_unique"),
+        _spec("gerant_id", background=True, name="gerant_id_idx"),
     ],
     "subscriptions": [
         _spec("stripe_customer_id", sparse=True, background=True),
@@ -74,6 +81,8 @@ INDEXES: Dict[str, List[IndexSpec]] = {
     "objectives": [
         _spec([("store_id", 1), ("status", 1)], background=True, name="store_status_idx"),
         _spec([("seller_id", 1), ("status", 1)], background=True),
+        _spec([("manager_id", 1), ("period_start", 1)], background=True, name="manager_period_start_idx"),
+        _spec([("store_id", 1), ("period_start", 1), ("period_end", 1)], background=True, name="store_period_idx"),
     ],
     "challenges": [
         _spec([("store_id", 1), ("status", 1)], background=True, name="store_status_idx"),

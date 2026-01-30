@@ -86,39 +86,8 @@ async def create_all_indexes():
             print(f"❌ Erreur création index kpi_entries: {e}")
             indexes_failed += 1
     
-    # 3. objectives - Index pour requêtes par manager et période
-    try:
-        await db.objectives.create_index(
-            [("manager_id", 1), ("period_start", 1)],
-            background=True,
-            name="manager_period_start_idx"
-        )
-        print("✅ Index créé: objectives.manager_period_start_idx [(manager_id, period_start)]")
-        indexes_created += 1
-    except Exception as e:
-        if "already exists" in str(e).lower() or "duplicate" in str(e).lower():
-            print("⏭️  Index déjà existant: objectives.manager_period_start_idx")
-            indexes_skipped += 1
-        else:
-            print(f"❌ Erreur création index objectives: {e}")
-            indexes_failed += 1
-    
-    # 4. objectives - Index composé pour store_id + period
-    try:
-        await db.objectives.create_index(
-            [("store_id", 1), ("period_start", 1), ("period_end", 1)],
-            background=True,
-            name="store_period_idx"
-        )
-        print("✅ Index créé: objectives.store_period_idx [(store_id, period_start, period_end)]")
-        indexes_created += 1
-    except Exception as e:
-        if "already exists" in str(e).lower() or "duplicate" in str(e).lower():
-            print("⏭️  Index déjà existant: objectives.store_period_idx")
-            indexes_skipped += 1
-        else:
-            print(f"❌ Erreur création index objectives: {e}")
-            indexes_failed += 1
+    # Note: objectives (manager_period_start_idx, store_period_idx) et users/stores
+    # sont gérés par core.indexes (lifespan / ensure_indexes). Source unique : core/indexes.py.
     
     # ==========================================
     # INDEX SIMPLES & TTL
@@ -128,7 +97,7 @@ async def create_all_indexes():
     print("⏰ CRÉATION DES INDEX TTL (AUTO-NETTOYAGE)")
     print("=" * 60)
     
-    # 5. ai_usage_logs - Index sur timestamp
+    # 3. ai_usage_logs - Index sur timestamp
     try:
         await db.ai_usage_logs.create_index(
             [("timestamp", -1)],
@@ -145,7 +114,7 @@ async def create_all_indexes():
             print(f"❌ Erreur création index ai_usage_logs.timestamp: {e}")
             indexes_failed += 1
     
-    # 6. ai_usage_logs - Index composé user_id + timestamp
+    # 4. ai_usage_logs - Index composé user_id + timestamp
     try:
         await db.ai_usage_logs.create_index(
             [("user_id", 1), ("timestamp", -1)],
@@ -162,7 +131,7 @@ async def create_all_indexes():
             print(f"❌ Erreur création index ai_usage_logs.user_timestamp: {e}")
             indexes_failed += 1
     
-    # 7. ai_usage_logs - TTL de 365 jours
+    # 5. ai_usage_logs - TTL de 365 jours
     try:
         await db.ai_usage_logs.create_index(
             "timestamp",
@@ -180,7 +149,7 @@ async def create_all_indexes():
             print(f"❌ Erreur création TTL ai_usage_logs: {e}")
             indexes_failed += 1
     
-    # 8. system_logs - TTL de 90 jours
+    # 6. system_logs - TTL de 90 jours
     try:
         await db.system_logs.create_index(
             "created_at",
@@ -198,7 +167,7 @@ async def create_all_indexes():
             print(f"❌ Erreur création TTL system_logs: {e}")
             indexes_failed += 1
     
-    # 9. payment_transactions - Index sur user_id
+    # 7. payment_transactions - Index sur user_id
     try:
         await db.payment_transactions.create_index(
             [("user_id", 1), ("created_at", -1)],
@@ -215,7 +184,7 @@ async def create_all_indexes():
             print(f"❌ Erreur création index payment_transactions: {e}")
             indexes_failed += 1
     
-    # 10. admin_logs - TTL de 180 jours
+    # 8. admin_logs - TTL de 180 jours
     try:
         await db.admin_logs.create_index(
             "created_at",
