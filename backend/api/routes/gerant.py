@@ -1095,6 +1095,8 @@ async def get_store_kpi_dates(
         dates = [r['_id'] for r in results if r['_id']]
         
         return {"dates": dates}
+    except ValueError as e:
+        raise NotFoundError(str(e))
 
 
 # ===== MANAGER MANAGEMENT ROUTES =====
