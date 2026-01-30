@@ -32,6 +32,66 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/gerant", tags=["Gérant"])
 
 
+# ===== TRANSFER ROUTES (en tête pour priorité sur /sellers/{id} et /managers/{id}) =====
+# Chemins stricts: POST /managers/{manager_id}/transfer et POST /sellers/{seller_id}/transfer (sans slash final)
+
+
+class ManagerTransferRequest(BaseModel):
+    """Body for POST /managers/{manager_id}/transfer. Frontend sends new_store_id."""
+    new_store_id: str
+
+
+class SellerTransferRequest(BaseModel):
+    """Body for POST /sellers/{seller_id}/transfer. Frontend sends new_store_id and new_manager_id."""
+    new_store_id: str
+    new_manager_id: str
+
+
+@router.post("/managers/{manager_id}/transfer")
+async def transfer_manager_to_store(
+    manager_id: str,
+    body: ManagerTransferRequest,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """
+    Transfer a manager to another store.
+    Body: { "new_store_id": "store_uuid" } (aligné avec le frontend).
+    """
+    try:
+        return await gerant_service.transfer_manager_to_store(
+            manager_id, body.model_dump(), current_user['id']
+        )
+    except ValueError as e:
+        raise ValidationError(str(e))
+
+
+@router.post("/sellers/{seller_id}/transfer")
+async def transfer_seller_to_store(
+    seller_id: str,
+    body: SellerTransferRequest,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """
+    Transfer a seller to another store with a new manager.
+    Body: { "new_store_id": "store_uuid", "new_manager_id": "manager_uuid" } (aligné avec le frontend).
+    """
+    logger.debug("---> ATTEMPTING TRANSFER FOR SELLER: %s", seller_id)
+    print(f"---> ATTEMPTING TRANSFER FOR SELLER: {seller_id}")
+    try:
+        return await gerant_service.transfer_seller_to_store(
+            seller_id, body.model_dump(), current_user['id']
+        )
+    except ValueError as e:
+        error_msg = str(e)
+        if "Invalid transfer data" in error_msg:
+            raise ValidationError(error_msg)
+        if "inactif" in error_msg:
+            raise ValidationError(error_msg)
+        raise NotFoundError(error_msg)
+
+
 @router.get("/profile")
 async def get_gerant_profile(
     current_user: dict = Depends(get_current_gerant),
@@ -1099,75 +1159,7 @@ async def get_store_kpi_dates(
         raise NotFoundError(str(e))
 
 
-# ===== MANAGER MANAGEMENT ROUTES =====
-
-
-class ManagerTransferRequest(BaseModel):
-    """Body for POST /managers/{manager_id}/transfer. Frontend sends new_store_id."""
-    new_store_id: str
-
-
-class SellerTransferRequest(BaseModel):
-    """Body for POST /sellers/{seller_id}/transfer. Frontend sends new_store_id and new_manager_id."""
-    new_store_id: str
-    new_manager_id: str
-
-
-@router.post("/managers/{manager_id}/transfer")
-async def transfer_manager_to_store(
-    manager_id: str,
-    body: ManagerTransferRequest,
-    current_user: Dict = Depends(get_current_gerant),
-    gerant_service: GerantService = Depends(get_gerant_service)
-):
-    """
-    Transfer a manager to another store.
-    Body: { "new_store_id": "store_uuid" } (aligné avec le frontend).
-    """
-    try:
-        return await gerant_service.transfer_manager_to_store(
-            manager_id, body.model_dump(), current_user['id']
-        )
-    except ValueError as e:
-        raise ValidationError(str(e))
-
-
-# ===== SELLER MANAGEMENT ROUTES =====
-
-@router.post("/sellers/{seller_id}/transfer")
-async def transfer_seller_to_store(
-    seller_id: str,
-    body: SellerTransferRequest,
-    current_user: Dict = Depends(get_current_gerant),
-    gerant_service: GerantService = Depends(get_gerant_service)
-):
-    """
-    Transfer a seller to another store with a new manager.
-    Body: { "new_store_id": "store_uuid", "new_manager_id": "manager_uuid" } (aligné avec le frontend).
-    
-    Security:
-        - Verifies seller belongs to current gérant
-        - Verifies new store belongs to current gérant
-        - Verifies new store is active
-        - Verifies new manager exists in new store
-    
-    Auto-reactivation:
-        - If seller was suspended due to inactive store, automatically reactivates
-    """
-    try:
-        return await gerant_service.transfer_seller_to_store(
-            seller_id, body.model_dump(), current_user['id']
-        )
-    except ValueError as e:
-        # Determine appropriate status code based on error message
-        error_msg = str(e)
-        if "Invalid transfer data" in error_msg:
-            raise ValidationError(error_msg)
-        elif "inactif" in error_msg:
-            raise ValidationError(error_msg)
-        else:
-            raise NotFoundError(error_msg)
-
+# (Routes transfer manager/seller déplacées en tête du fichier pour priorité.)
 
 # ===== INVITATION ROUTES =====
 
