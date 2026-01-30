@@ -30,11 +30,11 @@ def get_limiter_from_request(request: "Request") -> Optional[Limiter]:
 
 def rate_limit(limit_str: str):
     """Depends() that applies rate limit via request.app.state.limiter."""
-    async def _check_limit(request: "Request"):
+    async def _check_limit(request: Request):
         limiter = get_limiter_from_request(request)
         if not limiter:
             return None
-        async def _noop(req):
+        async def _noop(request: Request):
             return None
         wrapped = limiter.limit(limit_str)(_noop)
         result = wrapped(request)

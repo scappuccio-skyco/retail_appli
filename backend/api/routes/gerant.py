@@ -796,6 +796,8 @@ async def get_all_managers(
     try:
         managers = await gerant_service.get_all_managers(current_user['id'])
         return managers
+    except ValueError as e:
+        raise NotFoundError(str(e))
 
 
 @router.get("/sellers")
