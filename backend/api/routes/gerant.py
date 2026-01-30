@@ -1101,25 +1101,32 @@ async def get_store_kpi_dates(
 
 # ===== MANAGER MANAGEMENT ROUTES =====
 
+
+class ManagerTransferRequest(BaseModel):
+    """Body for POST /managers/{manager_id}/transfer. Frontend sends new_store_id."""
+    new_store_id: str
+
+
+class SellerTransferRequest(BaseModel):
+    """Body for POST /sellers/{seller_id}/transfer. Frontend sends new_store_id and new_manager_id."""
+    new_store_id: str
+    new_manager_id: str
+
+
 @router.post("/managers/{manager_id}/transfer")
 async def transfer_manager_to_store(
     manager_id: str,
-    transfer_data: Dict,
+    body: ManagerTransferRequest,
     current_user: Dict = Depends(get_current_gerant),
     gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """
-    Transfer a manager to another store
-    
-    Args:
-        manager_id: Manager user ID
-        transfer_data: {
-            "new_store_id": "store_uuid"
-        }
+    Transfer a manager to another store.
+    Body: { "new_store_id": "store_uuid" } (aligné avec le frontend).
     """
     try:
         return await gerant_service.transfer_manager_to_store(
-            manager_id, transfer_data, current_user['id']
+            manager_id, body.model_dump(), current_user['id']
         )
     except ValueError as e:
         raise ValidationError(str(e))
@@ -1130,19 +1137,13 @@ async def transfer_manager_to_store(
 @router.post("/sellers/{seller_id}/transfer")
 async def transfer_seller_to_store(
     seller_id: str,
-    transfer_data: Dict,
+    body: SellerTransferRequest,
     current_user: Dict = Depends(get_current_gerant),
     gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """
-    Transfer a seller to another store with a new manager
-    
-    Args:
-        seller_id: Seller user ID
-        transfer_data: {
-            "new_store_id": "store_uuid",
-            "new_manager_id": "manager_uuid"
-        }
+    Transfer a seller to another store with a new manager.
+    Body: { "new_store_id": "store_uuid", "new_manager_id": "manager_uuid" } (aligné avec le frontend).
     
     Security:
         - Verifies seller belongs to current gérant
@@ -1155,7 +1156,7 @@ async def transfer_seller_to_store(
     """
     try:
         return await gerant_service.transfer_seller_to_store(
-            seller_id, transfer_data, current_user['id']
+            seller_id, body.model_dump(), current_user['id']
         )
     except ValueError as e:
         # Determine appropriate status code based on error message
