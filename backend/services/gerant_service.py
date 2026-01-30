@@ -1896,6 +1896,30 @@ class GerantService:
                 "seller_track_prospects": True
             }
         }
+
+    async def get_store_overview_for_gerant(self, store_id: str, gerant_id: str, date: str = None) -> Dict:
+        """
+        Vue consolidée du magasin pour le gérant uniquement.
+        Vérifie strictement que le magasin appartient au gérant, puis renvoie les chiffres
+        consolidés (tous managers + vendeurs du magasin) sans passer par les endpoints manager.
+
+        Args:
+            store_id: Identifiant du magasin
+            gerant_id: Identifiant du gérant (doit être propriétaire du magasin)
+            date: Date cible (YYYY-MM-DD), défaut = aujourd'hui
+
+        Returns:
+            Même structure que get_store_kpi_overview (store, managers_data, sellers_data,
+            seller_entries, calculated_kpis, totals, etc.)
+
+        Raises:
+            Exception: Magasin non trouvé ou accès non autorisé
+        """
+        store = await self.store_repo.find_by_id(store_id, gerant_id=gerant_id, projection={"_id": 0})
+        if not store or not store.get("active"):
+            raise Exception("Magasin non trouvé ou accès non autorisé")
+        return await self.get_store_kpi_overview(store_id, gerant_id, date)
+
     # Duplicate methods removed - moved to earlier in the file
     
     # ===== INVITATION METHODS =====

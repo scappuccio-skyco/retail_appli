@@ -8,7 +8,7 @@ import logging
 
 from fastapi import APIRouter, Depends
 
-from core.security import require_active_space
+from core.security import require_active_space, get_current_manager
 
 from api.routes.manager.dependencies import (
     get_store_context,
@@ -30,11 +30,11 @@ from api.routes.manager.consultations import router as consultations_router
 
 logger = logging.getLogger(__name__)
 
-# Main manager router: prefix /manager
+# Main manager router: prefix /manager — accès strictement réservé aux managers (pas aux gérants)
 router = APIRouter(
     prefix="/manager",
     tags=["Manager"],
-    dependencies=[Depends(require_active_space)],
+    dependencies=[Depends(require_active_space), Depends(get_current_manager)],
 )
 
 router.include_router(store_router)

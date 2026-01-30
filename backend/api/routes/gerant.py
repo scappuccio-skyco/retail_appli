@@ -1074,12 +1074,11 @@ async def update_staff_member(
 async def get_store_kpi_overview(
     store_id: str,
     date: str = None,
-    current_user: Dict = Depends(get_gerant_or_manager),
+    current_user: Dict = Depends(get_current_gerant),
     gerant_service: GerantService = Depends(get_gerant_service)
 ):
-    """Get consolidated store KPI overview for a specific date"""
-    user_id = current_user['id']
-    return await gerant_service.get_store_kpi_overview(store_id, user_id, date)
+    """Vue consolidée du magasin pour le gérant (chiffres de tous les managers/vendeurs). Réservé aux gérants."""
+    return await gerant_service.get_store_overview_for_gerant(store_id, current_user["id"], date)
 
 
 @router.get("/stores/{store_id}/kpi-history")

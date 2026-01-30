@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog, Info, Lock, Headphones, Store, FileText, User } from 'lucide-react';
 import CreateStoreModal from '../components/gerant/CreateStoreModal';
 import TutorialButton from '../components/onboarding/TutorialButton';
@@ -25,6 +25,7 @@ import GerantProfile from '../components/gerant/GerantProfile';
 
 const GerantDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [stores, setStores] = useState([]);
   const [globalStats, setGlobalStats] = useState(null);
@@ -276,6 +277,16 @@ const GerantDashboard = ({ user, onLogout }) => {
       setLoading(false);
     }
   };
+
+  // Afficher le message de redirection si le gérant a tenté d'accéder à /manager/*
+  useEffect(() => {
+    const message = location.state?.message;
+    if (message) {
+      toast.info(message, { duration: 4000 });
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.message]);
 
   // Charger les données au montage
   useEffect(() => {

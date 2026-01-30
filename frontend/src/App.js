@@ -295,16 +295,16 @@ function AppContent() {
           }
         />
         
-        {/* Manager View for Gerant - Allows gerant to access manager dashboard for a specific store */}
+        {/* Manager View - Gérant n'a plus accès : redirection vers dashboard gérant avec message */}
         <Route
           path="/manager-view"
           element={
             !user ? (
               <Navigate to="/login" replace />
-            ) : (user.role !== 'gerant' && user.role !== 'gérant') ? (
-              <Navigate to="/dashboard" replace />
+            ) : (user.role === 'gerant' || user.role === 'gérant') ? (
+              <Navigate to="/gerant-dashboard" replace state={{ message: 'Accès réservé au personnel opérationnel' }} />
             ) : (
-              <ManagerDashboard user={user} onLogout={handleLogout} />
+              <Navigate to="/dashboard" replace />
             )
           }
         />
@@ -329,16 +329,31 @@ function AppContent() {
           }
         />
         
-        {/* Manager Settings - Manager Only */}
+        {/* Manager Settings - Manager Only ; gérant redirigé vers son dashboard avec message */}
         <Route
           path="/manager/settings"
           element={
             !user ? (
               <Navigate to="/login" replace />
+            ) : (user.role === 'gerant' || user.role === 'gérant') ? (
+              <Navigate to="/gerant-dashboard" replace state={{ message: 'Accès réservé au personnel opérationnel' }} />
             ) : user.role !== 'manager' ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <ManagerSettings />
+            )
+          }
+        />
+        {/* Catch-all /manager/* : gérant redirigé vers dashboard gérant avec message */}
+        <Route
+          path="/manager/*"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : (user.role === 'gerant' || user.role === 'gérant') ? (
+              <Navigate to="/gerant-dashboard" replace state={{ message: 'Accès réservé au personnel opérationnel' }} />
+            ) : (
+              <Navigate to="/dashboard" replace />
             )
           }
         />
