@@ -37,6 +37,17 @@ safe_import('api.routes.stores', 'router')
 safe_import('api.routes.ai', 'router')
 safe_import('api.routes.admin', 'router')
 safe_import('api.routes.integrations', 'router')
+# Routeur minimal gerant (ping + transfer) chargé en premier pour garantir les routes même si gerant.py échoue
+try:
+    from api.routes.gerant_transfer import router as gerant_transfer_router
+    routers.append(gerant_transfer_router)
+    logger.info(
+        "Loaded api.routes.gerant_transfer (prefix: %s, routes: %s)",
+        gerant_transfer_router.prefix,
+        len(gerant_transfer_router.routes),
+    )
+except Exception as e:
+    logger.exception("Failed to load api.routes.gerant_transfer: %s", e)
 safe_import('api.routes.gerant', 'router')
 safe_import('api.routes.onboarding', 'router')
 safe_import('api.routes.enterprise', 'router')
