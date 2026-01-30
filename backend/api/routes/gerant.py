@@ -32,6 +32,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/gerant", tags=["Gérant"])
 
 
+@router.get("/ping")
+async def gerant_ping():
+    """Vérification que le routeur gerant est bien monté (GET /api/gerant/ping)."""
+    return {"ok": True, "message": "gerant router loaded"}
+
+
 # ===== TRANSFER ROUTES (en tête pour priorité sur /sellers/{id} et /managers/{id}) =====
 # Chemins stricts: POST /managers/{manager_id}/transfer et POST /sellers/{seller_id}/transfer (sans slash final)
 
