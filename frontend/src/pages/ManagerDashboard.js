@@ -482,8 +482,8 @@ export default function ManagerDashboard({ user, onLogout }) {
         api.get(`/manager/sellers${apiStoreIdParam}`),
         api.get(`/manager/invitations${apiStoreIdParam}`)
       ]);
-      setSellers(sellersRes.data);
-      setInvitations(invitesRes.data);
+      setSellers(Array.isArray(sellersRes.data) ? sellersRes.data : []);
+      setInvitations(Array.isArray(invitesRes.data) ? invitesRes.data : []);
       
       // Récupérer le nom du magasin si on a un store_id
       if (effectiveStoreId) {
