@@ -547,9 +547,11 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
   const fetchKPIConfig = async () => {
     try {
-      // Ajouter store_id pour les gérants
-      const storeParam = storeId ? `?store_id=${storeId}` : '';
-      const res = await api.get(`/manager/kpi-config${storeParam}`);
+      // Gérant ouvrant le modal depuis StoreDetailModal : route gerant pour éviter 403
+      const url = storeId
+        ? `/gerant/stores/${storeId}/kpi-config`
+        : `/manager/kpi-config`;
+      const res = await api.get(url);
       if (res.data) {
         let config = res.data;
         
@@ -593,8 +595,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       }
       
       // Ajouter store_id pour les gérants
-      const storeParam = storeId ? `?store_id=${storeId}` : '';
-      await api.put(`/manager/kpi-config${storeParam}`, updatedConfig);
+      const url = storeId
+        ? `/gerant/stores/${storeId}/kpi-config`
+        : `/manager/kpi-config${storeId ? `?store_id=${storeId}` : ''}`;
+      await api.put(url, updatedConfig);
       
       setKpiConfig(updatedConfig);
       toast.success('Configuration mise à jour !');

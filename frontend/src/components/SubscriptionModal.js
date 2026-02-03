@@ -145,10 +145,13 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
           setSeatsPreview(response.data);
         }
       } catch (error) {
-        logger.error('Error fetching seats preview:', error);
-        if (isMounted) {
-          setSeatsPreview(null);
+        if (error.response?.status === 404) {
+          // Pas d'abonnement actif : prévisualisation non disponible (normal)
+          if (isMounted) setSeatsPreview(null);
+          return;
         }
+        logger.error('Error fetching seats preview:', error);
+        if (isMounted) setSeatsPreview(null);
       } finally {
         if (isMounted) {
           setLoadingPreview(false);

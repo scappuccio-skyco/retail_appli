@@ -17,7 +17,9 @@ from services.gerant_service import GerantService
 from services.payment_service import PaymentService
 from services.vat_service import validate_vat_number, calculate_vat_rate, is_eu_country
 from models.billing import BillingProfileCreate, BillingProfileUpdate, BillingProfile, BillingProfileResponse
-from api.dependencies import get_gerant_service, get_payment_service
+from api.dependencies import get_gerant_service, get_payment_service, get_manager_store_service
+from services.manager import ManagerStoreService
+from models.kpi_config import get_default_kpi_config
 from email_service import send_staff_email_update_confirmation, send_staff_email_update_alert
 import logging
 
@@ -1162,6 +1164,55 @@ async def get_store_kpi_dates(
         return {"dates": dates}
     except ValueError as e:
         raise NotFoundError(str(e))
+
+
+@router.get("/stores/{store_id}/kpi-config")
+async def get_store_kpi_config_gerant(
+    store_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+    store_service: ManagerStoreService = Depends(get_manager_store_service),
+):
+    """
+    Récupère la configuration KPI du magasin pour un gérant (magasin dont il est propriétaire).
+    Évite le 403 quand StoreKPIModal est ouvert depuis le dashboard gérant.
+    """
+    stores = await gerant_service.get_stores_by_gerant(current_user["id"])
+    if not any(s.get("id") == store_id for s in stores):
+        raise ForbiddenError("Accès refusé à ce magasin")
+    try:
+        config = await store_service.get_kpi_config(store_id)
+        return config if config else get_default_kpi_config(store_id)
+    except Exception as e:
+        logger.warning("get_store_kpi_config_gerant: %s", e)
+        return get_default_kpi_config(store_id)
+
+
+@router.put("/stores/{store_id}/kpi-config")
+async def update_store_kpi_config_gerant(
+    store_id: str,
+    config_update: Dict,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+    store_service: ManagerStoreService = Depends(get_manager_store_service),
+):
+    """
+    Met à jour la configuration KPI du magasin (gérant propriétaire).
+    """
+    stores = await gerant_service.get_stores_by_gerant(current_user["id"])
+    if not any(s.get("id") == store_id for s in stores):
+        raise ForbiddenError("Accès refusé à ce magasin")
+    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    for field in [
+        "enabled", "saisie_enabled",
+        "seller_track_ca", "manager_track_ca", "seller_track_ventes", "manager_track_ventes",
+        "seller_track_clients", "manager_track_clients", "seller_track_articles", "manager_track_articles",
+        "seller_track_prospects", "manager_track_prospects",
+    ]:
+        if field in config_update:
+            update_data[field] = config_update[field]
+    config = await store_service.upsert_kpi_config(store_id, current_user["id"], update_data)
+    return config
 
 
 # (Routes transfer manager/seller déplacées en tête du fichier pour priorité.)
