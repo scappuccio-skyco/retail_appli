@@ -17,8 +17,9 @@ from services.gerant_service import GerantService
 from services.payment_service import PaymentService
 from services.vat_service import validate_vat_number, calculate_vat_rate, is_eu_country
 from models.billing import BillingProfileCreate, BillingProfileUpdate, BillingProfile, BillingProfileResponse
-from api.dependencies import get_gerant_service, get_payment_service, get_manager_store_service
+from api.dependencies import get_gerant_service, get_payment_service, get_manager_store_service, get_api_key_service
 from services.manager import ManagerStoreService
+from services.manager_service import APIKeyService
 from models.kpi_config import get_default_kpi_config
 from email_service import send_staff_email_update_confirmation, send_staff_email_update_alert
 import logging
@@ -38,6 +39,78 @@ router = APIRouter(prefix="/gerant", tags=["Gérant"])
 async def gerant_ping():
     """Vérification que le routeur gerant est bien monté (GET /api/gerant/ping)."""
     return {"ok": True, "message": "gerant router loaded"}
+
+
+# ===== API KEYS (gérant = propriétaire des clés pour intégrations caisse/ERP) =====
+
+@router.get("/api-keys")
+async def gerant_list_api_keys(
+    current_user: Dict = Depends(get_current_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service),
+):
+    """Liste des clés API du gérant (pour intégrations externes)."""
+    return await api_key_service.list_api_keys(current_user["id"])
+
+
+@router.post("/api-keys")
+async def gerant_create_api_key(
+    key_data: Dict,
+    current_user: Dict = Depends(get_current_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service),
+):
+    """Créer une clé API pour le gérant (caisse, ERP, etc.)."""
+    return await api_key_service.create_api_key(
+        user_id=current_user["id"],
+        store_id=None,
+        gerant_id=current_user["id"],
+        name=key_data.get("name", "API Key"),
+        permissions=key_data.get("permissions", ["write:kpi", "read:stats", "stores:read", "stores:write", "users:write"]),
+        store_ids=key_data.get("store_ids"),
+        expires_days=key_data.get("expires_days"),
+    )
+
+
+@router.delete("/api-keys/{key_id}")
+async def gerant_deactivate_api_key(
+    key_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service),
+):
+    """Désactiver une clé API (gérant propriétaire)."""
+    try:
+        return await api_key_service.deactivate_api_key(key_id, current_user["id"])
+    except ValueError as e:
+        raise NotFoundError(str(e))
+
+
+@router.post("/api-keys/{key_id}/regenerate")
+async def gerant_regenerate_api_key(
+    key_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service),
+):
+    """Régénérer une clé API (gérant propriétaire)."""
+    try:
+        return await api_key_service.regenerate_api_key(key_id, current_user["id"])
+    except ValueError as e:
+        raise NotFoundError(str(e))
+    except Exception as e:
+        raise ValidationError(str(e))
+
+
+@router.delete("/api-keys/{key_id}/permanent")
+async def gerant_delete_api_key_permanent(
+    key_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service),
+):
+    """Supprimer définitivement une clé API désactivée (gérant propriétaire)."""
+    try:
+        return await api_key_service.delete_api_key_permanent(key_id, current_user["id"], current_user.get("role", "gerant"))
+    except ValueError as e:
+        raise ValidationError(str(e))
+    except PermissionError as e:
+        raise ForbiddenError(str(e))
 
 
 # ===== TRANSFER ROUTES (en tête pour priorité sur /sellers/{id} et /managers/{id}) =====

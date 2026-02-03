@@ -44,7 +44,7 @@ const APIKeysManagement = () => {
     try {
       setLoading(true);
       // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
-      const response = await api.get('/manager/api-keys');
+      const response = await api.get('/gerant/api-keys');
       setApiKeys(response.data.api_keys || []);
       setError('');
     } catch (err) {
@@ -58,7 +58,7 @@ const APIKeysManagement = () => {
     try {
       // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
       const response = await api.post(
-        '/manager/api-keys',
+        '/gerant/api-keys',
         newKeyData
       );
       setCreatedKey(response.data);
@@ -75,7 +75,7 @@ const APIKeysManagement = () => {
 
     try {
       // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
-      await api.delete(`/manager/api-keys/${keyId}`);
+      await api.delete(`/gerant/api-keys/${keyId}`);
       fetchAPIKeys();
     } catch (err) {
       setError(err.response?.data?.detail || err.message);
@@ -87,7 +87,7 @@ const APIKeysManagement = () => {
 
     try {
       // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
-      await api.delete(`/manager/api-keys/${keyId}/permanent`);
+      await api.delete(`/gerant/api-keys/${keyId}/permanent`);
       fetchAPIKeys();
     } catch (err) {
       setError(err.response?.data?.detail || err.message);
