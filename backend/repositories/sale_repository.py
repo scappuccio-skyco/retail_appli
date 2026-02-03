@@ -42,7 +42,7 @@ class SaleRepository(BaseRepository):
             sort: Sort order (default: [("date", -1)])
         """
         if not seller_id:
-            raise ValueError("seller_id is required for security")
+            raise ValueError(ERR_SELLER_ID_REQUIRED)
         
         filters = {"seller_id": seller_id}
         sort = sort or [("date", -1)]
@@ -109,7 +109,7 @@ class SaleRepository(BaseRepository):
                 raise ValueError(ERR_SELLER_IDS_WHEN_STORE)
             filters["seller_id"] = {"$in": seller_ids}
         else:
-            raise ValueError("seller_id or (store_id + seller_ids) is required for security")
+            raise ValueError(ERR_SELLER_OR_STORE_IDS)
         
         return await self.find_one(filters, projection)
     
@@ -166,7 +166,7 @@ class SaleRepository(BaseRepository):
                 raise ValueError(ERR_SELLER_IDS_WHEN_STORE)
             filters["seller_id"] = {"$in": seller_ids}
         else:
-            raise ValueError("seller_id or (store_id + seller_ids) is required for security")
+            raise ValueError(ERR_SELLER_OR_STORE_IDS)
         
         return await self.update_one(filters, {"$set": update_data})
     
@@ -208,7 +208,7 @@ class SaleRepository(BaseRepository):
     async def count_by_seller(self, seller_id: str) -> int:
         """Count sales for a seller (SECURITY: requires seller_id)"""
         if not seller_id:
-            raise ValueError("seller_id is required for security")
+            raise ValueError(ERR_SELLER_ID_REQUIRED)
         return await self.count({"seller_id": seller_id})
     
     async def count_by_store(

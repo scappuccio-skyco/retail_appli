@@ -106,7 +106,7 @@ class EvaluationRepository(BaseRepository):
             filters["seller_id"] = seller_id
         elif store_id:
             if not seller_ids:
-                raise ValueError("seller_ids are required when using store_id for security")
+                raise ValueError(ERR_SELLER_IDS_WHEN_STORE)
             filters["seller_id"] = {"$in": seller_ids}
         else:
             raise ValueError(ERR_SELLER_OR_STORE_IDS)
@@ -128,7 +128,7 @@ class EvaluationRepository(BaseRepository):
             projection: MongoDB projection
         """
         if not sale_id or not seller_id:
-            raise ValueError("sale_id and seller_id are required for security")
+            raise ValueError(ERR_SALE_ID_SELLER_ID_REQUIRED)
         
         filters = {"sale_id": sale_id, "seller_id": seller_id}
         return await self.find_one(filters, projection)
@@ -216,7 +216,7 @@ class EvaluationRepository(BaseRepository):
             filters["seller_id"] = seller_id
         elif store_id:
             if not seller_ids:
-                raise ValueError("seller_ids are required when using store_id for security")
+                raise ValueError(ERR_SELLER_IDS_WHEN_STORE)
             filters["seller_id"] = {"$in": seller_ids}
         else:
             raise ValueError(ERR_SELLER_OR_STORE_IDS)

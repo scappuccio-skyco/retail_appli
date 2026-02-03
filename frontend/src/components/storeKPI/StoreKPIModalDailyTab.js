@@ -5,13 +5,18 @@ import KPICalendar from '../KPICalendar';
 function DailyKPICards({ overviewData }) {
   const totals = overviewData?.totals ?? {};
   const kpis = overviewData?.calculated_kpis ?? {};
-  const caStr = totals.ca != null ? `${totals.ca.toFixed(2)} €` : '0 €';
-  const ventesStr = totals.ventes != null ? totals.ventes : '0';
-  const panierStr = kpis.panier_moyen != null ? `PM: ${kpis.panier_moyen} €` : 'Panier Moyen: N/A';
-  const tauxStr = kpis.taux_transformation != null ? `${kpis.taux_transformation} %` : 'N/A';
-  const tauxSub = kpis.taux_transformation != null ? 'Ventes / Prospects' : 'Données manquantes';
-  const indiceStr = kpis.indice_vente != null ? kpis.indice_vente : 'N/A';
-  const indiceSub = kpis.indice_vente != null ? 'Articles / Ventes' : 'Données manquantes';
+  const hasCa = typeof totals.ca === 'number';
+  const hasVentes = typeof totals.ventes === 'number';
+  const hasPanierMoyen = typeof kpis.panier_moyen === 'number';
+  const hasTauxTransformation = typeof kpis.taux_transformation === 'number';
+  const hasIndiceVente = typeof kpis.indice_vente === 'number';
+  const caStr = hasCa ? `${totals.ca.toFixed(2)} €` : '0 €';
+  const ventesStr = hasVentes ? totals.ventes : '0';
+  const panierStr = hasPanierMoyen ? `PM: ${kpis.panier_moyen} €` : 'Panier Moyen: N/A';
+  const tauxStr = hasTauxTransformation ? `${kpis.taux_transformation} %` : 'N/A';
+  const tauxSub = hasTauxTransformation ? 'Ventes / Prospects' : 'Données manquantes';
+  const indiceStr = hasIndiceVente ? kpis.indice_vente : 'N/A';
+  const indiceSub = hasIndiceVente ? 'Articles / Ventes' : 'Données manquantes';
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
       <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
@@ -37,16 +42,25 @@ function DailyKPICards({ overviewData }) {
     </div>
   );
 }
-DailyKPICards.propTypes = { overviewData: PropTypes.object.isRequired };
+DailyKPICards.propTypes = {
+  overviewData: PropTypes.shape({
+    totals: PropTypes.object,
+    calculated_kpis: PropTypes.object,
+    sellers_reported: PropTypes.number,
+    total_sellers: PropTypes.number,
+    seller_entries: PropTypes.arrayOf(PropTypes.object)
+  }).isRequired
+};
 
 function ValidatedDataSection({ hasManagerData, managerData, overviewData, validatedCA, validatedVentes, validatedArticles }) {
   const hasAnyData = hasManagerData || (overviewData?.sellers_reported > 0);
+  const safeValidatedCA = typeof validatedCA === 'number' ? validatedCA.toFixed(2) : '0.00';
   if (hasAnyData) {
     return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div className="flex flex-col items-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
         <span className="text-xs text-purple-700 font-semibold mb-1">💰 CA</span>
-        <span className="text-lg font-bold text-purple-900">{validatedCA.toFixed(2)} €</span>
+        <span className="text-lg font-bold text-purple-900">{safeValidatedCA} €</span>
       </div>
       <div className="flex flex-col items-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
         <span className="text-xs text-green-700 font-semibold mb-1">🛍️ Ventes</span>

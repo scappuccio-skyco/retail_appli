@@ -3,7 +3,11 @@ import PropTypes from 'prop-types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatChartDate, computePeriodTotals, formatListDateLabel } from './storeKPIUtils';
 
-const CHART_INTERVAL = (viewMode) => (viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0);
+function getChartInterval(viewMode) {
+  if (viewMode === 'week') return 0;
+  if (viewMode === 'month') return 2;
+  return 0;
+}
 
 function ChartFilters({ visibleCharts, onToggleChart, onShowAll }) {
   const items = [
@@ -40,7 +44,7 @@ function SingleLineChart({ data, dataKey, name, viewMode, formatDate }) {
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={CHART_INTERVAL(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatDate} />
+        <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatDate} />
         <YAxis tick={{ fontSize: 12 }} />
         <Tooltip />
         <Legend />
@@ -62,7 +66,7 @@ function DualLineChart({ data, primaryKey, primaryName, secondaryKey, secondaryN
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={CHART_INTERVAL(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatDate} />
+        <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatDate} />
         <YAxis tick={{ fontSize: 12 }} />
         <Tooltip />
         <Legend />
@@ -178,8 +182,20 @@ export default function StoreKPIModalOverviewTab({
   const allZero = historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0);
   const hasProspectsData = historicalData.some(d => d.total_prospects > 0);
   const defaultVisibleCharts = { ca: true, ventes: true, panierMoyen: true, tauxTransformation: true, indiceVente: true, articles: true };
-  const weekIATitle = selectedWeek ? (allZero ? 'Aucune donnée disponible pour cette période' : '') : 'Sélectionnez une semaine';
-  const chartEmptyMessage = loadingHistorical ? '⏳ Chargement des données...' : '📭 Aucune donnée disponible pour cette période';
+  const weekIATitleWhenNoWeek = 'Sélectionnez une semaine';
+  const weekIATitleWhenNoData = 'Aucune donnée disponible pour cette période';
+  const weekIATitle = selectedWeek ? (allZero ? weekIATitleWhenNoData : '') : weekIATitleWhenNoWeek;
+  const chartEmptyMessageLoading = '⏳ Chargement des données...';
+  const chartEmptyMessageNoData = '📭 Aucune donnée disponible pour cette période';
+  const chartEmptyMessage = loadingHistorical ? chartEmptyMessageLoading : chartEmptyMessageNoData;
+  const showChartWithData = displayMode === 'chart' && hasData;
+  const showChartEmpty = displayMode === 'chart' && !hasData;
+
+  const chartPlaceholderBlock = showChartEmpty ? (
+    <div className="text-center py-12">
+      <p className="text-gray-500">{chartEmptyMessage}</p>
+    </div>
+  ) : null;
 
   const handleShowPicker = (e) => {
     try {
@@ -216,7 +232,7 @@ export default function StoreKPIModalOverviewTab({
 
       {displayMode === 'chart' && <ChartFilters visibleCharts={visibleCharts} onToggleChart={toggleChart} onShowAll={() => setVisibleCharts(defaultVisibleCharts)} />}
 
-      {displayMode === 'chart' && hasData ? (
+      {showChartWithData ? (
         <div className="space-y-6">
           {visibleCharts.ca && (
             <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
@@ -263,7 +279,7 @@ export default function StoreKPIModalOverviewTab({
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={historicalData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={CHART_INTERVAL(viewMode)} angle={-45} textAnchor="end" height={60} tickFormatter={formatChartDate} />
+                  <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={60} tickFormatter={formatChartDate} />
                   <YAxis tick={{ fontSize: 10 }} />
                   <Tooltip />
                   <Legend />
@@ -273,11 +289,7 @@ export default function StoreKPIModalOverviewTab({
             </div>
           )}
         </div>
-      ) : displayMode === 'chart' ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">{chartEmptyMessage}</p>
-        </div>
-      ) : null}
+      ) : chartPlaceholderBlock}
 
       {displayMode === 'list' && (
         <div className="space-y-4">

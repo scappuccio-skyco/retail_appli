@@ -22,6 +22,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
       : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100';
 
+  const vm = state.viewMode;
+  const overviewPeriodLabel = vm === 'week' ? `Semaine ${state.selectedWeek}` : vm === 'month' ? `Mois ${state.selectedMonth}` : vm === 'year' ? `Année ${state.selectedYear}` : 'Période inconnue';
+
   return (
     <div
       onClick={hideCloseButton ? undefined : (e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -131,7 +134,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
           storeId={storeId}
           viewContext={{
             viewMode: state.viewMode,
-            period: state.viewMode === 'week' ? `Semaine ${state.selectedWeek}` : state.viewMode === 'month' ? `Mois ${state.selectedMonth}` : state.viewMode === 'year' ? `Année ${state.selectedYear}` : 'Période inconnue',
+            period: overviewPeriodLabel,
             historicalData: state.historicalData
           }}
           onClose={() => state.setShowOverviewAIModal(false)}
