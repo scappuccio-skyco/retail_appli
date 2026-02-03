@@ -69,7 +69,7 @@ class EvaluationRepository(BaseRepository):
             sort: Sort order (default: [("created_at", -1)])
         """
         if not store_id:
-            raise ValueError("store_id is required for security")
+            raise ValueError(ERR_STORE_ID_REQUIRED)
         
         if not seller_ids:
             raise ValueError(ERR_SELLER_IDS_REQUIRED)
@@ -238,7 +238,7 @@ class EvaluationRepository(BaseRepository):
     ) -> int:
         """Count evaluations for a store (SECURITY: requires store_id and seller_ids)"""
         if not store_id:
-            raise ValueError("store_id is required for security")
+            raise ValueError(ERR_STORE_ID_REQUIRED)
         if not seller_ids:
-            raise ValueError("seller_ids are required for security")
+            raise ValueError(ERR_SELLER_IDS_REQUIRED)
         return await self.count({"seller_id": {"$in": seller_ids}})

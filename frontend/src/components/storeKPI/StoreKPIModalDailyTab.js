@@ -41,8 +41,8 @@ DailyKPICards.propTypes = { overviewData: PropTypes.object.isRequired };
 
 function ValidatedDataSection({ hasManagerData, managerData, overviewData, validatedCA, validatedVentes, validatedArticles }) {
   const hasAnyData = hasManagerData || (overviewData?.sellers_reported > 0);
-  if (!hasAnyData) return <p className="text-gray-500 text-xs italic">Aucune donnée validée pour cette date</p>;
-  return (
+  if (hasAnyData) {
+    return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div className="flex flex-col items-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
         <span className="text-xs text-purple-700 font-semibold mb-1">💰 CA</span>
@@ -64,6 +64,8 @@ function ValidatedDataSection({ hasManagerData, managerData, overviewData, valid
       )}
     </div>
   );
+  }
+  return <p className="text-gray-500 text-xs italic">Aucune donnée validée pour cette date</p>;
 }
 
 function SellerEntriesTable({ seller_entries }) {
@@ -111,9 +113,11 @@ export default function StoreKPIModalDailyTab({
 }) {
   const managerData = overviewData?.manager_data || overviewData?.managers_data || {};
   const hasManagerData = managerData && Object.keys(managerData).length > 0;
-
-  const noDataForDate = overviewData?.totals?.ca === 0 && overviewData?.totals?.ventes === 0;
-  const aiButtonTitle = !overviewData ? 'Sélectionnez une date' : (noDataForDate ? 'Aucune donnée disponible pour cette date' : '');
+  const hasOverviewData = Boolean(overviewData);
+  const hasDataForDate = hasOverviewData && !(overviewData?.totals?.ca === 0 && overviewData?.totals?.ventes === 0);
+  const aiButtonTitleWhenNoOverview = 'Sélectionnez une date';
+  const aiButtonTitleWhenNoData = 'Aucune donnée disponible pour cette date';
+  const aiButtonTitle = hasOverviewData ? (hasDataForDate ? '' : aiButtonTitleWhenNoData) : aiButtonTitleWhenNoOverview;
   const managerCA = hasManagerData ? (managerData.ca_journalier || 0) : 0;
   const managerVentes = hasManagerData ? (managerData.nb_ventes || 0) : 0;
   const managerArticles = hasManagerData ? (managerData.nb_articles || 0) : 0;
@@ -126,6 +130,7 @@ export default function StoreKPIModalDailyTab({
 
   const showValidatedSection = !storeId;
   const hasSellerEntries = overviewData?.seller_entries?.length > 0;
+  const canLaunchAI = hasOverviewData && hasDataForDate;
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -140,7 +145,7 @@ export default function StoreKPIModalDailyTab({
         </div>
         <button
           onClick={() => onShowAIModal(true)}
-          disabled={!overviewData || noDataForDate}
+          disabled={!canLaunchAI}
           className="px-4 py-1.5 text-sm bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           title={aiButtonTitle}
         >
@@ -148,7 +153,7 @@ export default function StoreKPIModalDailyTab({
         </button>
       </div>
 
-      {overviewData ? (
+      {hasOverviewData ? (
         <div className="space-y-4">
           <DailyKPICards overviewData={overviewData} />
           {showValidatedSection && (

@@ -42,7 +42,6 @@ const DEFAULT_CHALLENGE = {
 
 export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, storeIdParam }) {
   const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
-  const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
 
   const [activeTab, setActiveTab] = useState(modalType === 'objectives' ? 'create_objective' : 'create_challenge');
   const [kpiConfig, setKpiConfig] = useState(null);

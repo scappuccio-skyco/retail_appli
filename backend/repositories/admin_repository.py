@@ -302,7 +302,7 @@ class AdminRepository:
         match_stage = {
             "$match": {
                 "timestamp": {"$gte": time_threshold.isoformat()},
-                "admin_email": {MONGO_OP_EXISTS: True, "$ne": None, "$ne": ""}
+                "admin_email": {MONGO_OP_EXISTS: True, "$nin": [None, ""]}
             }
         }
         count_pipeline = [

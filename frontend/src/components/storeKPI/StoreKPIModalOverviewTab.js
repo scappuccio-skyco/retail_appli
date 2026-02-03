@@ -29,6 +29,11 @@ function ChartFilters({ visibleCharts, onToggleChart, onShowAll }) {
     </div>
   );
 }
+ChartFilters.propTypes = {
+  visibleCharts: PropTypes.object.isRequired,
+  onToggleChart: PropTypes.func.isRequired,
+  onShowAll: PropTypes.func.isRequired
+};
 
 function SingleLineChart({ data, dataKey, name, viewMode, formatDate }) {
   return (
@@ -77,6 +82,76 @@ DualLineChart.propTypes = {
   formatDate: PropTypes.func.isRequired
 };
 
+function DateSelectionSection({
+  viewMode, setViewMode, selectedWeek, setSelectedWeek, selectedMonth, setSelectedMonth,
+  selectedYear, setSelectedYear, availableYears, getCurrentWeek, hasData, allZero,
+  weekIATitle, onShowOverviewAIModal, onShowPicker
+}) {
+  const viewModeTabs = [
+    { id: 'week', label: '📅 Vue Hebdomadaire', onClick: () => { setViewMode('week'); if (!selectedWeek) setSelectedWeek(getCurrentWeek()); } },
+    { id: 'month', label: '📆 Vue Mensuelle', onClick: () => { setViewMode('month'); setSelectedMonth(new Date().toISOString().slice(0, 7)); } },
+    { id: 'year', label: '📅 Vue Annuelle', onClick: () => setViewMode('year') }
+  ];
+  const yearIATitle = allZero ? 'Aucune donnée disponible pour cette période' : '';
+  const currentYear = new Date().getFullYear();
+  const yearOptions = availableYears.length > 0 ? availableYears : [currentYear, currentYear - 1];
+  return (
+    <>
+      <div className="flex gap-2 mb-4">
+        {viewModeTabs.map(({ id, label, onClick }) => (
+          <button key={id} onClick={onClick} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${viewMode === id ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'}`}>{label}</button>
+        ))}
+      </div>
+      {viewMode === 'week' && (
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
+          <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une semaine</h3>
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <input type="week" value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} onClick={onShowPicker} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer" />
+            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || !selectedWeek || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={weekIATitle}>🤖 Analyse IA</button>
+          </div>
+        </div>
+      )}
+      {viewMode === 'month' && (
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
+          <h3 className="text-lg font-bold text-orange-900 mb-3">📆 Sélectionner un mois</h3>
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} onClick={onShowPicker} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer" />
+            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || !selectedMonth || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap">🤖 Analyse IA</button>
+          </div>
+        </div>
+      )}
+      {viewMode === 'year' && (
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
+          <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une année</h3>
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <select value={selectedYear} onChange={(e) => setSelectedYear(Number.parseInt(e.target.value, 10))} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none bg-white cursor-pointer">
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={yearIATitle}>🤖 Analyse IA</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+DateSelectionSection.propTypes = {
+  viewMode: PropTypes.string.isRequired,
+  setViewMode: PropTypes.func.isRequired,
+  selectedWeek: PropTypes.string.isRequired,
+  setSelectedWeek: PropTypes.func.isRequired,
+  selectedMonth: PropTypes.string.isRequired,
+  setSelectedMonth: PropTypes.func.isRequired,
+  selectedYear: PropTypes.number.isRequired,
+  setSelectedYear: PropTypes.func.isRequired,
+  availableYears: PropTypes.arrayOf(PropTypes.number).isRequired,
+  getCurrentWeek: PropTypes.func.isRequired,
+  hasData: PropTypes.bool.isRequired,
+  allZero: PropTypes.bool.isRequired,
+  weekIATitle: PropTypes.string.isRequired,
+  onShowOverviewAIModal: PropTypes.func.isRequired,
+  onShowPicker: PropTypes.func.isRequired
+};
+
 export default function StoreKPIModalOverviewTab({
   viewMode,
   setViewMode,
@@ -101,11 +176,10 @@ export default function StoreKPIModalOverviewTab({
 }) {
   const hasData = historicalData.length > 0;
   const allZero = historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0);
+  const hasProspectsData = historicalData.some(d => d.total_prospects > 0);
   const defaultVisibleCharts = { ca: true, ventes: true, panierMoyen: true, tauxTransformation: true, indiceVente: true, articles: true };
   const weekIATitle = selectedWeek ? (allZero ? 'Aucune donnée disponible pour cette période' : '') : 'Sélectionnez une semaine';
-  const yearIATitle = allZero ? 'Aucune donnée disponible pour cette période' : '';
   const chartEmptyMessage = loadingHistorical ? '⏳ Chargement des données...' : '📭 Aucune donnée disponible pour cette période';
-  const listEmptyMessage = loadingHistorical ? '⏳ Chargement des données...' : '📭 Aucune donnée disponible pour cette période';
 
   const handleShowPicker = (e) => {
     try {
@@ -117,45 +191,23 @@ export default function StoreKPIModalOverviewTab({
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 mb-4">
-        {[
-          { id: 'week', label: '📅 Vue Hebdomadaire', onClick: () => { setViewMode('week'); if (!selectedWeek) setSelectedWeek(getCurrentWeek()); } },
-          { id: 'month', label: '📆 Vue Mensuelle', onClick: () => { setViewMode('month'); setSelectedMonth(new Date().toISOString().slice(0, 7)); } },
-          { id: 'year', label: '📅 Vue Annuelle', onClick: () => setViewMode('year') }
-        ].map(({ id, label, onClick }) => (
-          <button key={id} onClick={onClick} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${viewMode === id ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'}`}>{label}</button>
-        ))}
-      </div>
-
-      {viewMode === 'week' && (
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
-          <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une semaine</h3>
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            <input type="week" value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} onClick={handleShowPicker} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer" />
-            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || !selectedWeek || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={weekIATitle}>🤖 Analyse IA</button>
-          </div>
-        </div>
-      )}
-      {viewMode === 'month' && (
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
-          <h3 className="text-lg font-bold text-orange-900 mb-3">📆 Sélectionner un mois</h3>
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} onClick={handleShowPicker} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer" />
-            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || !selectedMonth || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap">🤖 Analyse IA</button>
-          </div>
-        </div>
-      )}
-      {viewMode === 'year' && (
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
-          <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une année</h3>
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            <select value={selectedYear} onChange={(e) => setSelectedYear(Number.parseInt(e.target.value, 10))} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none bg-white cursor-pointer">
-              {availableYears.length > 0 ? availableYears.map(y => <option key={y} value={y}>{y}</option>) : <><option value={new Date().getFullYear()}>{new Date().getFullYear()}</option><option value={new Date().getFullYear() - 1}>{new Date().getFullYear() - 1}</option></>}
-            </select>
-            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={allZero ? 'Aucune donnée disponible pour cette période' : ''}>🤖 Analyse IA</button>
-          </div>
-        </div>
-      )}
+      <DateSelectionSection
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        selectedWeek={selectedWeek}
+        setSelectedWeek={setSelectedWeek}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        availableYears={availableYears}
+        getCurrentWeek={getCurrentWeek}
+        hasData={hasData}
+        allZero={allZero}
+        weekIATitle={weekIATitle}
+        onShowOverviewAIModal={onShowOverviewAIModal}
+        onShowPicker={handleShowPicker}
+      />
 
       <div className="flex gap-2 mb-4">
         <button onClick={() => { setDisplayMode('list'); setDisplayedListItems(10); }} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${displayMode === 'list' ? 'border-purple-500 bg-purple-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'}`}>📊 Vue Chiffrée</button>
@@ -187,7 +239,7 @@ export default function StoreKPIModalOverviewTab({
           {visibleCharts.tauxTransformation && (
             <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
               <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">📈 Taux de Transformation (%)</h4>
-              {historicalData.some(d => d.total_prospects > 0) ? (
+              {hasProspectsData ? (
                 <SingleLineChart data={historicalData} dataKey="taux_transformation" name="Taux (%)" viewMode={viewMode} formatDate={formatChartDate} />
               ) : (
                 <div className="h-[300px] flex flex-col items-center justify-center text-center p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
@@ -236,7 +288,7 @@ export default function StoreKPIModalOverviewTab({
             </>
           ) : (
             <div className="text-center py-12">
-              {loadingHistorical ? <p className="text-gray-500">⏳ Chargement des données...</p> : <p className="text-gray-500">📭 Aucune donnée disponible pour cette période</p>}
+              <p className="text-gray-500">{chartEmptyMessage}</p>
             </div>
           )}
         </div>
@@ -269,10 +321,12 @@ StoreKPIModalOverviewTab.propTypes = {
 
 function OverviewListTotals({ historicalData, computePeriodTotals }) {
   const { total_ca, total_ventes, total_articles, total_prospects, total_clients, panierMoyen, tauxTransfo, indiceVente } = computePeriodTotals(historicalData);
+  const dayLabel = historicalData.length === 1 ? 'jour' : 'jours';
+  const clientsDisplay = total_clients > 0 ? total_clients : 'N/A';
   return (
     <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border-2 border-orange-300 shadow-lg overflow-hidden">
       <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">📊 TOTAL PÉRIODE <span className="text-sm font-normal opacity-90">({historicalData.length} {historicalData.length === 1 ? 'jour' : 'jours'})</span></h3>
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">📊 TOTAL PÉRIODE <span className="text-sm font-normal opacity-90">({historicalData.length} {dayLabel})</span></h3>
       </div>
       <div className="p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
@@ -294,7 +348,7 @@ function OverviewListTotals({ historicalData, computePeriodTotals }) {
           </div>
           <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 border-2 border-yellow-300 flex flex-col items-center justify-center text-center">
             <div className="text-xs text-yellow-700 font-semibold mb-1">👥 Clients Total</div>
-            <div className="text-sm font-bold text-yellow-900 break-words">{total_clients > 0 ? total_clients : 'N/A'}</div>
+            <div className="text-sm font-bold text-yellow-900 break-words">{clientsDisplay}</div>
           </div>
           <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border-2 border-purple-300 flex flex-col items-center justify-center text-center">
             <div className="text-xs text-purple-700 font-semibold mb-1">🛒 Panier Moyen</div>

@@ -23,6 +23,9 @@ export default function StoreKPIModalProspectsTab({
   const sellerInputClassName = isManagerDateLocked ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-orange-400';
   const prospectsInputClassName = isManagerDateLocked ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-purple-400';
   const submitButtonLabel = loading ? 'Enregistrement...' : '💾 Enregistrer les données';
+  const showSellersLoading = loadingSellers;
+  const showNoSellersMessage = !loadingSellers && sellers.length === 0;
+  const showSellersList = !loadingSellers && sellers.length > 0;
 
   const handleShowPicker = (e) => {
     try {
@@ -96,16 +99,18 @@ export default function StoreKPIModalProspectsTab({
               <h3 className="text-sm font-bold text-gray-800 mb-2">📋 Saisie par Vendeur</h3>
               <p className="text-xs text-gray-600">Saisissez les données pour chaque vendeur actif du magasin.</p>
             </div>
-            {loadingSellers ? (
+            {showSellersLoading && (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
                 <p className="text-sm text-gray-600 mt-2">Chargement des vendeurs...</p>
               </div>
-            ) : sellers.length === 0 ? (
+            )}
+            {showNoSellersMessage && (
               <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800">⚠️ Aucun vendeur actif trouvé pour ce magasin.</p>
               </div>
-            ) : (
+            )}
+            {showSellersList && (
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {sellers.map((seller) => (
                   <div key={seller.id} className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors">

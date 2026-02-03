@@ -328,8 +328,8 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
       if (value === true && KPI_OPPOSITE_FIELD[field]) {
         updatedConfig[KPI_OPPOSITE_FIELD[field]] = false;
       }
-      const url = storeId ? `/gerant/stores/${storeId}/kpi-config` : `/manager/kpi-config${storeId ? '?store_id=' + storeId : ''}`;
-      await api.put(url, updatedConfig);
+      const kpiConfigUrl = storeId ? `/gerant/stores/${storeId}/kpi-config` : '/manager/kpi-config';
+      await api.put(kpiConfigUrl, updatedConfig);
       setKpiConfig(updatedConfig);
       toast.success('Configuration mise à jour !');
     } catch (err) {
