@@ -184,7 +184,8 @@ export default function StoreKPIModalOverviewTab({
   const defaultVisibleCharts = { ca: true, ventes: true, panierMoyen: true, tauxTransformation: true, indiceVente: true, articles: true };
   const weekIATitleWhenNoWeek = 'Sélectionnez une semaine';
   const weekIATitleWhenNoData = 'Aucune donnée disponible pour cette période';
-  const weekIATitle = selectedWeek ? (allZero ? weekIATitleWhenNoData : '') : weekIATitleWhenNoWeek;
+  const weekIATitleWhenSelected = allZero ? weekIATitleWhenNoData : '';
+  const weekIATitle = selectedWeek ? weekIATitleWhenSelected : weekIATitleWhenNoWeek;
   const chartEmptyMessageLoading = '⏳ Chargement des données...';
   const chartEmptyMessageNoData = '📭 Aucune donnée disponible pour cette période';
   const chartEmptyMessage = loadingHistorical ? chartEmptyMessageLoading : chartEmptyMessageNoData;
@@ -196,6 +197,65 @@ export default function StoreKPIModalOverviewTab({
       <p className="text-gray-500">{chartEmptyMessage}</p>
     </div>
   ) : null;
+
+  const chartSectionContent = showChartWithData ? (
+    <div className="space-y-6">
+      {visibleCharts.ca && (
+        <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+          <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">💰 Chiffre d'Affaires</h4>
+          <DualLineChart data={historicalData} primaryKey="total_ca" primaryName="CA Total" secondaryKey="seller_ca" secondaryName="CA Vendeurs" viewMode={viewMode} formatDate={formatChartDate} />
+        </div>
+      )}
+      {visibleCharts.ventes && (
+        <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+          <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">🛒 Nombre de Ventes</h4>
+          <DualLineChart data={historicalData} primaryKey="total_ventes" primaryName="Ventes Totales" secondaryKey="seller_ventes" secondaryName="Ventes Vendeurs" viewMode={viewMode} formatDate={formatChartDate} />
+        </div>
+      )}
+      {visibleCharts.panierMoyen && (
+        <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+          <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">🛍️ Panier Moyen</h4>
+          <SingleLineChart data={historicalData} dataKey="panier_moyen" name="Panier Moyen (€)" viewMode={viewMode} formatDate={formatChartDate} />
+        </div>
+      )}
+      {visibleCharts.tauxTransformation && (
+        <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+          <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">📈 Taux de Transformation (%)</h4>
+          {hasProspectsData ? (
+            <SingleLineChart data={historicalData} dataKey="taux_transformation" name="Taux (%)" viewMode={viewMode} formatDate={formatChartDate} />
+          ) : (
+            <div className="h-[300px] flex flex-col items-center justify-center text-center p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
+              <div className="text-4xl mb-3">📊</div>
+              <p className="text-gray-700 font-semibold mb-2">Données de prospects manquantes</p>
+              <p className="text-sm text-gray-600 max-w-md">Le taux de transformation nécessite le suivi du nombre de prospects. Activez le KPI "Prospects" dans la configuration et demandez à vos vendeurs de le renseigner quotidiennement.</p>
+              <div className="mt-4 text-xs text-purple-700 bg-purple-100 px-4 py-2 rounded-lg">💡 Taux = (Ventes ÷ Prospects) × 100</div>
+            </div>
+          )}
+        </div>
+      )}
+      {visibleCharts.indiceVente && (
+        <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+          <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">📊 Indice de Vente</h4>
+          <SingleLineChart data={historicalData} dataKey="indice_vente" name="Indice" viewMode={viewMode} formatDate={formatChartDate} />
+        </div>
+      )}
+      {visibleCharts.articles && (
+        <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+          <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">📦 Articles Vendus</h4>
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={historicalData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={60} tickFormatter={formatChartDate} />
+              <YAxis tick={{ fontSize: 10 }} />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="total_articles" name="Articles" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 2 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  ) : chartPlaceholderBlock;
 
   const handleShowPicker = (e) => {
     try {
@@ -232,64 +292,7 @@ export default function StoreKPIModalOverviewTab({
 
       {displayMode === 'chart' && <ChartFilters visibleCharts={visibleCharts} onToggleChart={toggleChart} onShowAll={() => setVisibleCharts(defaultVisibleCharts)} />}
 
-      {showChartWithData ? (
-        <div className="space-y-6">
-          {visibleCharts.ca && (
-            <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
-              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">💰 Chiffre d'Affaires</h4>
-              <DualLineChart data={historicalData} primaryKey="total_ca" primaryName="CA Total" secondaryKey="seller_ca" secondaryName="CA Vendeurs" viewMode={viewMode} formatDate={formatChartDate} />
-            </div>
-          )}
-          {visibleCharts.ventes && (
-            <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
-              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">🛒 Nombre de Ventes</h4>
-              <DualLineChart data={historicalData} primaryKey="total_ventes" primaryName="Ventes Totales" secondaryKey="seller_ventes" secondaryName="Ventes Vendeurs" viewMode={viewMode} formatDate={formatChartDate} />
-            </div>
-          )}
-          {visibleCharts.panierMoyen && (
-            <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
-              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">🛍️ Panier Moyen</h4>
-              <SingleLineChart data={historicalData} dataKey="panier_moyen" name="Panier Moyen (€)" viewMode={viewMode} formatDate={formatChartDate} />
-            </div>
-          )}
-          {visibleCharts.tauxTransformation && (
-            <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
-              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">📈 Taux de Transformation (%)</h4>
-              {hasProspectsData ? (
-                <SingleLineChart data={historicalData} dataKey="taux_transformation" name="Taux (%)" viewMode={viewMode} formatDate={formatChartDate} />
-              ) : (
-                <div className="h-[300px] flex flex-col items-center justify-center text-center p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
-                  <div className="text-4xl mb-3">📊</div>
-                  <p className="text-gray-700 font-semibold mb-2">Données de prospects manquantes</p>
-                  <p className="text-sm text-gray-600 max-w-md">Le taux de transformation nécessite le suivi du nombre de prospects. Activez le KPI "Prospects" dans la configuration et demandez à vos vendeurs de le renseigner quotidiennement.</p>
-                  <div className="mt-4 text-xs text-purple-700 bg-purple-100 px-4 py-2 rounded-lg">💡 Taux = (Ventes ÷ Prospects) × 100</div>
-                </div>
-              )}
-            </div>
-          )}
-          {visibleCharts.indiceVente && (
-            <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
-              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">📊 Indice de Vente</h4>
-              <SingleLineChart data={historicalData} dataKey="indice_vente" name="Indice" viewMode={viewMode} formatDate={formatChartDate} />
-            </div>
-          )}
-          {visibleCharts.articles && (
-            <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
-              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">📦 Articles Vendus</h4>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={historicalData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={60} tickFormatter={formatChartDate} />
-                  <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="total_articles" name="Articles" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 2 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-      ) : chartPlaceholderBlock}
+      {chartSectionContent}
 
       {displayMode === 'list' && (
         <div className="space-y-4">

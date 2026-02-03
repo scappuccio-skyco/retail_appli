@@ -14,6 +14,13 @@ const TABS = [
   { id: 'prospects', label: '👨‍💼 Saisie des données' }
 ];
 
+function getOverviewPeriodLabel(viewMode, state) {
+  if (viewMode === 'week') return `Semaine ${state.selectedWeek}`;
+  if (viewMode === 'month') return `Mois ${state.selectedMonth}`;
+  if (viewMode === 'year') return `Année ${state.selectedYear}`;
+  return 'Période inconnue';
+}
+
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null, isManager = false }) {
   const state = useStoreKPIModal({ onClose, onSuccess, initialDate, storeId });
 
@@ -22,8 +29,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
       : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100';
 
-  const vm = state.viewMode;
-  const overviewPeriodLabel = vm === 'week' ? `Semaine ${state.selectedWeek}` : vm === 'month' ? `Mois ${state.selectedMonth}` : vm === 'year' ? `Année ${state.selectedYear}` : 'Période inconnue';
+  const overviewPeriodLabel = getOverviewPeriodLabel(state.viewMode, state);
 
   return (
     <div

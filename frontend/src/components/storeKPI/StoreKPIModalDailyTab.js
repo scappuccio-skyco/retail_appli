@@ -54,7 +54,7 @@ DailyKPICards.propTypes = {
 
 function ValidatedDataSection({ hasManagerData, managerData, overviewData, validatedCA, validatedVentes, validatedArticles }) {
   const hasAnyData = hasManagerData || (overviewData?.sellers_reported > 0);
-  const safeValidatedCA = typeof validatedCA === 'number' ? validatedCA.toFixed(2) : '0.00';
+  const safeValidatedCA = (validatedCA || 0).toFixed(2);
   if (hasAnyData) {
     return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -81,6 +81,32 @@ function ValidatedDataSection({ hasManagerData, managerData, overviewData, valid
   }
   return <p className="text-gray-500 text-xs italic">Aucune donnée validée pour cette date</p>;
 }
+ValidatedDataSection.propTypes = {
+  hasManagerData: PropTypes.bool.isRequired,
+  managerData: PropTypes.shape({
+    nb_prospects: PropTypes.number,
+    ca_journalier: PropTypes.number,
+    nb_ventes: PropTypes.number,
+    nb_articles: PropTypes.number
+  }),
+  overviewData: PropTypes.shape({
+    sellers_reported: PropTypes.number,
+    totals: PropTypes.object,
+    calculated_kpis: PropTypes.object,
+    total_sellers: PropTypes.number,
+    seller_entries: PropTypes.arrayOf(PropTypes.object)
+  }),
+  validatedCA: PropTypes.number,
+  validatedVentes: PropTypes.number,
+  validatedArticles: PropTypes.number
+};
+ValidatedDataSection.defaultProps = {
+  managerData: {},
+  overviewData: null,
+  validatedCA: 0,
+  validatedVentes: 0,
+  validatedArticles: 0
+};
 
 function SellerEntriesTable({ seller_entries }) {
   return (
@@ -131,7 +157,8 @@ export default function StoreKPIModalDailyTab({
   const hasDataForDate = hasOverviewData && !(overviewData?.totals?.ca === 0 && overviewData?.totals?.ventes === 0);
   const aiButtonTitleWhenNoOverview = 'Sélectionnez une date';
   const aiButtonTitleWhenNoData = 'Aucune donnée disponible pour cette date';
-  const aiButtonTitle = hasOverviewData ? (hasDataForDate ? '' : aiButtonTitleWhenNoData) : aiButtonTitleWhenNoOverview;
+  const aiTitleWhenHasOverview = hasDataForDate ? '' : aiButtonTitleWhenNoData;
+  const aiButtonTitle = hasOverviewData ? aiTitleWhenHasOverview : aiButtonTitleWhenNoOverview;
   const managerCA = hasManagerData ? (managerData.ca_journalier || 0) : 0;
   const managerVentes = hasManagerData ? (managerData.nb_ventes || 0) : 0;
   const managerArticles = hasManagerData ? (managerData.nb_articles || 0) : 0;
