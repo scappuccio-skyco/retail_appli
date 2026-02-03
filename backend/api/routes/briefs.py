@@ -156,10 +156,16 @@ async def generate_morning_brief(
         except Exception as e:
             logger.error("Erreur lors de la sauvegarde de l'objectif CA: %s", e)
 
-    if brief_request.stats:
+    if brief_request.stats and isinstance(brief_request.stats, dict):
         stats = brief_request.stats
     else:
-        stats = await manager_service.get_yesterday_stats_for_brief(final_store_id, user_id)
+        try:
+            stats = await manager_service.get_yesterday_stats_for_brief(final_store_id, user_id)
+        except Exception as e:
+            logger.warning("get_yesterday_stats_for_brief failed, using empty stats: %s", e)
+            stats = {"ca_yesterday": 0, "data_date": None, "team_present": "Non renseigné"}
+    if not isinstance(stats, dict):
+        stats = {"ca_yesterday": 0, "data_date": None, "team_present": "Non renseigné"}
     data_date = stats.get("data_date")
 
     try:
@@ -196,7 +202,12 @@ async def generate_morning_brief(
             except (ValueError, Exception) as e:
                 logger.error("Error saving brief to history: %s", e)
 
+        # Garantir les champs requis pour MorningBriefResponse (éviter 500 si le service omet generated_at)
+        if isinstance(result, dict) and not result.get("generated_at"):
+            result["generated_at"] = datetime.now(timezone.utc).isoformat()
         return result
+    except BusinessLogicError:
+        raise
     except Exception as e:
         logger.exception(
             "Morning brief generation failed",

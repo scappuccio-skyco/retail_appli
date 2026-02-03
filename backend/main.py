@@ -9,14 +9,15 @@ logger = logging.getLogger(__name__)
 
 from core.config import settings
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import HTTPException
 from core.lifespan import lifespan
 from core.exceptions import AppException
 from core.startup_helpers import (
     SLOWAPI_AVAILABLE, Limiter, get_remote_address, RateLimitExceeded,
-    rate_limit_exceeded_handler, get_allowed_origins, get_dummy_limiter,
+    get_allowed_origins, get_dummy_limiter,
     SlowAPIMiddleware,
 )
 
@@ -42,6 +43,8 @@ _cors_allowed_origins = get_allowed_origins(settings)
 
 def _cors_headers_for_request(request) -> dict:
     """En-têtes CORS à ajouter aux réponses (y compris erreurs) pour éviter blocage navigateur."""
+    if request is None:
+        return {"Access-Control-Allow-Origin": _cors_allowed_origins[0], "Access-Control-Allow-Credentials": "true"} if _cors_allowed_origins else {}
     origin = request.headers.get("origin") if hasattr(request, "headers") else None
     if origin and origin in _cors_allowed_origins:
         return {"Access-Control-Allow-Origin": origin, "Access-Control-Allow-Credentials": "true"}
@@ -89,7 +92,29 @@ async def _unhandled_exception_handler(request, exc: Exception):
     )
 
 
+async def _http_exception_handler(request: Request, exc: HTTPException):
+    """Réponse 4xx avec en-têtes CORS pour éviter blocage navigateur."""
+    headers = _cors_headers_for_request(request)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers=headers,
+    )
+
+
+async def _rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    """429 avec en-têtes CORS (sinon le navigateur affiche une erreur CORS au lieu de 429)."""
+    headers = _cors_headers_for_request(request)
+    detail = getattr(exc, "description", None) or "Trop de requêtes. Veuillez réessayer plus tard."
+    return JSONResponse(
+        status_code=429,
+        content={"error_code": "RATE_LIMIT_EXCEEDED", "detail": detail},
+        headers=headers,
+    )
+
+
 app.add_exception_handler(AppException, _app_exception_handler)
+app.add_exception_handler(HTTPException, _http_exception_handler)
 app.add_exception_handler(Exception, _unhandled_exception_handler)
 
 # --- Rate limiter (slowapi). Redis storage when REDIS_URL set (Audit 1.6 & 3.3) ---
@@ -103,7 +128,7 @@ if SLOWAPI_AVAILABLE and Limiter:
         limiter_kw["storage_uri"] = redis_url
     limiter = Limiter(**limiter_kw)
     app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     if SlowAPIMiddleware:
         app.add_middleware(SlowAPIMiddleware)
     from api.dependencies_rate_limiting import init_global_limiter

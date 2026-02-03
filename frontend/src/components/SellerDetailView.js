@@ -39,13 +39,12 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
     fetchSellerData();
   }, [seller.id, storeIdParam]);
 
-  // Re-fetch KPI data when filter changes (but not on initial load, as fetchSellerData will call it)
+  // Charger les KPI une fois les autres données prêtes, puis quand le filtre change (un seul appel pour éviter 429)
   useEffect(() => {
-    // Only fetch if we already have initial data loaded (to avoid double fetch on mount)
     if (seller?.id && !loading) {
       fetchKPIData();
     }
-  }, [kpiFilter]);
+  }, [kpiFilter, loading]);
 
   const fetchKPIData = async () => {
     if (!seller?.id) {
@@ -62,7 +61,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
       console.log(`[SellerDetailView] Fetching KPI data: ${url}`);
       
       const kpiRes = await api.get(url);
-      const entries = Array.isArray(kpiRes.data) ? kpiRes.data : [];
+      const entries = Array.isArray(kpiRes.data?.items) ? kpiRes.data.items : (Array.isArray(kpiRes.data) ? kpiRes.data : []);
       setKpiEntries(entries);
       
       // Debug logging
@@ -133,31 +132,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
       setDebriefs(debriefsRes.data);
       setCompetencesHistory(competencesRes.data || []); // Keep historical data for evolution chart
       setKpiConfig(kpiConfigRes.data); // Store manager's KPI configuration
-      
-      // Initial KPI load with default filter (7j)
-      const initialDays = kpiFilter === '7j' ? 7 : kpiFilter === '30j' ? 30 : 365;
-      const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
-      try {
-        const initialUrl = `/manager/kpi-entries/${seller.id}?days=${initialDays}${storeParamAnd}`;
-        console.log(`[SellerDetailView] Initial KPI load URL: ${initialUrl}`);
-        const kpiRes = await api.get(initialUrl);
-        const initialEntries = Array.isArray(kpiRes.data) ? kpiRes.data : [];
-        setKpiEntries(initialEntries);
-        console.log(`[SellerDetailView] Initial load: ${initialEntries.length} KPI entries`);
-        if (initialEntries.length > 0) {
-          console.log(`[SellerDetailView] Initial first entry:`, initialEntries[0]);
-        } else {
-          console.warn(`[SellerDetailView] Initial load returned empty array. Response:`, kpiRes.data);
-        }
-      } catch (err) {
-        console.error('[SellerDetailView] Error in initial KPI load:', err);
-        console.error('[SellerDetailView] Error details:', {
-          message: err.message,
-          response: err.response?.data,
-          status: err.response?.status
-        });
-        setKpiEntries([]);
-      }
+      // KPI : chargé par l'effet (kpiFilter) après setLoading(false) pour éviter double appel → 429
     } catch (err) {
       logger.error('Error loading seller data:', err);
       toast.error('Erreur de chargement des données du vendeur');
