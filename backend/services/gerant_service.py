@@ -272,49 +272,39 @@ class GerantService:
         if not gerant:
             raise ForbiddenError("Utilisateur non trouvé")
         
-        # ✅ EXCEPTION: Si allow_user_management=True, on autorise même si trial_expired
-        # Mais on vérifie toujours que le gérant existe et n'est pas supprimé
         if allow_user_management:
             if gerant.get('status') == 'deleted':
                 raise ForbiddenError("Gérant supprimé")
-            # ✅ Autorise l'action même si trial_expired (pour gestion personnel uniquement)
             return True
-        
+
         workspace_id = gerant.get('workspace_id')
-        
         if not workspace_id:
             raise ForbiddenError("Aucun espace de travail associé")
-        
+
         workspace = await self.workspace_repo.find_by_id(workspace_id, projection={"_id": 0})
-        
         if not workspace:
             raise ForbiddenError("Espace de travail non trouvé")
-        
+
         subscription_status = workspace.get('subscription_status', 'inactive')
-        
-        # Active subscription - full access
+        allowed = False
+
         if subscription_status == 'active':
-            return True
-        
-        # In trial period - check if still valid (including the last day)
-        if subscription_status == 'trialing':
+            allowed = True
+        elif subscription_status == 'trialing':
             trial_end = workspace.get('trial_end')
             if trial_end:
                 if isinstance(trial_end, str):
                     trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
                 else:
                     trial_end_dt = trial_end
-                
-                # Gérer les dates naive vs aware
+
                 now = datetime.now(timezone.utc)
                 if trial_end_dt.tzinfo is None:
                     trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
-                
-                # Allow access if trial_end is today or in the future
+
                 if now <= trial_end_dt:
-                    return True
+                    allowed = True
                 else:
-                    # Trial has expired - update status in DB
                     await self.workspace_repo.update_one(
                         {"id": workspace_id},
                         {
@@ -324,14 +314,12 @@ class GerantService:
                     )
                     from core.cache import invalidate_workspace_cache
                     await invalidate_workspace_cache(workspace_id)
-                    raise ForbiddenError(
-                        "Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
-                    )
-        
-        # Trial expired or other inactive status
-        raise ForbiddenError(
-            "Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
-        )
+
+        if not allowed:
+            raise ForbiddenError(
+                "Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
+            )
+        return True
     
     async def check_user_write_access(self, user_id: str) -> bool:
         """

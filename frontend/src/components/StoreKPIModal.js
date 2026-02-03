@@ -303,23 +303,18 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         const filledArray = [];
         const existingDates = new Set(historicalArray.map(d => d.date));
         
-        // Create a copy of startDate to avoid mutating the original
-        const currentDate = new Date(startDate);
-        const endDateCopy = new Date(endDate);
-        
-        // Normalize to UTC to avoid timezone issues
+        const endOfRange = new Date(endDate);
+        endOfRange.setUTCHours(23, 59, 59, 999);
+
+        let currentDate = new Date(startDate);
         currentDate.setUTCHours(0, 0, 0, 0);
-        endDateCopy.setUTCHours(23, 59, 59, 999);
-        
-        // Iterate through all days in the range (from 1st to last day of month)
-        while (currentDate <= endDateCopy) {
+
+        while (currentDate <= endOfRange) {
           const dateStr = currentDate.toISOString().split('T')[0];
-          
           const existing = historicalArray.find(item => item.date === dateStr);
           if (existing) {
             filledArray.push(existing);
           } else {
-            // Add missing day with zeros
             filledArray.push({
               date: dateStr,
               seller_ca: 0,
@@ -329,9 +324,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               seller_prospects: 0
             });
           }
-          
-          // Move to next day
-          currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+          currentDate = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
         }
         
         historicalArray = filledArray;

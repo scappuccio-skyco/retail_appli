@@ -1073,15 +1073,13 @@ class SellerService:
                     # Visible only to specific sellers, and this seller is in the list
                     filtered_challenges.append(challenge)
         
-        # Calculate progress for each challenge
         for challenge in filtered_challenges:
             await self.calculate_challenge_progress(challenge, seller_id)
-        
-        # Add achievement notification flags
         await self.add_achievement_notification_flag(filtered_challenges, seller_id, "challenge")
-        
-        return filtered_challenges
-    
+
+        result = filtered_challenges
+        return result
+
     async def get_seller_challenges_active(self, seller_id: str, manager_id: Optional[str] = None) -> List[Dict]:
         """
         Get only active challenges (collective + personal) for display in seller dashboard

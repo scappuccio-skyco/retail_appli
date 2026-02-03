@@ -148,7 +148,7 @@ async def _get_current_user_from_token(
         raise UnauthorizedError("Invalid token payload")
 
     cache = await get_cache_service()
-    cache_key = CacheKeys.user(user_id)
+    cache_key = CacheKeys.key_for_user(user_id)
     user = await cache.get(cache_key)
 
     if user is None:
@@ -193,7 +193,7 @@ async def _resolve_workspace(workspace_repo, user: dict) -> Optional[dict]:
     workspace = None
 
     if workspace_id:
-        cache_key = CacheKeys.workspace(workspace_id)
+        cache_key = CacheKeys.key_for_workspace(workspace_id)
         workspace = await cache.get(cache_key)
         if workspace is None:
             workspace = await workspace_repo.find_by_id(workspace_id)
@@ -204,13 +204,13 @@ async def _resolve_workspace(workspace_repo, user: dict) -> Optional[dict]:
         workspace = await workspace_repo.find_by_gerant(gerant_id)
         if workspace:
             workspace = {k: workspace[k] for k in ("id", "status", "subscription_status", "trial_end") if k in workspace}
-            cache_key = CacheKeys.workspace(workspace.get('id'))
+            cache_key = CacheKeys.key_for_workspace(workspace.get('id'))
             await cache.set(cache_key, workspace, ttl=120)
     elif user_role == 'gerant':
         workspace = await workspace_repo.find_by_gerant(user_id)
         if workspace:
             workspace = {k: workspace[k] for k in ("id", "status", "subscription_status", "trial_end") if k in workspace}
-            cache_key = CacheKeys.workspace(workspace.get('id'))
+            cache_key = CacheKeys.key_for_workspace(workspace.get('id'))
             await cache.set(cache_key, workspace, ttl=120)
 
     return workspace
@@ -369,10 +369,11 @@ async def require_active_space(
         raise ForbiddenError("Espace supprimé")
 
     subscription_status = space.get('subscription_status') or 'inactive'
-    if subscription_status == 'active':
-        return current_user
+    allowed = False
 
-    if subscription_status == 'trialing':
+    if subscription_status == 'active':
+        allowed = True
+    elif subscription_status == 'trialing':
         trial_end = space.get('trial_end')
         if trial_end:
             if isinstance(trial_end, str):
@@ -385,24 +386,29 @@ async def require_active_space(
                 trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
 
             if now <= trial_end_dt:
-                return current_user
-
-        workspace_id = space.get('id')
-        if workspace_id:
-            db = await get_db()
-            workspace_repo = WorkspaceRepository(db)
-            await workspace_repo.update_by_id(
-                workspace_id,
-                {"subscription_status": "trial_expired", "updated_at": datetime.now(timezone.utc).isoformat()}
+                allowed = True
+            else:
+                workspace_id = space.get('id')
+                if workspace_id:
+                    db = await get_db()
+                    workspace_repo = WorkspaceRepository(db)
+                    await workspace_repo.update_by_id(
+                        workspace_id,
+                        {"subscription_status": "trial_expired", "updated_at": datetime.now(timezone.utc).isoformat()}
+                    )
+                raise ForbiddenError(
+                    "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer."
+                )
+        else:
+            raise ForbiddenError(
+                "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer."
             )
 
+    if not allowed:
         raise ForbiddenError(
-            "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer."
+            "Abonnement inactif ou paiement en échec : accès aux fonctionnalités bloqué"
         )
-
-    raise ForbiddenError(
-        "Abonnement inactif ou paiement en échec : accès aux fonctionnalités bloqué"
-    )
+    return current_user
 
 
 # ===== STORE ACCESS HELPERS =====

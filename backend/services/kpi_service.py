@@ -93,27 +93,23 @@ class KPIService:
             raise ForbiddenError("Espace de travail non trouvé")
         
         subscription_status = workspace.get('subscription_status', 'inactive')
-        
-        # Active subscription - full access
+        allowed = False
+
         if subscription_status == 'active':
-            return True
-        
-        # In trial period - check if still valid (including the last day)
-        if subscription_status == 'trialing':
+            allowed = True
+        elif subscription_status == 'trialing':
             trial_end = workspace.get('trial_end')
             if trial_end:
                 if isinstance(trial_end, str):
                     trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
                 else:
                     trial_end_dt = trial_end
-                
+
                 now = datetime.now(timezone.utc)
-                
-                # Allow access if trial_end is today or in the future
+
                 if now <= trial_end_dt:
-                    return True
+                    allowed = True
                 else:
-                    # Trial has expired - update status in DB
                     await self.workspace_repo.update_by_id(
                         workspace_id,
                         {
@@ -121,9 +117,10 @@ class KPIService:
                             "updated_at": datetime.now(timezone.utc).isoformat()
                         }
                     )
-        
-        # Trial expired or other inactive status
-        raise ForbiddenError("Période d'essai terminée. Veuillez contacter votre administrateur.")
+
+        if not allowed:
+            raise ForbiddenError("Période d'essai terminée. Veuillez contacter votre administrateur.")
+        return True
     
     async def check_kpi_entry_enabled(self, store_id: str) -> dict:
         """Check if KPI entry is enabled for a store"""

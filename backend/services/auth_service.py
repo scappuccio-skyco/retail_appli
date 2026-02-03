@@ -288,7 +288,6 @@ class AuthService:
         user.pop('_id', None)
         
         if invitation['role'] == 'manager' and user.get('store_id'):
-            from datetime import datetime, timezone
             modified = await self.user_repo.update_many(
                 {
                     "role": "seller",

@@ -275,23 +275,23 @@ class CacheKeys:
     DIAGNOSTIC = "diagnostic:"
     
     @staticmethod
-    def user(user_id: str) -> str:
+    def key_for_user(user_id: str) -> str:
         return f"{CacheKeys.USER}{user_id}"
-    
+
     @staticmethod
-    def store(store_id: str) -> str:
+    def key_for_store(store_id: str) -> str:
         return f"{CacheKeys.STORE}{store_id}"
-    
+
     @staticmethod
-    def workspace(workspace_id: str) -> str:
+    def key_for_workspace(workspace_id: str) -> str:
         return f"{CacheKeys.WORKSPACE}{workspace_id}"
-    
+
     @staticmethod
-    def store_config(store_id: str) -> str:
+    def key_for_store_config(store_id: str) -> str:
         return f"{CacheKeys.STORE_CONFIG}{store_id}"
-    
+
     @staticmethod
-    def diagnostic(seller_id: str) -> str:
+    def key_for_diagnostic(seller_id: str) -> str:
         return f"{CacheKeys.DIAGNOSTIC}{seller_id}"
 
 
@@ -305,7 +305,7 @@ async def invalidate_user_cache(user_id: str):
         return
     
     # Invalidate user cache
-    await cache.delete(CacheKeys.user(user_id))
+    await cache.delete(CacheKeys.key_for_user(user_id))
     
     # Invalidate workspace cache if user has workspace_id
     # (We'll need to fetch user to get workspace_id, but that's OK for invalidation)
@@ -322,8 +322,8 @@ async def invalidate_store_cache(store_id: str):
         return
     
     # Invalidate store cache
-    await cache.delete(CacheKeys.store(store_id))
-    await cache.delete(CacheKeys.store_config(store_id))
+    await cache.delete(CacheKeys.key_for_store(store_id))
+    await cache.delete(CacheKeys.key_for_store_config(store_id))
     
     logger.debug(f"Invalidated cache for store {store_id}")
 
@@ -338,6 +338,6 @@ async def invalidate_workspace_cache(workspace_id: str):
         return
     
     # Invalidate workspace cache
-    await cache.delete(CacheKeys.workspace(workspace_id))
+    await cache.delete(CacheKeys.key_for_workspace(workspace_id))
     
     logger.debug(f"Invalidated cache for workspace {workspace_id}")
