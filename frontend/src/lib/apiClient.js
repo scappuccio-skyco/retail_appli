@@ -86,7 +86,7 @@ apiClient.interceptors.response.use(
     // Gestion erreurs 401 (logout)
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      globalThis.location.href = '/login';
     }
     
     return Promise.reject(error);

@@ -262,7 +262,7 @@ export default function PerformanceModal({
       'juil': 6, 'août': 7, 'sept': 8, 'oct': 9, 'nov': 10, 'déc': 11
     };
     
-    const monthIndex = monthMap[startMonth] !== undefined ? monthMap[startMonth] : parseInt(startMonth) - 1;
+    const monthIndex = monthMap[startMonth] !== undefined ? monthMap[startMonth] : Number.parseInt(startMonth) - 1;
     const startDate = new Date(currentYear, monthIndex, parseInt(startDay));
     const weekNum = getWeekNumber(startDate);
     
@@ -860,7 +860,7 @@ export default function PerformanceModal({
                   const formData = new FormData(e.target);
                   const data = {
                     date: formData.get('date'),
-                    ca_journalier: kpiConfig?.track_ca ? (parseFloat(formData.get('ca_journalier')) || 0) : 0,
+                    ca_journalier: kpiConfig?.track_ca ? (Number.parseFloat(formData.get('ca_journalier')) || 0) : 0,
                     nb_ventes: kpiConfig?.track_ventes ? (parseInt(formData.get('nb_ventes')) || 0) : 0,
                     nb_articles: kpiConfig?.track_articles ? (parseInt(formData.get('nb_articles')) || 0) : 0,
                     nb_prospects: kpiConfig?.track_prospects ? (parseInt(formData.get('nb_prospects')) || 0) : 0
@@ -1046,7 +1046,7 @@ export default function PerformanceModal({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-800">{warning.kpi}</span>
                     <span className={`text-sm font-bold ${
-                      parseFloat(warning.percentage) > 0 ? 'text-green-600' : 'text-red-600'
+                      Number.parseFloat(warning.percentage) > 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
                       {warning.percentage > 0 ? '+' : ''}{warning.percentage}%
                     </span>

@@ -101,13 +101,13 @@ class ErrorBoundary extends React.Component {
               
               <div className="flex gap-3 justify-center">
                 <button
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => globalThis.location.href = '/'}
                   className="btn-secondary"
                 >
                   Retour au dashboard
                 </button>
                 <button
-                  onClick={() => window.location.reload()}
+                  onClick={() => globalThis.location.reload()}
                   className="btn-primary"
                 >
                   Rafraîchir maintenant

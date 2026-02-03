@@ -110,7 +110,7 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
   const handleToggleCalendar = () => {
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceBelow = globalThis.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
       // Calendar height is approximately 400px, open upwards if not enough space below
       setOpenUpwards(spaceBelow < 400 && spaceAbove > spaceBelow);
@@ -146,7 +146,7 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
             className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 p-3 z-[9999] min-w-[280px]"
             style={{
               top: openUpwards ? 'auto' : buttonRef.current?.getBoundingClientRect().bottom + 8 + 'px',
-              bottom: openUpwards ? window.innerHeight - (buttonRef.current?.getBoundingClientRect().top - 8) + 'px' : 'auto',
+              bottom: openUpwards ? globalThis.innerHeight - (buttonRef.current?.getBoundingClientRect().top - 8) + 'px' : 'auto',
               left: buttonRef.current?.getBoundingClientRect().left + 'px'
             }}
           >

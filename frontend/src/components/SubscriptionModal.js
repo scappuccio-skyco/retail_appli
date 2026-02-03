@@ -283,7 +283,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
         // Close modal and reload
         onClose();
         await new Promise(resolve => setTimeout(resolve, 500));
-        window.location.reload();
+        globalThis.location.reload();
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
@@ -431,7 +431,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     await new Promise(resolve => setTimeout(resolve, 300));
     
     try {
-      const originUrl = window.location.origin;
+      const originUrl = globalThis.location.origin;
       
       logger.log('📡 Creating checkout session for role:', userRole);
       
@@ -461,11 +461,11 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       const checkoutUrl = response.data.checkout_url || response.data.url;
       if (checkoutUrl) {
         logger.log('🔄 Redirecting to Stripe...');
-        window.location.replace(checkoutUrl);
+        globalThis.location.replace(checkoutUrl);
       } else if (response.data.success) {
         // If no URL (subscription updated directly), reload
         logger.log('✅ Subscription updated, reloading...');
-        window.location.reload();
+        globalThis.location.reload();
       }
     } catch (error) {
       logger.error('❌ Checkout error COMPLET:', {
@@ -485,7 +485,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       });
       
       // Ne pas recharger automatiquement pour permettre de voir l'erreur
-      // setTimeout(() => window.location.reload(), 2000);
+      // setTimeout(() => globalThis.location.reload(), 2000);
     }
   };
 
@@ -837,7 +837,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                     max={15}
                     value={newSeatsCount}
                     onChange={(e) => {
-                      const val = parseInt(e.target.value) || sellerCount;
+                      const val = Number.parseInt(e.target.value) || sellerCount;
                       setNewSeatsCount(Math.max(sellerCount, Math.min(15, val)));
                     }}
                     disabled={adjustingSeats}
@@ -1488,7 +1488,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                   await new Promise(resolve => setTimeout(resolve, 300));
                   
                   try {
-                    const originUrl = window.location.origin;
+                    const originUrl = globalThis.location.origin;
                     
                     // Use different endpoint based on user role
                     const endpoint = userRole === 'gerant'
@@ -1513,14 +1513,14 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                     // Handle both checkout_url (gerant) and url (manager) fields
                     const checkoutUrl = response.data.checkout_url || response.data.url;
                     if (checkoutUrl) {
-                      window.location.replace(checkoutUrl);
+                      globalThis.location.replace(checkoutUrl);
                     } else if (response.data.success) {
-                      window.location.reload();
+                      globalThis.location.reload();
                     }
                   } catch (error) {
                     logger.error('❌ Checkout error:', error);
                     toast.error('Erreur lors de la création de la session');
-                    setTimeout(() => window.location.reload(), 2000);
+                    setTimeout(() => globalThis.location.reload(), 2000);
                   }
                 }}
                 className="flex-1 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md text-sm"

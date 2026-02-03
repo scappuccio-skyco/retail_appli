@@ -154,7 +154,7 @@ export default function ObjectivesModal({
   // Utilise un canvas global avec z-index maximum pour s'assurer qu'il est visible
   const triggerConfetti = () => {
     try {
-      const confettiFn = confetti || window.confetti;
+      const confettiFn = confetti || globalThis.confetti;
       if (!confettiFn) return;
       
       // Configuration discrète pour les petites victoires
@@ -175,7 +175,7 @@ export default function ObjectivesModal({
 
   const handleUpdateProgress = async (objectiveId) => {
     try {
-      const value = parseFloat(objectiveProgressValue);
+      const value = Number.parseFloat(objectiveProgressValue);
       if (isNaN(value) || value < 0) {
         toast.error('Veuillez entrer une valeur valide');
         return;
@@ -221,7 +221,7 @@ export default function ObjectivesModal({
       
       // Pour les challenges de type kpi_standard, envoyer value (increment)
       if (challengeType === 'kpi_standard') {
-        const value = parseFloat(challengeCurrentValue);
+        const value = Number.parseFloat(challengeCurrentValue);
         if (isNaN(value) || value < 0) {
           toast.error('Veuillez entrer une valeur valide');
           return;
@@ -784,7 +784,7 @@ export default function ObjectivesModal({
                                           placeholder="Valeur en €"
                                           value={challengeProgress.ca}
                                           onChange={(e) => {
-                                            const val = parseFloat(e.target.value) || 0;
+                                            const val = Number.parseFloat(e.target.value) || 0;
                                             setChallengeProgress(prev => ({ ...prev, ca: val }));
                                           }}
                                           className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
@@ -801,7 +801,7 @@ export default function ObjectivesModal({
                                           placeholder="Nombre"
                                           value={challengeProgress.ventes}
                                           onChange={(e) => {
-                                            const val = parseInt(e.target.value) || 0;
+                                            const val = Number.parseInt(e.target.value) || 0;
                                             setChallengeProgress(prev => ({ ...prev, ventes: val }));
                                           }}
                                           className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
@@ -817,7 +817,7 @@ export default function ObjectivesModal({
                                           placeholder="Nombre"
                                           value={challengeProgress.clients}
                                           onChange={(e) => {
-                                            const val = parseInt(e.target.value) || 0;
+                                            const val = Number.parseInt(e.target.value) || 0;
                                             setChallengeProgress(prev => ({ ...prev, clients: val }));
                                           }}
                                           className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"

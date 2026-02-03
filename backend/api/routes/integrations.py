@@ -237,7 +237,7 @@ async def list_sellers(
         sellers = await gerant_service.get_store_sellers(store_id, tenant_id)
         return {"sellers": sellers}
     except Exception as e:
-        logger.error(f"Error listing sellers: {e}", exc_info=True)
+        logger.error("Error listing sellers", exc_info=True)
         raise BusinessLogicError(str(e))
 
 
@@ -498,9 +498,9 @@ async def sync_kpi_data(
                 if not seller:
                     logger.warning(f"Seller {entry.seller_id} not found in database, but continuing with KPI creation")
                 elif seller.get("role") != "seller":
-                    logger.warning(f"User {entry.seller_id} is not a seller (role: {seller.get('role')}), but continuing")
-            except Exception as seller_check_error:
-                logger.warning(f"Error checking seller {entry.seller_id}: {str(seller_check_error)}, continuing anyway")
+                    logger.warning("User %s is not a seller, continuing", entry.seller_id)
+            except Exception:
+                logger.warning("Error checking seller %s, continuing anyway", entry.seller_id)
             
             # Check if exists
             try:

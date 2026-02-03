@@ -110,7 +110,7 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   };
   
   const handleDeleteConsultation = async (consultationId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette consultation ?')) {
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir supprimer cette consultation ?')) {
       return;
     }
     

@@ -37,6 +37,17 @@ SENSITIVE_FIELDS = [
 REDACTED_VALUE = "[REDACTED]"
 
 
+def neutralize_for_log(text: Any) -> str:
+    """
+    Neutralise une chaîne pour l'écriture dans les logs (CWE-117).
+    Remplace les caractères de contrôle (newline, carriage return, etc.) pour éviter l'injection dans les logs.
+    """
+    if text is None:
+        return ""
+    s = str(text)
+    return re.sub(r"[\x00-\x1f\x7f]+", " ", s).strip() or "[empty]"
+
+
 def sanitize_dict(data: Any, depth: int = 0, max_depth: int = 10) -> Any:
     """
     Recursively sanitize a dictionary or list to mask sensitive fields.

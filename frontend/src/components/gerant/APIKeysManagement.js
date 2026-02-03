@@ -71,7 +71,7 @@ const APIKeysManagement = () => {
   };
 
   const deleteAPIKey = async (keyId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir désactiver cette clé API ?')) return;
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir désactiver cette clé API ?')) return;
 
     try {
       // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
@@ -83,7 +83,7 @@ const APIKeysManagement = () => {
   };
 
   const permanentDeleteAPIKey = async (keyId) => {
-    if (!window.confirm('⚠️ ATTENTION : Cette action est IRRÉVERSIBLE !\n\nVoulez-vous vraiment supprimer définitivement cette clé API désactivée ?\n\nElle sera supprimée de la base de données et ne pourra pas être récupérée.')) return;
+    if (!globalThis.confirm('⚠️ ATTENTION : Cette action est IRRÉVERSIBLE !\n\nVoulez-vous vraiment supprimer définitivement cette clé API désactivée ?\n\nElle sera supprimée de la base de données et ne pourra pas être récupérée.')) return;
 
     try {
       // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
@@ -384,7 +384,7 @@ const APIKeysManagement = () => {
                 <input
                   type="number"
                   value={newKeyData.expires_days || ''}
-                  onChange={(e) => setNewKeyData({ ...newKeyData, expires_days: e.target.value ? parseInt(e.target.value) : null })}
+                  onChange={(e) => setNewKeyData({ ...newKeyData, expires_days: e.target.value ? Number.parseInt(e.target.value) : null })}
                   placeholder="Laisser vide pour aucune expiration"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   min="1"

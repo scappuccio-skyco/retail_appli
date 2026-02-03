@@ -1912,7 +1912,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 defaultValue=""
                                                 className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                                 onBlur={(e) => {
-                                                  const val = parseFloat(e.target.value) || 0;
+                                                  const val = Number.parseFloat(e.target.value) || 0;
                                                   challenge.progress_ca = val;
                                                 }}
                                               />
@@ -1929,7 +1929,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 defaultValue=""
                                                 className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                                 onBlur={(e) => {
-                                                  const val = parseInt(e.target.value) || 0;
+                                                  const val = Number.parseInt(e.target.value) || 0;
                                                   challenge.progress_ventes = val;
                                                 }}
                                               />
@@ -1945,7 +1945,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 defaultValue=""
                                                 className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                                 onBlur={(e) => {
-                                                  const val = parseInt(e.target.value) || 0;
+                                                  const val = Number.parseInt(e.target.value) || 0;
                                                   challenge.progress_clients = val;
                                                 }}
                                               />
@@ -1963,7 +1963,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                   await api.post(
                                                     `/manager/challenges/${challenge.id}/progress${storeParam}`,
                                                     {
-                                                      current_value: parseFloat(challengeProgressValue) || challenge.current_value || 0
+                                                      current_value: Number.parseFloat(challengeProgressValue) || challenge.current_value || 0
                                                     }
                                                   );
                                                 } else {

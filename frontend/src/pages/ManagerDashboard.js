@@ -90,7 +90,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
   
   // Get store_id from URL query params (for gerant accessing as manager)
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(globalThis.location.search);
   const urlStoreId = urlParams.get('store_id');
   const effectiveStoreId = urlStoreId || user?.store_id;
   // For API calls: add store_id param if gerant is accessing
@@ -234,7 +234,7 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   useEffect(() => {
     // Check for Stripe return FIRST before loading anything else
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(globalThis.location.search);
     const sessionId = urlParams.get('session_id');
     
     if (sessionId) {
@@ -261,7 +261,7 @@ export default function ManagerDashboard({ user, onLogout }) {
     
     try {
       // Clean URL immediately to prevent reprocessing
-      window.history.replaceState({}, document.title, '/dashboard');
+      globalThis.history.replaceState({}, document.title, '/dashboard');
       
       // Show loading toast
       const loadingToast = toast.loading('🔄 Vérification du paiement en cours...');
@@ -283,7 +283,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         
         // Reload to show updated subscription data
         setTimeout(() => {
-          window.location.reload();
+          globalThis.location.reload();
         }, 2000);
       } else if (response.data.status === 'pending') {
         toast.info('⏳ Paiement en cours de traitement...', {

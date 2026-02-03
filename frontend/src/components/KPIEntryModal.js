@@ -103,7 +103,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
     
     // Check CA
     if (kpiConfig?.track_ca && caJournalier) {
-      const value = parseFloat(caJournalier);
+      const value = Number.parseFloat(caJournalier);
       if (averages.avgCA > 0) {
         if (value > averages.avgCA * THRESHOLD_HIGH) {
           detectedWarnings.push({
@@ -125,7 +125,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
     
     // Check Ventes
     if (kpiConfig?.track_ventes && nbVentes) {
-      const value = parseInt(nbVentes);
+      const value = Number.parseInt(nbVentes);
       if (averages.avgVentes > 0) {
         if (value > averages.avgVentes * THRESHOLD_HIGH) {
           detectedWarnings.push({
@@ -148,7 +148,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
     
     // Check Articles
     if (kpiConfig?.track_articles && nbArticles) {
-      const value = parseInt(nbArticles);
+      const value = Number.parseInt(nbArticles);
       if (averages.avgArticles > 0) {
         if (value > averages.avgArticles * THRESHOLD_HIGH) {
           detectedWarnings.push({
@@ -202,11 +202,11 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
     try {
       await api.post('/seller/kpi-entry', {
         date,
-        ca_journalier: kpiConfig?.track_ca ? parseFloat(caJournalier) : 0,
-        nb_ventes: kpiConfig?.track_ventes ? parseInt(nbVentes) : 0,
+        ca_journalier: kpiConfig?.track_ca ? Number.parseFloat(caJournalier) : 0,
+        nb_ventes: kpiConfig?.track_ventes ? Number.parseInt(nbVentes) : 0,
         // nb_clients removed - same as nb_ventes
-        nb_articles: kpiConfig?.track_articles ? parseInt(nbArticles) : 0,
-        nb_prospects: kpiConfig?.track_prospects ? parseInt(nbProspects) : 0,
+        nb_articles: kpiConfig?.track_articles ? Number.parseInt(nbArticles) : 0,
+        nb_prospects: kpiConfig?.track_prospects ? Number.parseInt(nbProspects) : 0,
         comment: comment || null
       });
       toast.success('KPI enregistrés avec succès!');
@@ -468,7 +468,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                       </p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      parseFloat(warning.percentage) > 0 
+                      Number.Number.parseFloat(warning.percentage) > 0 
                         ? 'bg-orange-200 text-orange-800' 
                         : 'bg-blue-200 text-blue-800'
                     }`}>

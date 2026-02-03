@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatChartDate, computePeriodTotals, formatListDateLabel } from './storeKPIUtils';
 
@@ -43,6 +44,13 @@ function SingleLineChart({ data, dataKey, name, viewMode, formatDate }) {
     </ResponsiveContainer>
   );
 }
+SingleLineChart.propTypes = {
+  data: PropTypes.array.isRequired,
+  dataKey: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  viewMode: PropTypes.string.isRequired,
+  formatDate: PropTypes.func.isRequired
+};
 
 function DualLineChart({ data, primaryKey, primaryName, secondaryKey, secondaryName, viewMode, formatDate }) {
   return (
@@ -59,6 +67,15 @@ function DualLineChart({ data, primaryKey, primaryName, secondaryKey, secondaryN
     </ResponsiveContainer>
   );
 }
+DualLineChart.propTypes = {
+  data: PropTypes.array.isRequired,
+  primaryKey: PropTypes.string.isRequired,
+  primaryName: PropTypes.string.isRequired,
+  secondaryKey: PropTypes.string.isRequired,
+  secondaryName: PropTypes.string.isRequired,
+  viewMode: PropTypes.string.isRequired,
+  formatDate: PropTypes.func.isRequired
+};
 
 export default function StoreKPIModalOverviewTab({
   viewMode,
@@ -126,7 +143,7 @@ export default function StoreKPIModalOverviewTab({
         <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
           <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une année</h3>
           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none bg-white cursor-pointer">
+            <select value={selectedYear} onChange={(e) => setSelectedYear(Number.parseInt(e.target.value, 10))} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none bg-white cursor-pointer">
               {availableYears.length > 0 ? availableYears.map(y => <option key={y} value={y}>{y}</option>) : <><option value={new Date().getFullYear()}>{new Date().getFullYear()}</option><option value={new Date().getFullYear() - 1}>{new Date().getFullYear() - 1}</option></>}
             </select>
             <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={allZero ? 'Aucune donnée disponible pour cette période' : ''}>🤖 Analyse IA</button>
@@ -221,6 +238,28 @@ export default function StoreKPIModalOverviewTab({
     </div>
   );
 }
+StoreKPIModalOverviewTab.propTypes = {
+  viewMode: PropTypes.string.isRequired,
+  setViewMode: PropTypes.func.isRequired,
+  selectedWeek: PropTypes.string.isRequired,
+  setSelectedWeek: PropTypes.func.isRequired,
+  selectedMonth: PropTypes.string.isRequired,
+  setSelectedMonth: PropTypes.func.isRequired,
+  selectedYear: PropTypes.number.isRequired,
+  setSelectedYear: PropTypes.func.isRequired,
+  availableYears: PropTypes.arrayOf(PropTypes.number).isRequired,
+  getCurrentWeek: PropTypes.func.isRequired,
+  displayMode: PropTypes.string.isRequired,
+  setDisplayMode: PropTypes.func.isRequired,
+  displayedListItems: PropTypes.number.isRequired,
+  setDisplayedListItems: PropTypes.func.isRequired,
+  visibleCharts: PropTypes.object.isRequired,
+  toggleChart: PropTypes.func.isRequired,
+  setVisibleCharts: PropTypes.func.isRequired,
+  historicalData: PropTypes.array.isRequired,
+  loadingHistorical: PropTypes.bool.isRequired,
+  onShowOverviewAIModal: PropTypes.func.isRequired
+};
 
 function OverviewListTotals({ historicalData, computePeriodTotals }) {
   const { total_ca, total_ventes, total_articles, total_prospects, total_clients, panierMoyen, tauxTransfo, indiceVente } = computePeriodTotals(historicalData);
@@ -268,6 +307,10 @@ function OverviewListTotals({ historicalData, computePeriodTotals }) {
     </div>
   );
 }
+OverviewListTotals.propTypes = {
+  historicalData: PropTypes.array.isRequired,
+  computePeriodTotals: PropTypes.func.isRequired
+};
 
 function OverviewListEntries({ historicalData, displayedListItems, setDisplayedListItems, formatListDateLabel }) {
   const slice = historicalData.slice(0, displayedListItems);
@@ -337,3 +380,9 @@ function OverviewListEntries({ historicalData, displayedListItems, setDisplayedL
     </div>
   );
 }
+OverviewListEntries.propTypes = {
+  historicalData: PropTypes.array.isRequired,
+  displayedListItems: PropTypes.number.isRequired,
+  setDisplayedListItems: PropTypes.func.isRequired,
+  formatListDateLabel: PropTypes.func.isRequired
+};

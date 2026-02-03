@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import KPICalendar from '../KPICalendar';
 
 export default function StoreKPIModalDailyTab({
@@ -13,6 +14,22 @@ export default function StoreKPIModalDailyTab({
   const managerData = overviewData?.manager_data || overviewData?.managers_data || {};
   const hasManagerData = managerData && Object.keys(managerData).length > 0;
 
+  const noDataForDate = overviewData?.totals?.ca === 0 && overviewData?.totals?.ventes === 0;
+  const aiButtonTitle = !overviewData
+    ? 'Sélectionnez une date'
+    : noDataForDate
+      ? 'Aucune donnée disponible pour cette date'
+      : '';
+  const managerCA = hasManagerData ? (managerData.ca_journalier || 0) : 0;
+  const managerVentes = hasManagerData ? (managerData.nb_ventes || 0) : 0;
+  const managerArticles = hasManagerData ? (managerData.nb_articles || 0) : 0;
+  const sellersCA = overviewData?.sellers_data?.ca_journalier || 0;
+  const sellersVentes = overviewData?.sellers_data?.nb_ventes || 0;
+  const sellersArticles = overviewData?.sellers_data?.nb_articles || 0;
+  const validatedCA = managerCA + sellersCA;
+  const validatedVentes = managerVentes + sellersVentes;
+  const validatedArticles = managerArticles + sellersArticles;
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -26,9 +43,9 @@ export default function StoreKPIModalDailyTab({
         </div>
         <button
           onClick={() => onShowAIModal(true)}
-          disabled={!overviewData || (overviewData.totals?.ca === 0 && overviewData.totals?.ventes === 0)}
+          disabled={!overviewData || noDataForDate}
           className="px-4 py-1.5 text-sm bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          title={!overviewData ? 'Sélectionnez une date' : (overviewData.totals?.ca === 0 && overviewData.totals?.ventes === 0) ? 'Aucune donnée disponible pour cette date' : ''}
+          title={aiButtonTitle}
         >
           <span>🤖</span> Lancer l'Analyse IA
         </button>
@@ -85,19 +102,19 @@ export default function StoreKPIModalDailyTab({
                   <div className="flex flex-col items-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
                     <span className="text-xs text-purple-700 font-semibold mb-1">💰 CA</span>
                     <span className="text-lg font-bold text-purple-900">
-                      {((hasManagerData ? (managerData.ca_journalier || 0) : 0) + (overviewData.sellers_data?.ca_journalier || 0)).toFixed(2)} €
+                      {validatedCA.toFixed(2)} €
                     </span>
                   </div>
                   <div className="flex flex-col items-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
                     <span className="text-xs text-green-700 font-semibold mb-1">🛍️ Ventes</span>
                     <span className="text-lg font-bold text-green-900">
-                      {((hasManagerData ? (managerData.nb_ventes || 0) : 0) + (overviewData.sellers_data?.nb_ventes || 0))}
+                      {validatedVentes}
                     </span>
                   </div>
                   <div className="flex flex-col items-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
                     <span className="text-xs text-orange-700 font-semibold mb-1">📦 Articles</span>
                     <span className="text-lg font-bold text-orange-900">
-                      {((hasManagerData ? (managerData.nb_articles || 0) : 0) + (overviewData.sellers_data?.nb_articles || 0))}
+                      {validatedArticles}
                     </span>
                   </div>
                   {(hasManagerData && managerData.nb_prospects > 0) && (
@@ -152,3 +169,12 @@ export default function StoreKPIModalDailyTab({
     </div>
   );
 }
+StoreKPIModalDailyTab.propTypes = {
+  overviewData: PropTypes.object,
+  overviewDate: PropTypes.string.isRequired,
+  onOverviewDateChange: PropTypes.func.isRequired,
+  datesWithData: PropTypes.arrayOf(PropTypes.string),
+  lockedDates: PropTypes.arrayOf(PropTypes.string),
+  onShowAIModal: PropTypes.func.isRequired,
+  storeId: PropTypes.string
+};

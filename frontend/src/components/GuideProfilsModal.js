@@ -30,7 +30,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
   const [loadingCompatibility, setLoadingCompatibility] = useState(false);
   
   // Get store_id from URL if not provided as prop (for gerant accessing as manager)
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(globalThis.location.search);
   const urlStoreId = urlParams.get('store_id');
   const effectiveStoreId = storeIdParam || urlStoreId;
   const storeParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';

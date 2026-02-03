@@ -129,7 +129,7 @@ async def get_store_info(
         store_gerant_id = store.get('gerant_id')
         user_id = current_user.get('id')
         if store_gerant_id != user_id:
-            logger.warning(f"Gérant {user_id} attempted to access store {store_id} owned by {store_gerant_id}")
+            logger.warning("Gérant %s attempted to access store %s owned by %s", user_id, store_id, store_gerant_id)
             raise ForbiddenError(
                 ERR_ACCES_REFUSE_MAGASIN_AUTRE_GERANT.format(
                     store_id=store_id, user_id=user_id, store_gerant_id=store_gerant_id

@@ -40,7 +40,7 @@ export default function EarlyAccess() {
         full_name: formData.fullName,
         email: formData.email,
         enseigne: formData.enseigne,
-        nombre_vendeurs: parseInt(formData.nombreVendeurs) || 0,
+        nombre_vendeurs: Number.Number.parseInt(formData.nombreVendeurs) || 0,
         defi_principal: formData.defiPrincipal
       });
 
@@ -51,7 +51,7 @@ export default function EarlyAccess() {
         email: formData.email,
         fullName: formData.fullName,
         enseigne: formData.enseigne,
-        nombreVendeurs: parseInt(formData.nombreVendeurs) || 0
+        nombreVendeurs: Number.Number.parseInt(formData.nombreVendeurs) || 0
       }));
 
       // Rediriger vers la page de succès immédiatement

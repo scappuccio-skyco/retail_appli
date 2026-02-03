@@ -30,7 +30,7 @@ export default function EvaluationModal({ sales, onClose, onSuccess }) {
       if (createNewSale) {
         const saleRes = await api.post('/sales', {
           store_name: formData.store_name,
-          total_amount: parseFloat(formData.total_amount),
+          total_amount: Number.parseFloat(formData.total_amount),
           comments: ''
         });
         saleId = saleRes.data.id;

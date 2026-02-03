@@ -53,7 +53,7 @@ async def qualify_early_access(request: EarlyAccessQualifyRequest):
         )
         
         if not email_sent_team:
-            logger.warning(f"Failed to send early access notification email for {request.email}")
+            logger.warning("Failed to send early access notification email")
         
         # Envoyer l'email de confirmation au candidat
         email_sent_candidate = send_early_access_confirmation_email(
@@ -63,7 +63,7 @@ async def qualify_early_access(request: EarlyAccessQualifyRequest):
         )
         
         if not email_sent_candidate:
-            logger.warning(f"Failed to send early access confirmation email to {request.email}")
+            logger.warning("Failed to send early access confirmation email")
         
         return {
             "success": True,
@@ -71,8 +71,8 @@ async def qualify_early_access(request: EarlyAccessQualifyRequest):
             "email_sent": email_sent_team and email_sent_candidate
         }
         
-    except Exception as e:
-        logger.error(f"Error processing early access qualification: {str(e)}", exc_info=True)
+    except Exception:
+        logger.error("Error processing early access qualification", exc_info=True)
         raise BusinessLogicError(
             "Erreur lors de l'enregistrement de votre candidature. Veuillez réessayer."
         )

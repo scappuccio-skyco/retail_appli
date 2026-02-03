@@ -34,7 +34,7 @@ const InvitationsManagement = () => {
   };
 
   const handleDelete = async (invitationId, email) => {
-    if (!window.confirm(`Supprimer l'invitation pour ${email} ?`)) return;
+    if (!globalThis.confirm(`Supprimer l'invitation pour ${email} ?`)) return;
 
     try {
       await api.delete(`/superadmin/invitations/${invitationId}`);

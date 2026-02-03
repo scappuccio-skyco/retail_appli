@@ -81,7 +81,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
       ? `⚠️ ATTENTION : Suppression d'un Manager\n\nVous êtes sur le point de supprimer ${roleLabel} "${userName}".\n\n❗ Conséquences :\n- Le manager ne pourra plus se connecter\n- Ses données historiques seront conservées\n- Les vendeurs sous sa responsabilité resteront actifs\n\nCette action est IRRÉVERSIBLE.\n\nConfirmez-vous la suppression ?`
       : `⚠️ ATTENTION : Suppression d'un Vendeur\n\nVous êtes sur le point de supprimer ${roleLabel} "${userName}".\n\n❗ Conséquences :\n- Le vendeur ne pourra plus se connecter\n- Ses KPIs et historique seront conservés\n- Ses données resteront visibles dans les rapports\n\nCette action est IRRÉVERSIBLE.\n\nConfirmez-vous la suppression ?`;
     
-    if (!window.confirm(warningMessage)) {
+    if (!globalThis.confirm(warningMessage)) {
       return;
     }
 
@@ -124,7 +124,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
       ? `Suspendre ${roleLabel} "${userName}" ?\n\n⚠️ Conséquences :\n- ${userRole === 'manager' ? 'Le manager' : 'Le vendeur'} ne pourra plus se connecter\n- Ses données seront conservées\n- Vous pourrez le réactiver à tout moment\n\nConfirmez-vous ?`
       : `Réactiver ${roleLabel} "${userName}" ?\n\n✅ ${userRole === 'manager' ? 'Le manager' : 'Le vendeur'} pourra à nouveau se connecter et accéder à l'application.\n\nConfirmez-vous ?`;
     
-    if (!window.confirm(warningMessage)) {
+    if (!globalThis.confirm(warningMessage)) {
       return;
     }
 
@@ -161,7 +161,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
   };
 
   const handleCancelInvitation = async (invitationId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')) {
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')) {
       return;
     }
 

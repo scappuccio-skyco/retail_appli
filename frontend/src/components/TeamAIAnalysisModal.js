@@ -41,7 +41,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
   };
 
   const handleDeleteAnalysis = async (analysisId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette analyse ?')) {
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir supprimer cette analyse ?')) {
       return;
     }
     

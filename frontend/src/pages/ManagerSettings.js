@@ -74,9 +74,9 @@ export default function ManagerSettings() {
     e.preventDefault();
     try {
       const data = {
-        ca_target: newObjective.ca_target ? parseFloat(newObjective.ca_target) : null,
-        indice_vente_target: newObjective.indice_vente_target ? parseFloat(newObjective.indice_vente_target) : null,
-        panier_moyen_target: newObjective.panier_moyen_target ? parseFloat(newObjective.panier_moyen_target) : null,
+        ca_target: newObjective.ca_target ? Number.parseFloat(newObjective.ca_target) : null,
+        indice_vente_target: newObjective.indice_vente_target ? Number.parseFloat(newObjective.indice_vente_target) : null,
+        panier_moyen_target: newObjective.panier_moyen_target ? Number.parseFloat(newObjective.panier_moyen_target) : null,
         period_start: newObjective.period_start,
         period_end: newObjective.period_end
       };
@@ -105,10 +105,10 @@ export default function ManagerSettings() {
         description: newChallenge.description || null,
         type: newChallenge.type,
         seller_id: newChallenge.type === 'individual' ? newChallenge.seller_id : null,
-        ca_target: newChallenge.ca_target ? parseFloat(newChallenge.ca_target) : null,
+        ca_target: newChallenge.ca_target ? Number.parseFloat(newChallenge.ca_target) : null,
         ventes_target: newChallenge.ventes_target ? parseInt(newChallenge.ventes_target) : null,
-        indice_vente_target: newChallenge.indice_vente_target ? parseFloat(newChallenge.indice_vente_target) : null,
-        panier_moyen_target: newChallenge.panier_moyen_target ? parseFloat(newChallenge.panier_moyen_target) : null,
+        indice_vente_target: newChallenge.indice_vente_target ? Number.parseFloat(newChallenge.indice_vente_target) : null,
+        panier_moyen_target: newChallenge.panier_moyen_target ? Number.parseFloat(newChallenge.panier_moyen_target) : null,
         start_date: newChallenge.start_date,
         end_date: newChallenge.end_date
       };
@@ -145,7 +145,7 @@ export default function ManagerSettings() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => window.history.back()}
+              onClick={() => globalThis.history.back()}
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <span className="text-xl">←</span>

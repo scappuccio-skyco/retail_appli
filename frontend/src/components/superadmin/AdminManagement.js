@@ -54,7 +54,7 @@ export default function AdminManagement() {
   };
 
   const handleRemoveAdmin = async (adminId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir retirer ce super admin ?')) return;
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir retirer ce super admin ?')) return;
 
     try {
       await api.delete(`/superadmin/admins/${adminId}`);

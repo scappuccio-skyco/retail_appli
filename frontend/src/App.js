@@ -94,7 +94,7 @@ function AppContent() {
       logger.log('✅ Early Adopter - Nouvelle inscription détectée, redirection vers welcome-pilot');
       // Nettoyer le flag après utilisation pour éviter qu'il persiste
       localStorage.removeItem('early_adopter_candidate');
-      window.location.href = '/welcome-pilot';
+      globalThis.location.href = '/welcome-pilot';
       return;
     }
     
@@ -109,19 +109,19 @@ function AppContent() {
     if (userData.role === 'gérant' || userData.role === 'gerant') {
       // Gérant → Dashboard Gérant
       logger.log('✅ Redirecting to gerant-dashboard');
-      window.location.href = '/gerant-dashboard';
+      globalThis.location.href = '/gerant-dashboard';
       return;
     }
     
     if (userData.role === 'it_admin') {
       // IT Admin → IT Admin Dashboard
-      window.location.href = '/it-admin';
+      globalThis.location.href = '/it-admin';
       return;
     }
     
     if (userData.role === 'superadmin' || userData.role === 'super_admin') {
       // Super Admin → Super Admin Dashboard
-      window.location.href = '/superadmin';
+      globalThis.location.href = '/superadmin';
       return;
     }
     
@@ -143,9 +143,9 @@ function AppContent() {
     }
     
     // Navigate to dashboard after successful login (Manager or Seller)
-    // Using window.location for reliable redirect
+    // Using globalThis.location for reliable redirect
     logger.log('⚠️ Fallback redirect to /dashboard for role:', userData.role);
-    window.location.href = '/dashboard';
+    globalThis.location.href = '/dashboard';
   };
 
   const handleLogout = () => {

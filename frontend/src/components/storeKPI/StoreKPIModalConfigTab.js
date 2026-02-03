@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const CONFIG_ITEMS = [
   { keySeller: 'seller_track_ca', keyManager: 'manager_track_ca', title: '💰 Chiffre d\'Affaires', subtitle: 'CA quotidien', tooltip: 'Total des ventes en euros. Permet de calculer le Panier Moyen (CA ÷ Ventes).' },
@@ -29,6 +30,17 @@ function ConfigRow({ item, kpiConfig, onUpdate }) {
     </div>
   );
 }
+ConfigRow.propTypes = {
+  item: PropTypes.shape({
+    keySeller: PropTypes.string.isRequired,
+    keyManager: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    subtitle: PropTypes.string.isRequired,
+    tooltip: PropTypes.string.isRequired
+  }).isRequired,
+  kpiConfig: PropTypes.object.isRequired,
+  onUpdate: PropTypes.func.isRequired
+};
 
 export default function StoreKPIModalConfigTab({ kpiConfig, onKPIUpdate }) {
   return (
@@ -46,3 +58,7 @@ export default function StoreKPIModalConfigTab({ kpiConfig, onKPIUpdate }) {
     </div>
   );
 }
+StoreKPIModalConfigTab.propTypes = {
+  kpiConfig: PropTypes.object.isRequired,
+  onKPIUpdate: PropTypes.func.isRequired
+};

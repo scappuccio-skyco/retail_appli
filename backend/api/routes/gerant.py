@@ -30,6 +30,7 @@ from services.manager import ManagerStoreService
 from services.manager_service import APIKeyService
 from models.kpi_config import get_default_kpi_config
 from email_service import send_staff_email_update_confirmation, send_staff_email_update_alert
+from middleware.log_sanitizer import neutralize_for_log
 import logging
 
 logger = logging.getLogger(__name__)
@@ -1116,7 +1117,7 @@ async def update_staff_member(
                     recipient_name=user_name,
                     new_email=new_email
                 )
-                logger.info(f"Email confirmation sent to new address {new_email} for user {user_id}")
+                logger.info("Email confirmation sent to new address for user %s", neutralize_for_log(user_id))
                 
                 # Send alert email to old address (background task - non-blocking)
                 background_tasks.add_task(
@@ -1126,12 +1127,12 @@ async def update_staff_member(
                     new_email=new_email,
                     gerant_name=gerant_name
                 )
-                logger.info(f"Email alert scheduled for old address {old_email} for user {user_id}")
-            except Exception as email_error:
-                # Log error but don't fail the request
-                logger.error(f"Error sending email notifications for user {user_id}: {str(email_error)}", exc_info=True)
+                logger.info("Email alert scheduled for old address for user %s", neutralize_for_log(user_id))
+            except Exception:
+                # Log error but don't fail the request; do not log exception message (user-controlled / log injection risk)
+                logger.error("Error sending email notifications for user %s", neutralize_for_log(user_id), exc_info=True)
         
-        logger.info(f"Staff member {user_id} updated by gérant {current_user['id']}")
+        logger.info("Staff member %s updated by gérant %s", neutralize_for_log(user_id), neutralize_for_log(current_user.get('id')))
         
         return {
             "success": True,
@@ -1938,13 +1939,13 @@ async def send_support_message(
             )
             
             if response.status_code in [200, 201]:
-                logger.info(f"✅ Support message sent from {user_email}: {request.subject}")
+                logger.info("Support message sent successfully (user_id from token)")
                 return SupportMessageResponse(
                     success=True,
                     message="Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais."
                 )
             else:
-                logger.error(f"❌ Brevo API error ({response.status_code}): {response.text}")
+                logger.error("Brevo API error (status %s)", response.status_code)
                 raise ValidationError("Erreur lors de l'envoi du message")
                 
     except AppException:

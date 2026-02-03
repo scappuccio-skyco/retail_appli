@@ -63,7 +63,7 @@ export const useSyncMode = (storeId = null) => {
       logger.log('🔐 useSyncMode - Decoded role from JWT:', userRole);
       
       // Get store_id from URL if not passed as prop (for gerant viewing as manager)
-      const urlParams = new URLSearchParams(window.location.search);
+      const urlParams = new URLSearchParams(globalThis.location.search);
       const effectiveStoreId = storeId || urlParams.get('store_id');
       const storeIdParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';
       

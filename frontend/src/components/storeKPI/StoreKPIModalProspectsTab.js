@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 export default function StoreKPIModalProspectsTab({
   kpiConfig,
@@ -16,6 +17,12 @@ export default function StoreKPIModalProspectsTab({
   setActiveTab
 }) {
   const hasManagerData = kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_articles || kpiConfig.manager_track_prospects;
+
+  const prospectsBlockClassName = isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200';
+  const dateInputClassName = isManagerDateLocked ? 'border-red-300 bg-red-50' : 'border-gray-300 focus:border-purple-400';
+  const sellerInputClassName = isManagerDateLocked ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-orange-400';
+  const prospectsInputClassName = isManagerDateLocked ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-purple-400';
+  const submitButtonLabel = loading ? 'Enregistrement...' : '💾 Enregistrer les données';
 
   const handleShowPicker = (e) => {
     try {
@@ -68,14 +75,15 @@ export default function StoreKPIModalProspectsTab({
 
       <form onSubmit={onManagerKPISubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Date</label>
+          <label htmlFor="store-kpi-prospects-date" className="block text-sm font-semibold text-gray-700 mb-2">📅 Date</label>
           <input
+            id="store-kpi-prospects-date"
             type="date"
             required
             value={managerKPIData.date}
             onChange={(e) => setManagerKPIData({ ...managerKPIData, date: e.target.value })}
             onClick={handleShowPicker}
-            className={`w-full p-3 border-2 rounded-lg focus:outline-none cursor-pointer ${isManagerDateLocked ? 'border-red-300 bg-red-50' : 'border-gray-300 focus:border-purple-400'}`}
+            className={`w-full p-3 border-2 rounded-lg focus:outline-none cursor-pointer ${dateInputClassName}`}
           />
           {isManagerDateLocked && <p className="text-xs text-red-500 mt-1">⚠️ Cette date est verrouillée (données API)</p>}
         </div>
@@ -106,43 +114,46 @@ export default function StoreKPIModalProspectsTab({
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       {kpiConfig.manager_track_ca && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">💰 CA (€)</label>
+                          <label htmlFor={`seller-${seller.id}-ca`} className="block text-xs font-medium text-gray-700 mb-1">💰 CA (€)</label>
                           <input
+                            id={`seller-${seller.id}-ca`}
                             type="number"
                             step="0.01"
                             min="0"
                             disabled={isManagerDateLocked}
                             value={sellersKPIData[seller.id]?.ca_journalier ?? ''}
                             onChange={(e) => setSellersKPIData(prev => ({ ...prev, [seller.id]: { ...prev[seller.id], ca_journalier: e.target.value } }))}
-                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${isManagerDateLocked ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-orange-400'}`}
+                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${sellerInputClassName}`}
                             placeholder="0.00"
                           />
                         </div>
                       )}
                       {kpiConfig.manager_track_ventes && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">🛍️ Ventes</label>
+                          <label htmlFor={`seller-${seller.id}-ventes`} className="block text-xs font-medium text-gray-700 mb-1">🛍️ Ventes</label>
                           <input
+                            id={`seller-${seller.id}-ventes`}
                             type="number"
                             min="0"
                             disabled={isManagerDateLocked}
                             value={sellersKPIData[seller.id]?.nb_ventes ?? ''}
                             onChange={(e) => setSellersKPIData(prev => ({ ...prev, [seller.id]: { ...prev[seller.id], nb_ventes: e.target.value } }))}
-                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${isManagerDateLocked ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-orange-400'}`}
+                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${sellerInputClassName}`}
                             placeholder="0"
                           />
                         </div>
                       )}
                       {kpiConfig.manager_track_articles && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">📦 Articles</label>
+                          <label htmlFor={`seller-${seller.id}-articles`} className="block text-xs font-medium text-gray-700 mb-1">📦 Articles</label>
                           <input
+                            id={`seller-${seller.id}-articles`}
                             type="number"
                             min="0"
                             disabled={isManagerDateLocked}
                             value={sellersKPIData[seller.id]?.nb_articles ?? ''}
                             onChange={(e) => setSellersKPIData(prev => ({ ...prev, [seller.id]: { ...prev[seller.id], nb_articles: e.target.value } }))}
-                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${isManagerDateLocked ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-orange-400'}`}
+                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${sellerInputClassName}`}
                             placeholder="0"
                           />
                         </div>
@@ -156,17 +167,18 @@ export default function StoreKPIModalProspectsTab({
         )}
 
         {kpiConfig.manager_track_prospects && (
-          <div className={`rounded-lg p-4 border-2 ${isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200'}`}>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">🚶 Nombre de Prospects (Trafic Magasin Global)</label>
+          <div className={`rounded-lg p-4 border-2 ${prospectsBlockClassName}`}>
+            <label htmlFor="store-kpi-prospects-nb" className="block text-sm font-semibold text-gray-700 mb-2">🚶 Nombre de Prospects (Trafic Magasin Global)</label>
             <p className="text-xs text-gray-600 mb-2">Ce total sera réparti automatiquement entre les vendeurs pour le calcul du taux de transformation.</p>
             <input
+              id="store-kpi-prospects-nb"
               type="number"
               min="0"
               required={!isManagerDateLocked}
               disabled={isManagerDateLocked}
               value={managerKPIData.nb_prospects}
               onChange={(e) => setManagerKPIData({ ...managerKPIData, nb_prospects: e.target.value })}
-              className={`w-full p-3 border-2 rounded-lg focus:outline-none ${isManagerDateLocked ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-purple-400'}`}
+              className={`w-full p-3 border-2 rounded-lg focus:outline-none ${prospectsInputClassName}`}
               placeholder="Ex: 150"
             />
           </div>
@@ -177,10 +189,25 @@ export default function StoreKPIModalProspectsTab({
           {isManagerDateLocked ? (
             <div className="flex-1 px-6 py-3 bg-red-100 text-red-600 font-semibold rounded-lg text-center border-2 border-red-300">🔒 Données verrouillées (API)</div>
           ) : (
-            <button type="submit" disabled={loading} className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50">{loading ? 'Enregistrement...' : '💾 Enregistrer les données'}</button>
+            <button type="submit" disabled={loading} className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50">{submitButtonLabel}</button>
           )}
         </div>
       </form>
     </div>
   );
 }
+StoreKPIModalProspectsTab.propTypes = {
+  kpiConfig: PropTypes.object.isRequired,
+  isManagerDateLocked: PropTypes.bool.isRequired,
+  managerKPIData: PropTypes.object.isRequired,
+  setManagerKPIData: PropTypes.func.isRequired,
+  sellers: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.string, name: PropTypes.string })).isRequired,
+  sellersKPIData: PropTypes.object.isRequired,
+  setSellersKPIData: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  loadingSellers: PropTypes.bool.isRequired,
+  onManagerKPISubmit: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onGoToConfig: PropTypes.func,
+  setActiveTab: PropTypes.func.isRequired
+};

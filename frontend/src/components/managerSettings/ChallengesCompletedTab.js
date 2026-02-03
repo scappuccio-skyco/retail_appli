@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Trash2 } from 'lucide-react';
 
 export default function ChallengesCompletedTab({ challenges, onDeleteChallenge }) {
@@ -102,3 +103,22 @@ export default function ChallengesCompletedTab({ challenges, onDeleteChallenge }
     </div>
   );
 }
+ChallengesCompletedTab.propTypes = {
+  challenges: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    status: PropTypes.string,
+    type: PropTypes.string,
+    start_date: PropTypes.string,
+    end_date: PropTypes.string,
+    kpi_name: PropTypes.string,
+    challenge_type: PropTypes.string,
+    current_value: PropTypes.number,
+    target_value: PropTypes.number,
+    unit: PropTypes.string,
+    updated_at: PropTypes.string,
+    updated_by_name: PropTypes.string
+  })).isRequired,
+  onDeleteChallenge: PropTypes.func.isRequired
+};

@@ -20,7 +20,7 @@ if (process.env.NODE_ENV === 'development') {
   };
   
   // Surcharger le handler d'erreur de React
-  window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = {
+  globalThis.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = {
     isSupportedErrorBoundaryVersion: () => true,
     registerErrorOverlay: () => {},
     clearErrorOverlay: () => {},
@@ -84,8 +84,8 @@ console.warn = (...args) => {
 
 // Désactiver l'overlay d'erreur React pour les erreurs d'extension
 if (process.env.NODE_ENV === 'development') {
-  const originalSetTimeout = window.setTimeout;
-  window.setTimeout = function(callback, delay, ...args) {
+  const originalSetTimeout = globalThis.setTimeout;
+  globalThis.setTimeout = function(callback, delay, ...args) {
     // Intercepter les erreurs avant qu'elles n'atteignent l'overlay
     const wrappedCallback = function() {
       try {
@@ -109,7 +109,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Gestionnaire d'erreurs global pour filtrer les erreurs d'extensions tierces (MetaMask, etc.)
-window.addEventListener('error', (event) => {
+globalThis.addEventListener('error', (event) => {
   // Ignorer les erreurs provenant d'extensions Chrome
   if (event.filename && (
     event.filename.includes('chrome-extension://') ||
@@ -146,7 +146,7 @@ window.addEventListener('error', (event) => {
 }, true); // Utiliser la phase de capture
 
 // Gestionnaire pour les promesses non gérées
-window.addEventListener('unhandledrejection', (event) => {
+globalThis.addEventListener('unhandledrejection', (event) => {
   // Vérifier si c'est une erreur d'extension
   const isExtensionError = 
     (event.reason && event.reason.message && (

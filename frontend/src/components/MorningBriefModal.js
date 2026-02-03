@@ -432,7 +432,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
     try {
       const payload = {
         comments: comments.trim() || null,
-        objective_daily: objectiveDaily ? parseFloat(objectiveDaily) : null
+        objective_daily: objectiveDaily ? Number.parseFloat(objectiveDaily) : null
       };
 
       const response = await api.post(
@@ -456,7 +456,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
   };
 
   const handleDeleteBrief = async (briefId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce brief ?')) {
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir supprimer ce brief ?')) {
       return;
     }
     

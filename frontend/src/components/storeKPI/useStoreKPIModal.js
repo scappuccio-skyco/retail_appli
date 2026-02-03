@@ -333,7 +333,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('/manager/store-kpi', { date: formData.date, nb_prospects: parseInt(formData.nb_prospects, 10) });
+      await api.post('/manager/store-kpi', { date: formData.date, nb_prospects: Number.parseInt(formData.nb_prospects, 10) });
       toast.success('Prospects enregistrés avec succès !');
       onSuccess();
       onClose();
@@ -355,20 +355,20 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
         if (!sellerKPI) return;
         const sellerEntry = { seller_id: seller.id };
         if (kpiConfig.manager_track_ca && (sellerKPI.ca_journalier !== '' && sellerKPI.ca_journalier !== undefined)) {
-          sellerEntry.ca_journalier = parseFloat(sellerKPI.ca_journalier) || 0;
+          sellerEntry.ca_journalier = Number.parseFloat(sellerKPI.ca_journalier) || 0;
         }
         if (kpiConfig.manager_track_ventes && (sellerKPI.nb_ventes !== '' && sellerKPI.nb_ventes !== undefined)) {
-          sellerEntry.nb_ventes = parseInt(sellerKPI.nb_ventes, 10) || 0;
+          sellerEntry.nb_ventes = Number.parseInt(sellerKPI.nb_ventes, 10) || 0;
         }
         if (kpiConfig.manager_track_articles && (sellerKPI.nb_articles !== '' && sellerKPI.nb_articles !== undefined)) {
-          sellerEntry.nb_articles = parseInt(sellerKPI.nb_articles, 10) || 0;
+          sellerEntry.nb_articles = Number.parseInt(sellerKPI.nb_articles, 10) || 0;
         }
         if (Object.keys(sellerEntry).length > 1) sellers_data.push(sellerEntry);
       });
       const payload = { date: managerKPIData.date };
       if (sellers_data.length > 0) payload.sellers_data = sellers_data;
       if (kpiConfig.manager_track_prospects && managerKPIData.nb_prospects !== '') {
-        payload.nb_prospects = parseInt(managerKPIData.nb_prospects, 10) || 0;
+        payload.nb_prospects = Number.parseInt(managerKPIData.nb_prospects, 10) || 0;
       }
       const storeParam = storeId ? '?store_id=' + storeId : '';
       await api.post('/manager/manager-kpi' + storeParam, payload);

@@ -140,7 +140,7 @@ export default function SuperAdminDashboard() {
     } catch (error) {
       if (error.response?.status === 403) {
         toast.error('Accès refusé - SuperAdmin requis');
-        window.location.href = '/';
+        globalThis.location.href = '/';
       } else {
         toast.error('Erreur lors du chargement des données');
       }
@@ -290,7 +290,7 @@ export default function SuperAdminDashboard() {
       ? `⚠️ Êtes-vous sûr de vouloir SUPPRIMER ${selectedWorkspaces.size} workspace(s) ?\n\nCette action est IRRÉVERSIBLE !`
       : `Voulez-vous ${statusLabel} ${selectedWorkspaces.size} workspace(s) ?`;
 
-    if (!window.confirm(confirmMessage)) return;
+    if (!globalThis.confirm(confirmMessage)) return;
 
     setBulkActionLoading(true);
     let successCount = 0;
@@ -373,14 +373,14 @@ export default function SuperAdminDashboard() {
               onClick={() => {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                window.location.href = '/login';
+                globalThis.location.href = '/login';
               }}
               className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg transition-all"
             >
               Déconnexion
             </button>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => globalThis.location.href = '/'}
               className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
             >
               Retour
@@ -892,7 +892,7 @@ export default function SuperAdminDashboard() {
                             <>
                               <button
                                 onClick={() => {
-                                  if (window.confirm(`⚠️ Êtes-vous sûr de vouloir supprimer le workspace "${workspace.name}" ?\n\nCette action est IRRÉVERSIBLE et supprimera :\n- Le workspace\n- Tous les utilisateurs (manager + vendeurs)\n- Toutes les données (analyses, diagnostics, etc.)`)) {
+                                  if (globalThis.confirm(`⚠️ Êtes-vous sûr de vouloir supprimer le workspace "${workspace.name}" ?\n\nCette action est IRRÉVERSIBLE et supprimera :\n- Le workspace\n- Tous les utilisateurs (manager + vendeurs)\n- Toutes les données (analyses, diagnostics, etc.)`)) {
                                     handleWorkspaceStatusChange(workspace.id, 'deleted');
                                   }
                                 }}
@@ -905,7 +905,7 @@ export default function SuperAdminDashboard() {
                           {workspace.status === 'deleted' && (
                             <button
                               onClick={() => {
-                                if (window.confirm(`Voulez-vous restaurer le workspace "${workspace.name}" ?`)) {
+                                if (globalThis.confirm(`Voulez-vous restaurer le workspace "${workspace.name}" ?`)) {
                                   handleWorkspaceStatusChange(workspace.id, 'active');
                                 }
                               }}
@@ -1085,7 +1085,7 @@ export default function SuperAdminDashboard() {
                 <label className="block text-sm text-purple-200 mb-2">Période</label>
                 <select
                   value={auditFilters.days}
-                  onChange={(e) => setAuditFilters({ ...auditFilters, days: parseInt(e.target.value) })}
+                  onChange={(e) => setAuditFilters({ ...auditFilters, days: Number.parseInt(e.target.value) })}
                   className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
                   style={{colorScheme: 'dark'}}
                 >
@@ -1202,7 +1202,7 @@ export default function SuperAdminDashboard() {
                 <label className="block text-sm text-purple-200 mb-2">Période</label>
                 <select
                   value={logFilters.hours}
-                  onChange={(e) => setLogFilters({ ...logFilters, hours: parseInt(e.target.value) })}
+                  onChange={(e) => setLogFilters({ ...logFilters, hours: Number.parseInt(e.target.value) })}
                   className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
                   style={{colorScheme: 'dark'}}
                 >

@@ -105,7 +105,7 @@ export default function EvaluationNotesNotebook({ isOpen, onClose, sellerId, sel
   };
 
   const handleDeleteNote = async (noteId, date) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) {
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) {
       return;
     }
 

@@ -26,7 +26,7 @@ export default function EarlyAccessSuccess() {
 
   const handleCalendlyClick = () => {
     const calendlyUrl = 'https://calendly.com/s-cappuccio-skyco/configuration-programme-pilote-retail-performer-ai';
-    window.open(calendlyUrl, '_blank');
+    globalThis.open(calendlyUrl, '_blank');
   };
 
   const handleCreateAccount = () => {

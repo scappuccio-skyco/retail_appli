@@ -150,7 +150,7 @@ export default function CoachingModal({
   };
 
   const handleDeleteDebrief = async (debriefId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette analyse ?')) {
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir supprimer cette analyse ?')) {
       return;
     }
     

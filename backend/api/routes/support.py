@@ -164,14 +164,14 @@ async def send_support_message(
             )
             
             if response.status_code in [200, 201]:
-                logger.info(f"✅ Support message sent from {user_email} ({role_label}): {request.subject}")
+                logger.info("Support message sent successfully (%s)", role_label)
                 return SupportMessageResponse(
                     success=True,
                     message="Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais."
                 )
             else:
-                logger.error(f"❌ Brevo API error ({response.status_code}): {response.text}")
+                logger.error("Brevo API error (status %s)", response.status_code)
                 raise BusinessLogicError("Erreur lors de l'envoi du message")
     except Exception as e:
-        logger.error(f"Error sending support message: {str(e)}")
+        logger.error("Error sending support message", exc_info=True)
         raise BusinessLogicError(str(e))

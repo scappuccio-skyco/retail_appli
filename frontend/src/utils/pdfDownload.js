@@ -122,7 +122,7 @@ export async function downloadBlobAsFile(blob, filename) {
   }
 
   // Create object URL
-  const url = window.URL.createObjectURL(blob);
+  const url = globalThis.URL.createObjectURL(blob);
   
   try {
     // Create temporary anchor element
@@ -138,11 +138,11 @@ export async function downloadBlobAsFile(blob, filename) {
     // Cleanup
     setTimeout(() => {
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      globalThis.URL.revokeObjectURL(url);
     }, 100);
   } catch (error) {
     // Cleanup on error
-    window.URL.revokeObjectURL(url);
+    globalThis.URL.revokeObjectURL(url);
     throw error;
   }
 }

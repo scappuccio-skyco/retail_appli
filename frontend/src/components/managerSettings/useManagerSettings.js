@@ -207,7 +207,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
 
   const triggerConfetti = () => {
     try {
-      const confettiFn = confetti || window.confetti;
+      const confettiFn = confetti || globalThis.confetti;
       if (!confettiFn) return;
       confettiFn({ particleCount: 30, spread: 50, origin: { y: 0.6 }, colors: ['#ffd700', '#ff6b6b', '#4ecdc4'] });
     } catch (_) {}
@@ -240,7 +240,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
         start_date: newChallenge.start_date,
         end_date: newChallenge.end_date,
         challenge_type: newChallenge.challenge_type,
-        target_value: parseFloat(newChallenge.target_value),
+        target_value: Number.parseFloat(newChallenge.target_value),
         data_entry_responsible: newChallenge.data_entry_responsible,
         unit: newChallenge.unit
       };
@@ -276,7 +276,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
         type: newChallenge.type,
         visible: newChallenge.visible,
         challenge_type: newChallenge.challenge_type,
-        target_value: parseFloat(newChallenge.target_value),
+        target_value: Number.parseFloat(newChallenge.target_value),
         data_entry_responsible: newChallenge.data_entry_responsible,
         unit: newChallenge.unit
       };
@@ -301,7 +301,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
   };
 
   const handleDeleteChallenge = async (challengeId, challengeTitle) => {
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer le challenge "${challengeTitle}" ?`)) return;
+    if (!globalThis.confirm(`Êtes-vous sûr de vouloir supprimer le challenge "${challengeTitle}" ?`)) return;
     try {
       await api.delete(`/manager/challenges/${challengeId}${storeParam}`);
       toast.success('Challenge supprimé avec succès');
@@ -319,7 +319,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
       return;
     }
     try {
-      const response = await api.post(`/manager/challenges/${challengeId}/progress${storeParam}`, { current_value: parseFloat(challengeProgressValue), mode: 'add' });
+      const response = await api.post(`/manager/challenges/${challengeId}/progress${storeParam}`, { current_value: Number.parseFloat(challengeProgressValue), mode: 'add' });
       const updatedChallenge = response.data;
       setUpdatingProgressChallengeId(null);
       setChallengeProgressValue('');
@@ -361,7 +361,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
         period_start: newObjective.period_start,
         period_end: newObjective.period_end,
         objective_type: newObjective.objective_type,
-        target_value: parseFloat(newObjective.target_value),
+        target_value: Number.parseFloat(newObjective.target_value),
         data_entry_responsible: newObjective.data_entry_responsible,
         unit: newObjective.unit
       };
@@ -397,7 +397,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
         type: newObjective.type,
         visible: newObjective.visible,
         objective_type: newObjective.objective_type,
-        target_value: parseFloat(newObjective.target_value),
+        target_value: Number.parseFloat(newObjective.target_value),
         data_entry_responsible: newObjective.data_entry_responsible,
         unit: newObjective.unit
       };
@@ -422,7 +422,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
   };
 
   const handleDeleteObjective = async (objectiveId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet objectif ?')) return;
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir supprimer cet objectif ?')) return;
     try {
       await api.delete(`/manager/objectives/${objectiveId}${storeParam}`);
       toast.success('Objectif supprimé avec succès');
@@ -440,7 +440,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
       return;
     }
     try {
-      const response = await api.post(`/manager/objectives/${objectiveId}/progress${storeParam}`, { current_value: parseFloat(progressValue), mode: 'add' });
+      const response = await api.post(`/manager/objectives/${objectiveId}/progress${storeParam}`, { current_value: Number.parseFloat(progressValue), mode: 'add' });
       const updatedObjective = response.data;
       setUpdatingProgressObjectiveId(null);
       setProgressValue('');

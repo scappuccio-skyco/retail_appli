@@ -32,8 +32,8 @@ export function formatChartDate(dateStr) {
 /** Calcule les dates de début/fin pour une semaine ISO "YYYY-Wxx" */
 export function getWeekStartEnd(selectedWeek) {
   const [year, week] = selectedWeek.split('-W');
-  const weekNum = parseInt(week, 10);
-  const yearNum = parseInt(year, 10);
+  const weekNum = Number.parseInt(week, 10);
+  const yearNum = Number.parseInt(year, 10);
   const jan4 = new Date(yearNum, 0, 4);
   const dayOfWeek = jan4.getDay() || 7;
   const firstMonday = new Date(jan4);
@@ -48,8 +48,8 @@ export function getWeekStartEnd(selectedWeek) {
 /** Calcule les dates de début/fin pour un mois "YYYY-MM" */
 export function getMonthStartEnd(selectedMonth) {
   const [year, month] = selectedMonth.split('-');
-  const startDate = new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10) - 1, 1, 0, 0, 0, 0));
-  const endDate = new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10), 0, 23, 59, 59, 999));
+  const startDate = new Date(Date.UTC(Number.parseInt(year, 10), Number.parseInt(month, 10) - 1, 1, 0, 0, 0, 0));
+  const endDate = new Date(Date.UTC(Number.parseInt(year, 10), Number.parseInt(month, 10), 0, 23, 59, 59, 999));
   const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
   return { startDate, endDate, days };
 }
@@ -97,7 +97,7 @@ export function aggregateByMonth(historicalArray) {
   historicalArray.forEach(day => {
     const monthKey = day.date.substring(0, 7);
     const [, month] = monthKey.split('-');
-    const monthName = MONTH_NAMES[parseInt(month, 10) - 1];
+    const monthName = MONTH_NAMES[Number.parseInt(month, 10) - 1];
     if (!monthMap[monthKey]) {
       monthMap[monthKey] = {
         date: monthName,

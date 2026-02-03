@@ -328,7 +328,7 @@ export default function AchievementModal({
               <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden shadow-inner">
                 <div 
                   className="h-6 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 rounded-full transition-all duration-1000 relative"
-                  style={{ width: `${Math.min(parseFloat(details.progress), 100)}%` }}
+                  style={{ width: `${Math.min(Number.parseFloat(details.progress), 100)}%` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-40 animate-shimmer"></div>
                   <div className="h-full bg-white opacity-20 animate-[pulse_1.5s_ease-in-out_infinite]"></div>

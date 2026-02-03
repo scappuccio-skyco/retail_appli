@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Trash2 } from 'lucide-react';
 
 export default function ObjectivesCompletedTab({ objectives, onDeleteObjective }) {
@@ -82,3 +83,19 @@ export default function ObjectivesCompletedTab({ objectives, onDeleteObjective }
     </div>
   );
 }
+ObjectivesCompletedTab.propTypes = {
+  objectives: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    status: PropTypes.string,
+    type: PropTypes.string,
+    period_start: PropTypes.string,
+    period_end: PropTypes.string,
+    kpi_name: PropTypes.string,
+    current_value: PropTypes.number,
+    target_value: PropTypes.number,
+    unit: PropTypes.string
+  })).isRequired,
+  onDeleteObjective: PropTypes.func.isRequired
+};

@@ -67,7 +67,7 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
   };
 
   const handleCancelInvitation = async (invitationId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')) return;
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')) return;
     
     try {
       await api.delete(`/gerant/invitations/${invitationId}`);
@@ -79,7 +79,7 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
   };
 
   const handleSuspend = async (userId, role) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir suspendre cet utilisateur ?')) return;
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir suspendre cet utilisateur ?')) return;
 
     try {
       const endpoint = role === 'manager' 
@@ -126,12 +126,12 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
       if (sellersCount > 0) {
         const confirmMessage = `⚠️ ATTENTION\n\nCe manager a ${sellersCount} vendeur(s) sous sa responsabilité.\n\nLes vendeurs resteront attachés à leur magasin (aucune perte de données), mais n'auront plus de manager actif.\n\n✅ Recommandation : Transférez d'abord les vendeurs vers un autre manager.\n\nVoulez-vous quand même supprimer ce manager ?`;
         
-        if (!window.confirm(confirmMessage)) return;
+        if (!globalThis.confirm(confirmMessage)) return;
       }
     }
     
     // Confirmation finale
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer définitivement cet utilisateur ? Cette action est irréversible.')) return;
+    if (!globalThis.confirm('Êtes-vous sûr de vouloir supprimer définitivement cet utilisateur ? Cette action est irréversible.')) return;
 
     try {
       const endpoint = role === 'manager'

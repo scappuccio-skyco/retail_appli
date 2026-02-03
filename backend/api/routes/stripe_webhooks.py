@@ -23,8 +23,8 @@ async def _process_webhook_event(payment_service: PaymentService, event: dict) -
     try:
         result = await payment_service.handle_webhook_event(event)
         logger.info(f"✅ Webhook processed: {event['type']} → {result.get('status')}")
-    except Exception as e:
-        logger.error(f"❌ Error processing webhook in background: {str(e)}", exc_info=True)
+    except Exception:
+        logger.error("Error processing webhook in background", exc_info=True)
 
 
 @router.post("/stripe")
@@ -55,11 +55,11 @@ async def stripe_webhook(
         event = stripe.Webhook.construct_event(
             payload, sig_header, webhook_secret
         )
-    except ValueError as e:
-        logger.error(f"❌ Invalid webhook payload: {str(e)}")
+    except ValueError:
+        logger.error("Invalid webhook payload")
         raise ValidationError("Invalid payload")
-    except stripe.error.SignatureVerificationError as e:
-        logger.error(f"❌ Invalid webhook signature: {str(e)}")
+    except stripe.error.SignatureVerificationError:
+        logger.error("Invalid webhook signature")
         raise ValidationError("Invalid signature")
 
     logger.info(f"📥 Stripe webhook received: {event['type']}")

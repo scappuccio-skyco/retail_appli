@@ -10,7 +10,7 @@ import Logo from '../../components/shared/Logo';
 export default function PrivacyPolicy() {
   // Scroll to top on mount
   useEffect(() => {
-    window.scrollTo(0, 0);
+    globalThis.scrollTo(0, 0);
   }, []);
 
   return (

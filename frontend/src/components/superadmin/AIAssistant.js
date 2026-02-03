@@ -53,7 +53,7 @@ export default function AIAssistant() {
   };
 
   const deleteConversation = async (convId) => {
-    if (!window.confirm('Supprimer cette conversation ?')) return;
+    if (!globalThis.confirm('Supprimer cette conversation ?')) return;
     
     try {
       await api.delete(`/superadmin/ai-assistant/conversation/${convId}`);
