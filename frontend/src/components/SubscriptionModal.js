@@ -316,9 +316,8 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       return;
     }
     
-    // If currently monthly and wanting to go annual -> show confirmation modal
+    // If currently monthly and wanting to go annual -> show confirmation modal (ou basculer si pas d'abonnement)
     if (currentInterval === 'month' && !isAnnual) {
-      // Fetch preview first
       setLoadingIntervalSwitch(true);
       try {
         const response = await api.post(
@@ -330,7 +329,13 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
         setShowIntervalSwitchModal(true);
       } catch (error) {
         logger.error('Error fetching interval preview:', error);
-        toast.error(error.response?.data?.detail || 'Erreur lors du calcul du changement');
+        // 404 = aucun abonnement actif (choix de plan initial) : on affiche simplement l'option Annuel sans erreur
+        if (error.response?.status === 404) {
+          setIsAnnual(true);
+        } else {
+          const detail = error.response?.data?.detail;
+          toast.error(detail || 'Erreur lors du calcul du changement');
+        }
       } finally {
         setLoadingIntervalSwitch(false);
       }
