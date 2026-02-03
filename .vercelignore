@@ -1,0 +1,59 @@
+# Fichiers et dossiers non utilisés par l'application - exclus du déploiement
+
+# Racine - diffs, scripts one-off, backups, tests manuels
+DIFF_*.py
+audit_features.py
+evaluation_test_focused.py
+find_annual_subscription.py
+setup_manager_team.py
+reset_seller_dashboard.html
+test_modal_dropdown.html
+Justification_Tarifaire_*.html
+routes.code.json
+routes.runtime.json
+import_demo_data.sh
+test_app_after_cleanup.sh
+test_sophie_*.sh
+backups/
+test_reports/
+
+# Backend - archive legacy et scripts manuels
+backend/_archived_legacy/
+backend/scripts/
+
+# Docs (documentation uniquement)
+docs/
+
+# Tests E2E et dossier tests racine (pas exécutés par l'app)
+e2e/
+tests/
+
+# Scripts racine (outils manuels)
+scripts/
+
+# Frontend - pages dépréciées / backups
+frontend/src/pages/_DEPRECATED_ITAdminDashboard.js
+frontend/src/pages/LandingPage.js.backup
+frontend/src/pages/SellerDashboard_onboarding_integration.txt
+
+# Frontend - composants non utilisés
+frontend/src/components/DebriefHistoryModal.backup.js
+frontend/src/components/DebriefHistoryModal.old.js
+frontend/src/components/SubscriptionModal.backup.js
+frontend/src/components/StoreKPIModal_BACKUP_MULTI_CHARTS.js
+frontend/src/components/DiagnosticForm.js
+frontend/src/components/DiagnosticFormModal.js
+frontend/src/components/DiagnosticFormClass.js
+frontend/src/components/DiagnosticFormSimple.js
+frontend/src/components/DiagnosticFormStepsCss.js
+frontend/src/components/GuideProfilsModalOld.js
+frontend/src/components/ObjectivesAndChallengesModal.js
+frontend/src/components/LastDebriefModal.js
+frontend/src/components/InviteModal.js
+frontend/src/components/gerant/BulkStoreImportModal.js
+frontend/src/components/SubscriptionBanner.js
+frontend/src/components/gerant/Sparkline.js
+
+# Frontend - utils / onboarding non utilisés
+frontend/src/utils/pdfTest.js
+frontend/src/components/onboarding/itAdminSteps.js
