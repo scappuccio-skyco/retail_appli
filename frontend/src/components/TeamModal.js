@@ -54,6 +54,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   const [hiddenSellerIds, setHiddenSellerIds] = useState([]); // IDs des vendeurs à masquer temporairement
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
   const [selectedSellerForEval, setSelectedSellerForEval] = useState(null);
+  /** Entrées KPI brutes par vendeur (réutilisées pour les graphiques pour éviter double appel API → 429) */
+  const [teamKpiEntriesBySeller, setTeamKpiEntriesBySeller] = useState({});
   const isGerantWithoutStore = ['gerant', 'gérant'].includes(userRole) && !storeIdParam;
 
   // Initialize visible sellers only once when sellers change
@@ -75,12 +77,12 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
     }
   }, [sellers, periodFilter, customDateRange.start, customDateRange.end]);
 
-  // Prepare chart data when period changes
+  // Prepare chart data when period or cached KPI data changes (réutilise teamKpiEntriesBySeller pour éviter 429)
   useEffect(() => {
     if (Object.keys(visibleSellers).length > 0) {
       prepareChartData();
     }
-  }, [periodFilter, visibleSellers, customDateRange]);
+  }, [periodFilter, visibleSellers, customDateRange, teamKpiEntriesBySeller]);
 
   const fetchTeamData = async (sellersToUse = sellers) => {
     // Only set loading on initial fetch
@@ -196,7 +198,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
             hasKpiToday: kpiEntries.some(e => e.date === new Date().toISOString().split('T')[0]),
             scoreSource,
             hasDiagnostic: !!diagnostic,
-            niveau: diagnostic?.level || seller.niveau || 'Non défini'
+            niveau: diagnostic?.level || seller.niveau || 'Non défini',
+            _kpiEntries: kpiEntries
           };
         } catch (err) {
           logger.error(`Error fetching data for seller ${seller.id}:`, err);
@@ -215,8 +218,12 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
       });
 
       const sellersData = await Promise.all(sellersDataPromises);
-      
-      setTeamData(sellersData);
+      const kpiBySeller = {};
+      sellersData.forEach((row) => {
+        if (row._kpiEntries) kpiBySeller[row.id] = row._kpiEntries;
+      });
+      setTeamKpiEntriesBySeller(kpiBySeller);
+      setTeamData(sellersData.map(({ _kpiEntries, ...rest }) => rest));
       
       // Also refresh chart data after team data is updated
       if (Object.keys(visibleSellers).length > 0) {
@@ -271,33 +278,59 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
   const prepareChartData = async () => {
     try {
+      // Réutiliser les entrées KPI déjà chargées par fetchTeamData pour éviter double appel API (429)
+      const hasCachedForAll = sellers.length > 0 && sellers.every((s) => Array.isArray(teamKpiEntriesBySeller[s.id]));
+      if (hasCachedForAll) {
+        const dateMap = new Map();
+        sellers.forEach((seller) => {
+          const entries = teamKpiEntriesBySeller[seller.id] || [];
+          entries.forEach((entry) => {
+            const date = entry.date;
+            if (!dateMap.has(date)) dateMap.set(date, { date });
+            const dayData = dateMap.get(date);
+            dayData[`ca_${seller.id}`] = entry.ca_journalier ?? entry.seller_ca ?? entry.ca ?? 0;
+            dayData[`ventes_${seller.id}`] = entry.nb_ventes ?? 0;
+            dayData[`panier_${seller.id}`] = (entry.nb_ventes > 0 && (entry.ca_journalier ?? entry.seller_ca ?? entry.ca)) ? (entry.ca_journalier ?? entry.seller_ca ?? entry.ca) / entry.nb_ventes : 0;
+            dayData[`name_${seller.id}`] = seller.name;
+          });
+        });
+        let chartArray = Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+        if (periodFilter === '30') chartArray = aggregateByWeek(chartArray, sellers);
+        else if (periodFilter === '90') chartArray = aggregateByBiWeek(chartArray, sellers);
+        else if (periodFilter === 'all') chartArray = aggregateByMonth(chartArray, sellers);
+        else if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
+          const start = new Date(customDateRange.start);
+          const end = new Date(customDateRange.end);
+          const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+          if (daysDiff > 90) chartArray = aggregateByMonth(chartArray, sellers);
+          else if (daysDiff > 30) chartArray = aggregateByBiWeek(chartArray, sellers);
+          else if (daysDiff > 14) chartArray = aggregateByWeek(chartArray, sellers);
+        }
+        setChartData(chartArray);
+        return;
+      }
+      // Pas de cache : ne pas refaire d'appels API (fetchTeamData va remplir teamKpiEntriesBySeller)
+      if (teamData.length === 0) {
+        setChartData([]);
+        return;
+      }
+
       const daysParam = periodFilter === 'all' ? 365 : (periodFilter === 'custom' ? 0 : periodFilter);
-      
-      // Build store_id param for gerant viewing as manager
       const storeParam = storeIdParam ? `&store_id=${storeIdParam}` : '';
-      
-      // Fetch historical KPI data for each seller
       const chartDataPromises = sellers.map(async (seller) => {
         try {
           let url = `/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
-          
-          // Use custom dates if period is custom
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
             url = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
           }
-          
           const res = await api.get(url);
           return { sellerId: seller.id, sellerName: seller.name, data: res.data };
         } catch (err) {
           return { sellerId: seller.id, sellerName: seller.name, data: [] };
         }
       });
-
       const sellersKpiData = await Promise.all(chartDataPromises);
-      
-      // Group data by date (API renvoie { items: [...] } ou tableau)
       const dateMap = new Map();
-      
       sellersKpiData.forEach(({ sellerId, sellerName, data }) => {
         const entries = Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
         entries.forEach(entry => {

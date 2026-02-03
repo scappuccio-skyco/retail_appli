@@ -26,7 +26,7 @@ router = APIRouter(prefix="")
 logger = logging.getLogger(__name__)
 
 
-@router.get("/sellers", dependencies=[rate_limit("100/minute")])
+@router.get("/sellers", dependencies=[rate_limit("200/minute")])
 async def get_sellers(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     pagination: PaginationParams = Depends(),
@@ -96,7 +96,7 @@ async def get_archived_sellers(
         raise
 
 
-@router.get("/seller/{seller_id}/stats", dependencies=[rate_limit("100/minute")])
+@router.get("/seller/{seller_id}/stats", dependencies=[rate_limit("200/minute")])
 async def get_seller_stats(
     request: Request,
     seller_id: str,
@@ -259,7 +259,7 @@ async def get_seller_profile(
 
 # ===== KPI ENTRIES, DIAGNOSTIC, DEBRIEFS, COMPETENCES HISTORY =====
 
-@router.get("/kpi-entries/{seller_id}", dependencies=[rate_limit("100/minute")])
+@router.get("/kpi-entries/{seller_id}", dependencies=[rate_limit("200/minute")])
 async def get_seller_kpi_entries(
     request: Request,
     seller_id: str,

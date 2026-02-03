@@ -274,7 +274,7 @@ async def get_team_bilans_all(
 
 # ===== KPI ENTRIES (seller) =====
 
-@router.get("/kpi-entries/{seller_id}", dependencies=[rate_limit("100/minute")])
+@router.get("/kpi-entries/{seller_id}", dependencies=[rate_limit("200/minute")])
 async def get_seller_kpi_entries(
     request: Request,
     seller_id: str,
