@@ -36,15 +36,31 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS: liste utilisée aussi dans les handlers d'erreur pour que les réponses 4xx/5xx aient l'en-tête
+_cors_allowed_origins = get_allowed_origins(settings)
+
+
+def _cors_headers_for_request(request) -> dict:
+    """En-têtes CORS à ajouter aux réponses (y compris erreurs) pour éviter blocage navigateur."""
+    origin = request.headers.get("origin") if hasattr(request, "headers") else None
+    if origin and origin in _cors_allowed_origins:
+        return {"Access-Control-Allow-Origin": origin, "Access-Control-Allow-Credentials": "true"}
+    if _cors_allowed_origins:
+        return {"Access-Control-Allow-Origin": _cors_allowed_origins[0], "Access-Control-Allow-Credentials": "true"}
+    return {}
+
+
 # --- Phase 1: Error Handling - FastAPI Exception Handlers (single point of truth) ---
 async def _app_exception_handler(request, exc: AppException):
     """Convert AppException (and subclasses) to consistent JSON response."""
+    headers = _cors_headers_for_request(request)
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "detail": exc.detail,
             "error_code": exc.error_code,
         },
+        headers=headers,
     )
 
 
@@ -62,12 +78,14 @@ async def _unhandled_exception_handler(request, exc: Exception):
         },
         exc_info=True,
     )
+    headers = _cors_headers_for_request(request)
     return JSONResponse(
         status_code=500,
         content={
             "detail": "Une erreur interne s'est produite. Veuillez réessayer plus tard.",
             "error_code": "INTERNAL_SERVER_ERROR",
         },
+        headers=headers,
     )
 
 
