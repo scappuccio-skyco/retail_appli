@@ -433,7 +433,4 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     handleManagerKPISubmit
   };
 }
-</think>
-Corrigeant une typo dans le hook et terminant le fichier.
 <｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-StrReplace
