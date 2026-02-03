@@ -1,5 +1,6 @@
 import React, { useState, useEffect, startTransition } from 'react';
 import { api } from '../lib/apiClient';
+import { LABEL_DECOUVERTE } from '../lib/constants';
 import { logger } from '../utils/logger';
 import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, Archive, RefreshCw, FileText, Coffee } from 'lucide-react';
 import { toast } from 'sonner';
@@ -151,7 +152,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           const competences = stats.avg_radar_scores || {};
           const competencesList = [
             { name: 'Accueil', value: competences.accueil || 0 },
-            { name: 'Découverte', value: competences.decouverte || 0 },
+            { name: LABEL_DECOUVERTE, value: competences.decouverte || 0 },
             { name: 'Argumentation', value: competences.argumentation || 0 },
             { name: 'Closing', value: competences.closing || 0 },
             { name: 'Fidélisation', value: competences.fidelisation || 0 }

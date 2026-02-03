@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award, TrendingUp, Heart, Sparkles } from 'lucide-react';
+import { LABEL_DECOUVERTE, LABEL_STRATEGE } from '../lib/constants';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 import Logo from './shared/Logo';
 
@@ -8,14 +9,14 @@ const STYLE_EMOJIS = {
   'Explorateur': '🔍',
   'Dynamique': '⚡',
   'Discret': '🎯',
-  'Stratège': '♟️'
+  [LABEL_STRATEGE]: '♟️'
 };
 
 const MOTIVATION_ICONS = {
   'Relation': Heart,
   'Reconnaissance': Award,
   'Performance': TrendingUp,
-  'Découverte': Sparkles
+  [LABEL_DECOUVERTE]: Sparkles
 };
 
 export default function DiagnosticResult({ diagnostic, onContinue }) {

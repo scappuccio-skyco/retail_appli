@@ -5,6 +5,15 @@ Security: All methods require seller_id or store_id to prevent IDOR
 from typing import Optional, List, Dict, Any
 from repositories.base_repository import BaseRepository
 
+# Messages de validation (Sonar: éviter duplication de littéraux)
+ERR_SELLER_ID_REQUIRED = "seller_id is required for security"
+ERR_STORE_ID_REQUIRED = "store_id is required for security"
+ERR_SELLER_IDS_REQUIRED = "seller_ids are required for security (prevents access to all evaluations)"
+ERR_SELLER_IDS_WHEN_STORE = "seller_ids are required when using store_id for security"
+ERR_SELLER_OR_STORE_IDS = "seller_id or (store_id + seller_ids) is required for security"
+ERR_SALE_ID_SELLER_ID_REQUIRED = "sale_id and seller_id are required for security"
+ERR_EVALUATION_ID_REQUIRED = "evaluation_id is required"
+
 
 class EvaluationRepository(BaseRepository):
     """Repository for evaluations collection with security filters"""
@@ -33,7 +42,7 @@ class EvaluationRepository(BaseRepository):
             sort: Sort order (default: [("created_at", -1)])
         """
         if not seller_id:
-            raise ValueError("seller_id is required for security")
+            raise ValueError(ERR_SELLER_ID_REQUIRED)
         
         filters = {"seller_id": seller_id}
         sort = sort or [("created_at", -1)]
@@ -63,7 +72,7 @@ class EvaluationRepository(BaseRepository):
             raise ValueError("store_id is required for security")
         
         if not seller_ids:
-            raise ValueError("seller_ids are required for security (prevents access to all evaluations)")
+            raise ValueError(ERR_SELLER_IDS_REQUIRED)
         
         filters = {"seller_id": {"$in": seller_ids}}
         sort = sort or [("created_at", -1)]
@@ -88,7 +97,7 @@ class EvaluationRepository(BaseRepository):
             projection: MongoDB projection
         """
         if not evaluation_id:
-            raise ValueError("evaluation_id is required")
+            raise ValueError(ERR_EVALUATION_ID_REQUIRED)
         
         filters = {"id": evaluation_id}
         
@@ -100,7 +109,7 @@ class EvaluationRepository(BaseRepository):
                 raise ValueError("seller_ids are required when using store_id for security")
             filters["seller_id"] = {"$in": seller_ids}
         else:
-            raise ValueError("seller_id or (store_id + seller_ids) is required for security")
+            raise ValueError(ERR_SELLER_OR_STORE_IDS)
         
         return await self.find_one(filters, projection)
     
@@ -139,7 +148,7 @@ class EvaluationRepository(BaseRepository):
             seller_id: Seller ID (required for security)
         """
         if not seller_id:
-            raise ValueError("seller_id is required for security")
+            raise ValueError(ERR_SELLER_ID_REQUIRED)
         
         # Ensure security field is set
         evaluation_data["seller_id"] = seller_id
@@ -165,7 +174,7 @@ class EvaluationRepository(BaseRepository):
             seller_ids: List of seller IDs (required if using store_id)
         """
         if not evaluation_id:
-            raise ValueError("evaluation_id is required")
+            raise ValueError(ERR_EVALUATION_ID_REQUIRED)
         
         filters = {"id": evaluation_id}
         
@@ -177,7 +186,7 @@ class EvaluationRepository(BaseRepository):
                 raise ValueError("seller_ids are required when using store_id for security")
             filters["seller_id"] = {"$in": seller_ids}
         else:
-            raise ValueError("seller_id or (store_id + seller_ids) is required for security")
+            raise ValueError(ERR_SELLER_OR_STORE_IDS)
         
         return await self.update_one(filters, {"$set": update_data})
     
@@ -198,7 +207,7 @@ class EvaluationRepository(BaseRepository):
             seller_ids: List of seller IDs (required if using store_id)
         """
         if not evaluation_id:
-            raise ValueError("evaluation_id is required")
+            raise ValueError(ERR_EVALUATION_ID_REQUIRED)
         
         filters = {"id": evaluation_id}
         
@@ -210,7 +219,7 @@ class EvaluationRepository(BaseRepository):
                 raise ValueError("seller_ids are required when using store_id for security")
             filters["seller_id"] = {"$in": seller_ids}
         else:
-            raise ValueError("seller_id or (store_id + seller_ids) is required for security")
+            raise ValueError(ERR_SELLER_OR_STORE_IDS)
         
         return await self.delete_one(filters)
     
@@ -219,7 +228,7 @@ class EvaluationRepository(BaseRepository):
     async def count_by_seller(self, seller_id: str) -> int:
         """Count evaluations for a seller (SECURITY: requires seller_id)"""
         if not seller_id:
-            raise ValueError("seller_id is required for security")
+            raise ValueError(ERR_SELLER_ID_REQUIRED)
         return await self.count({"seller_id": seller_id})
     
     async def count_by_store(

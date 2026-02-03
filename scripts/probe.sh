@@ -26,9 +26,9 @@ test_endpoint() {
     
     url="${BASE_URL}${path}"
     
-    if [ "$method" = "GET" ]; then
+    if [[ "$method" = "GET" ]]; then
         response=$(curl -s -o /dev/null -w "%{http_code}" "$url")
-    elif [ "$method" = "POST" ]; then
+    elif [[ "$method" = "POST" ]]; then
         response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$url" -H "Content-Type: application/json" -d '{}')
     else
         response=$(curl -s -o /dev/null -w "%{http_code}" -X "$method" "$url")
@@ -67,7 +67,7 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "📊 Summary:"
 echo -e "  ${GREEN}Passed: $PASSED${NC}"
-if [ $FAILED -gt 0 ]; then
+if [[ $FAILED -gt 0 ]]; then
     echo -e "  ${RED}Failed: $FAILED${NC}"
     exit 1
 else

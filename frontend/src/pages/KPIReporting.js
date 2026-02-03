@@ -111,7 +111,7 @@ export default function KPIReporting({ user, onBack }) {
         monthlyData[monthKey].count += 1;
       });
       
-      return Object.keys(monthlyData).sort().map(monthKey => {
+      return Object.keys(monthlyData).sort((a, b) => a.localeCompare(b, 'fr-FR')).map(monthKey => {
         const data = monthlyData[monthKey];
         const [year, month] = monthKey.split('-');
         const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
@@ -161,7 +161,7 @@ export default function KPIReporting({ user, onBack }) {
         weeklyData[weekKey].count += 1;
       });
       
-      return Object.keys(weeklyData).sort().map(weekKey => {
+      return Object.keys(weeklyData).sort((a, b) => a.localeCompare(b, 'fr-FR')).map(weekKey => {
         const data = weeklyData[weekKey];
         const weekDate = new Date(weekKey);
         const weekLabel = `S${Math.ceil((weekDate.getDate() + 6 - weekDate.getDay()) / 7)} ${weekDate.toLocaleDateString('fr-FR', { month: 'short' })}`;

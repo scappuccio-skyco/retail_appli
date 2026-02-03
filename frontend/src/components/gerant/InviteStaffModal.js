@@ -228,7 +228,7 @@ const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null })
                     onChange={(e) => {
                       const value = e.target.value;
                       const selectedOption = e.target.options[e.target.selectedIndex];
-                      const email = selectedOption.getAttribute('data-email');
+                      const email = selectedOption.dataset.email || '';
                       setFormData(prev => ({
                         ...prev,
                         manager_id: value,

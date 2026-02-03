@@ -13,6 +13,8 @@ except ImportError:
 import io
 import logging
 
+import aiofiles
+
 from core.security import get_current_gerant
 
 logger = logging.getLogger(__name__)
@@ -42,9 +44,9 @@ async def get_integrations_pdf(
         if not md_path.exists():
             raise NotFoundError(f"Documentation file not found at {md_path}")
         
-        # Read markdown file
-        with open(md_path, "r", encoding="utf-8") as f:
-            md_content = f.read()
+        # Read markdown file (async to avoid blocking the event loop)
+        async with aiofiles.open(md_path, "r", encoding="utf-8") as f:
+            md_content = await f.read()
         
         # Convert markdown to HTML
         html_content = markdown.markdown(

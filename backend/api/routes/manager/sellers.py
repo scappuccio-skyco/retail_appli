@@ -7,6 +7,15 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, Request
 
+from core.constants import (
+    ERR_VENDEUR_NON_TROUVE_OU_APPARTIENT_PAS,
+    MONGO_GROUP,
+    MONGO_IFNULL,
+    MONGO_MATCH,
+    QUERY_PAGE_NUM_DESC,
+    QUERY_STORE_ID_REQUIS_GERANT,
+    ERR_STORE_ID_REQUIS,
+)
 from core.exceptions import AppException, NotFoundError, ValidationError
 from core.security import verify_seller_store_access
 from api.routes.manager.dependencies import get_store_context, get_verified_seller
@@ -70,7 +79,7 @@ async def get_invitations(
 @router.get("/sellers/archived")
 async def get_archived_sellers(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
-    page: int = Query(1, ge=1, description="Numéro de page"),
+    page: int = Query(1, ge=1, description=QUERY_PAGE_NUM_DESC),
     size: int = Query(50, ge=1, le=100, description="Taille de page"),
     context: dict = Depends(get_store_context),
     seller_service: ManagerSellerManagementService = Depends(
@@ -109,7 +118,7 @@ async def get_seller_stats(
     """Get aggregated statistics for a specific seller (CA, ventes, compétences)."""
     resolved_store_id = context.get("resolved_store_id")
     if not resolved_store_id:
-        raise ValidationError("store_id requis")
+        raise ValidationError(ERR_STORE_ID_REQUIS)
     seller = await verify_seller_store_access(
         seller_id=seller_id,
         user_store_id=resolved_store_id,
@@ -122,14 +131,14 @@ async def get_seller_stats(
     start_date = start_dt.strftime("%Y-%m-%d")
     end_date = end_dt.strftime("%Y-%m-%d")
     pipeline = [
-        {"$match": {"seller_id": seller_id, "date": {"$gte": start_date, "$lte": end_date}}},
-        {"$group": {
+        {MONGO_MATCH: {"seller_id": seller_id, "date": {"$gte": start_date, "$lte": end_date}}},
+        {MONGO_GROUP: {
             "_id": None,
-            "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
-            "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
-            "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
-            "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
-            "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}},
+            "total_ca": {"$sum": {MONGO_IFNULL: ["$ca_journalier", {MONGO_IFNULL: ["$seller_ca", 0]}]}},
+            "total_ventes": {"$sum": {MONGO_IFNULL: ["$nb_ventes", 0]}},
+            "total_clients": {"$sum": {MONGO_IFNULL: ["$nb_clients", 0]}},
+            "total_articles": {"$sum": {MONGO_IFNULL: ["$nb_articles", 0]}},
+            "total_prospects": {"$sum": {MONGO_IFNULL: ["$nb_prospects", 0]}},
             "entries_count": {"$sum": 1},
         }},
     ]
@@ -190,7 +199,7 @@ async def get_seller_kpi_history(
     try:
         resolved_store_id = context.get("resolved_store_id")
         if not resolved_store_id:
-            raise ValidationError("store_id requis")
+            raise ValidationError(ERR_STORE_ID_REQUIS)
         seller = await verify_seller_store_access(
             seller_id=seller_id,
             user_store_id=resolved_store_id,
@@ -237,7 +246,7 @@ async def get_seller_profile(
     try:
         resolved_store_id = context.get("resolved_store_id")
         if not resolved_store_id:
-            raise ValidationError("store_id requis")
+            raise ValidationError(ERR_STORE_ID_REQUIS)
         seller = await verify_seller_store_access(
             seller_id=seller_id,
             user_store_id=resolved_store_id,
@@ -274,7 +283,7 @@ async def get_seller_kpi_entries(
     """Get paginated KPI entries for a specific seller. IDOR-safe: seller must belong to user's store."""
     resolved_store_id = context.get("resolved_store_id")
     if not resolved_store_id:
-        raise ValidationError("store_id requis")
+        raise ValidationError(ERR_STORE_ID_REQUIS)
     seller = await verify_seller_store_access(
         seller_id=seller_id,
         user_store_id=resolved_store_id,
@@ -283,7 +292,7 @@ async def get_seller_kpi_entries(
         manager_service=manager_service,
     )
     if not seller:
-        raise NotFoundError("Vendeur non trouvé ou n'appartient pas à ce magasin")
+        raise NotFoundError(ERR_VENDEUR_NON_TROUVE_OU_APPARTIENT_PAS)
     query = {"seller_id": seller_id}
     if start_date and end_date:
         query["date"] = {"$gte": start_date, "$lte": end_date}
@@ -306,7 +315,7 @@ async def get_seller_diagnostic(
     """Get DISC diagnostic profile for a specific seller. IDOR-safe."""
     resolved_store_id = context.get("resolved_store_id")
     if not resolved_store_id:
-        raise ValidationError("store_id requis")
+        raise ValidationError(ERR_STORE_ID_REQUIS)
     seller = await verify_seller_store_access(
         seller_id=seller_id,
         user_store_id=resolved_store_id,

@@ -8,6 +8,13 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Query, Request
 
+from core.constants import (
+    ERR_STORE_ID_REQUIS,
+    MONGO_GROUP,
+    MONGO_IFNULL,
+    MONGO_MATCH,
+    QUERY_STORE_ID_REQUIS_GERANT,
+)
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
 from api.routes.manager.dependencies import get_store_context
 from api.dependencies import (
@@ -33,14 +40,14 @@ logger = logging.getLogger(__name__)
 @router.get("/store-kpi-overview")
 async def get_store_kpi_overview(
     date: str = Query(None),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """Get KPI overview for manager's store on a specific date. Delegates to GerantService."""
     resolved_store_id = context.get("resolved_store_id")
     if not resolved_store_id:
-        raise ValidationError("Store ID requis")
+        raise ValidationError(ERR_STORE_ID_REQUIS)
     target_date = date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
     user_id = context.get("id")
     overview = await gerant_service.get_store_kpi_overview(store_id=resolved_store_id, user_id=user_id, date=target_date)
@@ -71,7 +78,7 @@ async def get_store_kpi_overview(
 async def get_dates_with_data(
     year: int = Query(None),
     month: int = Query(None),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
 ):
@@ -92,7 +99,7 @@ async def get_dates_with_data(
 
 @router.get("/available-years")
 async def get_available_years(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
 ):
@@ -117,7 +124,7 @@ async def get_available_years(
 async def get_manager_kpis(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -143,7 +150,7 @@ async def get_manager_kpis(
 @router.post("/manager-kpi")
 async def save_manager_kpi(
     kpi_data: dict,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
@@ -251,7 +258,7 @@ async def save_manager_kpi(
 async def get_store_kpi_stats(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
 ):
@@ -262,7 +269,7 @@ async def get_store_kpi_stats(
 
 @router.get("/team-bilans/all")
 async def get_team_bilans_all(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
 ):
@@ -281,7 +288,7 @@ async def get_seller_kpi_entries(
     days: int = Query(30),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -289,7 +296,7 @@ async def get_seller_kpi_entries(
     """Get paginated KPI entries for a specific seller."""
     resolved_store_id = context.get("resolved_store_id")
     if not resolved_store_id:
-        raise ValidationError("store_id requis")
+        raise ValidationError(ERR_STORE_ID_REQUIS)
     await verify_seller_store_access(
         seller_id=seller_id,
         user_store_id=resolved_store_id,
@@ -311,7 +318,7 @@ async def get_seller_kpi_entries(
 
 @router.get("/team-analyses-history")
 async def get_team_analyses_history(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
@@ -333,7 +340,7 @@ async def get_team_analyses_history(
 @router.post("/analyze-team")
 async def analyze_team(
     analysis_data: dict,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     ai_service: AIService = Depends(get_ai_service),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -385,7 +392,7 @@ async def analyze_team(
 @router.delete("/team-analysis/{analysis_id}")
 async def delete_team_analysis(
     analysis_id: str,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
@@ -405,7 +412,7 @@ async def delete_team_analysis(
 @router.post("/analyze-store-kpis")
 async def analyze_store_kpis(
     analysis_data: dict,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     ai_service: AIService = Depends(get_ai_service),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -446,19 +453,19 @@ async def analyze_store_kpis(
             period_text = f"la période du {start_date} au {end_date}"
         kpi_aggregate_pipeline = [
             {
-                "$match": {
+                MONGO_MATCH: {
                     "store_id": resolved_store_id,
                     "date": {"$gte": start_date, "$lte": end_date},
                 }
             },
             {
-                "$group": {
+                MONGO_GROUP: {
                     "_id": None,
-                    "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
-                    "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
-                    "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
-                    "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
-                    "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}},
+                    "total_ca": {"$sum": {MONGO_IFNULL: ["$ca_journalier", {MONGO_IFNULL: ["$seller_ca", 0]}]}},
+                    "total_ventes": {"$sum": {MONGO_IFNULL: ["$nb_ventes", 0]}},
+                    "total_clients": {"$sum": {MONGO_IFNULL: ["$nb_clients", 0]}},
+                    "total_articles": {"$sum": {MONGO_IFNULL: ["$nb_articles", 0]}},
+                    "total_prospects": {"$sum": {MONGO_IFNULL: ["$nb_prospects", 0]}},
                     "unique_sellers": {"$addToSet": "$seller_id"},
                     "unique_dates": {"$addToSet": "$date"},
                 }
@@ -466,16 +473,16 @@ async def analyze_store_kpis(
         ]
         manager_kpi_aggregate_pipeline = [
             {
-                "$match": {
+                MONGO_MATCH: {
                     "store_id": resolved_store_id,
                     "date": {"$gte": start_date, "$lte": end_date},
                 }
             },
             {
-                "$group": {
+                MONGO_GROUP: {
                     "_id": None,
-                    "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
-                    "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                    "total_ca": {"$sum": {MONGO_IFNULL: ["$ca_journalier", 0]}},
+                    "total_ventes": {"$sum": {MONGO_IFNULL: ["$nb_ventes", 0]}},
                 }
             },
         ]

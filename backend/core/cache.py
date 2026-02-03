@@ -89,7 +89,7 @@ class CacheService:
             if self.redis_client:
                 try:
                     await self.redis_client.aclose()
-                except:
+                except Exception:
                     pass
                 self.redis_client = None
     

@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Query
 
+from core.constants import ERR_STORE_ID_REQUIS, QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
 from core.security import verify_resource_store_access
 from api.routes.manager.dependencies import get_store_context
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/objectives/active")
 async def get_active_objectives(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     achievement_service: ManagerAchievementService = Depends(
         get_manager_achievement_service
@@ -46,7 +47,7 @@ async def get_active_objectives(
 
 @router.get("/objectives")
 async def get_all_objectives(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),
     achievement_service: ManagerAchievementService = Depends(
@@ -137,7 +138,7 @@ async def get_all_objectives(
 @router.post("/objectives")
 async def create_objective(
     objective_data: dict,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),
     achievement_service: ManagerAchievementService = Depends(
@@ -265,7 +266,7 @@ async def create_objective(
 async def update_objective(
     objective_id: str,
     objective_data: dict,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
@@ -318,7 +319,7 @@ async def update_objective(
 @router.delete("/objectives/{objective_id}")
 async def delete_objective(
     objective_id: str,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
     achievement_service: ManagerAchievementService = Depends(
@@ -329,7 +330,7 @@ async def delete_objective(
     try:
         resolved_store_id = context.get("resolved_store_id")
         if not resolved_store_id:
-            raise ValidationError("store_id requis")
+            raise ValidationError(ERR_STORE_ID_REQUIS)
         await verify_resource_store_access(
             resource_id=objective_id,
             resource_type="objective",
@@ -357,7 +358,7 @@ async def mark_objective_achievement_seen_manager(
     try:
         resolved_store_id = context.get("resolved_store_id")
         if not resolved_store_id:
-            raise ValidationError("store_id requis")
+            raise ValidationError(ERR_STORE_ID_REQUIS)
         await verify_resource_store_access(
             resource_id=objective_id,
             resource_type="objective",
@@ -378,7 +379,7 @@ async def mark_objective_achievement_seen_manager(
 async def update_objective_progress(
     objective_id: str,
     progress_data: dict,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     achievement_service: ManagerAchievementService = Depends(
         get_manager_achievement_service

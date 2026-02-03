@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../lib/apiClient';
+import { LABEL_DECOUVERTE } from '../lib/constants';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { ArrowLeft, TrendingUp, Award, MessageSquare, BarChart3, Calendar } from 'lucide-react';
@@ -154,7 +155,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
   // Always create radar data structure (even if scores are 0) for consistent display
   const radarData = [
     { skill: 'Accueil', value: currentCompetences?.score_accueil || 0 },
-    { skill: 'Découverte', value: currentCompetences?.score_decouverte || 0 },
+    { skill: LABEL_DECOUVERTE, value: currentCompetences?.score_decouverte || 0 },
     { skill: 'Argumentation', value: currentCompetences?.score_argumentation || 0 },
     { skill: 'Closing', value: currentCompetences?.score_closing || 0 },
     { skill: 'Fidélisation', value: currentCompetences?.score_fidelisation || 0 }
@@ -1034,7 +1035,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                           <p className="text-sm font-bold text-purple-900">{debrief.score_accueil || 0}/5</p>
                         </div>
                         <div className="bg-green-50 rounded p-1.5 text-center">
-                          <p className="text-[10px] text-green-600">Découverte</p>
+                          <p className="text-[10px] text-green-600">{LABEL_DECOUVERTE}</p>
                           <p className="text-sm font-bold text-green-900">{debrief.score_decouverte || 0}/5</p>
                         </div>
                         <div className="bg-orange-50 rounded p-1.5 text-center">

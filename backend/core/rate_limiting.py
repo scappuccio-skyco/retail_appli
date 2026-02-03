@@ -23,8 +23,10 @@ except ImportError as e:
     SlowAPIMiddleware = None
 
     class Limiter:
+        # Intentional no-op: stub when slowapi is not installed (rate limiting disabled).
         def __init__(self, *args, **kwargs):
             pass
+        # Intentional no-op: stub when slowapi is not installed (no rate limit applied).
         def limit(self, *args, **kwargs):
             def decorator(func):
                 return func

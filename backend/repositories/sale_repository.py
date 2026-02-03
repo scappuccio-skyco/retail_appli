@@ -5,6 +5,15 @@ Security: All methods require seller_id or store_id to prevent IDOR
 from typing import Optional, List, Dict, Any
 from repositories.base_repository import BaseRepository
 
+# Messages de validation (Sonar: éviter duplication de littéraux)
+ERR_SELLER_ID_REQUIRED = "seller_id is required for security"
+ERR_STORE_ID_REQUIRED = "store_id is required for security"
+ERR_SELLER_IDS_REQUIRED = "seller_ids are required for security (prevents access to all sales)"
+ERR_SELLER_IDS_WHEN_STORE = "seller_ids are required when using store_id for security"
+ERR_SELLER_OR_STORE_IDS = "seller_id or (store_id + seller_ids) is required for security"
+ERR_SELLER_IDS_REQUIRED_GENERIC = "seller_ids are required for security"
+ERR_SALE_ID_REQUIRED = "sale_id is required"
+
 
 class SaleRepository(BaseRepository):
     """Repository for sales collection with security filters"""
@@ -60,7 +69,7 @@ class SaleRepository(BaseRepository):
             sort: Sort order (default: [("date", -1)])
         """
         if not store_id:
-            raise ValueError("store_id is required for security")
+            raise ValueError(ERR_STORE_ID_REQUIRED)
         
         if not seller_ids:
             raise ValueError("seller_ids are required for security (prevents access to all sales)")
@@ -88,7 +97,7 @@ class SaleRepository(BaseRepository):
             projection: MongoDB projection
         """
         if not sale_id:
-            raise ValueError("sale_id is required")
+            raise ValueError(ERR_SALE_ID_REQUIRED)
         
         filters = {"id": sale_id}
         
@@ -97,7 +106,7 @@ class SaleRepository(BaseRepository):
             filters["seller_id"] = seller_id
         elif store_id:
             if not seller_ids:
-                raise ValueError("seller_ids are required when using store_id for security")
+                raise ValueError(ERR_SELLER_IDS_WHEN_STORE)
             filters["seller_id"] = {"$in": seller_ids}
         else:
             raise ValueError("seller_id or (store_id + seller_ids) is required for security")
@@ -145,7 +154,7 @@ class SaleRepository(BaseRepository):
             seller_ids: List of seller IDs (required if using store_id)
         """
         if not sale_id:
-            raise ValueError("sale_id is required")
+            raise ValueError(ERR_SALE_ID_REQUIRED)
         
         filters = {"id": sale_id}
         
@@ -154,7 +163,7 @@ class SaleRepository(BaseRepository):
             filters["seller_id"] = seller_id
         elif store_id:
             if not seller_ids:
-                raise ValueError("seller_ids are required when using store_id for security")
+                raise ValueError(ERR_SELLER_IDS_WHEN_STORE)
             filters["seller_id"] = {"$in": seller_ids}
         else:
             raise ValueError("seller_id or (store_id + seller_ids) is required for security")
@@ -178,7 +187,7 @@ class SaleRepository(BaseRepository):
             seller_ids: List of seller IDs (required if using store_id)
         """
         if not sale_id:
-            raise ValueError("sale_id is required")
+            raise ValueError(ERR_SALE_ID_REQUIRED)
         
         filters = {"id": sale_id}
         
@@ -187,7 +196,7 @@ class SaleRepository(BaseRepository):
             filters["seller_id"] = seller_id
         elif store_id:
             if not seller_ids:
-                raise ValueError("seller_ids are required when using store_id for security")
+                raise ValueError(ERR_SELLER_IDS_WHEN_STORE)
             filters["seller_id"] = {"$in": seller_ids}
         else:
             raise ValueError("seller_id or (store_id + seller_ids) is required for security")
@@ -209,7 +218,7 @@ class SaleRepository(BaseRepository):
     ) -> int:
         """Count sales for a store (SECURITY: requires store_id and seller_ids)"""
         if not store_id:
-            raise ValueError("store_id is required for security")
+            raise ValueError(ERR_STORE_ID_REQUIRED)
         if not seller_ids:
-            raise ValueError("seller_ids are required for security")
+            raise ValueError(ERR_SELLER_IDS_REQUIRED_GENERIC)
         return await self.count({"seller_id": {"$in": seller_ids}})

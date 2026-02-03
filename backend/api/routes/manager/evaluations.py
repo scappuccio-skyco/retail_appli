@@ -7,6 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
+from core.constants import ERR_STORE_ID_REQUIS, QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError
 from api.routes.manager.dependencies import get_store_context, get_verified_seller
 from api.dependencies import get_manager_service, get_relationship_service, get_conflict_service
@@ -50,7 +51,7 @@ async def get_seller_diagnostic(
     try:
         resolved_store_id = context.get("resolved_store_id")
         if not resolved_store_id:
-            raise ValidationError("store_id requis")
+            raise ValidationError(ERR_STORE_ID_REQUIS)
         seller = await verify_seller_store_access(
             seller_id=seller_id,
             user_store_id=resolved_store_id,

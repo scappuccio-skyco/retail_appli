@@ -6,6 +6,7 @@ from typing import Dict, Optional, List
 from datetime import datetime, timezone
 from uuid import uuid4
 import logging
+from core.constants import QUERY_PAGE_NUM_DESC, QUERY_PAGE_SIZE_DESC
 from core.exceptions import NotFoundError, ValidationError, ForbiddenError, ConflictError, BusinessLogicError
 from models.integrations import (
     APIKeyCreate, KPISyncRequest, APIStoreCreate,
@@ -50,8 +51,8 @@ async def create_api_key(
 
 @router.get("/api-keys")
 async def list_api_keys(
-    page: int = Query(1, ge=1, description="Numéro de page"),
-    size: int = Query(50, ge=1, le=100, description="Nombre d'éléments par page"),
+    page: int = Query(1, ge=1, description=QUERY_PAGE_NUM_DESC),
+    size: int = Query(50, ge=1, le=100, description=QUERY_PAGE_SIZE_DESC),
     current_user: Dict = Depends(get_current_gerant),
     _active_space: Dict = Depends(require_active_space),
     integration_service: IntegrationService = Depends(get_integration_service)

@@ -37,7 +37,7 @@ async def test_endpoint():
 
 @router.get("/subscription-status")
 async def get_subscription_status(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     gerant_service: GerantService = Depends(get_gerant_service),
 ):
@@ -105,7 +105,7 @@ async def get_subscription_status(
 
 @router.get("/sync-mode")
 async def get_sync_mode(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context_with_seller),
     store_service: ManagerStoreService = Depends(get_manager_store_service),
 ):
@@ -131,7 +131,7 @@ async def get_sync_mode(
 @router.get("/store-kpi-overview")
 async def get_store_kpi_overview(
     date: str = Query(None),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     gerant_service: GerantService = Depends(get_gerant_service),
 ):
@@ -171,7 +171,7 @@ async def get_store_kpi_overview(
 async def get_dates_with_data(
     year: int = Query(None),
     month: int = Query(None),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
@@ -191,7 +191,7 @@ async def get_dates_with_data(
 
 @router.get("/available-years")
 async def get_available_years(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
@@ -214,7 +214,7 @@ async def get_available_years(
 
 @router.get("/kpi-config")
 async def get_kpi_config(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     store_service: ManagerStoreService = Depends(get_manager_store_service),
 ):
@@ -238,7 +238,7 @@ async def get_kpi_config(
 @router.put("/kpi-config")
 async def update_kpi_config(
     config_update: dict,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     store_service: ManagerStoreService = Depends(get_manager_store_service),
 ):
@@ -268,7 +268,7 @@ async def update_kpi_config(
 async def get_manager_kpis(
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -293,7 +293,7 @@ async def get_manager_kpis(
 @router.post("/manager-kpi")
 async def save_manager_kpi(
     kpi_data: dict,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
@@ -311,7 +311,7 @@ async def save_manager_kpi(
     if role in ["gerant", "gérant"] and store.get("gerant_id") != manager_id:
         raise ForbiddenError("Accès refusé : ce magasin ne vous appartient pas")
     if role == "manager" and context.get("store_id") != resolved_store_id:
-        raise ForbiddenError("Accès refusé : ce magasin ne vous est pas assigné")
+        raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN_NON_ASSIGNE)
     date = kpi_data.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
     locked_entries = await manager_service.get_kpi_entries_locked_or_api(resolved_store_id, date, limit=1)
     if locked_entries:
@@ -400,7 +400,7 @@ async def save_manager_kpi(
 
 @router.get("/team-bilans/all")
 async def get_team_bilans_all(
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
@@ -414,7 +414,7 @@ async def get_team_bilans_all(
 async def get_store_kpi_stats(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):

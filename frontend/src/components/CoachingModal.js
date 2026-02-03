@@ -4,6 +4,7 @@ import ChallengeHistoryModal from './ChallengeHistoryModal';
 import VenteConclueForm from './VenteConclueForm';
 import OpportuniteManqueeForm from './OpportuniteManqueeForm';
 import { api } from '../lib/apiClient';
+import { LABEL_DECOUVERTE } from '../lib/constants';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
@@ -250,7 +251,7 @@ export default function CoachingModal({
                       >
                         <option value="">🎲 Aléatoire (Recommandé)</option>
                         <option value="accueil">👋 Accueil</option>
-                        <option value="decouverte">🔍 Découverte</option>
+                        <option value="decouverte">🔍 {LABEL_DECOUVERTE}</option>
                         <option value="argumentation">💬 Argumentation</option>
                         <option value="closing">✅ Closing</option>
                         <option value="fidelisation">💎 Fidélisation</option>
@@ -514,7 +515,7 @@ export default function CoachingModal({
                         // Récupérer le premier élément dans le DOM (la plus récente analyse)
                         const firstAnalysis = document.querySelector('[data-debrief-card]');
                         if (firstAnalysis) {
-                          const debriefId = firstAnalysis.getAttribute('data-debrief-id');
+                          const debriefId = firstAnalysis.dataset.debriefId;
                           logger.log('Opening debrief:', debriefId);
                           if (debriefId) {
                             // Déplier la première analyse
@@ -544,7 +545,7 @@ export default function CoachingModal({
                         // Récupérer le premier élément dans le DOM (la plus récente analyse)
                         const firstAnalysis = document.querySelector('[data-debrief-card]');
                         if (firstAnalysis) {
-                          const debriefId = firstAnalysis.getAttribute('data-debrief-id');
+                          const debriefId = firstAnalysis.dataset.debriefId;
                           logger.log('Opening debrief:', debriefId);
                           if (debriefId) {
                             // Déplier la première analyse

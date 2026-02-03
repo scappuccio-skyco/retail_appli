@@ -4,6 +4,10 @@ API endpoints for seller-specific features (tasks, objectives, challenges)
 """
 from fastapi import APIRouter, Depends, Query
 from api.dependencies_rate_limiting import rate_limit
+from core.constants import (
+    ERR_VENDEUR_NON_TROUVE,
+    ERR_VENDEUR_SANS_MAGASIN,
+)
 from core.exceptions import NotFoundError, ValidationError, ForbiddenError
 from typing import Dict, List, Optional, Union
 from datetime import datetime, timezone, timedelta
@@ -166,7 +170,7 @@ async def mark_objective_achievement_seen(
     seller_id = current_user["id"]
     seller_store_id = current_user.get("store_id")
     if not seller_store_id:
-        raise ValidationError("Vendeur sans magasin assigné")
+        raise ValidationError(ERR_VENDEUR_SANS_MAGASIN)
     await seller_service.get_objective_if_accessible(objective_id, seller_store_id)
     
     await seller_service.mark_achievement_as_seen(
@@ -233,7 +237,7 @@ async def mark_challenge_achievement_seen(
     seller_id = current_user["id"]
     seller_store_id = current_user.get("store_id")
     if not seller_store_id:
-        raise ValidationError("Vendeur sans magasin assigné")
+        raise ValidationError(ERR_VENDEUR_SANS_MAGASIN)
     await seller_service.get_challenge_if_accessible(challenge_id, seller_store_id)
     await seller_service.mark_achievement_as_seen(
         seller_id,
@@ -427,7 +431,7 @@ async def update_seller_objective_progress(
         raise NotFoundError("Vendeur non trouvé")
     seller_store_id = seller.get("store_id")
     if not seller_store_id:
-        raise NotFoundError("Vendeur sans magasin assigné")
+        raise NotFoundError(ERR_VENDEUR_SANS_MAGASIN)
     manager_id = seller.get("manager_id")
     objective = await seller_service.get_objective_if_accessible(objective_id, seller_store_id)
     if not objective:
@@ -541,7 +545,7 @@ async def update_seller_challenge_progress(
         raise NotFoundError("Vendeur non trouvé")
     seller_store_id = seller.get("store_id")
     if not seller_store_id:
-        raise NotFoundError("Vendeur sans magasin assigné")
+        raise NotFoundError(ERR_VENDEUR_SANS_MAGASIN)
     manager_id = seller.get("manager_id")
 
     challenge = await seller_service.get_challenge_if_accessible(challenge_id, seller_store_id)

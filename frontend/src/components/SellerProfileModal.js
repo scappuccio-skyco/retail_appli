@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, X, RefreshCw, BookOpen } from 'lucide-react';
+import { LABEL_DECOUVERTE } from '../lib/constants';
 import GuideProfilsModal from './GuideProfilsModal';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 
@@ -122,7 +123,7 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
                   <p className="text-2xl font-bold text-gray-800">{diagnostic.score_accueil || 0}/5</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-gray-600 mb-1">Découverte</p>
+                  <p className="text-xs text-gray-600 mb-1">{LABEL_DECOUVERTE}</p>
                   <p className="text-2xl font-bold text-gray-800">{diagnostic.score_decouverte || 0}/5</p>
                 </div>
                 <div className="text-center">

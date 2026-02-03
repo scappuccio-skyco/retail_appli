@@ -11,7 +11,7 @@ echo ""
 API_URL="http://localhost:8001"
 
 # Vérifier si la clé API est fournie
-if [ -z "$1" ]; then
+if [[ -z "$1" ]]; then
     echo "❌ Erreur : Clé API manquante"
     echo ""
     echo "Usage: ./import_demo_data.sh <API_KEY>"
@@ -176,7 +176,7 @@ echo "$USERS_RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$USERS_RESPON
 # Vérifier le succès
 SUCCESS=$(echo "$USERS_RESPONSE" | python3 -c "import sys,json;print(json.load(sys.stdin).get('success', False))" 2>/dev/null)
 
-if [ "$SUCCESS" = "True" ]; then
+if [[ "$SUCCESS" = "True" ]]; then
     CREATED=$(echo "$USERS_RESPONSE" | python3 -c "import sys,json;print(json.load(sys.stdin).get('created', 0))" 2>/dev/null)
     UPDATED=$(echo "$USERS_RESPONSE" | python3 -c "import sys,json;print(json.load(sys.stdin).get('updated', 0))" 2>/dev/null)
     echo ""

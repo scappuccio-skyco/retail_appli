@@ -14,6 +14,12 @@ from fastapi import APIRouter, Depends, Request
 logger = logging.getLogger(__name__)
 
 from api.dependencies_rate_limiting import rate_limit
+from core.constants import (
+    ERR_VENDEUR_NON_TROUVE_OU_APPARTIENT_PAS,
+    PROFIL_DEFAULT,
+    PROFIL_LE_COACH,
+    PROFIL_LE_STRATEGE,
+)
 from core.exceptions import NotFoundError
 from core.security import require_active_space
 from api.dependencies import get_diagnostic_service, get_seller_service
@@ -41,7 +47,7 @@ async def analyze_manager_diagnostic_with_ai(responses: dict) -> dict:
     if not ai_service.available:
         # Fallback default response
         return {
-            "profil_nom": "Le Coach",
+            "profil_nom": PROFIL_LE_COACH,
             "profil_description": "Tu es un manager proche de ton équipe, à l'écoute et orienté développement. Tu valorises la progression individuelle avant tout.",
             "force_1": "Crée un climat de confiance fort",
             "force_2": "Encourage la montée en compétence",
@@ -132,7 +138,7 @@ async def create_manager_diagnostic(
         "id": str(uuid4()),
         "manager_id": current_user["id"],
         "responses": diagnostic_data.responses,
-        "profil_nom": ai_analysis.get("profil_nom", "Le Coach"),
+        "profil_nom": ai_analysis.get("profil_nom", PROFIL_DEFAULT),
         "profil_description": ai_analysis.get("profil_description", ""),
         "force_1": ai_analysis.get("force_1", ""),
         "force_2": ai_analysis.get("force_2", ""),

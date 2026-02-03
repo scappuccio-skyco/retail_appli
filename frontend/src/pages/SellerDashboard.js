@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { LABEL_DECOUVERTE } from '../lib/constants';
 import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3, RefreshCw, ChevronLeft, ChevronRight, User, Headphones, FileText } from 'lucide-react';
 import Logo from '../components/shared/Logo';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
@@ -765,7 +766,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const avgRadarScores = currentCompetences
     ? [
         { skill: 'Accueil', value: currentCompetences.score_accueil },
-        { skill: 'Découverte', value: currentCompetences.score_decouverte },
+        { skill: LABEL_DECOUVERTE, value: currentCompetences.score_decouverte },
         { skill: 'Argumentation', value: currentCompetences.score_argumentation },
         { skill: 'Closing', value: currentCompetences.score_closing },
         { skill: 'Fidélisation', value: currentCompetences.score_fidelisation }

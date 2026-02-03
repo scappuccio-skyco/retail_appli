@@ -8,6 +8,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, Request
 
 from api.dependencies import get_auth_service, get_competence_service, get_manager_service
+from core.constants import QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import ValidationError
 from models.pagination import PaginationParams
 from services.auth_service import AuthService
@@ -29,7 +30,7 @@ async def get_seller_kpi_entries_compat(
     days: int = Query(30, description="Number of days to fetch"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -53,7 +54,7 @@ async def get_seller_stats_compat(
     request: Request,
     seller_id: str,
     days: int = Query(30, description="Number of days for stats calculation"),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     competence_service: CompetenceService = Depends(get_competence_service),
     manager_service: ManagerService = Depends(get_manager_service),

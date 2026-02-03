@@ -96,9 +96,9 @@ code {
         padding-right: inherit;
         padding-top: inherit;
         padding-bottom: inherit;
+        gap: inherit;
         column-gap: inherit;
         row-gap: inherit;
-        gap: inherit;
         border-left-width: inherit;
         border-right-width: inherit;
         border-top-width: inherit;

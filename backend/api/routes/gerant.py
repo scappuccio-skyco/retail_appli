@@ -10,6 +10,14 @@ from typing import Dict, Optional
 import stripe
 import uuid
 
+from core.constants import (
+    ERR_ACCES_REFUSE_MAGASIN,
+    ERR_AUCUN_ABONNEMENT_TROUVE,
+    ERR_CONFIG_STRIPE_MANQUANTE,
+    ERR_UTILISATEUR_NON_TROUVE,
+    MONGO_GROUP,
+    MONGO_MATCH,
+)
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError, BusinessLogicError, UnauthorizedError, ConflictError
 from core.security import get_current_gerant, get_gerant_or_manager
 from core.config import settings
@@ -184,7 +192,7 @@ async def get_gerant_profile(
     gerant_id = current_user["id"]
     user = await gerant_service.get_gerant_by_id(gerant_id, include_password=False)
     if not user:
-        raise NotFoundError("Utilisateur non trouvé")
+        raise NotFoundError(ERR_UTILISATEUR_NON_TROUVE)
     workspace_id = user.get("workspace_id")
     company_name = None
     if workspace_id:
@@ -215,7 +223,7 @@ async def update_gerant_profile(
         gerant_id = current_user["id"]
         user = await gerant_service.get_gerant_by_id(gerant_id, include_password=True)
         if not user:
-            raise NotFoundError("Utilisateur non trouvé")
+            raise NotFoundError(ERR_UTILISATEUR_NON_TROUVE)
         ALLOWED_USER_FIELDS = ["name", "email", "phone"]
         user_updates = {}
         company_name_update = None
@@ -342,7 +350,7 @@ async def change_gerant_password(
         user = await gerant_service.get_gerant_by_id(gerant_id, include_password=True)
         
         if not user:
-            raise NotFoundError("Utilisateur non trouvé")
+            raise NotFoundError(ERR_UTILISATEUR_NON_TROUVE)
         
         # Verify old password
         if not verify_password(old_password, user.get('password', '')):
@@ -1037,7 +1045,7 @@ async def update_staff_member(
         user = await gerant_service.get_user_by_id(user_id, include_password=True)
         
         if not user:
-            raise NotFoundError("Utilisateur non trouvé")
+            raise NotFoundError(ERR_UTILISATEUR_NON_TROUVE)
         
         # Security: Verify the user belongs to the gérant
         user_gerant_id = user.get('gerant_id')
@@ -1224,8 +1232,8 @@ async def get_store_kpi_dates(
     try:
         # Get all distinct dates with KPI data for this store
         pipeline = [
-            {"$match": {"store_id": store_id}},
-            {"$group": {"_id": "$date"}},
+            {MONGO_MATCH: {"store_id": store_id}},
+            {MONGO_GROUP: {"_id": "$date"}},
             {"$sort": {"_id": -1}},
             {"$limit": 365}  # Last year of dates
         ]
@@ -1252,7 +1260,7 @@ async def get_store_kpi_config_gerant(
     """
     stores = await gerant_service.get_stores_by_gerant(current_user["id"])
     if not any(s.get("id") == store_id for s in stores):
-        raise ForbiddenError("Accès refusé à ce magasin")
+        raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN)
     try:
         config = await store_service.get_kpi_config(store_id)
         return config if config else get_default_kpi_config(store_id)
@@ -1274,7 +1282,7 @@ async def update_store_kpi_config_gerant(
     """
     stores = await gerant_service.get_stores_by_gerant(current_user["id"])
     if not any(s.get("id") == store_id for s in stores):
-        raise ForbiddenError("Accès refusé à ce magasin")
+        raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN)
     update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
     for field in [
         "enabled", "saisie_enabled",
@@ -2044,7 +2052,7 @@ async def switch_billing_interval(
             # Active subscriber - call Stripe API
             STRIPE_API_KEY = settings.STRIPE_API_KEY
             if not STRIPE_API_KEY:
-                raise ValidationError("Configuration Stripe manquante")
+                raise ValidationError(ERR_CONFIG_STRIPE_MANQUANTE)
             
             stripe.api_key = STRIPE_API_KEY
             

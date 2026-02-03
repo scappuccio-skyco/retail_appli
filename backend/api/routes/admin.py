@@ -8,6 +8,7 @@ from typing import List, Dict, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, EmailStr
 from api.dependencies import get_admin_service
+from core.constants import QUERY_PAGE_NUM_DESC, QUERY_PAGE_SIZE_DESC
 from core.exceptions import NotFoundError, ValidationError
 from core.security import get_super_admin
 from services.admin_service import AdminService
@@ -40,8 +41,8 @@ async def get_superadmin_stats(
 
 @router.get("/workspaces")
 async def get_all_workspaces(
-    page: int = Query(1, ge=1, description="Numéro de page"),
-    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
+    page: int = Query(1, ge=1, description=QUERY_PAGE_NUM_DESC),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description=QUERY_PAGE_SIZE_DESC),
     include_deleted: bool = Query(False, description="Inclure les workspaces supprimés"),
     admin_service: AdminService = Depends(get_admin_service),
     current_admin: dict = Depends(get_super_admin)
@@ -56,8 +57,8 @@ async def get_all_workspaces(
 
 @router.get("/stores")
 async def get_all_stores(
-    page: int = Query(1, ge=1, description="Numéro de page"),
-    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
+    page: int = Query(1, ge=1, description=QUERY_PAGE_NUM_DESC),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description=QUERY_PAGE_SIZE_DESC),
     active_only: Optional[bool] = Query(None, description="Filtrer par magasins actifs uniquement"),
     gerant_id: Optional[str] = Query(None, description="Filtrer par ID gérant"),
     admin_service: AdminService = Depends(get_admin_service),
@@ -74,8 +75,8 @@ async def get_all_stores(
 
 @router.get("/users")
 async def get_all_users(
-    page: int = Query(1, ge=1, description="Numéro de page"),
-    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
+    page: int = Query(1, ge=1, description=QUERY_PAGE_NUM_DESC),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description=QUERY_PAGE_SIZE_DESC),
     role: Optional[str] = Query(None, description="Filtrer par rôle"),
     status: Optional[str] = Query(None, description="Filtrer par statut"),
     admin_service: AdminService = Depends(get_admin_service),
@@ -92,8 +93,8 @@ async def get_all_users(
 
 @router.get("/logs")
 async def get_audit_logs(
-    page: int = Query(1, ge=1, description="Numéro de page"),
-    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
+    page: int = Query(1, ge=1, description=QUERY_PAGE_NUM_DESC),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description=QUERY_PAGE_SIZE_DESC),
     days: int = Query(7, ge=1, le=365, description="Nombre de jours à remonter"),
     action: Optional[str] = Query(None, description="Filtrer par type d'action"),
     admin_emails: Optional[str] = Query(None, description="Emails admin séparés par des virgules"),
@@ -116,8 +117,8 @@ async def get_audit_logs(
 
 @router.get("/system-logs")
 async def get_system_logs(
-    page: int = Query(1, ge=1, description="Numéro de page"),
-    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description="Nombre d'éléments par page"),
+    page: int = Query(1, ge=1, description=QUERY_PAGE_NUM_DESC),
+    size: int = Query(50, ge=1, le=MAX_PAGE_SIZE, description=QUERY_PAGE_SIZE_DESC),
     hours: int = Query(24, ge=1, le=168),
     level: Optional[str] = Query(None, description="Filtrer par niveau (info, warning, error)"),
     type: Optional[str] = Query(None, description="Filtrer par type"),

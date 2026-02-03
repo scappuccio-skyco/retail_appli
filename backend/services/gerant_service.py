@@ -7,6 +7,7 @@ from datetime import datetime, timezone, timedelta
 import logging
 import os
 from core.exceptions import ForbiddenError, BusinessLogicError
+from core.constants import MONGO_IFNULL, MONGO_MATCH, MONGO_GROUP, MONGO_SUM
 
 from models.pagination import PaginatedResponse
 from utils.pagination import paginate
@@ -272,54 +273,53 @@ class GerantService:
         if not gerant:
             raise ForbiddenError("Utilisateur non trouvé")
         
+        allowed = False
         if allow_user_management:
             if gerant.get('status') == 'deleted':
                 raise ForbiddenError("Gérant supprimé")
-            return True
-
-        workspace_id = gerant.get('workspace_id')
-        if not workspace_id:
-            raise ForbiddenError("Aucun espace de travail associé")
-
-        workspace = await self.workspace_repo.find_by_id(workspace_id, projection={"_id": 0})
-        if not workspace:
-            raise ForbiddenError("Espace de travail non trouvé")
-
-        subscription_status = workspace.get('subscription_status', 'inactive')
-        allowed = False
-
-        if subscription_status == 'active':
             allowed = True
-        elif subscription_status == 'trialing':
-            trial_end = workspace.get('trial_end')
-            if trial_end:
-                if isinstance(trial_end, str):
-                    trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
-                else:
-                    trial_end_dt = trial_end
+        else:
+            workspace_id = gerant.get('workspace_id')
+            if not workspace_id:
+                raise ForbiddenError("Aucun espace de travail associé")
 
-                now = datetime.now(timezone.utc)
-                if trial_end_dt.tzinfo is None:
-                    trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
+            workspace = await self.workspace_repo.find_by_id(workspace_id, projection={"_id": 0})
+            if not workspace:
+                raise ForbiddenError("Espace de travail non trouvé")
 
-                if now <= trial_end_dt:
-                    allowed = True
-                else:
-                    await self.workspace_repo.update_one(
-                        {"id": workspace_id},
-                        {
-                            "subscription_status": "trial_expired",
-                            "updated_at": datetime.now(timezone.utc).isoformat()
-                        }
-                    )
-                    from core.cache import invalidate_workspace_cache
-                    await invalidate_workspace_cache(workspace_id)
+            subscription_status = workspace.get('subscription_status', 'inactive')
+            if subscription_status == 'active':
+                allowed = True
+            elif subscription_status == 'trialing':
+                trial_end = workspace.get('trial_end')
+                if trial_end:
+                    if isinstance(trial_end, str):
+                        trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+                    else:
+                        trial_end_dt = trial_end
+
+                    now = datetime.now(timezone.utc)
+                    if trial_end_dt.tzinfo is None:
+                        trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
+
+                    if now <= trial_end_dt:
+                        allowed = True
+                    else:
+                        await self.workspace_repo.update_one(
+                            {"id": workspace_id},
+                            {
+                                "subscription_status": "trial_expired",
+                                "updated_at": datetime.now(timezone.utc).isoformat()
+                            }
+                        )
+                        from core.cache import invalidate_workspace_cache
+                        await invalidate_workspace_cache(workspace_id)
 
         if not allowed:
             raise ForbiddenError(
                 "Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
             )
-        return True
+        return allowed
     
     async def check_user_write_access(self, user_id: str) -> bool:
         """
@@ -794,6 +794,96 @@ class GerantService:
                 "ca": prev_ca
             }
         }
+
+    def _build_staff_counts_pipeline(self, gerant_id: str) -> List[Dict]:
+        """Pipeline agrégation pour compter managers/sellers actifs et suspendus."""
+        return [
+            {MONGO_MATCH: {
+                "gerant_id": gerant_id,
+                "role": {"$in": ["manager", "seller"]},
+                "status": {"$in": ["active", "suspended"]}
+            }},
+            {MONGO_GROUP: {
+                "_id": {"role": "$role", "status": "$status"},
+                "count": {MONGO_SUM: 1}
+            }}
+        ]
+
+    def _parse_staff_counts(self, staff_counts_result: List[Dict]) -> tuple:
+        """Extrait (total_managers, suspended_managers, total_sellers, suspended_sellers) du résultat d'agrégation."""
+        counts_map = {
+            ("manager", "active"): 0,
+            ("manager", "suspended"): 0,
+            ("seller", "active"): 0,
+            ("seller", "suspended"): 0,
+        }
+        for row in staff_counts_result:
+            key = (row["_id"]["role"], row["_id"]["status"])
+            if key in counts_map:
+                counts_map[key] = row["count"]
+        return (
+            counts_map[("manager", "active")],
+            counts_map[("manager", "suspended")],
+            counts_map[("seller", "active")],
+            counts_map[("seller", "suspended")],
+        )
+
+    def _build_seller_kpi_month_pipeline(
+        self,
+        store_ids: List[str],
+        first_day: str,
+        today: str,
+        managers_with_kpis: List,
+    ) -> List[Dict]:
+        """Pipeline agrégation KPI vendeurs (mois), en excluant les managers ayant des entrées dédiées."""
+        seller_match = {
+            "store_id": {"$in": store_ids},
+            "date": {"$gte": first_day, "$lte": today}
+        }
+        if managers_with_kpis:
+            seller_match["seller_id"] = {"$nin": managers_with_kpis}
+        return [
+            {MONGO_MATCH: seller_match},
+            {MONGO_GROUP: {
+                "_id": None,
+                "total_ca": {MONGO_SUM: {MONGO_IFNULL: ["$seller_ca", {MONGO_IFNULL: ["$ca_journalier", 0]}]}},
+                "total_ventes": {MONGO_SUM: {MONGO_IFNULL: ["$nb_ventes", 0]}},
+                "total_articles": {MONGO_SUM: {MONGO_IFNULL: ["$nb_articles", 0]}}
+            }}
+        ]
+
+    def _build_manager_kpi_month_pipeline(
+        self, store_ids: List[str], first_day: str, today: str
+    ) -> List[Dict]:
+        """Pipeline agrégation KPI managers (mois)."""
+        return [
+            {MONGO_MATCH: {
+                "store_id": {"$in": store_ids},
+                "date": {"$gte": first_day, "$lte": today}
+            }},
+            {MONGO_GROUP: {
+                "_id": None,
+                "total_ca": {MONGO_SUM: {MONGO_IFNULL: ["$ca_journalier", 0]}},
+                "total_ventes": {MONGO_SUM: {MONGO_IFNULL: ["$nb_ventes", 0]}},
+                "total_articles": {MONGO_SUM: {MONGO_IFNULL: ["$nb_articles", 0]}}
+            }}
+        ]
+
+    def _combine_seller_manager_stats(
+        self, kpi_stats: List[Dict], manager_stats: List[Dict]
+    ) -> Dict:
+        """Combine les totaux KPI vendeurs et managers en un seul dict (total_ca, total_ventes, total_articles)."""
+        seller_ca = kpi_stats[0].get("total_ca", 0) if kpi_stats else 0
+        seller_ventes = kpi_stats[0].get("total_ventes", 0) if kpi_stats else 0
+        seller_articles = kpi_stats[0].get("total_articles", 0) if kpi_stats else 0
+        manager_ca = manager_stats[0].get("total_ca", 0) if manager_stats else 0
+        manager_ventes = manager_stats[0].get("total_ventes", 0) if manager_stats else 0
+        manager_articles = manager_stats[0].get("total_articles", 0) if manager_stats else 0
+        return {
+            "total_ca": seller_ca + manager_ca,
+            "total_ventes": seller_ventes + manager_ventes,
+            "total_articles": seller_articles + manager_articles
+        }
     
     async def get_dashboard_stats(self, gerant_id: str) -> Dict:
         """
@@ -805,109 +895,38 @@ class GerantService:
         Returns:
             Dict with store counts, user counts, and monthly KPI aggregations
         """
-        # Get all active stores with pending invitation counts
         stores = await self.get_all_stores(gerant_id)
-        
         store_ids = [store['id'] for store in stores]
-        
-        # PHASE 4: One aggregation instead of 4 count() calls (N+1 optimization)
-        staff_counts_pipeline = [
-            {"$match": {
-                "gerant_id": gerant_id,
-                "role": {"$in": ["manager", "seller"]},
-                "status": {"$in": ["active", "suspended"]}
-            }},
-            {"$group": {
-                "_id": {"role": "$role", "status": "$status"},
-                "count": {"$sum": 1}
-            }}
-        ]
+
+        staff_counts_pipeline = self._build_staff_counts_pipeline(gerant_id)
         staff_counts_result = await self.user_repo.aggregate(
             staff_counts_pipeline, max_results=4
         )
-        counts_map = {
-            ("manager", "active"): 0,
-            ("manager", "suspended"): 0,
-            ("seller", "active"): 0,
-            ("seller", "suspended"): 0,
-        }
-        for row in staff_counts_result:
-            key = (row["_id"]["role"], row["_id"]["status"])
-            if key in counts_map:
-                counts_map[key] = row["count"]
-        total_managers = counts_map[("manager", "active")]
-        suspended_managers = counts_map[("manager", "suspended")]
-        total_sellers = counts_map[("seller", "active")]
-        suspended_sellers = counts_map[("seller", "suspended")]
-        
-        # Calculate monthly KPI aggregations
+        total_managers, suspended_managers, total_sellers, suspended_sellers = self._parse_staff_counts(
+            staff_counts_result
+        )
+
         now = datetime.now(timezone.utc)
         first_day_of_month = now.replace(day=1).strftime('%Y-%m-%d')
         today = now.strftime('%Y-%m-%d')
-        
-        # 🔒 ANTI-DOUBLON: Get manager_ids that have entries in manager_kpis for this month
+
         managers_with_kpis = await self.manager_kpi_repo.distinct(
             "manager_id",
             {"store_id": {"$in": store_ids}, "date": {"$gte": first_day_of_month, "$lte": today}}
         )
-        
-        # Aggregate CA for all stores for current month (sellers only, excluding managers with dedicated entries)
-        seller_match = {
-            "store_id": {"$in": store_ids},
-            "date": {"$gte": first_day_of_month, "$lte": today}
-        }
-        if managers_with_kpis:
-            seller_match["seller_id"] = {"$nin": managers_with_kpis}
-        
-        pipeline = [
-            {"$match": seller_match},
-            {
-                "$group": {
-                    "_id": None,
-                    "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
-                    "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
-                    "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}}
-                }
-            }
-        ]
-        
+
+        pipeline = self._build_seller_kpi_month_pipeline(
+            store_ids, first_day_of_month, today, managers_with_kpis
+        )
         kpi_stats = await self.kpi_repo.aggregate(pipeline, max_results=1)
-        
-        # Aggregate manager KPIs separately
-        manager_pipeline = [
-            {
-                "$match": {
-                    "store_id": {"$in": store_ids},
-                    "date": {"$gte": first_day_of_month, "$lte": today}
-                }
-            },
-            {
-                "$group": {
-                    "_id": None,
-                    "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
-                    "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
-                    "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}}
-                }
-            }
-        ]
-        
+
+        manager_pipeline = self._build_manager_kpi_month_pipeline(
+            store_ids, first_day_of_month, today
+        )
         manager_stats = await self.manager_kpi_repo.aggregate(manager_pipeline, max_results=1)
-        
-        # Combine seller and manager stats
-        seller_ca = kpi_stats[0].get("total_ca", 0) if kpi_stats else 0
-        seller_ventes = kpi_stats[0].get("total_ventes", 0) if kpi_stats else 0
-        seller_articles = kpi_stats[0].get("total_articles", 0) if kpi_stats else 0
-        
-        manager_ca = manager_stats[0].get("total_ca", 0) if manager_stats else 0
-        manager_ventes = manager_stats[0].get("total_ventes", 0) if manager_stats else 0
-        manager_articles = manager_stats[0].get("total_articles", 0) if manager_stats else 0
-        
-        stats = {
-            "total_ca": seller_ca + manager_ca,
-            "total_ventes": seller_ventes + manager_ventes,
-            "total_articles": seller_articles + manager_articles
-        }
-        
+
+        stats = self._combine_seller_manager_stats(kpi_stats, manager_stats)
+
         return {
             "total_stores": len(stores),
             "total_managers": total_managers,
@@ -1639,7 +1658,145 @@ class GerantService:
         managers = [m for m in managers if m.get('status') != 'deleted']
         
         return managers
-    
+
+    @staticmethod
+    def _merge_seller_entries_by_priority(all_seller_entries: List[Dict]) -> List[Dict]:
+        """Fusionne les entrées KPI par seller_id en privilégiant created_by='manager'."""
+        seller_entries_dict = {}
+        for entry in all_seller_entries:
+            seller_id = entry.get('seller_id')
+            if not seller_id:
+                continue
+            if seller_id not in seller_entries_dict:
+                seller_entries_dict[seller_id] = entry
+            else:
+                existing_entry = seller_entries_dict[seller_id]
+                existing_created_by = existing_entry.get('created_by')
+                new_created_by = entry.get('created_by')
+                if new_created_by == 'manager' and existing_created_by != 'manager':
+                    seller_entries_dict[seller_id] = entry
+        return list(seller_entries_dict.values())
+
+    @staticmethod
+    def _enrich_seller_entries_with_names(seller_entries: List[Dict], sellers: List[Dict]) -> None:
+        """Enrichit les entrées avec seller_name (in-place)."""
+        for entry in seller_entries:
+            seller = next((s for s in sellers if s['id'] == entry.get('seller_id')), None)
+            entry['seller_name'] = seller['name'] if seller else entry.get('seller_name', 'Vendeur (historique)')
+
+    @staticmethod
+    def _compute_prospect_prorata(
+        global_prospects: float,
+        seller_entries: List[Dict],
+        sellers: List[Dict],
+    ) -> Dict[str, float]:
+        """
+        Calcule le prorata de prospects par vendeur (répartition équitable des prospects globaux).
+        Retourne un dict seller_id -> prorata.
+        """
+        prospect_prorata_per_seller = {}
+        sellers_with_data = len(seller_entries)
+        active_sellers_count = len(sellers)
+        if global_prospects <= 0:
+            return prospect_prorata_per_seller
+        sellers_count_for_prorata = sellers_with_data if sellers_with_data > 0 else active_sellers_count
+        if sellers_count_for_prorata <= 0:
+            return prospect_prorata_per_seller
+        base_prorata = global_prospects / sellers_count_for_prorata
+        if sellers_with_data > 0:
+            for entry in seller_entries:
+                seller_id = entry.get('seller_id')
+                if seller_id:
+                    prospect_prorata_per_seller[seller_id] = base_prorata
+        else:
+            for seller in sellers:
+                seller_id = seller.get('id')
+                if seller_id:
+                    prospect_prorata_per_seller[seller_id] = base_prorata
+        return prospect_prorata_per_seller
+
+    @staticmethod
+    def _enrich_entries_with_prospect_prorata(
+        seller_entries: List[Dict], prospect_prorata_per_seller: Dict[str, float]
+    ) -> None:
+        """Enrichit les entrées avec prospect_prorata (in-place)."""
+        for entry in seller_entries:
+            seller_id = entry.get('seller_id')
+            if not entry.get('nb_prospects') or entry.get('nb_prospects') == 0:
+                entry['prospect_prorata'] = prospect_prorata_per_seller.get(seller_id, 0)
+            else:
+                entry['prospect_prorata'] = entry.get('nb_prospects', 0)
+
+    @staticmethod
+    def _aggregate_managers_totals(manager_kpis_list: List[Dict], global_prospects: float) -> Dict:
+        """Agrège les totaux KPI managers (CA, ventes, clients, articles, prospects)."""
+        return {
+            "ca_journalier": sum((kpi.get("ca_journalier") or 0) for kpi in manager_kpis_list),
+            "nb_ventes": sum((kpi.get("nb_ventes") or 0) for kpi in manager_kpis_list),
+            "nb_clients": sum((kpi.get("nb_clients") or 0) for kpi in manager_kpis_list),
+            "nb_articles": sum((kpi.get("nb_articles") or 0) for kpi in manager_kpis_list),
+            "nb_prospects": global_prospects,
+        }
+
+    @staticmethod
+    def _aggregate_sellers_totals(seller_entries: List[Dict]) -> Dict:
+        """Agrège les totaux KPI vendeurs (CA, ventes, clients, articles, prospects, nb_sellers_reported)."""
+        return {
+            "ca_journalier": sum((entry.get("seller_ca") or entry.get("ca_journalier") or 0) for entry in seller_entries),
+            "nb_ventes": sum((entry.get("nb_ventes") or 0) for entry in seller_entries),
+            "nb_clients": sum((entry.get("nb_clients") or 0) for entry in seller_entries),
+            "nb_articles": sum((entry.get("nb_articles") or 0) for entry in seller_entries),
+            "nb_prospects": sum((entry.get("nb_prospects") or 0) for entry in seller_entries),
+            "nb_sellers_reported": len(seller_entries),
+        }
+
+    @staticmethod
+    def _compute_total_prospects_with_prorata(
+        sellers_total: Dict,
+        seller_entries: List[Dict],
+        prospect_prorata_per_seller: Dict[str, float],
+        sellers_with_data: int,
+        global_prospects: float,
+    ) -> float:
+        """Calcule le total prospects en incluant le prorata pour les vendeurs sans prospects individuels."""
+        total = sellers_total["nb_prospects"]
+        for entry in seller_entries:
+            seller_id = entry.get('seller_id')
+            if (not entry.get('nb_prospects') or entry.get('nb_prospects') == 0) and prospect_prorata_per_seller.get(seller_id, 0) > 0:
+                total += prospect_prorata_per_seller.get(seller_id, 0)
+        if sellers_with_data == 0 and global_prospects > 0:
+            total = global_prospects
+        return total
+
+    @staticmethod
+    def _calculate_store_derived_kpis(
+        total_ca: float,
+        total_ventes: float,
+        total_articles: float,
+        total_prospects: float,
+        global_prospects: float,
+        sellers_total: Dict,
+        prospect_prorata_per_seller: Dict,
+        total_prospects_with_prorata: float,
+        active_sellers_count: int,
+        sellers_with_data: int,
+    ) -> Dict:
+        """Calcule les KPI dérivés (panier moyen, taux transformation, indice vente) et la répartition prospects."""
+        calculated_kpis = {
+            "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else None,
+            "taux_transformation": round((total_ventes / total_prospects) * 100, 2) if total_prospects > 0 else None,
+            "indice_vente": round(total_articles / total_ventes, 2) if total_ventes > 0 else None,
+        }
+        calculated_kpis["prospect_repartition"] = {
+            "global_prospects": global_prospects,
+            "sellers_prospects": sellers_total["nb_prospects"],
+            "prospect_prorata_per_seller": prospect_prorata_per_seller,
+            "total_with_prorata": total_prospects_with_prorata,
+            "active_sellers_count": active_sellers_count,
+            "sellers_with_data": sellers_with_data,
+        }
+        return calculated_kpis
+
     async def get_store_sellers(self, store_id: str, gerant_id: str) -> list:
         """
         Get all sellers for a specific store (exclude deleted)
@@ -1708,157 +1865,43 @@ class GerantService:
         )
         sellers = [s for s in sellers if s.get('status') == 'active']
         
-        # Get ALL KPI entries for this store directly by store_id
         all_seller_entries = await self.kpi_repo.find_by_store(store_id, date, projection={"_id": 0})
-        
-        # ⭐ PRIORITÉ DE LA DONNÉE : Si un vendeur ET un manager ont saisi pour la même journée,
-        # utiliser la version du manager (created_by: 'manager')
-        seller_entries_dict = {}
-        for entry in all_seller_entries:
-            seller_id = entry.get('seller_id')
-            if not seller_id:
-                continue
-            
-            # Si aucune entrée pour ce vendeur, l'ajouter
-            if seller_id not in seller_entries_dict:
-                seller_entries_dict[seller_id] = entry
-            else:
-                # Si une entrée existe déjà, vérifier la priorité
-                existing_entry = seller_entries_dict[seller_id]
-                existing_created_by = existing_entry.get('created_by')
-                new_created_by = entry.get('created_by')
-                
-                # Priorité : created_by='manager' > created_by='seller' ou None
-                if new_created_by == 'manager' and existing_created_by != 'manager':
-                    seller_entries_dict[seller_id] = entry  # Remplacer par la version manager
-                # Sinon, garder l'existant (déjà manager ou pas de priorité)
-        
-        # Convertir le dictionnaire en liste
-        seller_entries = list(seller_entries_dict.values())
-        
-        # Enrich seller entries with names
-        for entry in seller_entries:
-            seller = next((s for s in sellers if s['id'] == entry.get('seller_id')), None)
-            if seller:
-                entry['seller_name'] = seller['name']
-            else:
-                entry['seller_name'] = entry.get('seller_name', 'Vendeur (historique)')
-        
-        # Get manager KPIs for this store (uniquement pour prospects globaux)
-        # ✅ PHASE 8: Use find_many with limit parameter (no .to_list() on list)
+        seller_entries = self._merge_seller_entries_by_priority(all_seller_entries)
+        self._enrich_seller_entries_with_names(seller_entries, sellers)
+
         manager_kpis_list = await self.manager_kpi_repo.find_many({
             "store_id": store_id,
             "date": date
         }, {"_id": 0}, limit=100)
-        
-        # ⭐ NOUVELLE LOGIQUE : Prospects globaux pour répartition
         global_prospects = sum((kpi.get("nb_prospects") or 0) for kpi in manager_kpis_list)
-        
-        # ⭐ GESTION DES ABSENTS : Compter uniquement les vendeurs ayant des données saisies (présents)
-        sellers_with_data = len(seller_entries)  # Vendeurs ayant travaillé ce jour-là
-        active_sellers_count = len(sellers)  # Tous les vendeurs actifs du magasin (pour référence)
-        
-        # Calculer le prorata de prospects par vendeur
-        # ⭐ NOUVELLE LOGIQUE : Permettre le prorata même si les vendeurs n'ont pas encore d'entrées
-        # Si le manager saisit des prospects globaux, on peut les répartir sur tous les vendeurs actifs
-        # même si leur CA est à 0, pour activer immédiatement le calcul du Taux de Transformation
-        prospect_prorata_per_seller = {}
-        if global_prospects > 0:
-            # Utiliser sellers_with_data si > 0 (vendeurs présents), sinon utiliser active_sellers_count (tous les vendeurs actifs)
-            # Cela permet au manager de "pousser" les prospects même si les vendeurs n'ont pas encore saisi de données
-            sellers_count_for_prorata = sellers_with_data if sellers_with_data > 0 else active_sellers_count
-            
-            if sellers_count_for_prorata > 0:
-                # Répartition équitable : prospects globaux / nombre de vendeurs (présents ou actifs)
-                base_prorata = global_prospects / sellers_count_for_prorata
-                
-                # ⭐ Si sellers_with_data > 0 : Attribuer le prorata aux vendeurs ayant des données (présents)
-                # ⭐ Si sellers_with_data == 0 : Attribuer le prorata à TOUS les vendeurs actifs (pour activation immédiate)
-                if sellers_with_data > 0:
-                    # Cas normal : vendeurs présents
-                    for entry in seller_entries:
-                        seller_id = entry.get('seller_id')
-                        if seller_id:
-                            prospect_prorata_per_seller[seller_id] = base_prorata
-                else:
-                    # Cas spécial : aucun vendeur n'a encore saisi de données, mais le manager a saisi des prospects globaux
-                    # On répartit sur TOUS les vendeurs actifs pour permettre le calcul immédiat du Taux de Transformation
-                    for seller in sellers:
-                        seller_id = seller.get('id')
-                        if seller_id:
-                            prospect_prorata_per_seller[seller_id] = base_prorata
-        
-        # Enrichir les entrées vendeurs avec le prorata de prospects
-        for entry in seller_entries:
-            seller_id = entry.get('seller_id')
-            # Si le vendeur a déjà saisi ses propres prospects, les utiliser
-            # Sinon, utiliser le prorata calculé
-            if not entry.get('nb_prospects') or entry.get('nb_prospects') == 0:
-                entry['prospect_prorata'] = prospect_prorata_per_seller.get(seller_id, 0)
-            else:
-                entry['prospect_prorata'] = entry.get('nb_prospects', 0)
-        
-        # Aggregate totals from managers (uniquement CA/ventes si saisis globalement - legacy)
-        managers_total = {
-            "ca_journalier": sum((kpi.get("ca_journalier") or 0) for kpi in manager_kpis_list),
-            "nb_ventes": sum((kpi.get("nb_ventes") or 0) for kpi in manager_kpis_list),
-            "nb_clients": sum((kpi.get("nb_clients") or 0) for kpi in manager_kpis_list),
-            "nb_articles": sum((kpi.get("nb_articles") or 0) for kpi in manager_kpis_list),
-            "nb_prospects": global_prospects  # ⭐ Prospects globaux (pour répartition)
-        }
-        
-        # Aggregate totals from sellers
-        sellers_total = {
-            "ca_journalier": sum((entry.get("seller_ca") or entry.get("ca_journalier") or 0) for entry in seller_entries),
-            "nb_ventes": sum((entry.get("nb_ventes") or 0) for entry in seller_entries),
-            "nb_clients": sum((entry.get("nb_clients") or 0) for entry in seller_entries),
-            "nb_articles": sum((entry.get("nb_articles") or 0) for entry in seller_entries),
-            "nb_prospects": sum((entry.get("nb_prospects") or 0) for entry in seller_entries),  # Prospects individuels saisis
-            "nb_sellers_reported": len(seller_entries)
-        }
-        
-        # ⭐ Calculer le total prospects avec prorata pour les vendeurs sans prospects individuels
-        total_prospects_with_prorata = sellers_total["nb_prospects"]
-        
-        # Si des vendeurs ont déjà des entrées, ajouter leur prorata
-        for entry in seller_entries:
-            seller_id = entry.get('seller_id')
-            # Si le vendeur n'a pas saisi de prospects mais a un prorata, l'ajouter
-            if (not entry.get('nb_prospects') or entry.get('nb_prospects') == 0) and prospect_prorata_per_seller.get(seller_id, 0) > 0:
-                total_prospects_with_prorata += prospect_prorata_per_seller.get(seller_id, 0)
-        
-        # ⭐ Si aucun vendeur n'a encore d'entrées mais qu'il y a des prospects globaux,
-        # le prorata a déjà été calculé pour tous les vendeurs actifs, donc on utilise directement global_prospects
-        if sellers_with_data == 0 and global_prospects > 0:
-            total_prospects_with_prorata = global_prospects
-        
-        # Calculate store totals
-        # ⚠️ IMPORTANT : Ne plus additionner CA/ventes manager + vendeurs si manager saisit par vendeur
-        # Si created_by='manager' existe dans seller_entries, les données sont déjà individuelles
-        total_ca = sellers_total["ca_journalier"]  # ⭐ Utiliser uniquement les données vendeurs (déjà individuelles)
-        total_ventes = sellers_total["nb_ventes"]  # ⭐ Utiliser uniquement les données vendeurs
+        sellers_with_data = len(seller_entries)
+        active_sellers_count = len(sellers)
+
+        prospect_prorata_per_seller = self._compute_prospect_prorata(
+            global_prospects, seller_entries, sellers
+        )
+        self._enrich_entries_with_prospect_prorata(seller_entries, prospect_prorata_per_seller)
+
+        managers_total = self._aggregate_managers_totals(manager_kpis_list, global_prospects)
+        sellers_total = self._aggregate_sellers_totals(seller_entries)
+
+        total_prospects_with_prorata = self._compute_total_prospects_with_prorata(
+            sellers_total, seller_entries, prospect_prorata_per_seller,
+            sellers_with_data, global_prospects
+        )
+
+        total_ca = sellers_total["ca_journalier"]
+        total_ventes = sellers_total["nb_ventes"]
         total_clients = sellers_total["nb_clients"]
         total_articles = sellers_total["nb_articles"]
-        # ⭐ Utiliser le total avec prorata pour les prospects
         total_prospects = total_prospects_with_prorata if total_prospects_with_prorata > 0 else global_prospects
-        
-        # Calculate derived KPIs
-        calculated_kpis = {
-            "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else None,
-            "taux_transformation": round((total_ventes / total_prospects) * 100, 2) if total_prospects > 0 else None,
-            "indice_vente": round(total_articles / total_ventes, 2) if total_ventes > 0 else None
-        }
-        
-        # ⭐ Ajouter les informations de répartition pour le frontend
-        calculated_kpis["prospect_repartition"] = {
-            "global_prospects": global_prospects,
-            "sellers_prospects": sellers_total["nb_prospects"],
-            "prospect_prorata_per_seller": prospect_prorata_per_seller,
-            "total_with_prorata": total_prospects_with_prorata,
-            "active_sellers_count": active_sellers_count,  # Tous les vendeurs actifs du magasin
-            "sellers_with_data": sellers_with_data  # ⭐ Vendeurs ayant travaillé ce jour-là (utilisés pour prorata)
-        }
-        
+
+        calculated_kpis = self._calculate_store_derived_kpis(
+            total_ca, total_ventes, total_articles, total_prospects,
+            global_prospects, sellers_total, prospect_prorata_per_seller,
+            total_prospects_with_prorata, active_sellers_count, sellers_with_data
+        )
+
         return {
             "date": date,
             "store": store,

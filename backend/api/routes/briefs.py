@@ -11,6 +11,11 @@ import logging
 
 from api.dependencies import get_ai_service, get_manager_service, get_store_service
 from api.dependencies_rate_limiting import rate_limit
+from core.constants import (
+    ERR_ACCES_REFUSE,
+    QUERY_STORE_ID_POUR_GERANT,
+    QUERY_STORE_ID_POUR_GERANT_VISUALISANT,
+)
 from core.exceptions import ForbiddenError, ValidationError, NotFoundError, BusinessLogicError
 from core.security import get_current_user, require_active_space, verify_store_access_for_user
 from services.ai_service import AIService
@@ -110,7 +115,7 @@ class BriefHistoryItem(BaseModel):
 @router.post("/morning", response_model=MorningBriefResponse, dependencies=[rate_limit("10/minute")])
 async def generate_morning_brief(
     request: Request,
-    store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_POUR_GERANT_VISUALISANT),
     brief_request: MorningBriefRequest = Body(...),
     current_user: dict = Depends(get_current_user),
     ai_service: AIService = Depends(get_ai_service),
@@ -218,7 +223,7 @@ async def generate_morning_brief(
 
 @router.get("/morning/preview")
 async def preview_morning_brief_data(
-    store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_POUR_GERANT_VISUALISANT),
     current_user: dict = Depends(get_current_user),
     manager_service: ManagerService = Depends(get_manager_service),
     store_service: StoreService = Depends(get_store_service),
@@ -230,7 +235,7 @@ async def preview_morning_brief_data(
     - **store_id**: ID du magasin (optionnel, pour gérant visualisant un magasin spécifique)
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
-        raise ForbiddenError("Accès refusé")
+        raise ForbiddenError(ERR_ACCES_REFUSE)
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
     effective_store_id = store_id if store_id else user_store_id
@@ -259,7 +264,7 @@ async def preview_morning_brief_data(
 
 @router.get("/morning/history")
 async def get_morning_briefs_history(
-    store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_POUR_GERANT_VISUALISANT),
     current_user: dict = Depends(get_current_user),
     manager_service: ManagerService = Depends(get_manager_service),
     store_service: StoreService = Depends(get_store_service),
@@ -269,7 +274,7 @@ async def get_morning_briefs_history(
     Limité aux 30 derniers briefs.
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
-        raise ForbiddenError("Accès refusé")
+        raise ForbiddenError(ERR_ACCES_REFUSE)
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
     effective_store_id = store_id if store_id else user_store_id
@@ -314,7 +319,7 @@ async def delete_morning_brief(
     Supprime un brief de l'historique.
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
-        raise ForbiddenError("Accès refusé")
+        raise ForbiddenError(ERR_ACCES_REFUSE)
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
     effective_store_id = store_id if store_id else user_store_id

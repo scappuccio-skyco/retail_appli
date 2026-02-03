@@ -134,8 +134,10 @@ IDENTIFIANTS_TEST.md
 *password*.md
 *credentials*.md
 
-# Backups (optionnel - décommenter si nécessaire)
-# backups/
+# Backups et scripts .sh d'archive (exclus Sonar pour réduire LOC et doublons)
+# backups/ déjà listé plus bas dans "Fichiers/dossiers non utilisés"
+test_sophie_*.sh
+test_app_after_cleanup.sh
 
 # Scripts de test temporaires
 test_*.py

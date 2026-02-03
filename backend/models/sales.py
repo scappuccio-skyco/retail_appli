@@ -10,6 +10,9 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 import uuid
 
+# Littéraux réutilisés (Sonar: éviter duplication)
+FIELD_DESC_NOTE_CONTENT = "Contenu de la note"
+
 
 class Sale(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -112,7 +115,7 @@ class InterviewNote(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     seller_id: str
     date: str = Field(..., description="Date de la note au format YYYY-MM-DD")
-    content: str = Field(..., description="Contenu de la note")
+    content: str = Field(..., description=FIELD_DESC_NOTE_CONTENT)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -120,10 +123,10 @@ class InterviewNote(BaseModel):
 class InterviewNoteCreate(BaseModel):
     """Modèle pour créer une note d'entretien"""
     date: str = Field(..., description="Date de la note au format YYYY-MM-DD")
-    content: str = Field(..., description="Contenu de la note")
+    content: str = Field(..., description=FIELD_DESC_NOTE_CONTENT)
 
 
 class InterviewNoteUpdate(BaseModel):
     """Modèle pour mettre à jour une note d'entretien"""
-    content: str = Field(..., description="Contenu de la note")
+    content: str = Field(..., description=FIELD_DESC_NOTE_CONTENT)
 

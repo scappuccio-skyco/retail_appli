@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { X, Sparkles } from 'lucide-react';
 import { api } from '../lib/apiClient';
+import { LABEL_DECOUVERTE_DES_BESOINS } from '../lib/constants';
 import { logger } from '../utils/logger';
 
 // Questions organisées par sections comme le manager
@@ -43,7 +44,7 @@ const questions = [
     ]
   },
   {
-    section: "🟡 Découverte des Besoins",
+    section: `🟡 ${LABEL_DECOUVERTE_DES_BESOINS}`,
     items: [
       {
         id: 4,

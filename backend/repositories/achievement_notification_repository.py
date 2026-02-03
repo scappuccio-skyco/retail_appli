@@ -24,7 +24,7 @@ class AchievementNotificationRepository(BaseRepository):
     ) -> List[Dict]:
         """Find notifications by user (SECURITY: requires user_id)"""
         if not user_id:
-            raise ValueError("user_id is required for security")
+            raise ValueError(ERR_USER_ID_REQUIRED)
         
         filters = {"user_id": user_id}
         if item_type:
@@ -44,7 +44,7 @@ class AchievementNotificationRepository(BaseRepository):
     ) -> Optional[Dict]:
         """Find notification by user, item type and item ID (SECURITY: requires user_id)"""
         if not user_id or not item_type or not item_id:
-            raise ValueError("user_id, item_type, and item_id are required")
+            raise ValueError(ERR_USER_ITEM_TYPE_ITEM_ID_REQUIRED)
         
         return await self.find_one(
             {"user_id": user_id, "item_type": item_type, "item_id": item_id},
@@ -54,7 +54,7 @@ class AchievementNotificationRepository(BaseRepository):
     async def create_notification(self, notification_data: Dict[str, Any], user_id: str) -> str:
         """Create a new notification (SECURITY: validates user_id)"""
         if not user_id:
-            raise ValueError("user_id is required for security")
+            raise ValueError(ERR_USER_ID_REQUIRED)
         notification_data["user_id"] = user_id
         return await self.insert_one(notification_data)
     
@@ -67,7 +67,7 @@ class AchievementNotificationRepository(BaseRepository):
     ) -> bool:
         """Update a notification (SECURITY: requires user_id)"""
         if not user_id or not item_type or not item_id:
-            raise ValueError("user_id, item_type, and item_id are required")
+            raise ValueError(ERR_USER_ITEM_TYPE_ITEM_ID_REQUIRED)
         
         filters = {"user_id": user_id, "item_type": item_type, "item_id": item_id}
         return await self.update_one(filters, {"$set": update_data})
@@ -81,7 +81,7 @@ class AchievementNotificationRepository(BaseRepository):
     ) -> bool:
         """Upsert a notification (create if not exists, update if exists)"""
         if not user_id or not item_type or not item_id:
-            raise ValueError("user_id, item_type, and item_id are required")
+            raise ValueError(ERR_USER_ITEM_TYPE_ITEM_ID_REQUIRED)
         
         filters = {"user_id": user_id, "item_type": item_type, "item_id": item_id}
         notification_data["user_id"] = user_id
@@ -93,5 +93,5 @@ class AchievementNotificationRepository(BaseRepository):
     async def count_by_user(self, user_id: str) -> int:
         """Count notifications by user (SECURITY: requires user_id)"""
         if not user_id:
-            raise ValueError("user_id is required for security")
+            raise ValueError(ERR_USER_ID_REQUIRED)
         return await self.count({"user_id": user_id})

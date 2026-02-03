@@ -19,6 +19,10 @@ from repositories.store_repository import StoreRepository, WorkspaceRepository
 
 logger = logging.getLogger(__name__)
 
+# Opérateurs MongoDB réutilisés (Sonar: éviter duplication de littéraux)
+MONGO_OP_EXISTS = "$exists"
+MONGO_OP_GROUP = "$group"
+
 # Default limits for backward compatibility (pagination-ready: callers can pass skip/limit)
 DEFAULT_WORKSPACES_LIST_LIMIT = 1000
 DEFAULT_STORES_LIST_LIMIT = 100
@@ -52,7 +56,7 @@ class AdminRepository:
             query = {
                 "$or": [
                     {"status": {"$ne": "deleted"}},
-                    {"status": {"$exists": False}}
+                    {"status": {MONGO_OP_EXISTS: False}}
                 ]
             }
         return await self.workspace_repo.find_many(
@@ -75,7 +79,7 @@ class AdminRepository:
             query = {
                 "$or": [
                     {"status": {"$ne": "deleted"}},
-                    {"status": {"$exists": False}}
+                    {"status": {MONGO_OP_EXISTS: False}}
                 ]
             }
         return await paginate(
@@ -195,7 +199,7 @@ class AdminRepository:
                     "status": "active",
                 }
             },
-            {"$group": {"_id": "$gerant_id", "count": {"$sum": 1}}},
+            {MONGO_OP_GROUP: {"_id": "$gerant_id", "count": {"$sum": 1}}},
         ]
         cursor = self.user_repo.collection.aggregate(pipeline)
         rows = await cursor.to_list(length=len(gerant_ids) + 1)
@@ -225,7 +229,7 @@ class AdminRepository:
         """Count AI relationship consultations"""
         try:
             return await self.db.relationship_consultations.count_documents({})
-        except:
+        except Exception:
             return 0
     
     async def get_system_logs(
@@ -298,18 +302,18 @@ class AdminRepository:
         match_stage = {
             "$match": {
                 "timestamp": {"$gte": time_threshold.isoformat()},
-                "admin_email": {"$exists": True, "$ne": None, "$ne": ""}
+                "admin_email": {MONGO_OP_EXISTS: True, "$ne": None, "$ne": ""}
             }
         }
         count_pipeline = [
             match_stage,
-            {"$group": {"_id": {"admin_email": "$admin_email", "admin_name": "$admin_name"}}},
+            {MONGO_OP_GROUP: {"_id": {"admin_email": "$admin_email", "admin_name": "$admin_name"}}},
             {"$count": "total"}
         ]
         skip = (page - 1) * size
         data_pipeline = [
             match_stage,
-            {"$group": {"_id": {"admin_email": "$admin_email", "admin_name": "$admin_name"}}},
+            {MONGO_OP_GROUP: {"_id": {"admin_email": "$admin_email", "admin_name": "$admin_name"}}},
             {"$project": {"_id": 0, "email": "$_id.admin_email", "name": "$_id.admin_name"}},
             {"$sort": {"email": 1}},
             {"$skip": skip},

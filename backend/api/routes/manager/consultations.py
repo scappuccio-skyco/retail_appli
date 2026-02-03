@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
+from core.constants import QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError
 from api.routes.manager.dependencies import get_store_context
 from api.dependencies import (
@@ -40,7 +41,7 @@ class ConflictResolutionRequest(BaseModel):
 @router.post("/relationship-advice")
 async def get_relationship_advice(
     request: RelationshipAdviceRequest,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     relationship_service: RelationshipService = Depends(get_relationship_service),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -97,7 +98,7 @@ async def get_relationship_advice(
 @router.get("/relationship-advice/history")
 async def get_relationship_history(
     seller_id: Optional[str] = Query(None, description="Filter by seller ID"),
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -131,7 +132,7 @@ async def get_relationship_history(
 @router.post("/conflict-resolution")
 async def create_conflict_resolution(
     request: ConflictResolutionRequest,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     conflict_service: ConflictService = Depends(get_conflict_service),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -192,7 +193,7 @@ async def create_conflict_resolution(
 @router.get("/conflict-history/{seller_id}")
 async def get_conflict_history(
     seller_id: str,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     conflict_service: ConflictService = Depends(get_conflict_service),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -214,7 +215,7 @@ async def get_conflict_history(
 @router.delete("/relationship-consultation/{consultation_id}")
 async def delete_relationship_consultation(
     consultation_id: str,
-    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
 ):

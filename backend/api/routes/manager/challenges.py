@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Query
 
+from core.constants import ERR_STORE_ID_REQUIS, QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
 from core.security import verify_resource_store_access
 from api.routes.manager.dependencies import get_store_context
@@ -55,7 +56,7 @@ async def mark_challenge_achievement_seen_manager(
     try:
         resolved_store_id = context.get("resolved_store_id")
         if not resolved_store_id:
-            raise ValidationError("store_id requis")
+            raise ValidationError(ERR_STORE_ID_REQUIS)
         await verify_resource_store_access(
             resource_id=challenge_id,
             resource_type="challenge",
@@ -234,7 +235,7 @@ async def update_challenge(
     try:
         resolved_store_id = context.get("resolved_store_id")
         if not resolved_store_id:
-            raise ValidationError("store_id requis")
+            raise ValidationError(ERR_STORE_ID_REQUIS)
         existing = await verify_resource_store_access(
             resource_id=challenge_id,
             resource_type="challenge",
@@ -295,7 +296,7 @@ async def delete_challenge(
     try:
         resolved_store_id = context.get("resolved_store_id")
         if not resolved_store_id:
-            raise ValidationError("store_id requis")
+            raise ValidationError(ERR_STORE_ID_REQUIS)
         await verify_resource_store_access(
             resource_id=challenge_id,
             resource_type="challenge",

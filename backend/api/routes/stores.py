@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, Depends
 from typing import Dict
 
+from core.constants import ERR_ACCES_REFUSE_MAGASIN_AUTRE_GERANT
 from core.exceptions import NotFoundError, ForbiddenError, ValidationError
 from models.stores import StoreCreate, StoreUpdate
 from services.store_service import StoreService
@@ -130,7 +131,9 @@ async def get_store_info(
         if store_gerant_id != user_id:
             logger.warning(f"Gérant {user_id} attempted to access store {store_id} owned by {store_gerant_id}")
             raise ForbiddenError(
-                f"Accès refusé: ce magasin appartient à un autre gérant (store_id: {store_id}, your_id: {user_id}, store_gerant_id: {store_gerant_id})"
+                ERR_ACCES_REFUSE_MAGASIN_AUTRE_GERANT.format(
+                    store_id=store_id, user_id=user_id, store_gerant_id=store_gerant_id
+                )
             )
     elif user_role == 'manager':
         user_store_id = current_user.get('store_id')

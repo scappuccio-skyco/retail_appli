@@ -14,6 +14,9 @@ from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 
+# Tâches asyncio en arrière-plan : les garder dans un set pour éviter le GC (Sonar: save task in variable).
+_background_tasks = set()
+
 
 async def _create_indexes_background() -> None:
     """
@@ -88,8 +91,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.warning("Redis cache initialization failed (non-critical): %s", e)
 
-    # Schedule index creation in background (does not block healthcheck)
-    asyncio.create_task(_create_indexes_background())
+    # Schedule index creation in background (does not block healthcheck).
+    # Keep task in module-level set to prevent premature garbage collection.
+    index_task = asyncio.create_task(_create_indexes_background())
+    _background_tasks.add(index_task)
+    index_task.add_done_callback(lambda t: _background_tasks.discard(t))
 
     logger.info("Application startup complete (worker %s)", worker_id)
     yield

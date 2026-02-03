@@ -1158,7 +1158,7 @@ Génère un bilan terrain motivant avec :
                 try:
                     data_dt = datetime.strptime(data_date, "%Y-%m-%d")
                     data_date_french = self._format_date_french(data_dt)
-                except:
+                except ValueError:
                     data_date_french = "récemment"
             else:
                 data_date_french = "hier"
@@ -1645,7 +1645,7 @@ class EvaluationGuideService:
                         date_obj = datetime.strptime(date, "%Y-%m-%d")
                         date_fr = date_obj.strftime("%d/%m/%Y")
                         notes_list.append(f"- {date_fr} : {content}")
-                    except:
+                    except ValueError:
                         notes_list.append(f"- {date} : {content}")
             
             if notes_list:

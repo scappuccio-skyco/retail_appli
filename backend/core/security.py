@@ -10,6 +10,12 @@ from typing import Optional, Dict
 import logging
 
 from core.config import settings
+from core.constants import (
+    MSG_ROLE_UNAUTHORIZED,
+    MSG_SELLER_NOT_FOUND,
+    MSG_SELLER_NOT_IN_STORE,
+    MSG_SELLER_NOT_IN_YOUR_STORES,
+)
 from core.exceptions import UnauthorizedError, ForbiddenError, NotFoundError, ValidationError
 
 # Security scheme
@@ -493,7 +499,7 @@ async def verify_store_ownership(
             raise ForbiddenError("Accès refusé : ce magasin ne vous est pas assigné")
         return
 
-    raise ForbiddenError("Rôle non autorisé")
+    raise ForbiddenError(MSG_ROLE_UNAUTHORIZED)
 
 
 async def verify_resource_store_access(
@@ -568,7 +574,7 @@ async def verify_seller_store_access(
         if not seller:
             other = await manager_service.get_user_by_id(seller_id, projection={"_id": 0})
             if other and other.get("role") == "seller":
-                raise ForbiddenError("Vendeur non trouvé ou n'appartient pas à ce magasin")
+                raise ForbiddenError(MSG_SELLER_NOT_FOUND + " ou n'appartient pas à ce magasin")
             raise NotFoundError("Vendeur non trouvé")
         return seller
 
@@ -588,7 +594,7 @@ async def verify_seller_store_access(
             raise ForbiddenError("Ce vendeur n'appartient pas à l'un de vos magasins")
         return seller
 
-    raise ForbiddenError("Rôle non autorisé")
+    raise ForbiddenError(MSG_ROLE_UNAUTHORIZED)
 
 
 # ===== API KEY & ROLE HELPERS (Phase 3: centralisation) =====
@@ -655,7 +661,7 @@ async def verify_evaluation_employee_access(
                 raise NotFoundError("Vendeur non trouvé")
             if role == "manager":
                 if employee.get("store_id") != current_user.get("store_id"):
-                    raise ForbiddenError("Ce vendeur n'appartient pas à votre magasin")
+                    raise ForbiddenError(MSG_SELLER_NOT_IN_STORE)
             else:
                 store = await store_service.get_store_by_id_and_gerant(
                     employee.get("store_id"), user_id
@@ -678,7 +684,7 @@ async def verify_evaluation_employee_access(
             raise NotFoundError("Vendeur non trouvé")
         if role == "manager":
             if employee.get("store_id") != current_user.get("store_id"):
-                raise ForbiddenError("Ce vendeur n'appartient pas à votre magasin")
+                raise ForbiddenError(MSG_SELLER_NOT_IN_STORE)
         else:
             store = await store_repo.find_one(
                 {"id": employee.get("store_id"), "gerant_id": user_id},
@@ -688,7 +694,7 @@ async def verify_evaluation_employee_access(
                 raise ForbiddenError("Ce vendeur n'appartient pas à l'un de vos magasins")
         return employee
 
-    raise ForbiddenError("Rôle non autorisé")
+    raise ForbiddenError(MSG_ROLE_UNAUTHORIZED)
 
 
 # ===== API KEY VERIFICATION DEPENDENCIES (Phase 3: DRY) =====

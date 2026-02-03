@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '../lib/apiClient';
+import {
+  LABEL_DECOUVERTE,
+  LABEL_DECOUVERTE_APPROFONDIE,
+  LABEL_LE_COACH,
+  LABEL_LE_STRATEGE,
+  LABEL_MANAGER_STRATEGE_X_VENDEUR_CHALLENGER,
+  LABEL_MANAGER_STRATEGE_X_VENDEUR_CONVIVIAL,
+  LABEL_MANAGER_STRATEGE_X_VENDEUR_DYNAMIQUE,
+  LABEL_MANAGER_STRATEGE_X_VENDEUR_EXPLORATEUR,
+  LABEL_MANAGER_STRATEGE_X_VENDEUR_TECHNIQUE,
+  LABEL_STRATEGE,
+} from '../lib/constants';
 import { logger } from '../utils/logger';
 
 export default function GuideProfilsModal({ onClose, userRole = 'manager', storeIdParam = null }) {
@@ -125,7 +137,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
       ],
       forces: [
         'Grande capacité d\'apprentissage',
-        'Découverte approfondie des besoins',
+        LABEL_DECOUVERTE_APPROFONDIE,
         'S\'améliore rapidement'
       ],
       attention: [
@@ -381,7 +393,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
       ]
     },
     {
-      name: 'Découverte',
+      name: LABEL_DECOUVERTE,
       icon: '🚀',
       color: 'purple',
       description: 'Motivé par l\'apprentissage et la nouveauté',
@@ -537,7 +549,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
       ]
     },
     {
-      name: 'Le Coach',
+      name: LABEL_LE_COACH,
       icon: '🏋️',
       color: 'green',
       description: 'Développe et accompagne son équipe vers l\'excellence',
@@ -561,7 +573,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
       ]
     },
     {
-      name: 'Le Stratège',
+      name: LABEL_LE_STRATEGE,
       icon: '🧠',
       color: 'purple',
       description: 'Vision claire et organisation millimétrée',
@@ -733,7 +745,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
       ]
     },
     {
-      name: 'Manager Stratège × Vendeur Convivial',
+      name: LABEL_MANAGER_STRATEGE_X_VENDEUR_CONVIVIAL,
       icon: '🧠🤝',
       color: 'purple',
       description: 'Complémentarité organisation-relation',
@@ -1116,7 +1128,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
         },
         'Dynamique': {
           score: '⭐⭐⭐⭐',
-          title: 'Manager Stratège × Vendeur Dynamique',
+          title: LABEL_MANAGER_STRATEGE_X_VENDEUR_DYNAMIQUE,
           description: 'Vision et action',
           caracteristiques: [
             'Stratégie claire définie',
@@ -1158,7 +1170,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
         },
         'Technique': {
           score: '⭐⭐⭐⭐⭐',
-          title: 'Manager Stratège × Vendeur Technique',
+          title: LABEL_MANAGER_STRATEGE_X_VENDEUR_TECHNIQUE,
           description: 'Excellence stratégique et technique',
           caracteristiques: [
             'Vision long terme et expertise',
@@ -1179,7 +1191,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
         },
         'Challenger': {
           score: '⭐⭐⭐⭐',
-          title: 'Manager Stratège × Vendeur Challenger',
+          title: LABEL_MANAGER_STRATEGE_X_VENDEUR_CHALLENGER,
           description: 'Ambition stratégique',
           caracteristiques: [
             'Objectifs ambitieux et structurés',

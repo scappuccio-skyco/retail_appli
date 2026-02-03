@@ -1,5 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { LABEL_DECOUVERTE } from '../lib/constants';
 
 export default function CompetencesExplicationModal({ onClose }) {
   const competences = [
@@ -17,7 +18,7 @@ export default function CompetencesExplicationModal({ onClose }) {
       mesure: 'Basé sur le nombre de clients approchés et la qualité du premier contact'
     },
     {
-      name: 'Découverte',
+      name: LABEL_DECOUVERTE,
       icon: '🔍',
       color: 'green',
       description: 'Capacité à identifier les besoins et poser les bonnes questions',
