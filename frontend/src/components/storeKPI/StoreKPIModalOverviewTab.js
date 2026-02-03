@@ -102,11 +102,17 @@ export default function StoreKPIModalOverviewTab({
   const hasData = historicalData.length > 0;
   const allZero = historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0);
   const defaultVisibleCharts = { ca: true, ventes: true, panierMoyen: true, tauxTransformation: true, indiceVente: true, articles: true };
+  const weekIATitle = selectedWeek ? (allZero ? 'Aucune donnée disponible pour cette période' : '') : 'Sélectionnez une semaine';
+  const yearIATitle = allZero ? 'Aucune donnée disponible pour cette période' : '';
+  const chartEmptyMessage = loadingHistorical ? '⏳ Chargement des données...' : '📭 Aucune donnée disponible pour cette période';
+  const listEmptyMessage = loadingHistorical ? '⏳ Chargement des données...' : '📭 Aucune donnée disponible pour cette période';
 
   const handleShowPicker = (e) => {
     try {
       if (typeof e.target.showPicker === 'function') e.target.showPicker();
-    } catch (_) {}
+    } catch (err) {
+      console.error('[StoreKPIModalOverviewTab] showPicker failed:', err);
+    }
   };
 
   return (
@@ -126,7 +132,7 @@ export default function StoreKPIModalOverviewTab({
           <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une semaine</h3>
           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
             <input type="week" value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} onClick={handleShowPicker} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer" />
-            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || !selectedWeek || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={!selectedWeek ? 'Sélectionnez une semaine' : allZero ? 'Aucune donnée disponible pour cette période' : ''}>🤖 Analyse IA</button>
+            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || !selectedWeek || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={weekIATitle}>🤖 Analyse IA</button>
           </div>
         </div>
       )}
@@ -217,7 +223,7 @@ export default function StoreKPIModalOverviewTab({
         </div>
       ) : displayMode === 'chart' ? (
         <div className="text-center py-12">
-          {loadingHistorical ? <p className="text-gray-500">⏳ Chargement des données...</p> : <p className="text-gray-500">📭 Aucune donnée disponible pour cette période</p>}
+          <p className="text-gray-500">{chartEmptyMessage}</p>
         </div>
       ) : null}
 
@@ -324,8 +330,9 @@ function OverviewListEntries({ historicalData, displayedListItems, setDisplayedL
           const panierMoyen = entry.total_ventes > 0 ? (entry.total_ca / entry.total_ventes).toFixed(2) : 0;
           const tauxTransfo = entry.total_prospects > 0 ? ((entry.total_ventes / entry.total_prospects) * 100).toFixed(1) : 0;
           const indiceVente = entry.total_ventes > 0 ? (entry.total_articles / entry.total_ventes).toFixed(2) : 0;
+          const entryKey = entry.sortKey || entry.date || `overview-list-${index}`;
           return (
-            <div key={index} className="p-5 hover:bg-purple-50 transition-colors border-b border-gray-100 last:border-b-0">
+            <div key={entryKey} className="p-5 hover:bg-purple-50 transition-colors border-b border-gray-100 last:border-b-0">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-lg font-bold text-purple-600">📅 {formatListDateLabel(entry.date)}</span>
                 <span className="text-xs text-gray-500 font-medium">Entrée #{historicalData.length - index}</span>

@@ -12,8 +12,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     storeParam,
     activeTab,
     setActiveTab,
-    kpiConfig,
-    setKpiConfig,
     objectives,
     challenges,
     sellers,

@@ -36,6 +36,31 @@ const DEFAULT_KPI_CONFIG = {
   manager_track_prospects: false
 };
 
+const KPI_TRACK_PAIRS = [
+  ['seller_track_ca', 'manager_track_ca'],
+  ['seller_track_ventes', 'manager_track_ventes'],
+  ['seller_track_clients', 'manager_track_clients'],
+  ['seller_track_articles', 'manager_track_articles'],
+  ['seller_track_prospects', 'manager_track_prospects']
+];
+
+function normalizeKpiConfig(config) {
+  const next = { ...config };
+  KPI_TRACK_PAIRS.forEach(([sellerKey, managerKey]) => {
+    if (next[sellerKey] && next[managerKey]) next[managerKey] = false;
+    if (!next[sellerKey] && !next[managerKey]) next[sellerKey] = true;
+  });
+  return next;
+}
+
+const KPI_OPPOSITE_FIELD = {
+  seller_track_ca: 'manager_track_ca', manager_track_ca: 'seller_track_ca',
+  seller_track_ventes: 'manager_track_ventes', manager_track_ventes: 'seller_track_ventes',
+  seller_track_clients: 'manager_track_clients', manager_track_clients: 'seller_track_clients',
+  seller_track_articles: 'manager_track_articles', manager_track_articles: 'seller_track_articles',
+  seller_track_prospects: 'manager_track_prospects', manager_track_prospects: 'seller_track_prospects'
+};
+
 export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, storeId = null }) {
   const defaultDate = initialDate || new Date().toISOString().split('T')[0];
   const [activeTab, setActiveTab] = useState('daily');
@@ -276,18 +301,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
       const url = storeId ? `/gerant/stores/${storeId}/kpi-config` : '/manager/kpi-config';
       const res = await api.get(url);
       if (!res.data) return;
-      let config = { ...res.data };
-      if (config.seller_track_ca && config.manager_track_ca) config.manager_track_ca = false;
-      if (config.seller_track_ventes && config.manager_track_ventes) config.manager_track_ventes = false;
-      if (config.seller_track_clients && config.manager_track_clients) config.manager_track_clients = false;
-      if (config.seller_track_articles && config.manager_track_articles) config.manager_track_articles = false;
-      if (config.seller_track_prospects && config.manager_track_prospects) config.manager_track_prospects = false;
-      if (!config.seller_track_ca && !config.manager_track_ca) config.seller_track_ca = true;
-      if (!config.seller_track_ventes && !config.manager_track_ventes) config.seller_track_ventes = true;
-      if (!config.seller_track_clients && !config.manager_track_clients) config.seller_track_clients = true;
-      if (!config.seller_track_articles && !config.manager_track_articles) config.seller_track_articles = true;
-      if (!config.seller_track_prospects && !config.manager_track_prospects) config.seller_track_prospects = true;
-      setKpiConfig(config);
+      setKpiConfig(normalizeKpiConfig(res.data));
     } catch (err) {
       logger.error('Error fetching KPI config:', err);
     }
@@ -311,13 +325,8 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   const handleKPIUpdate = async (field, value) => {
     try {
       let updatedConfig = { ...kpiConfig, [field]: value };
-      if (value === true) {
-        const opposite = { seller_track_ca: 'manager_track_ca', manager_track_ca: 'seller_track_ca',
-          seller_track_ventes: 'manager_track_ventes', manager_track_ventes: 'seller_track_ventes',
-          seller_track_clients: 'manager_track_clients', manager_track_clients: 'seller_track_clients',
-          seller_track_articles: 'manager_track_articles', manager_track_articles: 'seller_track_articles',
-          seller_track_prospects: 'manager_track_prospects', manager_track_prospects: 'seller_track_prospects' };
-        if (opposite[field]) updatedConfig[opposite[field]] = false;
+      if (value === true && KPI_OPPOSITE_FIELD[field]) {
+        updatedConfig[KPI_OPPOSITE_FIELD[field]] = false;
       }
       const url = storeId ? `/gerant/stores/${storeId}/kpi-config` : `/manager/kpi-config${storeId ? '?store_id=' + storeId : ''}`;
       await api.put(url, updatedConfig);

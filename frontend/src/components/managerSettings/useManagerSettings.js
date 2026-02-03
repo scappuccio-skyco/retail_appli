@@ -210,7 +210,9 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
       const confettiFn = confetti || globalThis.confetti;
       if (!confettiFn) return;
       confettiFn({ particleCount: 30, spread: 50, origin: { y: 0.6 }, colors: ['#ffd700', '#ff6b6b', '#4ecdc4'] });
-    } catch (_) {}
+    } catch (err) {
+      console.error('[useManagerSettings] triggerConfetti failed:', err);
+    }
   };
 
   const handleMarkAchievementAsSeen = async () => {

@@ -27,7 +27,9 @@ export default function StoreKPIModalProspectsTab({
   const handleShowPicker = (e) => {
     try {
       if (typeof e.target.showPicker === 'function') e.target.showPicker();
-    } catch (_) {}
+    } catch (err) {
+      console.error('[StoreKPIModalProspectsTab] showPicker failed:', err);
+    }
   };
 
   if (!hasManagerData) {

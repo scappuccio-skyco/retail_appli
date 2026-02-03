@@ -150,7 +150,7 @@ async def forgot_password(
         return {
             "message": "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation dans quelques instants."
         }
-    except Exception as e:
+    except Exception:
         import logging
         logger = logging.getLogger(__name__)
         logger.error("Erreur lors de la demande de réinitialisation", exc_info=True)

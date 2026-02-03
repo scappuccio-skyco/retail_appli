@@ -19,7 +19,7 @@ export function getCurrentWeek() {
  */
 export function formatChartDate(dateStr) {
   if (!dateStr) return '';
-  if (dateStr.match(/^[A-Za-zÀ-ÿ]+$/)) return dateStr;
+  if (/^[A-Za-zÀ-ÿ]+$/.exec(dateStr) !== null) return dateStr;
   if (dateStr.includes('-S') || dateStr.includes('-B')) return dateStr;
   try {
     const [year, month, day] = dateStr.split('-');
@@ -66,7 +66,6 @@ export function getYearStartEnd(selectedYear) {
  */
 export function fillMissingDays(historicalArray, startDate, endDate) {
   const filledArray = [];
-  const existingDates = new Set(historicalArray.map(d => d.date));
   const endOfRange = new Date(endDate);
   endOfRange.setUTCHours(23, 59, 59, 999);
   let currentDate = new Date(startDate);
