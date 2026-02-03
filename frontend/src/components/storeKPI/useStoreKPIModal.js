@@ -433,4 +433,3 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     handleManagerKPISubmit
   };
 }
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
