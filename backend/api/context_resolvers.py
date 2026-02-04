@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import Depends, Request
 
+from core.constants import ERR_STORE_ID_REQUIS
 from core.exceptions import AppException, ForbiddenError, NotFoundError, ValidationError
 from core.security import (
     verify_manager_gerant_or_seller,
@@ -153,6 +154,18 @@ async def get_store_context(
     return await resolve_store_context(
         request, current_user, manager_service, include_seller=False
     )
+
+
+async def get_store_context_required(
+    context: StoreContextDict = Depends(get_store_context),
+) -> StoreContextDict:
+    """
+    Dependency: same as get_store_context but raises ValidationError if resolved_store_id is missing.
+    Use in manager routes that require a store (e.g. seller endpoints, KPI, evaluations).
+    """
+    if not context.get("resolved_store_id"):
+        raise ValidationError(ERR_STORE_ID_REQUIS)
+    return context
 
 
 async def get_store_context_with_seller(

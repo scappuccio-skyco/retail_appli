@@ -18,7 +18,7 @@ from core.constants import (
 )
 from core.exceptions import AppException, NotFoundError, ValidationError
 from core.security import verify_seller_store_access
-from api.routes.manager.dependencies import get_store_context, get_verified_seller
+from api.routes.manager.dependencies import get_store_context, get_store_context_required, get_verified_seller
 from api.dependencies import (
     get_manager_service,
     get_manager_seller_management_service,
@@ -111,14 +111,12 @@ async def get_seller_stats(
     seller_id: str,
     days: int = Query(30, description="Number of days for stats calculation"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
-    context: dict = Depends(get_store_context),
+    context: dict = Depends(get_store_context_required),
     competence_service: CompetenceService = Depends(get_competence_service),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Get aggregated statistics for a specific seller (CA, ventes, compétences)."""
-    resolved_store_id = context.get("resolved_store_id")
-    if not resolved_store_id:
-        raise ValidationError(ERR_STORE_ID_REQUIS)
+    resolved_store_id = context["resolved_store_id"]
     seller = await verify_seller_store_access(
         seller_id=seller_id,
         user_store_id=resolved_store_id,
@@ -191,15 +189,13 @@ async def get_seller_kpi_history(
     seller_id: str,
     days: int = Query(90, description="Number of days"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
-    context: dict = Depends(get_store_context),
+    context: dict = Depends(get_store_context_required),
     manager_service: ManagerService = Depends(get_manager_service),
     kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
 ):
     """Get detailed KPI history for a seller with daily breakdown."""
     try:
-        resolved_store_id = context.get("resolved_store_id")
-        if not resolved_store_id:
-            raise ValidationError(ERR_STORE_ID_REQUIS)
+        resolved_store_id = context["resolved_store_id"]
         seller = await verify_seller_store_access(
             seller_id=seller_id,
             user_store_id=resolved_store_id,
@@ -239,14 +235,12 @@ async def get_seller_kpi_history(
 async def get_seller_profile(
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
-    context: dict = Depends(get_store_context),
+    context: dict = Depends(get_store_context_required),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Get complete seller profile including diagnostic and recent performance."""
     try:
-        resolved_store_id = context.get("resolved_store_id")
-        if not resolved_store_id:
-            raise ValidationError(ERR_STORE_ID_REQUIS)
+        resolved_store_id = context["resolved_store_id"]
         seller = await verify_seller_store_access(
             seller_id=seller_id,
             user_store_id=resolved_store_id,
@@ -277,13 +271,11 @@ async def get_seller_kpi_entries(
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     pagination: PaginationParams = Depends(),
-    context: dict = Depends(get_store_context),
+    context: dict = Depends(get_store_context_required),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Get paginated KPI entries for a specific seller. IDOR-safe: seller must belong to user's store."""
-    resolved_store_id = context.get("resolved_store_id")
-    if not resolved_store_id:
-        raise ValidationError(ERR_STORE_ID_REQUIS)
+    resolved_store_id = context["resolved_store_id"]
     seller = await verify_seller_store_access(
         seller_id=seller_id,
         user_store_id=resolved_store_id,
@@ -309,13 +301,11 @@ async def get_seller_kpi_entries(
 async def get_seller_diagnostic(
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
-    context: dict = Depends(get_store_context),
+    context: dict = Depends(get_store_context_required),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Get DISC diagnostic profile for a specific seller. IDOR-safe."""
-    resolved_store_id = context.get("resolved_store_id")
-    if not resolved_store_id:
-        raise ValidationError(ERR_STORE_ID_REQUIS)
+    resolved_store_id = context["resolved_store_id"]
     seller = await verify_seller_store_access(
         seller_id=seller_id,
         user_store_id=resolved_store_id,

@@ -8,11 +8,12 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Query
 
+from core.constants import ERR_ACCES_REFUSE_MAGASIN_NON_ASSIGNE, QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
 from core.security import verify_manager_or_gerant
 from models.kpi_config import get_default_kpi_config
 from models.pagination import PaginatedResponse, PaginationParams
-from api.routes.manager.dependencies import get_store_context, get_store_context_with_seller
+from api.routes.manager.dependencies import get_store_context, get_store_context_required, get_store_context_with_seller
 from api.dependencies import (
     get_manager_store_service,
     get_manager_service,
@@ -132,13 +133,11 @@ async def get_sync_mode(
 async def get_store_kpi_overview(
     date: str = Query(None),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
-    context: dict = Depends(get_store_context),
+    context: dict = Depends(get_store_context_required),
     gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """Get KPI overview for manager's store on a specific date. Delegates to GerantService.get_store_kpi_overview."""
-    resolved_store_id = context.get("resolved_store_id")
-    if not resolved_store_id:
-        raise ValidationError("Store ID requis")
+    resolved_store_id = context["resolved_store_id"]
     target_date = date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
     user_id = context.get("id")
     overview = await gerant_service.get_store_kpi_overview(

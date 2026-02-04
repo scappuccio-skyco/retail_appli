@@ -1,53 +1,20 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Building2, Mail, Globe, FileText } from 'lucide-react';
-import Logo from '../../components/shared/Logo';
+import { Building2, Mail, Globe, FileText } from 'lucide-react';
+import LegalPageLayout from './LegalPageLayout';
 
 /**
  * Mentions Légales - SKY CO / Retail Performer AI
  * Conforme à la loi française (LCEN)
  */
 export default function LegalNotice() {
-  // Scroll to top on mount
-  useEffect(() => {
-    globalThis.scrollTo(0, 0);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Logo variant="header" size="sm" />
-          <Link 
-            to="/" 
-            className="flex items-center gap-2 text-gray-600 hover:text-[#1E40AF] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Retour à l&apos;accueil
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-12">
-          {/* Title */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-[#1E40AF]/10 rounded-full mb-4">
-              <FileText className="w-8 h-8 text-[#1E40AF]" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#1E40AF] mb-2">
-              Mentions Légales
-            </h1>
-            <p className="text-gray-500">Dernière mise à jour : Décembre 2025</p>
-          </div>
-
-          {/* Sections */}
-          <div className="space-y-10 text-gray-700 leading-relaxed">
-            
-            {/* Section 1 - Éditeur */}
-            <section>
+    <LegalPageLayout
+      title="Mentions Légales"
+      subtitle="Dernière mise à jour : Décembre 2025"
+      icon={FileText}
+    >
+      <section>
               <h2 className="text-xl font-bold text-[#1E40AF] mb-4 flex items-center gap-2">
                 <Building2 className="w-5 h-5" />
                 1. Éditeur du site
@@ -180,25 +147,6 @@ export default function LegalNotice() {
                 français seront seuls compétents pour connaître de ce litige.
               </p>
             </section>
-
-          </div>
-
-          {/* Footer links */}
-          <div className="mt-12 pt-8 border-t border-gray-200 flex flex-wrap justify-center gap-4 text-sm">
-            <Link to="/terms" className="text-gray-500 hover:text-[#1E40AF] transition-colors">
-              Conditions Générales
-            </Link>
-            <span className="text-gray-300">|</span>
-            <Link to="/privacy" className="text-gray-500 hover:text-[#1E40AF] transition-colors">
-              Politique de Confidentialité
-            </Link>
-            <span className="text-gray-300">|</span>
-            <Link to="/" className="text-gray-500 hover:text-[#1E40AF] transition-colors">
-              Accueil
-            </Link>
-          </div>
-        </div>
-      </main>
-    </div>
+    </LegalPageLayout>
   );
 }

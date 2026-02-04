@@ -7,9 +7,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
-from core.constants import ERR_STORE_ID_REQUIS, QUERY_STORE_ID_REQUIS_GERANT
+from core.constants import QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError
-from api.routes.manager.dependencies import get_store_context, get_verified_seller
+from api.routes.manager.dependencies import get_store_context, get_store_context_required, get_verified_seller
 from api.dependencies import get_manager_service, get_relationship_service, get_conflict_service
 from core.security import verify_seller_store_access
 from services.manager_service import ManagerService
@@ -44,14 +44,12 @@ class ConflictResolutionRequest(BaseModel):
 async def get_seller_diagnostic(
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
-    context: dict = Depends(get_store_context),
+    context: dict = Depends(get_store_context_required),
     manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Get DISC diagnostic profile for a specific seller."""
     try:
-        resolved_store_id = context.get("resolved_store_id")
-        if not resolved_store_id:
-            raise ValidationError(ERR_STORE_ID_REQUIS)
+        resolved_store_id = context["resolved_store_id"]
         seller = await verify_seller_store_access(
             seller_id=seller_id,
             user_store_id=resolved_store_id,

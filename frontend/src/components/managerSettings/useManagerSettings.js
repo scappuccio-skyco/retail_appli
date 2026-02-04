@@ -4,6 +4,29 @@ import { api } from '../../lib/apiClient';
 import { logger } from '../../utils/logger';
 import confetti from 'canvas-confetti';
 
+/** Run an async API handler with success toast, optional onSuccess, and shared error handling. */
+async function withManagerApiCall(handler, { successMessage, onSuccess, errorMessage = 'Erreur lors de l\'opération' }) {
+  try {
+    await handler();
+    toast.success(successMessage);
+    if (onSuccess) onSuccess();
+  } catch (err) {
+    logger.error(errorMessage, err);
+    toast.error(err.response?.data?.detail || errorMessage);
+  }
+}
+
+/** Listen for mousedown outside the ref and call setOpen(false). */
+function useClickOutside(ref, isOpen, setOpen) {
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) setOpen(false);
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, ref]);
+}
+
 const DEFAULT_OBJECTIVE = {
   title: '',
   description: '',
@@ -128,21 +151,8 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
     if (isOpen) fetchData();
   }, [isOpen]);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sellerDropdownRef.current && !sellerDropdownRef.current.contains(event.target)) setIsSellerDropdownOpen(false);
-    };
-    if (isSellerDropdownOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isSellerDropdownOpen]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (challengeSellerDropdownRef.current && !challengeSellerDropdownRef.current.contains(event.target)) setIsChallengeSellerDropdownOpen(false);
-    };
-    if (isChallengeSellerDropdownOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isChallengeSellerDropdownOpen]);
+  useClickOutside(sellerDropdownRef, isSellerDropdownOpen, setIsSellerDropdownOpen);
+  useClickOutside(challengeSellerDropdownRef, isChallengeSellerDropdownOpen, setIsChallengeSellerDropdownOpen);
 
   useEffect(() => {
     if (editingObjective) {
@@ -220,98 +230,72 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
 
   const handleKPIConfigUpdate = async (e) => {
     e.preventDefault();
-    try {
-      await api.put(`/manager/kpi-config${storeParam}`, kpiConfig);
-      toast.success('Configuration KPI mise à jour');
-      if (onUpdate) onUpdate();
-    } catch (err) {
-      logger.error('Error updating KPI config:', err);
-      toast.error('Erreur lors de la mise à jour');
-    }
+    await withManagerApiCall(
+      () => api.put(`/manager/kpi-config${storeParam}`, kpiConfig),
+      { successMessage: 'Configuration KPI mise à jour', onSuccess: () => onUpdate?.(), errorMessage: 'Error updating KPI config' }
+    );
+  };
+
+  const buildChallengePayload = () => {
+    const cleanedData = {
+      title: newChallenge.title,
+      description: newChallenge.description,
+      type: newChallenge.type,
+      visible: newChallenge.visible,
+      start_date: newChallenge.start_date,
+      end_date: newChallenge.end_date,
+      challenge_type: newChallenge.challenge_type,
+      target_value: Number.parseFloat(newChallenge.target_value),
+      data_entry_responsible: newChallenge.data_entry_responsible,
+      unit: newChallenge.unit
+    };
+    if (newChallenge.type === 'individual' && newChallenge.seller_id) cleanedData.seller_id = newChallenge.seller_id;
+    cleanedData.visible_to_sellers = newChallenge.visible ? (selectedVisibleSellersChallenge.length > 0 ? selectedVisibleSellersChallenge : []) : null;
+    if (newChallenge.challenge_type === 'kpi_standard') cleanedData.kpi_name = newChallenge.kpi_name;
+    else if (newChallenge.challenge_type === 'product_focus') cleanedData.product_name = newChallenge.product_name;
+    else if (newChallenge.challenge_type === 'custom') cleanedData.custom_description = newChallenge.custom_description;
+    return cleanedData;
   };
 
   const handleCreateChallenge = async (e) => {
     e.preventDefault();
-    try {
-      const cleanedData = {
-        title: newChallenge.title,
-        description: newChallenge.description,
-        type: newChallenge.type,
-        visible: newChallenge.visible,
-        start_date: newChallenge.start_date,
-        end_date: newChallenge.end_date,
-        challenge_type: newChallenge.challenge_type,
-        target_value: Number.parseFloat(newChallenge.target_value),
-        data_entry_responsible: newChallenge.data_entry_responsible,
-        unit: newChallenge.unit
-      };
-      if (newChallenge.type === 'individual' && newChallenge.seller_id) cleanedData.seller_id = newChallenge.seller_id;
-      if (newChallenge.visible) {
-        cleanedData.visible_to_sellers = selectedVisibleSellersChallenge.length > 0 ? selectedVisibleSellersChallenge : [];
-      } else {
-        cleanedData.visible_to_sellers = null;
+    await withManagerApiCall(
+      () => api.post(`/manager/challenges${storeParam}`, buildChallengePayload()),
+      {
+        successMessage: 'Challenge créé avec succès',
+        onSuccess: () => {
+          setNewChallenge({ ...DEFAULT_CHALLENGE });
+          setSelectedVisibleSellersChallenge([]);
+          fetchData();
+          onUpdate?.();
+        },
+        errorMessage: 'Erreur lors de la création du challenge'
       }
-      if (newChallenge.challenge_type === 'kpi_standard') cleanedData.kpi_name = newChallenge.kpi_name;
-      else if (newChallenge.challenge_type === 'product_focus') cleanedData.product_name = newChallenge.product_name;
-      else if (newChallenge.challenge_type === 'custom') cleanedData.custom_description = newChallenge.custom_description;
-      await api.post(`/manager/challenges${storeParam}`, cleanedData);
-      toast.success('Challenge créé avec succès');
-      setNewChallenge({ ...DEFAULT_CHALLENGE });
-      setSelectedVisibleSellersChallenge([]);
-      fetchData();
-      if (onUpdate) onUpdate();
-    } catch (err) {
-      logger.error('Error creating challenge:', err);
-      toast.error('Erreur lors de la création du challenge');
-    }
+    );
   };
 
   const handleUpdateChallenge = async (e) => {
     e.preventDefault();
-    try {
-      const cleanedData = {
-        title: newChallenge.title,
-        description: newChallenge.description,
-        start_date: newChallenge.start_date,
-        end_date: newChallenge.end_date,
-        type: newChallenge.type,
-        visible: newChallenge.visible,
-        challenge_type: newChallenge.challenge_type,
-        target_value: Number.parseFloat(newChallenge.target_value),
-        data_entry_responsible: newChallenge.data_entry_responsible,
-        unit: newChallenge.unit
-      };
-      if (newChallenge.type === 'individual' && newChallenge.seller_id) cleanedData.seller_id = newChallenge.seller_id;
-      if (newChallenge.visible) {
-        cleanedData.visible_to_sellers = selectedVisibleSellersChallenge.length > 0 ? selectedVisibleSellersChallenge : [];
-      } else {
-        cleanedData.visible_to_sellers = null;
+    await withManagerApiCall(
+      () => api.put(`/manager/challenges/${editingChallenge.id}${storeParam}`, buildChallengePayload()),
+      {
+        successMessage: 'Challenge modifié avec succès',
+        onSuccess: async () => {
+          setEditingChallenge(null);
+          await fetchData();
+          onUpdate?.();
+        },
+        errorMessage: 'Erreur lors de la modification du challenge'
       }
-      if (newChallenge.challenge_type === 'kpi_standard') cleanedData.kpi_name = newChallenge.kpi_name;
-      else if (newChallenge.challenge_type === 'product_focus') cleanedData.product_name = newChallenge.product_name;
-      else if (newChallenge.challenge_type === 'custom') cleanedData.custom_description = newChallenge.custom_description;
-      await api.put(`/manager/challenges/${editingChallenge.id}${storeParam}`, cleanedData);
-      toast.success('Challenge modifié avec succès');
-      setEditingChallenge(null);
-      await fetchData();
-      if (onUpdate) onUpdate();
-    } catch (err) {
-      logger.error('Error updating challenge:', err);
-      toast.error('Erreur lors de la modification du challenge');
-    }
+    );
   };
 
   const handleDeleteChallenge = async (challengeId, challengeTitle) => {
     if (!globalThis.confirm(`Êtes-vous sûr de vouloir supprimer le challenge "${challengeTitle}" ?`)) return;
-    try {
-      await api.delete(`/manager/challenges/${challengeId}${storeParam}`);
-      toast.success('Challenge supprimé avec succès');
-      fetchData();
-      if (onUpdate) onUpdate();
-    } catch (err) {
-      logger.error('Error deleting challenge:', err);
-      toast.error('Erreur lors de la suppression');
-    }
+    await withManagerApiCall(
+      () => api.delete(`/manager/challenges/${challengeId}${storeParam}`),
+      { successMessage: 'Challenge supprimé avec succès', onSuccess: () => { fetchData(); onUpdate?.(); }, errorMessage: 'Error deleting challenge' }
+    );
   };
 
   const handleUpdateChallengeProgress = async (challengeId) => {
@@ -338,101 +322,81 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
   };
 
   const handleUpdateChallengeProgressMulti = async (challengeId, payload) => {
-    try {
-      await api.post(`/manager/challenges/${challengeId}/progress${storeParam}`, payload);
-      toast.success('Progression mise à jour');
-      setUpdatingProgressChallengeId(null);
-      setChallengeProgressValue('');
-      fetchData();
-      if (onUpdate) onUpdate();
-    } catch (err) {
-      logger.error('Error:', err);
-      toast.error('Erreur');
-    }
+    await withManagerApiCall(
+      () => api.post(`/manager/challenges/${challengeId}/progress${storeParam}`, payload),
+      {
+        successMessage: 'Progression mise à jour',
+        onSuccess: () => {
+          setUpdatingProgressChallengeId(null);
+          setChallengeProgressValue('');
+          fetchData();
+          onUpdate?.();
+        },
+        errorMessage: 'Error updating challenge progress multi'
+      }
+    );
+  };
+
+  const buildObjectivePayload = () => {
+    const cleanedData = {
+      title: newObjective.title,
+      description: newObjective.description,
+      type: newObjective.type,
+      visible: newObjective.visible,
+      period_start: newObjective.period_start,
+      period_end: newObjective.period_end,
+      objective_type: newObjective.objective_type,
+      target_value: Number.parseFloat(newObjective.target_value),
+      data_entry_responsible: newObjective.data_entry_responsible,
+      unit: newObjective.unit
+    };
+    if (newObjective.type === 'individual' && newObjective.seller_id) cleanedData.seller_id = newObjective.seller_id;
+    cleanedData.visible_to_sellers = newObjective.visible ? (selectedVisibleSellers.length > 0 ? selectedVisibleSellers : []) : null;
+    if (newObjective.objective_type === 'kpi_standard') cleanedData.kpi_name = newObjective.kpi_name;
+    else if (newObjective.objective_type === 'product_focus') cleanedData.product_name = newObjective.product_name;
+    else if (newObjective.objective_type === 'custom') cleanedData.custom_description = newObjective.custom_description;
+    return cleanedData;
   };
 
   const handleCreateObjective = async (e) => {
     e.preventDefault();
-    try {
-      const cleanedData = {
-        title: newObjective.title,
-        description: newObjective.description,
-        type: newObjective.type,
-        visible: newObjective.visible,
-        period_start: newObjective.period_start,
-        period_end: newObjective.period_end,
-        objective_type: newObjective.objective_type,
-        target_value: Number.parseFloat(newObjective.target_value),
-        data_entry_responsible: newObjective.data_entry_responsible,
-        unit: newObjective.unit
-      };
-      if (newObjective.type === 'individual' && newObjective.seller_id) cleanedData.seller_id = newObjective.seller_id;
-      if (newObjective.visible) {
-        cleanedData.visible_to_sellers = selectedVisibleSellers.length > 0 ? selectedVisibleSellers : [];
-      } else {
-        cleanedData.visible_to_sellers = null;
+    await withManagerApiCall(
+      () => api.post(`/manager/objectives${storeParam}`, buildObjectivePayload()),
+      {
+        successMessage: 'Objectif créé avec succès',
+        onSuccess: () => {
+          setNewObjective({ ...DEFAULT_OBJECTIVE });
+          setSelectedVisibleSellers([]);
+          fetchData();
+          onUpdate?.();
+        },
+        errorMessage: 'Erreur lors de la création de l\'objectif'
       }
-      if (newObjective.objective_type === 'kpi_standard') cleanedData.kpi_name = newObjective.kpi_name;
-      else if (newObjective.objective_type === 'product_focus') cleanedData.product_name = newObjective.product_name;
-      else if (newObjective.objective_type === 'custom') cleanedData.custom_description = newObjective.custom_description;
-      await api.post(`/manager/objectives${storeParam}`, cleanedData);
-      toast.success('Objectif créé avec succès');
-      setNewObjective({ ...DEFAULT_OBJECTIVE });
-      setSelectedVisibleSellers([]);
-      fetchData();
-      if (onUpdate) onUpdate();
-    } catch (err) {
-      logger.error('Error creating objective:', err);
-      toast.error('Erreur lors de la création de l\'objectif');
-    }
+    );
   };
 
   const handleUpdateObjective = async (e) => {
     e.preventDefault();
-    try {
-      const cleanedData = {
-        title: newObjective.title,
-        description: newObjective.description,
-        period_start: newObjective.period_start,
-        period_end: newObjective.period_end,
-        type: newObjective.type,
-        visible: newObjective.visible,
-        objective_type: newObjective.objective_type,
-        target_value: Number.parseFloat(newObjective.target_value),
-        data_entry_responsible: newObjective.data_entry_responsible,
-        unit: newObjective.unit
-      };
-      if (newObjective.type === 'individual' && newObjective.seller_id) cleanedData.seller_id = newObjective.seller_id;
-      if (newObjective.visible) {
-        cleanedData.visible_to_sellers = selectedVisibleSellers.length > 0 ? selectedVisibleSellers : [];
-      } else {
-        cleanedData.visible_to_sellers = null;
+    await withManagerApiCall(
+      () => api.put(`/manager/objectives/${editingObjective.id}${storeParam}`, buildObjectivePayload()),
+      {
+        successMessage: 'Objectif modifié avec succès',
+        onSuccess: async () => {
+          setEditingObjective(null);
+          await fetchData();
+          onUpdate?.();
+        },
+        errorMessage: 'Erreur lors de la modification de l\'objectif'
       }
-      if (newObjective.objective_type === 'kpi_standard') cleanedData.kpi_name = newObjective.kpi_name;
-      else if (newObjective.objective_type === 'product_focus') cleanedData.product_name = newObjective.product_name;
-      else if (newObjective.objective_type === 'custom') cleanedData.custom_description = newObjective.custom_description;
-      await api.put(`/manager/objectives/${editingObjective.id}${storeParam}`, cleanedData);
-      toast.success('Objectif modifié avec succès');
-      setEditingObjective(null);
-      await fetchData();
-      if (onUpdate) onUpdate();
-    } catch (err) {
-      logger.error('Error updating objective:', err);
-      toast.error('Erreur lors de la modification de l\'objectif');
-    }
+    );
   };
 
   const handleDeleteObjective = async (objectiveId) => {
     if (!globalThis.confirm('Êtes-vous sûr de vouloir supprimer cet objectif ?')) return;
-    try {
-      await api.delete(`/manager/objectives/${objectiveId}${storeParam}`);
-      toast.success('Objectif supprimé avec succès');
-      fetchData();
-      if (onUpdate) onUpdate();
-    } catch (err) {
-      logger.error('Error deleting objective:', err);
-      toast.error('Erreur lors de la suppression');
-    }
+    await withManagerApiCall(
+      () => api.delete(`/manager/objectives/${objectiveId}${storeParam}`),
+      { successMessage: 'Objectif supprimé avec succès', onSuccess: () => { fetchData(); onUpdate?.(); }, errorMessage: 'Error deleting objective' }
+    );
   };
 
   const handleUpdateProgress = async (objectiveId) => {

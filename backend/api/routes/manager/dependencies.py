@@ -5,6 +5,7 @@ get_verified_seller, verify_manager_or_gerant, etc.
 """
 from api.context_resolvers import (
     get_store_context,
+    get_store_context_required,
     get_store_context_with_seller,
     get_verified_seller,
 )
@@ -12,6 +13,7 @@ from core.security import verify_manager_or_gerant
 
 __all__ = [
     "get_store_context",
+    "get_store_context_required",
     "get_store_context_with_seller",
     "get_verified_seller",
     "verify_manager_or_gerant",
