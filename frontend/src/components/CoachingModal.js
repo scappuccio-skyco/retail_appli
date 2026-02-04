@@ -61,6 +61,24 @@ function getChallengeResultDisplay(result) {
   return { resultClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800', emoji: '🤔', label: 'Pas cette fois' };
 }
 
+function getHistoryEmptyTitle(historyFilter) {
+  if (historyFilter === 'all') return 'Aucune analyse pour le moment';
+  if (historyFilter === 'conclue') return 'Aucune vente conclue';
+  return 'Aucune opportunité manquée';
+}
+
+function getHistoryEmptySubtitle(historyFilter) {
+  return historyFilter === 'all'
+    ? 'Créez votre première analyse de vente pour recevoir un coaching personnalisé'
+    : 'Aucune analyse de ce type pour le moment';
+}
+
+function getHistoryListLabel(historyFilter, count) {
+  if (historyFilter === 'all') return `Toutes vos analyses (${count})`;
+  if (historyFilter === 'conclue') return `Ventes conclues (${count})`;
+  return `Opportunités manquées (${count})`;
+}
+
 function ChallengeResultBadge({ challengeResult }) {
   const { resultClass, emoji, label } = getChallengeResultDisplay(challengeResult);
   return (
@@ -75,12 +93,23 @@ ChallengeResultBadge.propTypes = {
 };
 
 function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDelete }) {
+  const visibilityClass = debrief.visible_to_manager ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700';
+  const visibilityLabel = debrief.visible_to_manager ? 'Partagé avec le manager' : 'Privé - visible uniquement par vous';
+  const handleCardKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onToggle(debrief.id);
+    }
+  };
   return (
     <div
+      role="button"
+      tabIndex={0}
       data-debrief-card
       data-debrief-id={debrief.id}
       className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200 cursor-pointer hover:shadow-lg transition-shadow"
       onClick={() => onToggle(debrief.id)}
+      onKeyDown={handleCardKeyDown}
     >
       <div className="p-6">
         <div className="flex items-start gap-4">
@@ -106,7 +135,19 @@ function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDele
               <p className="text-sm text-gray-600">
                 {new Date(debrief.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </p>
-              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <div
+                role="group"
+                aria-label="Actions sur l'analyse"
+                tabIndex={0}
+                className="flex items-center gap-2"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+              >
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onToggleVisibility(debrief.id, debrief.visible_to_manager); }}
@@ -788,19 +829,9 @@ export default function CoachingModal({
                           return true;
                         });
                         
-                        const emptyTitle = historyFilter === 'all'
-                          ? 'Aucune analyse pour le moment'
-                          : historyFilter === 'conclue'
-                            ? 'Aucune vente conclue'
-                            : 'Aucune opportunité manquée';
-                        const emptySubtitle = historyFilter === 'all'
-                          ? 'Créez votre première analyse de vente pour recevoir un coaching personnalisé'
-                          : 'Aucune analyse de ce type pour le moment';
-                        const listLabel = historyFilter === 'all'
-                          ? `Toutes vos analyses (${filteredDebriefs.length})`
-                          : historyFilter === 'conclue'
-                            ? `Ventes conclues (${filteredDebriefs.length})`
-                            : `Opportunités manquées (${filteredDebriefs.length})`;
+                        const emptyTitle = getHistoryEmptyTitle(historyFilter);
+                        const emptySubtitle = getHistoryEmptySubtitle(historyFilter);
+                        const listLabel = getHistoryListLabel(historyFilter, filteredDebriefs.length);
 
                         return filteredDebriefs.length > 0 ? (
                           <div className="space-y-4">
