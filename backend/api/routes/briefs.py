@@ -30,6 +30,31 @@ router = APIRouter(
 )
 logger = logging.getLogger(__name__)
 
+# Valeur par défaut pour champs non renseignés (stats brief)
+NOT_SPECIFIED = "Non renseigné"
+
+# Stats vides pour brief (évite duplication de littéraux)
+def _default_brief_stats():
+    return {"ca_yesterday": 0, "data_date": None, "team_present": NOT_SPECIFIED}
+
+
+async def _resolve_store_fallback(
+    current_user: dict,
+    store_service: StoreService,
+    user_id: str,
+    user_store_id: Optional[str],
+    effective_store_id: Optional[str],
+) -> Tuple[Optional[Dict], Optional[str]]:
+    """Résout le magasin quand effective_store_id n'a pas donné de store (gérant / manager)."""
+    store = None
+    if current_user.get("role") == "gerant":
+        stores = await store_service.get_stores_by_gerant(user_id)
+        store = stores[0] if stores else None
+    elif current_user.get("role") == "manager" and user_store_id:
+        store = await store_service.get_store_by_id(user_store_id)
+    new_effective = store.get("id") if store else effective_store_id
+    return (store, new_effective)
+
 
 async def _resolve_store_for_briefs(
     store_id: Optional[str],
@@ -49,12 +74,9 @@ async def _resolve_store_for_briefs(
         if store:
             verify_store_access_for_user(store, current_user)
     if not store:
-        if current_user.get("role") == "gerant":
-            stores = await store_service.get_stores_by_gerant(user_id)
-            store = stores[0] if stores else None
-        elif current_user.get("role") == "manager" and user_store_id:
-            store = await store_service.get_store_by_id(user_store_id)
-        effective_store_id = store.get("id") if store else effective_store_id
+        store, effective_store_id = await _resolve_store_fallback(
+            current_user, store_service, user_id, user_store_id, effective_store_id
+        )
     if store is None and effective_store_id:
         store = await store_service.get_store_by_id(effective_store_id)
     if store:
@@ -184,9 +206,9 @@ async def generate_morning_brief(
             stats = await manager_service.get_yesterday_stats_for_brief(final_store_id, user_id)
         except Exception as e:
             logger.warning("get_yesterday_stats_for_brief failed, using empty stats: %s", e)
-            stats = {"ca_yesterday": 0, "data_date": None, "team_present": "Non renseigné"}
+            stats = _default_brief_stats()
     if not isinstance(stats, dict):
-        stats = {"ca_yesterday": 0, "data_date": None, "team_present": "Non renseigné"}
+        stats = _default_brief_stats()
     data_date = stats.get("data_date")
 
     try:
@@ -254,7 +276,7 @@ async def preview_morning_brief_data(
         raise ForbiddenError(ERR_ACCES_REFUSE)
     store, final_store_id = await _resolve_store_for_briefs(store_id, current_user, store_service)
     user_id = current_user.get("id")
-    stats = await manager_service.get_yesterday_stats_for_brief(final_store_id, user_id) if final_store_id else {"ca_yesterday": 0, "data_date": None, "team_present": "Non renseigné"}
+    stats = await manager_service.get_yesterday_stats_for_brief(final_store_id, user_id) if final_store_id else _default_brief_stats()
     return {
         "store_name": store.get("name") if store else None,
         "manager_name": current_user.get("name"),
@@ -278,7 +300,7 @@ async def get_morning_briefs_history(
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
         raise ForbiddenError(ERR_ACCES_REFUSE)
-    store, effective_store_id = await _resolve_store_for_briefs(store_id, current_user, store_service)
+    _, effective_store_id = await _resolve_store_for_briefs(store_id, current_user, store_service)
     if not effective_store_id:
         return EMPTY_BRIEFS_RESPONSE
     try:
@@ -309,7 +331,7 @@ async def delete_morning_brief(
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
         raise ForbiddenError(ERR_ACCES_REFUSE)
-    store, effective_store_id = await _resolve_store_for_briefs(store_id, current_user, store_service)
+    _, effective_store_id = await _resolve_store_for_briefs(store_id, current_user, store_service)
     if not effective_store_id:
         raise ValidationError("Impossible de déterminer le magasin")
     result = await manager_service.delete_morning_brief(

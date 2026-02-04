@@ -132,12 +132,13 @@ function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDele
               <p className="text-sm text-gray-600">
                 {new Date(debrief.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </p>
-              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onToggleVisibility(debrief.id, debrief.visible_to_manager); }}
                   className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${visibilityClass}`}
                   title={visibilityLabel}
+                  aria-label={visibilityLabel}
                 >
                   {debrief.visible_to_manager ? <><Share2 className="w-3 h-3" /> Partagé</> : <><Lock className="w-3 h-3" /> Privé</>}
                 </button>
@@ -146,6 +147,7 @@ function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDele
                   onClick={(e) => { e.stopPropagation(); onDelete(debrief.id); }}
                   className="p-1 hover:bg-red-100 rounded transition-colors"
                   title="Supprimer l'analyse"
+                  aria-label="Supprimer l'analyse"
                 >
                   <Trash2 className="w-4 h-4 text-red-600" />
                 </button>
