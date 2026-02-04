@@ -47,6 +47,17 @@ class EvaluationGuideResponse(BaseModel):
 
 # ===== HELPER FUNCTIONS =====
 
+
+def _format_evaluation_period(start_date: str, end_date: str) -> str:
+    """Formate une période pour l'affichage (dd/mm/yyyy - dd/mm/yyyy ou brut)."""
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+        return f"{start.strftime('%d/%m/%Y')} - {end.strftime('%d/%m/%Y')}"
+    except ValueError:
+        return f"{start_date} - {end_date}"
+
+
 # Structure de stats vides (évite duplication dans get_employee_stats)
 _EMPTY_EMPLOYEE_STATS = {
     "total_ca": 0,
@@ -160,12 +171,7 @@ async def generate_evaluation_guide(
     role_perspective = 'manager' if caller_role in ['manager', 'gerant'] else 'seller'
     
     # 4. Formater la période
-    try:
-        start = datetime.strptime(request.start_date, "%Y-%m-%d")
-        end = datetime.strptime(request.end_date, "%Y-%m-%d")
-        period = f"{start.strftime('%d/%m/%Y')} - {end.strftime('%d/%m/%Y')}"
-    except ValueError:
-        period = f"{request.start_date} - {request.end_date}"
+    period = _format_evaluation_period(request.start_date, request.end_date)
     
     disc_profile = await get_disc_profile(seller_service, request.employee_id)
     
@@ -222,6 +228,6 @@ async def get_evaluation_stats(
     return {
         "employee_id": employee_id,
         "employee_name": employee.get('name', 'Vendeur'),
-        "period": f"{start_date} - {end_date}",
+        "period": _format_evaluation_period(start_date, end_date),
         "stats": stats
     }

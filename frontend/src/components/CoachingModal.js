@@ -95,23 +95,19 @@ ChallengeResultBadge.propTypes = {
 function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDelete }) {
   const visibilityClass = debrief.visible_to_manager ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700';
   const visibilityLabel = debrief.visible_to_manager ? 'Partagé avec le manager' : 'Privé - visible uniquement par vous';
-  const handleCardKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onToggle(debrief.id);
-    }
-  };
   return (
     <div
-      role="button"
-      tabIndex={0}
       data-debrief-card
       data-debrief-id={debrief.id}
-      className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200 cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => onToggle(debrief.id)}
-      onKeyDown={handleCardKeyDown}
+      className="relative bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200 cursor-pointer hover:shadow-lg transition-shadow"
     >
-      <div className="p-6">
+      <button
+        type="button"
+        className="absolute inset-0 w-full h-full rounded-xl z-0 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-inset"
+        onClick={() => onToggle(debrief.id)}
+        aria-label={isExpanded ? 'Masquer les détails de l\'analyse' : 'Afficher les détails de l\'analyse'}
+      />
+      <div className="relative z-10 p-6">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
             {debrief.vente_conclue ? <CheckCircle className="w-6 h-6 text-white" /> : <XCircle className="w-6 h-6 text-white" />}
@@ -123,6 +119,7 @@ function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDele
               </h3>
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); onToggle(debrief.id); }}
                   className="p-1 hover:bg-white/50 rounded transition-colors"
                   title={isExpanded ? 'Masquer les détails' : 'Voir les détails'}
@@ -135,19 +132,7 @@ function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDele
               <p className="text-sm text-gray-600">
                 {new Date(debrief.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </p>
-              <div
-                role="group"
-                aria-label="Actions sur l'analyse"
-                tabIndex={0}
-                className="flex items-center gap-2"
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }
-                }}
-              >
+              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onToggleVisibility(debrief.id, debrief.visible_to_manager); }}

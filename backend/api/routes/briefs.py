@@ -4,7 +4,7 @@ API endpoints for generating morning briefs for managers
 """
 from fastapi import APIRouter, Depends, Query, Body, Request
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 from datetime import datetime, timezone
 from uuid import uuid4
 import logging
@@ -29,6 +29,37 @@ router = APIRouter(
     dependencies=[Depends(require_active_space)]
 )
 logger = logging.getLogger(__name__)
+
+
+async def _resolve_store_for_briefs(
+    store_id: Optional[str],
+    current_user: dict,
+    store_service: StoreService,
+) -> Tuple[Optional[Dict], Optional[str]]:
+    """
+    Résout le magasin effectif pour les routes briefs (manager/gérant).
+    Retourne (store, effective_store_id). Peut retourner (None, None) si aucun magasin.
+    """
+    user_id = current_user.get("id")
+    user_store_id = current_user.get("store_id")
+    effective_store_id = store_id if store_id else user_store_id
+    store = None
+    if effective_store_id:
+        store = await store_service.get_store_by_id(effective_store_id)
+        if store:
+            verify_store_access_for_user(store, current_user)
+    if not store:
+        if current_user.get("role") == "gerant":
+            stores = await store_service.get_stores_by_gerant(user_id)
+            store = stores[0] if stores else None
+        elif current_user.get("role") == "manager" and user_store_id:
+            store = await store_service.get_store_by_id(user_store_id)
+        effective_store_id = store.get("id") if store else effective_store_id
+    if store is None and effective_store_id:
+        store = await store_service.get_store_by_id(effective_store_id)
+    if store:
+        verify_store_access_for_user(store, current_user)
+    return (store, effective_store_id)
 
 
 class MorningBriefRequest(BaseModel):
@@ -134,26 +165,10 @@ async def generate_morning_brief(
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
         raise ForbiddenError("Seuls les managers peuvent générer des briefs matinaux")
 
+    store, final_store_id = await _resolve_store_for_briefs(store_id, current_user, store_service)
     user_id = current_user.get("id")
-    user_store_id = current_user.get("store_id")
     manager_name = current_user.get("name", "Manager")
-    effective_store_id = store_id if store_id else user_store_id
-    store = None
-
-    if effective_store_id:
-        store = await store_service.get_store_by_id(effective_store_id)
-        if store:
-            verify_store_access_for_user(store, current_user)
-
-    if not store:
-        if current_user.get("role") == "gerant":
-            stores = await store_service.get_stores_by_gerant(user_id)
-            store = stores[0] if stores else None
-        elif current_user.get("role") == "manager" and user_store_id:
-            store = await store_service.get_store_by_id(user_store_id)
-
     store_name = store.get("name", "Mon Magasin") if store else "Mon Magasin"
-    final_store_id = store.get("id") if store else effective_store_id
 
     if brief_request.objective_daily is not None and final_store_id:
         try:
@@ -237,22 +252,9 @@ async def preview_morning_brief_data(
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
         raise ForbiddenError(ERR_ACCES_REFUSE)
+    store, final_store_id = await _resolve_store_for_briefs(store_id, current_user, store_service)
     user_id = current_user.get("id")
-    user_store_id = current_user.get("store_id")
-    effective_store_id = store_id if store_id else user_store_id
-    store = None
-    if effective_store_id:
-        store = await store_service.get_store_by_id(effective_store_id)
-        if store:
-            verify_store_access_for_user(store, current_user)
-    if not store:
-        if current_user.get("role") == "gerant":
-            stores = await store_service.get_stores_by_gerant(user_id)
-            store = stores[0] if stores else None
-        elif current_user.get("role") == "manager" and user_store_id:
-            store = await store_service.get_store_by_id(user_store_id)
-    final_store_id = store.get("id") if store else effective_store_id
-    stats = await manager_service.get_yesterday_stats_for_brief(final_store_id, user_id)
+    stats = await manager_service.get_yesterday_stats_for_brief(final_store_id, user_id) if final_store_id else {"ca_yesterday": 0, "data_date": None, "team_present": "Non renseigné"}
     return {
         "store_name": store.get("name") if store else None,
         "manager_name": current_user.get("name"),
@@ -276,23 +278,9 @@ async def get_morning_briefs_history(
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
         raise ForbiddenError(ERR_ACCES_REFUSE)
-    user_id = current_user.get("id")
-    user_store_id = current_user.get("store_id")
-    effective_store_id = store_id if store_id else user_store_id
-    store = None
-    if not effective_store_id:
-        if current_user.get("role") == "gerant":
-            stores = await store_service.get_stores_by_gerant(user_id)
-            store = stores[0] if stores else None
-        elif current_user.get("role") == "manager" and user_store_id:
-            store = await store_service.get_store_by_id(user_store_id)
-        effective_store_id = store.get("id") if store else None
+    store, effective_store_id = await _resolve_store_for_briefs(store_id, current_user, store_service)
     if not effective_store_id:
         return EMPTY_BRIEFS_RESPONSE
-    if store is None and effective_store_id:
-        store = await store_service.get_store_by_id(effective_store_id)
-    if store:
-        verify_store_access_for_user(store, current_user)
     try:
         briefs = await manager_service.get_morning_briefs_by_store(
             effective_store_id, limit=30, sort=[("generated_at", -1)]
@@ -321,23 +309,9 @@ async def delete_morning_brief(
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
         raise ForbiddenError(ERR_ACCES_REFUSE)
-    user_id = current_user.get("id")
-    user_store_id = current_user.get("store_id")
-    effective_store_id = store_id if store_id else user_store_id
-    store = None
-    if not effective_store_id:
-        if current_user.get("role") == "gerant":
-            stores = await store_service.get_stores_by_gerant(user_id)
-            store = stores[0] if stores else None
-        elif current_user.get("role") == "manager" and user_store_id:
-            store = await store_service.get_store_by_id(user_store_id)
-        effective_store_id = store.get("id") if store else None
+    store, effective_store_id = await _resolve_store_for_briefs(store_id, current_user, store_service)
     if not effective_store_id:
         raise ValidationError("Impossible de déterminer le magasin")
-    if store is None and effective_store_id:
-        store = await store_service.get_store_by_id(effective_store_id)
-    if store:
-        verify_store_access_for_user(store, current_user)
     result = await manager_service.delete_morning_brief(
         brief_id=brief_id, store_id=effective_store_id
     )
