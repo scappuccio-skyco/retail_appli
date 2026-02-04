@@ -11,6 +11,7 @@ import logging
 
 from api.dependencies import get_ai_service, get_manager_service, get_store_service
 from api.dependencies_rate_limiting import rate_limit
+from api.schemas.common import EMPTY_BRIEFS_RESPONSE
 from core.constants import (
     ERR_ACCES_REFUSE,
     QUERY_STORE_ID_POUR_GERANT,
@@ -287,7 +288,7 @@ async def get_morning_briefs_history(
             store = await store_service.get_store_by_id(user_store_id)
         effective_store_id = store.get("id") if store else None
     if not effective_store_id:
-        return {"briefs": [], "total": 0}
+        return EMPTY_BRIEFS_RESPONSE
     if store is None and effective_store_id:
         store = await store_service.get_store_by_id(effective_store_id)
     if store:
@@ -304,7 +305,7 @@ async def get_morning_briefs_history(
         }
     except Exception as e:
         logger.error("Error loading briefs history: %s", e)
-        return {"briefs": [], "total": 0}
+        return EMPTY_BRIEFS_RESPONSE
 
 
 @router.delete("/morning/{brief_id}")

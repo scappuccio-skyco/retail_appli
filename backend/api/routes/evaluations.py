@@ -47,6 +47,21 @@ class EvaluationGuideResponse(BaseModel):
 
 # ===== HELPER FUNCTIONS =====
 
+# Structure de stats vides (évite duplication dans get_employee_stats)
+_EMPTY_EMPLOYEE_STATS = {
+    "total_ca": 0,
+    "avg_ca": 0,
+    "total_ventes": 0,
+    "avg_panier": 0,
+    "avg_articles": 0,
+    "avg_taux_transfo": 0,
+    "days_worked": 0,
+    "best_day_ca": 0,
+    "worst_day_ca": 0,
+    "no_data": True,
+}
+
+
 async def get_employee_stats(seller_service: SellerService, employee_id: str, start_date: str, end_date: str) -> Dict:
     """
     Récupère les statistiques agrégées d'un vendeur sur une période.
@@ -65,18 +80,7 @@ async def get_employee_stats(seller_service: SellerService, employee_id: str, st
     )
     
     if not kpis:
-        return {
-            "total_ca": 0,
-            "avg_ca": 0,
-            "total_ventes": 0,
-            "avg_panier": 0,
-            "avg_articles": 0,
-            "avg_taux_transfo": 0,
-            "days_worked": 0,
-            "best_day_ca": 0,
-            "worst_day_ca": 0,
-            "no_data": True
-        }
+        return dict(_EMPTY_EMPLOYEE_STATS)
     
     # Calcul des agrégations - Support pour les deux formats de champs
     total_ca = sum(k.get('ca_journalier', 0) or k.get('ca', 0) or 0 for k in kpis)

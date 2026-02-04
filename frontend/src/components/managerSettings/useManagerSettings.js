@@ -250,9 +250,8 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
       unit: newChallenge.unit
     };
     if (newChallenge.type === 'individual' && newChallenge.seller_id) cleanedData.seller_id = newChallenge.seller_id;
-    const challengeVisibleToSellers = newChallenge.visible
-      ? (selectedVisibleSellersChallenge.length > 0 ? selectedVisibleSellersChallenge : [])
-      : null;
+    const challengeSelectedList = selectedVisibleSellersChallenge.length > 0 ? selectedVisibleSellersChallenge : [];
+    const challengeVisibleToSellers = newChallenge.visible ? challengeSelectedList : null;
     cleanedData.visible_to_sellers = challengeVisibleToSellers;
     if (newChallenge.challenge_type === 'kpi_standard') cleanedData.kpi_name = newChallenge.kpi_name;
     else if (newChallenge.challenge_type === 'product_focus') cleanedData.product_name = newChallenge.product_name;
@@ -354,9 +353,8 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
       unit: newObjective.unit
     };
     if (newObjective.type === 'individual' && newObjective.seller_id) cleanedData.seller_id = newObjective.seller_id;
-    const objectiveVisibleToSellers = newObjective.visible
-      ? (selectedVisibleSellers.length > 0 ? selectedVisibleSellers : [])
-      : null;
+    const objectiveSelectedList = selectedVisibleSellers.length > 0 ? selectedVisibleSellers : [];
+    const objectiveVisibleToSellers = newObjective.visible ? objectiveSelectedList : null;
     cleanedData.visible_to_sellers = objectiveVisibleToSellers;
     if (newObjective.objective_type === 'kpi_standard') cleanedData.kpi_name = newObjective.kpi_name;
     else if (newObjective.objective_type === 'product_focus') cleanedData.product_name = newObjective.product_name;

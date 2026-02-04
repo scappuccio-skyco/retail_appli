@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { X, Award, MessageSquare, RefreshCw, Eye, EyeOff, CheckCircle, XCircle, Trash2, Share2, Lock, Filter } from 'lucide-react';
 import ChallengeHistoryModal from './ChallengeHistoryModal';
 import VenteConclueForm from './VenteConclueForm';
@@ -10,16 +11,28 @@ import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 
-function TabButton({ active, onClick, children, activeClass, inactiveClass }) {
+const TAB_BUTTON_BASE_CLASS = 'px-3 md:px-4 py-2 text-sm md:text-base font-semibold transition-all rounded-t-lg';
+
+function getCompetenceBadgeLabel(competence) {
+  return competence ? String(competence).toUpperCase() : 'CHALLENGE';
+}
+
+function TabButton({ active, onClick, children, activeClass, inactiveClass, baseClass = TAB_BUTTON_BASE_CLASS }) {
+  const className = `${baseClass} ${active ? activeClass : inactiveClass}`;
   return (
-    <button
-      onClick={onClick}
-      className={`px-3 md:px-4 py-2 text-sm md:text-base font-semibold transition-all rounded-t-lg ${active ? activeClass : inactiveClass}`}
-    >
+    <button type="button" onClick={onClick} className={className}>
       {children}
     </button>
   );
 }
+TabButton.propTypes = {
+  active: PropTypes.bool.isRequired,
+  onClick: PropTypes.func.isRequired,
+  children: PropTypes.node.isRequired,
+  activeClass: PropTypes.string.isRequired,
+  inactiveClass: PropTypes.string.isRequired,
+  baseClass: PropTypes.string
+};
 
 function EmptyState({ icon: Icon, title, subtitle, action }) {
   return (
@@ -31,17 +44,25 @@ function EmptyState({ icon: Icon, title, subtitle, action }) {
     </div>
   );
 }
+EmptyState.propTypes = {
+  icon: PropTypes.elementType,
+  title: PropTypes.string.isRequired,
+  subtitle: PropTypes.string.isRequired,
+  action: PropTypes.node
+};
+
+function getChallengeResultDisplay(result) {
+  if (result === 'success') {
+    return { resultClass: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800', emoji: '🎉', label: 'Défi Réussi !' };
+  }
+  if (result === 'partial') {
+    return { resultClass: 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800', emoji: '💪', label: 'C\'était difficile' };
+  }
+  return { resultClass: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800', emoji: '🤔', label: 'Pas cette fois' };
+}
 
 function ChallengeResultBadge({ challengeResult }) {
-  const isSuccess = challengeResult === 'success';
-  const isPartial = challengeResult === 'partial';
-  const resultClass = isSuccess
-    ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800'
-    : isPartial
-      ? 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800'
-      : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800';
-  const emoji = isSuccess ? '🎉' : isPartial ? '💪' : '🤔';
-  const label = isSuccess ? 'Défi Réussi !' : isPartial ? 'C\'était difficile' : 'Pas cette fois';
+  const { resultClass, emoji, label } = getChallengeResultDisplay(challengeResult);
   return (
     <div className={`rounded-lg p-3 flex items-center justify-center gap-2 ${resultClass}`}>
       <span className="text-xl">{emoji}</span>
@@ -49,6 +70,9 @@ function ChallengeResultBadge({ challengeResult }) {
     </div>
   );
 }
+ChallengeResultBadge.propTypes = {
+  challengeResult: PropTypes.oneOf(['success', 'partial', 'failed']).isRequired
+};
 
 function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDelete }) {
   return (
@@ -84,13 +108,15 @@ function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDele
               </p>
               <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); onToggleVisibility(debrief.id, debrief.visible_to_manager); }}
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${debrief.visible_to_manager ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                  title={debrief.visible_to_manager ? 'Partagé avec le manager' : 'Privé'}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${visibilityClass}`}
+                  title={visibilityLabel}
                 >
                   {debrief.visible_to_manager ? <><Share2 className="w-3 h-3" /> Partagé</> : <><Lock className="w-3 h-3" /> Privé</>}
                 </button>
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); onDelete(debrief.id); }}
                   className="p-1 hover:bg-red-100 rounded transition-colors"
                   title="Supprimer l'analyse"
@@ -143,6 +169,36 @@ function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDele
     </div>
   );
 }
+
+const aiFeedbackShape = PropTypes.shape({
+  analyse: PropTypes.string,
+  points_travailler: PropTypes.string,
+  recommandation: PropTypes.string,
+  exemple_concret: PropTypes.string
+});
+
+DebriefCard.propTypes = {
+  debrief: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    vente_conclue: PropTypes.bool,
+    created_at: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    visible_to_manager: PropTypes.bool,
+    produit: PropTypes.string,
+    type_client: PropTypes.string,
+    moment_perte_client: PropTypes.string,
+    ai_analyse: PropTypes.string,
+    ai_points_travailler: PropTypes.string,
+    ai_recommandation: PropTypes.string,
+    ai_exemple_concret: PropTypes.string,
+    analysis: PropTypes.string,
+    feedback: PropTypes.string,
+    ai_feedback: aiFeedbackShape
+  }).isRequired,
+  isExpanded: PropTypes.bool.isRequired,
+  onToggle: PropTypes.func.isRequired,
+  onToggleVisibility: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired
+};
 
 export default function CoachingModal({ 
   isOpen, 
@@ -449,7 +505,10 @@ export default function CoachingModal({
                       <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 border-2 border-orange-200">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="px-2 py-0.5 bg-[#F97316] text-white text-xs font-bold rounded-full">
-                            {dailyChallenge.competence?.toUpperCase() || 'CHALLENGE'}
+                            {(() => {
+                              const competenceLabel = dailyChallenge.competence ? dailyChallenge.competence.toUpperCase() : 'CHALLENGE';
+                              return competenceLabel;
+                            })()}
                           </span>
                           <h3 className="text-base font-bold text-gray-900">{dailyChallenge.title}</h3>
                         </div>
@@ -557,19 +616,22 @@ export default function CoachingModal({
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-12 px-6 text-gray-500">
-                    <Award className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-semibold mb-2">Aucun challenge actif</p>
-                    <p className="text-sm mb-4">Votre prochain challenge sera bientôt disponible</p>
-                    <button
-                      onClick={handleRefresh}
-                      disabled={loading}
-                      className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-all inline-flex items-center gap-2 disabled:opacity-50"
-                    >
-                      <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                      Générer un challenge
-                    </button>
-                  </div>
+                  <EmptyState
+                    icon={Award}
+                    title="Aucun challenge actif"
+                    subtitle="Votre prochain challenge sera bientôt disponible"
+                    action={
+                      <button
+                        type="button"
+                        onClick={handleRefresh}
+                        disabled={loading}
+                        className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-all inline-flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        Générer un challenge
+                      </button>
+                    }
+                  />
                 )}
               </div>
             )}
@@ -726,155 +788,39 @@ export default function CoachingModal({
                           return true;
                         });
                         
+                        const emptyTitle = historyFilter === 'all'
+                          ? 'Aucune analyse pour le moment'
+                          : historyFilter === 'conclue'
+                            ? 'Aucune vente conclue'
+                            : 'Aucune opportunité manquée';
+                        const emptySubtitle = historyFilter === 'all'
+                          ? 'Créez votre première analyse de vente pour recevoir un coaching personnalisé'
+                          : 'Aucune analyse de ce type pour le moment';
+                        const listLabel = historyFilter === 'all'
+                          ? `Toutes vos analyses (${filteredDebriefs.length})`
+                          : historyFilter === 'conclue'
+                            ? `Ventes conclues (${filteredDebriefs.length})`
+                            : `Opportunités manquées (${filteredDebriefs.length})`;
+
                         return filteredDebriefs.length > 0 ? (
                           <div className="space-y-4">
-                            <p className="text-sm text-gray-600 mb-4">
-                              {historyFilter === 'all' && `Toutes vos analyses (${filteredDebriefs.length})`}
-                              {historyFilter === 'conclue' && `Ventes conclues (${filteredDebriefs.length})`}
-                              {historyFilter === 'manquee' && `Opportunités manquées (${filteredDebriefs.length})`}
-                            </p>
+                            <p className="text-sm text-gray-600 mb-4">{listLabel}</p>
                             {filteredDebriefs.map((debrief) => (
-                          <div 
-                            key={debrief.id} 
-                            data-debrief-card
-                            data-debrief-id={debrief.id}
-                            className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200 cursor-pointer hover:shadow-lg transition-shadow"
-                            onClick={() => toggleDebrief(debrief.id)}
-                          >
-                            <div className="p-6">
-                              <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                  {debrief.vente_conclue ? (
-                                    <CheckCircle className="w-6 h-6 text-white" />
-                                  ) : (
-                                    <XCircle className="w-6 h-6 text-white" />
-                                  )}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-lg font-bold text-gray-800">
-                                      {debrief.vente_conclue ? '✅ Vente conclue' : '❌ Opportunité manquée'}
-                                    </h3>
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleDebrief(debrief.id);
-                                        }}
-                                        className="p-1 hover:bg-white/50 rounded transition-colors"
-                                        title={expandedDebriefs[debrief.id] ? "Masquer les détails" : "Voir les détails"}
-                                      >
-                                        {expandedDebriefs[debrief.id] ? (
-                                          <EyeOff className="w-4 h-4 text-gray-600" />
-                                        ) : (
-                                          <Eye className="w-4 h-4 text-gray-600" />
-                                        )}
-                                      </button>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <p className="text-sm text-gray-600">
-                                      {new Date(debrief.created_at).toLocaleDateString('fr-FR', { 
-                                        day: 'numeric', 
-                                        month: 'long', 
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </p>
-                                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleToggleVisibility(debrief.id, debrief.visible_to_manager);
-                                        }}
-                                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
-                                          debrief.visible_to_manager 
-                                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        }`}
-                                        title={debrief.visible_to_manager ? "Partagé avec le manager" : "Privé"}
-                                      >
-                                        {debrief.visible_to_manager ? (
-                                          <>
-                                            <Share2 className="w-3 h-3" />
-                                            Partagé
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Lock className="w-3 h-3" />
-                                            Privé
-                                          </>
-                                        )}
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteDebrief(debrief.id);
-                                        }}
-                                        className="p-1 hover:bg-red-100 rounded transition-colors"
-                                        title="Supprimer l'analyse"
-                                      >
-                                        <Trash2 className="w-4 h-4 text-red-600" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                  {expandedDebriefs[debrief.id] && (
-                                    <div className="bg-white rounded-lg p-4 border border-green-200 mt-2 space-y-3">
-                                      <div>
-                                        <p className="text-xs font-semibold text-gray-500 mb-1">📦 Produit</p>
-                                        <p className="text-sm text-gray-700">{debrief.produit}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs font-semibold text-gray-500 mb-1">👤 Type de client</p>
-                                        <p className="text-sm text-gray-700">{debrief.type_client}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs font-semibold text-gray-500 mb-1">✨ Moments clés</p>
-                                        <p className="text-sm text-gray-700">{debrief.moment_perte_client}</p>
-                                      </div>
-                                      <div className="pt-3 border-t border-gray-200">
-                                        <p className="text-xs font-semibold text-purple-600 mb-2">🤖 Analyse du Coach IA</p>
-                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{renderMarkdownBold(debrief.ai_analyse || debrief.ai_feedback?.analyse || debrief.analysis || debrief.feedback || 'Analyse en cours...')}</p>
-                                      </div>
-                                      {(debrief.ai_points_travailler || debrief.ai_feedback?.points_travailler) && (
-                                        <div className="bg-yellow-50 rounded p-3">
-                                          <p className="text-xs font-semibold text-yellow-700 mb-1">💪 Points forts identifiés</p>
-                                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{renderMarkdownBold(debrief.ai_points_travailler || debrief.ai_feedback?.points_travailler)}</p>
-                                        </div>
-                                      )}
-                                      {(debrief.ai_recommandation || debrief.ai_feedback?.recommandation) && (
-                                        <div className="bg-blue-50 rounded p-3">
-                                          <p className="text-xs font-semibold text-blue-700 mb-1">💡 Recommandation</p>
-                                          <p className="text-sm text-gray-700">{renderMarkdownBold(debrief.ai_recommandation || debrief.ai_feedback?.recommandation)}</p>
-                                        </div>
-                                      )}
-                                      {(debrief.ai_exemple_concret || debrief.ai_feedback?.exemple_concret) && (
-                                        <div className="bg-green-50 rounded p-3">
-                                          <p className="text-xs font-semibold text-green-700 mb-1">📝 Exemple concret</p>
-                                          <p className="text-sm text-gray-700">{renderMarkdownBold(debrief.ai_exemple_concret || debrief.ai_feedback?.exemple_concret)}</p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                              <DebriefCard
+                                key={debrief.id}
+                                debrief={debrief}
+                                isExpanded={!!expandedDebriefs[debrief.id]}
+                                onToggle={toggleDebrief}
+                                onToggleVisibility={handleToggleVisibility}
+                                onDelete={handleDeleteDebrief}
+                              />
                             ))}
                           </div>
                         ) : (
                           <EmptyState
                             icon={MessageSquare}
-                            title={
-                              historyFilter === 'all' ? 'Aucune analyse pour le moment' :
-                              historyFilter === 'conclue' ? 'Aucune vente conclue' : 'Aucune opportunité manquée'
-                            }
-                            subtitle={
-                              historyFilter === 'all'
-                                ? 'Créez votre première analyse de vente pour recevoir un coaching personnalisé'
-                                : 'Aucune analyse de ce type pour le moment'
-                            }
+                            title={emptyTitle}
+                            subtitle={emptySubtitle}
                           />
                         );
                       })()}
@@ -897,3 +843,16 @@ export default function CoachingModal({
     </>
   );
 }
+CoachingModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  dailyChallenge: PropTypes.object,
+  onRefreshChallenge: PropTypes.func,
+  onCompleteChallenge: PropTypes.func,
+  onOpenChallengeHistory: PropTypes.func,
+  debriefs: PropTypes.arrayOf(PropTypes.object),
+  onCreateDebrief: PropTypes.func,
+  token: PropTypes.string,
+  activeTab: PropTypes.string
+};
+
