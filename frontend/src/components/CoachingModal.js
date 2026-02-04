@@ -10,6 +10,140 @@ import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 
+function TabButton({ active, onClick, children, activeClass, inactiveClass }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 md:px-4 py-2 text-sm md:text-base font-semibold transition-all rounded-t-lg ${active ? activeClass : inactiveClass}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function EmptyState({ icon: Icon, title, subtitle, action }) {
+  return (
+    <div className="text-center py-12 px-6 text-gray-500">
+      {Icon && <Icon className="w-16 h-16 mx-auto mb-4 text-gray-300" />}
+      <p className="text-lg font-semibold mb-2">{title}</p>
+      <p className="text-sm mb-4">{subtitle}</p>
+      {action}
+    </div>
+  );
+}
+
+function ChallengeResultBadge({ challengeResult }) {
+  const isSuccess = challengeResult === 'success';
+  const isPartial = challengeResult === 'partial';
+  const resultClass = isSuccess
+    ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800'
+    : isPartial
+      ? 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800'
+      : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800';
+  const emoji = isSuccess ? '🎉' : isPartial ? '💪' : '🤔';
+  const label = isSuccess ? 'Défi Réussi !' : isPartial ? 'C\'était difficile' : 'Pas cette fois';
+  return (
+    <div className={`rounded-lg p-3 flex items-center justify-center gap-2 ${resultClass}`}>
+      <span className="text-xl">{emoji}</span>
+      <span className="font-bold">{label}</span>
+    </div>
+  );
+}
+
+function DebriefCard({ debrief, isExpanded, onToggle, onToggleVisibility, onDelete }) {
+  return (
+    <div
+      data-debrief-card
+      data-debrief-id={debrief.id}
+      className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200 cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={() => onToggle(debrief.id)}
+    >
+      <div className="p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+            {debrief.vente_conclue ? <CheckCircle className="w-6 h-6 text-white" /> : <XCircle className="w-6 h-6 text-white" />}
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-bold text-gray-800">
+                {debrief.vente_conclue ? '✅ Vente conclue' : '❌ Opportunité manquée'}
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onToggle(debrief.id); }}
+                  className="p-1 hover:bg-white/50 rounded transition-colors"
+                  title={isExpanded ? 'Masquer les détails' : 'Voir les détails'}
+                >
+                  {isExpanded ? <EyeOff className="w-4 h-4 text-gray-600" /> : <Eye className="w-4 h-4 text-gray-600" />}
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-gray-600">
+                {new Date(debrief.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onToggleVisibility(debrief.id, debrief.visible_to_manager); }}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${debrief.visible_to_manager ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                  title={debrief.visible_to_manager ? 'Partagé avec le manager' : 'Privé'}
+                >
+                  {debrief.visible_to_manager ? <><Share2 className="w-3 h-3" /> Partagé</> : <><Lock className="w-3 h-3" /> Privé</>}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete(debrief.id); }}
+                  className="p-1 hover:bg-red-100 rounded transition-colors"
+                  title="Supprimer l'analyse"
+                >
+                  <Trash2 className="w-4 h-4 text-red-600" />
+                </button>
+              </div>
+            </div>
+            {isExpanded && (
+              <div className="bg-white rounded-lg p-4 border border-green-200 mt-2 space-y-3">
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-1">📦 Produit</p>
+                  <p className="text-sm text-gray-700">{debrief.produit}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-1">👤 Type de client</p>
+                  <p className="text-sm text-gray-700">{debrief.type_client}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-1">✨ Moments clés</p>
+                  <p className="text-sm text-gray-700">{debrief.moment_perte_client}</p>
+                </div>
+                <div className="pt-3 border-t border-gray-200">
+                  <p className="text-xs font-semibold text-purple-600 mb-2">🤖 Analyse du Coach IA</p>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{renderMarkdownBold(debrief.ai_analyse || debrief.ai_feedback?.analyse || debrief.analysis || debrief.feedback || 'Analyse en cours...')}</p>
+                </div>
+                {(debrief.ai_points_travailler || debrief.ai_feedback?.points_travailler) && (
+                  <div className="bg-yellow-50 rounded p-3">
+                    <p className="text-xs font-semibold text-yellow-700 mb-1">💪 Points forts identifiés</p>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{renderMarkdownBold(debrief.ai_points_travailler || debrief.ai_feedback?.points_travailler)}</p>
+                  </div>
+                )}
+                {(debrief.ai_recommandation || debrief.ai_feedback?.recommandation) && (
+                  <div className="bg-blue-50 rounded p-3">
+                    <p className="text-xs font-semibold text-blue-700 mb-1">💡 Recommandation</p>
+                    <p className="text-sm text-gray-700">{renderMarkdownBold(debrief.ai_recommandation || debrief.ai_feedback?.recommandation)}</p>
+                  </div>
+                )}
+                {(debrief.ai_exemple_concret || debrief.ai_feedback?.exemple_concret) && (
+                  <div className="bg-green-50 rounded p-3">
+                    <p className="text-xs font-semibold text-green-700 mb-1">📝 Exemple concret</p>
+                    <p className="text-sm text-gray-700">{renderMarkdownBold(debrief.ai_exemple_concret || debrief.ai_feedback?.exemple_concret)}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CoachingModal({ 
   isOpen, 
   onClose,
@@ -204,32 +338,28 @@ export default function CoachingModal({
           {/* Onglets */}
           <div className="border-b border-gray-200 bg-gray-50 pt-2">
             <div className="flex gap-0.5 px-2 md:px-6">
-              <button
+              <TabButton
+                active={activeTab === 'coach'}
                 onClick={() => setActiveTab('coach')}
-                className={`px-3 md:px-4 py-2 text-sm md:text-base font-semibold transition-all rounded-t-lg ${
-                  activeTab === 'coach'
-                    ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
-                }`}
+                activeClass="bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500"
+                inactiveClass="text-gray-600 hover:text-purple-600 hover:bg-gray-100"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <Award className="w-4 h-4" />
                   <span>Mon défi du jour</span>
                 </div>
-              </button>
-              <button
+              </TabButton>
+              <TabButton
+                active={activeTab === 'analyse'}
                 onClick={() => setActiveTab('analyse')}
-                className={`px-3 md:px-4 py-2 text-sm md:text-base font-semibold transition-all rounded-t-lg ${
-                  activeTab === 'analyse'
-                    ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
-                }`}
+                activeClass="bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500"
+                inactiveClass="text-gray-600 hover:text-purple-600 hover:bg-gray-100"
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <MessageSquare className="w-4 h-4" />
                   <span>Analyser mes ventes</span>
                 </div>
-              </button>
+              </TabButton>
             </div>
           </div>
 
@@ -421,22 +551,7 @@ export default function CoachingModal({
                             </div>
                           )
                         ) : (
-                          <div className={`rounded-lg p-3 flex items-center justify-center gap-2 ${
-                            dailyChallenge.challenge_result === 'success' 
-                              ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800'
-                              : dailyChallenge.challenge_result === 'partial'
-                              ? 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800'
-                              : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800'
-                          }`}>
-                            <span className="text-xl">
-                              {dailyChallenge.challenge_result === 'success' ? '🎉' : 
-                               dailyChallenge.challenge_result === 'partial' ? '💪' : '🤔'}
-                            </span>
-                            <span className="font-bold">
-                              {dailyChallenge.challenge_result === 'success' ? 'Défi Réussi !' :
-                               dailyChallenge.challenge_result === 'partial' ? 'C\'était difficile' : 'Pas cette fois'}
-                            </span>
-                          </div>
+                          <ChallengeResultBadge challengeResult={dailyChallenge.challenge_result} />
                         )}
                       </div>
                     </div>
@@ -464,39 +579,35 @@ export default function CoachingModal({
                 {/* Sous-onglets Analyse */}
                 <div className="border-b border-gray-200 bg-gray-50 px-6 pt-3">
                   <div className="flex gap-2">
-                    <button
+                    <TabButton
+                      active={analyseSubTab === 'conclue'}
                       onClick={() => setAnalyseSubTab('conclue')}
-                      className={`px-4 py-2 font-medium transition-all rounded-t-lg text-sm ${
-                        analyseSubTab === 'conclue'
-                          ? 'bg-green-100 text-green-700 border-b-2 border-green-500'
-                          : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
-                      }`}
+                      baseClass="px-4 py-2 font-medium text-sm transition-all rounded-t-lg"
+                      activeClass="bg-green-100 text-green-700 border-b-2 border-green-500"
+                      inactiveClass="text-gray-600 hover:text-green-600 hover:bg-gray-100"
                     >
                       <CheckCircle className="w-4 h-4 inline mr-1" />
                       Vente conclue
-                    </button>
-                    <button
+                    </TabButton>
+                    <TabButton
+                      active={analyseSubTab === 'manquee'}
                       onClick={() => setAnalyseSubTab('manquee')}
-                      className={`px-4 py-2 font-medium transition-all rounded-t-lg text-sm ${
-                        analyseSubTab === 'manquee'
-                          ? 'bg-orange-100 text-orange-700 border-b-2 border-orange-500'
-                          : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
-                      }`}
+                      activeClass="px-4 py-2 bg-orange-100 text-orange-700 border-b-2 border-orange-500"
+                      inactiveClass="px-4 py-2 text-gray-600 hover:text-orange-600 hover:bg-gray-100"
                     >
                       <XCircle className="w-4 h-4 inline mr-1" />
                       Opportunité manquée
-                    </button>
-                    <button
+                    </TabButton>
+                    <TabButton
+                      active={analyseSubTab === 'historique'}
                       onClick={() => setAnalyseSubTab('historique')}
-                      className={`px-4 py-2 font-medium transition-all rounded-t-lg text-sm ${
-                        analyseSubTab === 'historique'
-                          ? 'bg-purple-100 text-purple-700 border-b-2 border-purple-500'
-                          : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
-                      }`}
+                      baseClass="px-4 py-2 font-medium text-sm transition-all rounded-t-lg"
+                      activeClass="bg-purple-100 text-purple-700 border-b-2 border-purple-500"
+                      inactiveClass="text-gray-600 hover:text-purple-600 hover:bg-gray-100"
                     >
                       <MessageSquare className="w-4 h-4 inline mr-1" />
                       Historique ({debriefs.length})
-                    </button>
+                    </TabButton>
                   </div>
                 </div>
 
@@ -572,38 +683,35 @@ export default function CoachingModal({
                         </div>
                         
                         <div className="flex gap-2">
-                          <button
+                          <TabButton
+                            active={historyFilter === 'all'}
                             onClick={() => setHistoryFilter('all')}
-                            className={`px-3 py-1.5 text-sm rounded-lg transition-all ${
-                              historyFilter === 'all'
-                                ? 'bg-purple-600 text-white shadow-md'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
-                            }`}
+                            baseClass="px-3 py-1.5 text-sm rounded-lg transition-all"
+                            activeClass="bg-purple-600 text-white shadow-md"
+                            inactiveClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                           >
                             Tous
-                          </button>
-                          <button
+                          </TabButton>
+                          <TabButton
+                            active={historyFilter === 'conclue'}
                             onClick={() => setHistoryFilter('conclue')}
-                            className={`px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1 ${
-                              historyFilter === 'conclue'
-                                ? 'bg-green-600 text-white shadow-md'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
-                            }`}
+                            baseClass="px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1"
+                            activeClass="bg-green-600 text-white shadow-md"
+                            inactiveClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                           >
                             <CheckCircle className="w-4 h-4" />
                             Ventes conclues
-                          </button>
-                          <button
+                          </TabButton>
+                          <TabButton
+                            active={historyFilter === 'manquee'}
                             onClick={() => setHistoryFilter('manquee')}
-                            className={`px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1 ${
-                              historyFilter === 'manquee'
-                                ? 'bg-orange-600 text-white shadow-md'
-                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
-                            }`}
+                            baseClass="px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1"
+                            activeClass="bg-orange-600 text-white shadow-md"
+                            inactiveClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
                           >
                             <XCircle className="w-4 h-4" />
                             Opportunités manquées
-                          </button>
+                          </TabButton>
                         </div>
                       </div>
                     </div>
@@ -756,20 +864,18 @@ export default function CoachingModal({
                             ))}
                           </div>
                         ) : (
-                          <div className="text-center py-12 text-gray-500">
-                            <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                            <p className="text-lg font-semibold mb-2">
-                              {historyFilter === 'all' && 'Aucune analyse pour le moment'}
-                              {historyFilter === 'conclue' && 'Aucune vente conclue'}
-                              {historyFilter === 'manquee' && 'Aucune opportunité manquée'}
-                            </p>
-                            <p className="text-sm">
-                              {historyFilter === 'all' 
+                          <EmptyState
+                            icon={MessageSquare}
+                            title={
+                              historyFilter === 'all' ? 'Aucune analyse pour le moment' :
+                              historyFilter === 'conclue' ? 'Aucune vente conclue' : 'Aucune opportunité manquée'
+                            }
+                            subtitle={
+                              historyFilter === 'all'
                                 ? 'Créez votre première analyse de vente pour recevoir un coaching personnalisé'
                                 : 'Aucune analyse de ce type pour le moment'
-                              }
-                            </p>
-                          </div>
+                            }
+                          />
                         );
                       })()}
                     </div>

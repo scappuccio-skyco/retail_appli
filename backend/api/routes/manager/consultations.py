@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from core.constants import QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError
 from api.routes.manager.dependencies import get_store_context
+from api.routes.manager.response_utils import pagination_dict
 from api.dependencies import (
     get_manager_service,
     get_relationship_service,
@@ -120,12 +121,7 @@ async def get_relationship_history(
 
     return {
         "consultations": consultations_result.items,
-        "pagination": {
-            "total": consultations_result.total,
-            "page": consultations_result.page,
-            "size": consultations_result.size,
-            "pages": consultations_result.pages,
-        },
+        "pagination": pagination_dict(consultations_result),
     }
 
 

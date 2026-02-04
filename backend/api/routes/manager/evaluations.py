@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from core.constants import QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError
 from api.routes.manager.dependencies import get_store_context, get_store_context_required, get_verified_seller
+from api.routes.manager.response_utils import pagination_dict
 from api.dependencies import get_manager_service, get_relationship_service, get_conflict_service
 from core.security import verify_seller_store_access
 from services.manager_service import ManagerService
@@ -95,12 +96,7 @@ async def get_seller_debriefs(
     )
     return {
         "debriefs": result.items,
-        "pagination": {
-            "total": result.total,
-            "page": result.page,
-            "size": result.size,
-            "pages": result.pages,
-        },
+        "pagination": pagination_dict(result),
     }
 
 
@@ -154,12 +150,7 @@ async def get_seller_competences_history(
             items.append(_history_item(debrief, "debrief"))
     return {
         "items": items,
-        "pagination": {
-            "total": total,
-            "page": page,
-            "size": size,
-            "pages": pages,
-        },
+        "pagination": pagination_dict(type("R", (), {"total": total, "page": page, "size": size, "pages": pages})()),
     }
 
 
@@ -231,12 +222,12 @@ async def get_relationship_history(
         items = [c for c in items if c.get("seller_id") == seller_id]
     return {
         "consultations": items,
-        "pagination": {
-            "total": len(items) if seller_id else consultations_result.total,
-            "page": consultations_result.page,
-            "size": consultations_result.size,
-            "pages": consultations_result.pages,
-        },
+        "pagination": pagination_dict(
+            total=len(items) if seller_id else consultations_result.total,
+            page=consultations_result.page,
+            size=consultations_result.size,
+            pages=consultations_result.pages,
+        ),
     }
 
 

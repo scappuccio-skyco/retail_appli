@@ -19,6 +19,7 @@ from core.constants import (
 from core.exceptions import AppException, NotFoundError, ValidationError
 from core.security import verify_seller_store_access
 from api.routes.manager.dependencies import get_store_context, get_store_context_required, get_verified_seller
+from api.routes.manager.response_utils import pagination_dict
 from api.dependencies import (
     get_manager_service,
     get_manager_seller_management_service,
@@ -52,12 +53,7 @@ async def get_sellers(
         )
         return {
             "sellers": result.items,
-            "pagination": {
-                "total": result.total,
-                "page": result.page,
-                "size": result.size,
-                "pages": result.pages,
-            },
+            "pagination": pagination_dict(result),
         }
     except AppException:
         raise
@@ -215,16 +211,7 @@ async def get_seller_kpi_history(
             "seller_name": seller.get("name", "Unknown"),
             "period": {"start": start_dt.strftime("%Y-%m-%d"), "end": end_dt.strftime("%Y-%m-%d"), "days": days},
             "entries": entries.items if isinstance(entries, PaginatedResponse) else entries,
-            "pagination": (
-                {
-                    "total": entries.total,
-                    "page": entries.page,
-                    "size": entries.size,
-                    "pages": entries.pages,
-                }
-                if isinstance(entries, PaginatedResponse)
-                else None
-            ),
+            "pagination": pagination_dict(entries) if isinstance(entries, PaginatedResponse) else None,
             "entries_count": len(entries.items) if isinstance(entries, PaginatedResponse) else len(entries),
         }
     except AppException:
@@ -349,12 +336,7 @@ async def get_seller_debriefs(
     )
     return {
         "debriefs": result.items,
-        "pagination": {
-            "total": result.total,
-            "page": result.page,
-            "size": result.size,
-            "pages": result.pages,
-        },
+        "pagination": pagination_dict(result),
     }
 
 

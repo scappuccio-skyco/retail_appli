@@ -17,6 +17,7 @@ from core.constants import (
 )
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
 from api.routes.manager.dependencies import get_store_context
+from api.routes.manager.response_utils import pagination_dict
 from api.dependencies import (
     get_manager_service,
     get_manager_kpi_service,
@@ -330,7 +331,7 @@ async def get_team_analyses_history(
         analyses_result = await manager_service.get_team_analyses_paginated(store_id=resolved_store_id, page=1, size=50)
         return {
             "analyses": analyses_result.items,
-            "pagination": {"total": analyses_result.total, "page": analyses_result.page, "size": analyses_result.size, "pages": analyses_result.pages},
+            "pagination": pagination_dict(analyses_result),
         }
     except Exception as e:
         logger.error("Error loading team analyses history: %s", e)

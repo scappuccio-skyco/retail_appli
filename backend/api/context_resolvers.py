@@ -156,12 +156,13 @@ async def get_store_context(
     )
 
 
-async def get_store_context_required(
+def get_store_context_required(
     context: StoreContextDict = Depends(get_store_context),
 ) -> StoreContextDict:
     """
     Dependency: same as get_store_context but raises ValidationError if resolved_store_id is missing.
     Use in manager routes that require a store (e.g. seller endpoints, KPI, evaluations).
+    No await needed: only sync checks.
     """
     if not context.get("resolved_store_id"):
         raise ValidationError(ERR_STORE_ID_REQUIS)
