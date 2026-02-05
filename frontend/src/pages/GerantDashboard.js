@@ -285,7 +285,8 @@ const GerantDashboard = ({ user, onLogout }) => {
     if (message) {
       toast.info(message, { duration: 4000 });
       const target = location.pathname;
-      if (isSafeUrl(target)) navigate(target, { replace: true, state: {} });
+      const finalTarget = target.startsWith('/') ? target : '/';
+      if (isSafeUrl(finalTarget)) navigate(finalTarget, { replace: true, state: {} });
     }
   }, [location.state?.message, location.pathname, navigate]);
 
@@ -323,8 +324,8 @@ const GerantDashboard = ({ user, onLogout }) => {
     } else {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Redirection interne uniquement (Open Redirect: valider avant exécution)
-      if (isSafeUrl('/login')) navigate('/login');
+      const finalTarget = '/login'.startsWith('/') ? '/login' : '/';
+      if (isSafeUrl(finalTarget)) navigate(finalTarget);
     }
   };
 

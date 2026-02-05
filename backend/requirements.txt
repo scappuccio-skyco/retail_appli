@@ -18,7 +18,7 @@ cryptography==46.0.3
 defusedxml==0.7.1
 distro==1.9.0
 dnspython>=2.6.1
-ecdsa==0.19.1  # Version maximale stable sur PyPI pour limiter CWE-208.
+ecdsa>=0.19.1  # Version stable max pour limiter CWE-208 (Timing Attack).
 email-validator==2.3.0
 fastapi==0.110.1
 fastuuid==0.14.0

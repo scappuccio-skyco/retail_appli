@@ -93,6 +93,7 @@ class RBACTester:
         login_url = f"{BASE_URL}/api/auth/login"
         if not _is_safe_request_url(login_url):
             return 0, None
+        assert login_url.startswith("http://localhost") or login_url.startswith("http://127.0.0.1"), "SSRF guard: URL must be local"
         response = requests.post(
             login_url,
             json={"email": email, "password": password}
@@ -112,7 +113,7 @@ class RBACTester:
         url = f"{BASE_URL}{endpoint}"
         if not _is_safe_request_url(url):
             return 0, {"error": "URL non autorisée (SSRF prevention)"}
-        
+        assert url.startswith("http://localhost") or url.startswith("http://127.0.0.1"), "SSRF guard: URL must be local"
         try:
             if method == 'GET':
                 response = requests.get(url, headers=headers, params=params)

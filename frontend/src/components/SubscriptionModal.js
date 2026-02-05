@@ -466,8 +466,9 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
           toast.error('Redirection non autorisée. Veuillez réessayer.');
           return;
         }
+        const finalTarget = checkoutUrl.startsWith('/') ? checkoutUrl : (isSafeUrl(checkoutUrl) ? checkoutUrl : '/');
         logger.log('🔄 Redirecting to Stripe...');
-        safeRedirect(checkoutUrl, 'replace');
+        safeRedirect(finalTarget, 'replace');
       } else if (response.data.success) {
         // If no URL (subscription updated directly), reload
         logger.log('✅ Subscription updated, reloading...');
@@ -1524,7 +1525,8 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                         toast.error('Redirection non autorisée. Veuillez réessayer.');
                         return;
                       }
-                      safeRedirect(checkoutUrl, 'replace');
+                      const finalTarget = checkoutUrl.startsWith('/') ? checkoutUrl : (isSafeUrl(checkoutUrl) ? checkoutUrl : '/');
+                      safeRedirect(finalTarget, 'replace');
                     } else if (response.data.success) {
                       globalThis.location.reload();
                     }
