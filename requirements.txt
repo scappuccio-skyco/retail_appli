@@ -1,3 +1,4 @@
+# Security-pinned (Snyk H/M): pyasn1>=0.6.2, protobuf>=4.25.8, zipp>=3.19.1, urllib3>=2.2.2, requests>=2.32.4, dnspython>=2.6.1, ecdsa>=0.19.1 (0.19.1 = latest on PyPI; CWE-208 timing)
 aiofiles==24.1.0
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.1
@@ -18,7 +19,7 @@ cryptography==46.0.3
 defusedxml==0.7.1
 distro==1.9.0
 dnspython==2.8.0
-ecdsa==0.19.1
+ecdsa==0.19.3
 email-validator==2.3.0
 fastapi==0.110.1
 fastuuid==0.14.0

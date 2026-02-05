@@ -1,6 +1,7 @@
 """
 Redis Cache Service
 Provides caching layer to reduce MongoDB load for frequently accessed data.
+Credentials (REDIS_URL) from environment variables only - no hardcoded secrets.
 
 Features:
 - Graceful fallback if Redis is unavailable (continues without cache)
@@ -10,6 +11,7 @@ Features:
 """
 import json
 import logging
+import os
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 from bson import ObjectId
@@ -56,13 +58,13 @@ class CacheService:
             logger.info("Redis disabled via REDIS_ENABLED=false - cache disabled")
             return
         
-        if not settings.REDIS_URL:
+        # Identifiants Redis depuis les variables d'environnement uniquement
+        redis_url = os.getenv("REDIS_URL") or getattr(settings, "REDIS_URL", None)
+        if not redis_url:
             logger.info("REDIS_URL not configured - cache disabled (graceful fallback)")
             return
         
         try:
-            # REDIS_URL from settings (env) - no hardcoded credentials
-            redis_url = settings.REDIS_URL
             if not redis_url.startswith("redis://") and not redis_url.startswith("rediss://"):
                 # Assume it's just host:port
                 redis_url = f"redis://{redis_url}"

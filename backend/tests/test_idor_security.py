@@ -16,9 +16,9 @@ import os
 # Configuration de test
 TEST_MONGO_URL = os.environ.get("TEST_MONGO_URL", "mongodb://localhost:27017")
 TEST_DB_NAME = "retail_coach_test"
-TEST_USER_PASSWORD = os.environ.get("TEST_USER_PASSWORD", "default_test_pwd")
+TEST_PASSWORD = os.environ.get("TEST_PASSWORD", "default_test_pwd")
 # Hash pour les documents de test (évite alertes Hardcoded Passwords)
-_TEST_PASSWORD_HASH = get_password_hash(TEST_USER_PASSWORD)
+_TEST_PASSWORD_HASH = get_password_hash(TEST_PASSWORD)
 
 client = TestClient(app)
 

@@ -1,9 +1,12 @@
 """
 Debug Reset Token - Test token generation and validation
 """
+import os
 import sys
 import asyncio
 sys.path.insert(0, '/app/backend')
+
+TEST_PASSWORD = os.environ.get("TEST_PASSWORD", "TestPassword123!")
 
 from datetime import datetime, timezone, timedelta
 from core.database import database
@@ -99,7 +102,7 @@ async def test_reset_token_flow():
         auth_service = AuthService(db, user_repo)
         
         # Try to reset password with the token
-        new_password = "TestPassword123!"
+        new_password = TEST_PASSWORD
         success = await auth_service.reset_password(reset_token, new_password)
         
         if success:

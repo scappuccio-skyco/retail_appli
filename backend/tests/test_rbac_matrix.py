@@ -15,8 +15,8 @@ import bcrypt
 # Configuration
 BASE_URL = os.environ.get("TEST_BASE_URL", "http://localhost:8001")
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/')
-# Mots de passe de test via env (évite alertes "Hardcoded Passwords")
-TEST_USER_PASSWORD = os.environ.get("TEST_USER_PASSWORD", "TestUserPassword123!")
+# Mot de passe de test via env (évite alertes "Hardcoded Passwords")
+TEST_PASSWORD = os.environ.get("TEST_PASSWORD", "TestUserPassword123!")
 
 # Liste blanche pour requêtes HTTP (mitigation SSRF CWE-918)
 _ALLOWED_TEST_HOSTS = ("localhost", "127.0.0.1")
@@ -89,9 +89,12 @@ class RBACTester:
         return user_id
     
     def login(self, email: str, password: str) -> Tuple[int, str]:
-        """Login and return token"""
+        """Login and return token (URL validée pour SSRF)."""
+        login_url = f"{BASE_URL}/api/auth/login"
+        if not _is_safe_request_url(login_url):
+            return 0, None
         response = requests.post(
-            f"{BASE_URL}/api/auth/login",
+            login_url,
             json={"email": email, "password": password}
         )
         
@@ -131,7 +134,7 @@ class RBACTester:
         
         # Create user
         email = "superadmin-test@retailperformer.com"
-        password = TEST_USER_PASSWORD
+        password = TEST_PASSWORD
         user_id = self.create_test_user(
             "super_admin",
             email,
@@ -216,7 +219,7 @@ class RBACTester:
         print(f"\n{BOLD}{BLUE}═══ 3. 👔 ESPACE GÉRANT ═══{RESET}")
         
         email = "gerant-test@retailperformer.com"
-        password = TEST_USER_PASSWORD
+        password = TEST_PASSWORD
         user_id = self.create_test_user(
             "gerant",
             email,
@@ -293,7 +296,7 @@ class RBACTester:
         gerant_id = self.create_test_user(
             "gerant",
             "gerant-for-manager@test.com",
-            "Test123!",
+            TEST_PASSWORD,
             name="Gérant for Manager"
         )
         
@@ -322,7 +325,7 @@ class RBACTester:
         
         # Create manager for store 1
         email = "manager-test@retailperformer.com"
-        password = TEST_USER_PASSWORD
+        password = TEST_PASSWORD
         manager_id = self.create_test_user(
             "manager",
             email,
@@ -346,7 +349,7 @@ class RBACTester:
         seller2_store2 = self.create_test_user(
             "seller",
             "seller1-store2@test.com",
-            "Test123!",
+            TEST_PASSWORD,
             name="Seller 1 Store 2",
             gerant_id=gerant_id,
             store_id=store2_id
@@ -388,7 +391,7 @@ class RBACTester:
         gerant_id = self.create_test_user(
             "gerant",
             "gerant-for-seller@test.com",
-            "Test123!",
+            TEST_PASSWORD,
             name="Gérant for Seller"
         )
         

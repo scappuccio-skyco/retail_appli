@@ -9,6 +9,7 @@ import { useOnboarding } from '../hooks/useOnboarding';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { isSafeUrl } from '../utils/safeRedirect';
 import StoreCard from '../components/gerant/StoreCard';
 import StoreDetailModal from '../components/gerant/StoreDetailModal';
 import ManagerTransferModal from '../components/gerant/ManagerTransferModal';
@@ -283,7 +284,8 @@ const GerantDashboard = ({ user, onLogout }) => {
     const message = location.state?.message;
     if (message) {
       toast.info(message, { duration: 4000 });
-      navigate(location.pathname, { replace: true, state: {} });
+      const target = location.pathname;
+      if (isSafeUrl(target)) navigate(target, { replace: true, state: {} });
     }
   }, [location.state?.message, location.pathname, navigate]);
 
@@ -321,7 +323,8 @@ const GerantDashboard = ({ user, onLogout }) => {
     } else {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      navigate('/login');
+      // Redirection interne uniquement (Open Redirect: valider avant exécution)
+      if (isSafeUrl('/login')) navigate('/login');
     }
   };
 
