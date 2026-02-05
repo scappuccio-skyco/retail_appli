@@ -1,6 +1,7 @@
 /**
- * Validation des URLs avant redirection (mitigation Open Redirect).
- * N'autorise que les redirections internes (/) ou vers des domaines en liste blanche.
+ * Validation des URLs avant redirection (mitigation Open Redirect / Snyk Code).
+ * - URL interne : tout chemin commençant par / (sans //) est autorisé.
+ * - URL externe : uniquement si l'hôte est en liste blanche (ex: Stripe).
  */
 
 /** Domaines autorisés pour les redirections (ex: Stripe Checkout) */

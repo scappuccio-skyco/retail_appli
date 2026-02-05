@@ -1,3 +1,4 @@
+# Mise à jour de sécurité Snyk effectuée le 05/02/2026.
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.1
 aiosignal==1.4.0
@@ -16,8 +17,8 @@ click==8.3.0
 cryptography==46.0.3
 defusedxml==0.7.1
 distro==1.9.0
-dnspython==2.8.0
-ecdsa==0.19.1
+dnspython>=2.6.1
+ecdsa==0.19.1  # Version maximale stable sur PyPI pour limiter CWE-208.
 email-validator==2.3.0
 fastapi==0.110.1
 fastuuid==0.14.0
@@ -77,8 +78,8 @@ platformdirs==4.5.0
 pluggy==1.6.0
 propcache==0.4.1
 proto-plus==1.26.1
-protobuf==5.29.5
-pyasn1==0.6.2
+protobuf>=4.25.8
+pyasn1>=0.6.2
 pyasn1_modules==0.4.2
 pycodestyle==2.14.0
 pycparser==2.23
@@ -100,7 +101,7 @@ pytz==2025.2
 PyYAML==6.0.3
 referencing==0.37.0
 regex==2025.10.23
-requests==2.32.5
+requests>=2.32.4
 requests-oauthlib==2.0.0
 rich==14.2.0
 rpds-py==0.28.0
@@ -123,13 +124,13 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.2
 uritemplate==4.2.0
-urllib3==2.5.0
+urllib3>=2.2.2
 uvicorn==0.25.0
 mangum==0.17.0
 watchfiles==1.1.1
 websockets==15.0.1
 yarl==1.22.0
-zipp==3.23.0
+zipp>=3.19.1
 slowapi==0.1.9
 redis==5.0.1
 hiredis==2.3.2

@@ -170,7 +170,7 @@ class RBACTester:
         # Note: Enterprise role might not be fully implemented
         # We'll test with a gérant that has multiple stores
         email = "enterprise-test@retailperformer.com"
-        password = "Enterprise123!"
+        password = TEST_PASSWORD
         user_id = self.create_test_user(
             "gerant",  # Using gérant as proxy for enterprise
             email,
@@ -407,7 +407,7 @@ class RBACTester:
         
         # Create seller
         email = "seller-test@retailperformer.com"
-        password = TEST_USER_PASSWORD
+        password = TEST_PASSWORD
         seller_id = self.create_test_user(
             "seller",
             email,
