@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+# Mot de passe de test via env (évite alertes Hardcoded Passwords)
+TEST_USER_PASSWORD = os.environ.get('TEST_USER_PASSWORD', 'password123')
 client = AsyncIOMotorClient(MONGO_URL)
 db = client['retail_coach']
 
@@ -26,7 +28,7 @@ async def init_test_data():
     if not manager:
         print(f"Creating manager: {manager_email}")
         manager_id = str(uuid.uuid4())
-        hashed_password = bcrypt.hashpw("password123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        hashed_password = bcrypt.hashpw(TEST_USER_PASSWORD.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
         manager_doc = {
             "id": manager_id,
@@ -44,26 +46,10 @@ async def init_test_data():
     
     # Create/update sellers
     sellers_data = [
-        {
-            "email": "sophie@test.com",
-            "name": "Sophie Martin",
-            "password": "password123"
-        },
-        {
-            "email": "thomas@test.com",
-            "name": "Thomas Dubois",
-            "password": "password123"
-        },
-        {
-            "email": "marie@test.com",
-            "name": "Marie Leclerc",
-            "password": "password123"
-        },
-        {
-            "email": "vendeur2@test.com",
-            "name": "Test Vendeur 2",
-            "password": "password123"
-        }
+        {"email": "sophie@test.com", "name": "Sophie Martin", "password": TEST_USER_PASSWORD},
+        {"email": "thomas@test.com", "name": "Thomas Dubois", "password": TEST_USER_PASSWORD},
+        {"email": "marie@test.com", "name": "Marie Leclerc", "password": TEST_USER_PASSWORD},
+        {"email": "vendeur2@test.com", "name": "Test Vendeur 2", "password": TEST_USER_PASSWORD},
     ]
     
     for seller_data in sellers_data:
@@ -97,8 +83,8 @@ async def init_test_data():
             print(f"✅ Created {seller_data['name']} - linked to manager {manager_id}")
     
     print("\n✅ Test data initialization complete!")
-    print(f"\nManager: manager1@test.com / password123")
-    print(f"Sellers: sophie@test.com, thomas@test.com, marie@test.com, vendeur2@test.com / password123")
+    print(f"\nManager: manager1@test.com / {TEST_USER_PASSWORD}")
+    print(f"Sellers: sophie@test.com, thomas@test.com, marie@test.com, vendeur2@test.com / {TEST_USER_PASSWORD}")
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()

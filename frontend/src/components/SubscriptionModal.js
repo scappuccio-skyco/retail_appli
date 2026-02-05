@@ -3,6 +3,7 @@ import { unstable_batchedUpdates } from 'react-dom';
 import { X, Crown, Check, Loader, Users, Star } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { isSafeUrl, safeRedirect } from '../utils/safeRedirect';
 import { toast } from 'sonner';
 import QuantityModal from './QuantityModal';
 import ConfirmActionModal from './ConfirmActionModal';
@@ -460,8 +461,13 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       // If there's a checkout_url (for gerant) or url (for manager), redirect to Stripe
       const checkoutUrl = response.data.checkout_url || response.data.url;
       if (checkoutUrl) {
+        if (!isSafeUrl(checkoutUrl)) {
+          logger.error('Open redirect blocked: URL not in allowlist', { url: checkoutUrl });
+          toast.error('Redirection non autorisée. Veuillez réessayer.');
+          return;
+        }
         logger.log('🔄 Redirecting to Stripe...');
-        globalThis.location.replace(checkoutUrl);
+        safeRedirect(checkoutUrl, 'replace');
       } else if (response.data.success) {
         // If no URL (subscription updated directly), reload
         logger.log('✅ Subscription updated, reloading...');
@@ -1513,7 +1519,12 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                     // Handle both checkout_url (gerant) and url (manager) fields
                     const checkoutUrl = response.data.checkout_url || response.data.url;
                     if (checkoutUrl) {
-                      globalThis.location.replace(checkoutUrl);
+                      if (!isSafeUrl(checkoutUrl)) {
+                        logger.error('Open redirect blocked: URL not in allowlist', { url: checkoutUrl });
+                        toast.error('Redirection non autorisée. Veuillez réessayer.');
+                        return;
+                      }
+                      safeRedirect(checkoutUrl, 'replace');
                     } else if (response.data.success) {
                       globalThis.location.reload();
                     }

@@ -61,7 +61,7 @@ class CacheService:
             return
         
         try:
-            # Parse Redis URL or use default
+            # REDIS_URL from settings (env) - no hardcoded credentials
             redis_url = settings.REDIS_URL
             if not redis_url.startswith("redis://") and not redis_url.startswith("rediss://"):
                 # Assume it's just host:port

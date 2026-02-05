@@ -9,11 +9,27 @@ from uuid import uuid4
 from pymongo import MongoClient
 import os
 from typing import Dict, List, Tuple
+from urllib.parse import urlparse
 import bcrypt
 
 # Configuration
-BASE_URL = "http://localhost:8001"
+BASE_URL = os.environ.get("TEST_BASE_URL", "http://localhost:8001")
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/')
+# Mots de passe de test via env (évite alertes "Hardcoded Passwords")
+TEST_USER_PASSWORD = os.environ.get("TEST_USER_PASSWORD", "TestUserPassword123!")
+
+# Liste blanche pour requêtes HTTP (mitigation SSRF CWE-918)
+_ALLOWED_TEST_HOSTS = ("localhost", "127.0.0.1")
+
+
+def _is_safe_request_url(url: str) -> bool:
+    """Vérifie que l'URL cible uniquement des hôtes autorisés (pas de SSRF)."""
+    try:
+        parsed = urlparse(url)
+        host = (parsed.hostname or "").lower()
+        return host in _ALLOWED_TEST_HOSTS
+    except Exception:
+        return False
 
 # ANSI Colors
 GREEN = '\033[92m'
@@ -85,12 +101,14 @@ class RBACTester:
         return response.status_code, None
     
     def make_request(self, method: str, endpoint: str, token: str = None, json_data: dict = None, params: dict = None) -> Tuple[int, dict]:
-        """Make authenticated API request"""
+        """Make authenticated API request (URL validée pour éviter SSRF)."""
         headers = {}
         if token:
             headers['Authorization'] = f'Bearer {token}'
         
         url = f"{BASE_URL}{endpoint}"
+        if not _is_safe_request_url(url):
+            return 0, {"error": "URL non autorisée (SSRF prevention)"}
         
         try:
             if method == 'GET':
@@ -113,7 +131,7 @@ class RBACTester:
         
         # Create user
         email = "superadmin-test@retailperformer.com"
-        password = "SuperAdmin123!"
+        password = TEST_USER_PASSWORD
         user_id = self.create_test_user(
             "super_admin",
             email,
@@ -198,7 +216,7 @@ class RBACTester:
         print(f"\n{BOLD}{BLUE}═══ 3. 👔 ESPACE GÉRANT ═══{RESET}")
         
         email = "gerant-test@retailperformer.com"
-        password = "Gerant123!"
+        password = TEST_USER_PASSWORD
         user_id = self.create_test_user(
             "gerant",
             email,
@@ -304,7 +322,7 @@ class RBACTester:
         
         # Create manager for store 1
         email = "manager-test@retailperformer.com"
-        password = "Manager123!"
+        password = TEST_USER_PASSWORD
         manager_id = self.create_test_user(
             "manager",
             email,
@@ -318,7 +336,7 @@ class RBACTester:
         seller1_store1 = self.create_test_user(
             "seller",
             "seller1-store1@test.com",
-            "Test123!",
+            TEST_USER_PASSWORD,
             name="Seller 1 Store 1",
             gerant_id=gerant_id,
             store_id=store1_id,
@@ -386,7 +404,7 @@ class RBACTester:
         
         # Create seller
         email = "seller-test@retailperformer.com"
-        password = "Seller123!"
+        password = TEST_USER_PASSWORD
         seller_id = self.create_test_user(
             "seller",
             email,

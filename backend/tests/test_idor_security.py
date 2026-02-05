@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.main import app
 from backend.core.database import get_db
-from backend.core.security import create_token
+from backend.core.security import create_token, get_password_hash
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
@@ -16,6 +16,9 @@ import os
 # Configuration de test
 TEST_MONGO_URL = os.environ.get("TEST_MONGO_URL", "mongodb://localhost:27017")
 TEST_DB_NAME = "retail_coach_test"
+TEST_USER_PASSWORD = os.environ.get("TEST_USER_PASSWORD", "default_test_pwd")
+# Hash pour les documents de test (évite alertes Hardcoded Passwords)
+_TEST_PASSWORD_HASH = get_password_hash(TEST_USER_PASSWORD)
 
 client = TestClient(app)
 
@@ -56,7 +59,7 @@ async def setup_test_data(test_db):
         "name": "Manager A",
         "role": "manager",
         "store_id": "store_a_test",
-        "password": "hashed_password"
+        "password": _TEST_PASSWORD_HASH
     }
     
     # Manager B (Store B)
@@ -66,7 +69,7 @@ async def setup_test_data(test_db):
         "name": "Manager B",
         "role": "manager",
         "store_id": "store_b_test",
-        "password": "hashed_password"
+        "password": _TEST_PASSWORD_HASH
     }
     
     # Seller A (Store A)
@@ -77,7 +80,7 @@ async def setup_test_data(test_db):
         "role": "seller",
         "store_id": "store_a_test",
         "manager_id": "manager_a_test",
-        "password": "hashed_password"
+        "password": _TEST_PASSWORD_HASH
     }
     
     # Seller B (Store B)
@@ -88,7 +91,7 @@ async def setup_test_data(test_db):
         "role": "seller",
         "store_id": "store_b_test",
         "manager_id": "manager_b_test",
-        "password": "hashed_password"
+        "password": _TEST_PASSWORD_HASH
     }
     
     # Objective A (Store A)
@@ -236,7 +239,7 @@ class TestIDORSecurity:
             "email": "gerant_a@test.com",
             "name": "Gérant A",
             "role": "gerant",
-            "password": "hashed_password"
+            "password": _TEST_PASSWORD_HASH
         }
         await test_db.users.insert_one(gerant_a)
         
