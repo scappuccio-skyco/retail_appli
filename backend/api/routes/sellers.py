@@ -104,15 +104,19 @@ async def get_active_seller_objectives(
     - Within the current period (period_end >= today)
     - Visible to this seller (individual or collective with visibility rules)
     """
-    user = await seller_service.ensure_seller_has_manager_link(current_user["id"])
-    seller_store_id = user.get("store_id") if user else None
-    if not seller_store_id:
+    try:
+        user = await seller_service.ensure_seller_has_manager_link(current_user["id"])
+        seller_store_id = user.get("store_id") if user else None
+        if not seller_store_id:
+            return []
+        manager_id = user.get("manager_id") if user else None
+        objectives = await seller_service.get_seller_objectives_active(
+            current_user["id"], manager_id
+        )
+        return objectives if isinstance(objectives, list) else []
+    except Exception as e:
+        logger.exception("get_active_seller_objectives: %s", e)
         return []
-    manager_id = user.get("manager_id") if user else None
-    objectives = await seller_service.get_seller_objectives_active(
-        current_user["id"], manager_id
-    )
-    return objectives
 
 
 @router.get("/objectives/all")
@@ -213,15 +217,19 @@ async def get_active_seller_challenges(
     - Not yet ended (end_date >= today)
     - Visible to this seller
     """
-    user = await seller_service.ensure_seller_has_manager_link(current_user["id"])
-    seller_store_id = user.get("store_id") if user else None
-    if not seller_store_id:
+    try:
+        user = await seller_service.ensure_seller_has_manager_link(current_user["id"])
+        seller_store_id = user.get("store_id") if user else None
+        if not seller_store_id:
+            return []
+        manager_id = user.get("manager_id") if user else None
+        challenges = await seller_service.get_seller_challenges_active(
+            current_user["id"], manager_id
+        )
+        return challenges if isinstance(challenges, list) else []
+    except Exception as e:
+        logger.exception("get_active_seller_challenges: %s", e)
         return []
-    manager_id = user.get("manager_id") if user else None
-    challenges = await seller_service.get_seller_challenges_active(
-        current_user["id"], manager_id
-    )
-    return challenges
 
 
 @router.post("/challenges/{challenge_id}/mark-achievement-seen")

@@ -1245,8 +1245,8 @@ export default function SuperAdminDashboard() {
 
             {/* Logs List */}
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {systemLogs.logs && systemLogs.logs.length > 0 ? (
-                systemLogs.logs.map((log, idx) => (
+              {(systemLogs.logs || systemLogs.items) && (systemLogs.logs || systemLogs.items).length > 0 ? (
+                (systemLogs.logs || systemLogs.items).map((log, idx) => (
                   <div 
                     key={idx} 
                     className={`p-4 rounded-lg border ${

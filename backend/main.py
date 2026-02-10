@@ -67,20 +67,38 @@ async def _app_exception_handler(request, exc: AppException):
     )
 
 
-async def _unhandled_exception_handler(request, exc: Exception):
+async def _unhandled_exception_handler(request: Request, exc: Exception):
     """Log unexpected errors with traceback and return clean 500. No internal details to client."""
+    path = getattr(getattr(request, "url", None), "path", None) or ""
+    method = getattr(request, "method", None) or ""
     tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)) if exc.__traceback__ else str(exc)
     logger.error(
         "Unexpected error: %s",
         exc,
         extra={
             "error_type": type(exc).__name__,
-            "path": getattr(getattr(request, "url", None), "path", None),
-            "method": getattr(request, "method", None),
+            "path": path,
+            "method": method,
             "traceback": tb,
         },
         exc_info=True,
     )
+    # Persist to system_logs so SuperAdmin "Logs Système" shows something
+    try:
+        repo = getattr(getattr(request, "app", None), "state", None) and getattr(request.app.state, "system_log_repo", None)
+        if repo:
+            await repo.create_log({
+                "level": "error",
+                "type": "api",
+                "message": (str(exc) or type(exc).__name__)[:500],
+                "endpoint": path,
+                "http_code": 500,
+                "error_type": type(exc).__name__,
+                "method": method,
+                "stack_trace": tb[:2000] if tb else None,
+            })
+    except Exception:
+        pass
     headers = _cors_headers_for_request(request)
     return JSONResponse(
         status_code=500,

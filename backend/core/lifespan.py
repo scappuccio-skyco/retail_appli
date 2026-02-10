@@ -91,6 +91,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.warning("Redis cache initialization failed (non-critical): %s", e)
 
+    # System log repo for persisting 5xx errors (visible in SuperAdmin "Logs Système")
+    try:
+        if database and getattr(database, "db", None):
+            from repositories.system_log_repository import SystemLogRepository
+            app.state.system_log_repo = SystemLogRepository(database.db)
+        else:
+            app.state.system_log_repo = None
+    except Exception as e:
+        logger.warning("System log repo not available: %s", e)
+        app.state.system_log_repo = None
+
     # Schedule index creation in background (does not block healthcheck).
     # Keep task in module-level set to prevent premature garbage collection.
     index_task = asyncio.create_task(_create_indexes_background())

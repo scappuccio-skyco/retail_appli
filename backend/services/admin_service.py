@@ -390,6 +390,7 @@ class AdminService:
                 "id": log.get('id', str(len(normalized_logs))),
                 "timestamp": str(log.get('timestamp') or log.get('created_at') or now.isoformat()),
                 "action": str(action),  # CRITICAL: Never None
+                "type": str(log.get('type') or action or 'api'),
                 "admin_email": str(admin_email),
                 "admin_name": str(admin_name),
                 "workspace_id": log.get('workspace_id'),
@@ -397,6 +398,12 @@ class AdminService:
                 "level": log.get('level', 'info'),
                 "message": log.get('message', '')
             }
+            if log.get('http_code') is not None:
+                normalized_log["http_code"] = log['http_code']
+            if log.get('endpoint') is not None:
+                normalized_log["endpoint"] = log['endpoint']
+            if log.get('stack_trace') is not None:
+                normalized_log["stack_trace"] = log['stack_trace']
             normalized_logs.append(normalized_log)
             all_actions.add(action)
             
