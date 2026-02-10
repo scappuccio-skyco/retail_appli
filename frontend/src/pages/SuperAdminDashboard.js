@@ -79,15 +79,23 @@ export default function SuperAdminDashboard() {
   }, [activeTab]);
 
   // Refetch workspaces when showDeletedWorkspaces changes
+  // Normalize API response: backend returns paginated { items, total, page, size, pages }
+  const normalizeWorkspacesResponse = (data) => {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.items)) return data.items;
+    return [];
+  };
+
   useEffect(() => {
     const fetchWorkspaces = async () => {
       try {
         const res = await api.get('/superadmin/workspaces', { 
           params: { include_deleted: true } // Always fetch all, filter client-side
         });
-        setWorkspaces(res.data);
+        setWorkspaces(normalizeWorkspacesResponse(res.data));
       } catch (error) {
         logger.error('Error fetching workspaces:', error);
+        setWorkspaces([]);
       }
     };
     fetchWorkspaces();
@@ -115,9 +123,10 @@ export default function SuperAdminDashboard() {
       const workspacesRes = await api.get('/superadmin/workspaces', { 
         params: { include_deleted: true } 
       });
-      setWorkspaces(workspacesRes.data);
+      setWorkspaces(normalizeWorkspacesResponse(workspacesRes.data));
     } catch (error) {
       logger.error('Error fetching workspaces:', error);
+      setWorkspaces([]);
     }
   };
 
@@ -133,7 +142,7 @@ export default function SuperAdminDashboard() {
       ]);
 
       setStats(statsRes.data);
-      setWorkspaces(workspacesRes.data);
+      setWorkspaces(normalizeWorkspacesResponse(workspacesRes.data));
       setAuditLogData(logsRes.data);
       setLogs(logsRes.data.logs || logsRes.data);
       setHealth(healthRes.data);
@@ -234,9 +243,10 @@ export default function SuperAdminDashboard() {
 
   // ===== BULK SELECTION FUNCTIONS =====
   
-  // Get filtered workspaces for current view
+  // Get filtered workspaces for current view (workspaces may be paginated object from API)
+  const workspaceList = Array.isArray(workspaces) ? workspaces : [];
   const getFilteredWorkspaces = () => {
-    return workspaces.filter(workspace => {
+    return workspaceList.filter(workspace => {
       if (workspaceFilter === 'all') return true;
       if (workspaceFilter === 'deleted') {
         return (workspace.status || 'active') === 'deleted';
@@ -690,7 +700,7 @@ export default function SuperAdminDashboard() {
                       : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
                   }`}
                 >
-                  Tous ({workspaces.length})
+                  Tous ({workspaceList.length})
                 </button>
                 <button
                   onClick={() => setWorkspaceFilter('active')}
@@ -700,7 +710,7 @@ export default function SuperAdminDashboard() {
                       : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
                   }`}
                 >
-                  🟢 Actifs ({workspaces.filter(w => getNormalizedSubscriptionStatus(w) === 'active').length})
+                  🟢 Actifs ({workspaceList.filter(w => getNormalizedSubscriptionStatus(w) === 'active').length})
                 </button>
                 <button
                   onClick={() => setWorkspaceFilter('trial')}
@@ -710,7 +720,7 @@ export default function SuperAdminDashboard() {
                       : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
                   }`}
                 >
-                  🟡 Essais ({workspaces.filter(w => getNormalizedSubscriptionStatus(w) === 'trial').length})
+                  🟡 Essais ({workspaceList.filter(w => getNormalizedSubscriptionStatus(w) === 'trial').length})
                 </button>
                 <button
                   onClick={() => setWorkspaceFilter('expired')}
@@ -720,7 +730,7 @@ export default function SuperAdminDashboard() {
                       : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
                   }`}
                 >
-                  ⚪ Expirés ({workspaces.filter(w => getNormalizedSubscriptionStatus(w) === 'expired').length})
+                  ⚪ Expirés ({workspaceList.filter(w => getNormalizedSubscriptionStatus(w) === 'expired').length})
                 </button>
                 <button
                   onClick={() => setWorkspaceFilter('payment_failed')}
@@ -730,7 +740,7 @@ export default function SuperAdminDashboard() {
                       : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
                   }`}
                 >
-                  🔴 Paiement KO ({workspaces.filter(w => getNormalizedSubscriptionStatus(w) === 'payment_failed').length})
+                  🔴 Paiement KO ({workspaceList.filter(w => getNormalizedSubscriptionStatus(w) === 'payment_failed').length})
                 </button>
                 <button
                   onClick={() => setWorkspaceFilter('deleted')}
@@ -740,7 +750,7 @@ export default function SuperAdminDashboard() {
                       : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
                   }`}
                 >
-                  🔴 Supprimés ({workspaces.filter(w => w.status === 'deleted').length})
+                  🔴 Supprimés ({workspaceList.filter(w => w.status === 'deleted').length})
                 </button>
               </div>
             </div>
