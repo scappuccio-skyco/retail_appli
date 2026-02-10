@@ -148,34 +148,25 @@ async def get_store_kpi_overview(
         raise NotFoundError(str(e))
     except Exception as e:
         logger.exception("store-kpi-overview unexpected error: %s", e)
-        return {
-            "date": target_date,
-            "store_id": resolved_store_id,
-            "totals": {"ca": 0, "ca_journalier": 0, "nb_ventes": 0, "nb_clients": 0, "nb_articles": 0, "nb_prospects": 0},
-            "derived": {"panier_moyen": None, "taux_transformation": None, "indice_vente": None},
-            "sellers_submitted": 0,
-            "entries_count": 0,
-        }
-    calculated_kpis = overview.get("calculated_kpis") or {}
-    totals = overview.get("totals") or {}
+        return _empty_overview_response(target_date, resolved_store_id)
+    # Retourner la même structure que la route gérant / le frontend attend (totals.ventes, calculated_kpis, sellers_reported, total_sellers, seller_entries, etc.)
+    overview["date"] = target_date
+    overview["store_id"] = resolved_store_id
+    return overview
+
+
+def _empty_overview_response(target_date: str, resolved_store_id: str):
+    """Réponse vide pour erreur, format attendu par le frontend (DailyKPICards, StoreKPIModalDailyTab)."""
     return {
         "date": target_date,
         "store_id": resolved_store_id,
-        "totals": {
-            "ca": totals.get("ca", 0),
-            "ca_journalier": totals.get("ca", 0),
-            "nb_ventes": totals.get("ventes", 0),
-            "nb_clients": totals.get("clients", 0),
-            "nb_articles": totals.get("articles", 0),
-            "nb_prospects": totals.get("prospects", 0),
-        },
-        "derived": {
-            "panier_moyen": calculated_kpis.get("panier_moyen"),
-            "taux_transformation": calculated_kpis.get("taux_transformation"),
-            "indice_vente": calculated_kpis.get("indice_vente"),
-        },
-        "sellers_submitted": len(overview.get("seller_entries") or []),
-        "entries_count": len(overview.get("seller_entries") or []),
+        "totals": {"ca": 0, "ventes": 0, "clients": 0, "articles": 0, "prospects": 0},
+        "calculated_kpis": {"panier_moyen": None, "taux_transformation": None, "indice_vente": None},
+        "sellers_reported": 0,
+        "total_sellers": 0,
+        "seller_entries": [],
+        "managers_data": {},
+        "sellers_data": {},
     }
 
 
