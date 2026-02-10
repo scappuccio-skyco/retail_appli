@@ -264,7 +264,8 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
         const allDates = new Set();
         const allLocked = new Set();
         responses.forEach(res => {
-          (res.data || []).forEach(entry => {
+          const entries = Array.isArray(res.data) ? res.data : (Array.isArray(res.data?.items) ? res.data.items : []);
+          entries.forEach(entry => {
             if ((entry.ca_journalier > 0) || (entry.nb_ventes > 0)) allDates.add(entry.date);
             if (entry.locked === true) allLocked.add(entry.date);
           });
