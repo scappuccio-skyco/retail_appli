@@ -16,18 +16,26 @@ const InvitationsManagement = () => {
     fetchInvitations();
   }, [filter]);
 
+  // API returns { invitations: [...], total, page, pages }
+  const normalizeInvitationsResponse = (data) => {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.invitations)) return data.invitations;
+    return [];
+  };
+
   const fetchInvitations = async () => {
     try {
       setLoading(true);
-      const url = filter === 'all' 
+      const url = filter === 'all'
         ? '/superadmin/invitations'
         : `/superadmin/invitations?status=${filter}`;
-      
+
       const response = await api.get(url);
-      setInvitations(response.data);
+      setInvitations(normalizeInvitationsResponse(response.data));
     } catch (error) {
       logger.error('Erreur chargement invitations:', error);
       toast.error('Erreur lors du chargement des invitations');
+      setInvitations([]);
     } finally {
       setLoading(false);
     }
@@ -115,7 +123,8 @@ const InvitationsManagement = () => {
     );
   };
 
-  const filteredInvitations = invitations.filter(inv => 
+  const invitationList = Array.isArray(invitations) ? invitations : [];
+  const filteredInvitations = invitationList.filter(inv =>
     inv.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     inv.store_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     inv.gerant_email?.toLowerCase().includes(searchTerm.toLowerCase())
