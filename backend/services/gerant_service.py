@@ -1849,7 +1849,7 @@ class GerantService:
                 store = await self.store_repo.find_by_id(store_id, projection={"_id": 0})
         
         if not store or not store.get('active'):
-            raise Exception("Magasin non trouvé ou accès non autorisé")
+            raise ValueError("Magasin non trouvé ou accès non autorisé")
         
         # Default to today
         if not date:

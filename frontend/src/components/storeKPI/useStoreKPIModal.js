@@ -187,8 +187,8 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
       }));
     }
 
-    const usersRes = await api.get('/manager/sellers');
-    const sellersList = usersRes.data;
+    const usersRes = await api.get('/manager/sellers' + (storeIdParam ? '?store_id=' + storeIdParam : ''));
+    const sellersList = Array.isArray(usersRes.data?.sellers) ? usersRes.data.sellers : (Array.isArray(usersRes.data) ? usersRes.data : []);
     const storeParam = storeIdParam ? '&store_id=' + storeIdParam : '';
     const startStr = startDate?.toISOString().split('T')[0];
     const endStr = endDate?.toISOString().split('T')[0];
@@ -251,12 +251,13 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
       } else {
         const sellersUrl = '/manager/sellers' + (storeId && useManagerRoutes ? `?store_id=${storeId}` : '');
         const usersRes = await api.get(sellersUrl);
+        const sellersList = Array.isArray(usersRes.data?.sellers) ? usersRes.data.sellers : (Array.isArray(usersRes.data) ? usersRes.data : []);
         const today = new Date();
         const startDate = new Date(today);
         startDate.setDate(today.getDate() - days);
         const dateRange = `start_date=${startDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`;
         const storeSuffix = storeId && useManagerRoutes ? `&store_id=${storeId}` : '';
-        const promises = (usersRes.data || []).map(seller =>
+        const promises = sellersList.map(seller =>
           api.get(`/manager/kpi-entries/${seller.id}?${dateRange}${storeSuffix}`)
         );
         const responses = await Promise.all(promises);
@@ -296,7 +297,8 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
       setLoadingSellers(true);
       const storeParam = storeId ? '?store_id=' + storeId : '';
       const res = await api.get('/manager/sellers' + storeParam);
-      const activeSellers = (res.data || []).filter(s => !s.status || s.status === 'active');
+      const raw = res.data?.sellers ?? res.data;
+      const activeSellers = Array.isArray(raw) ? raw.filter(s => !s.status || s.status === 'active') : [];
       setSellers(activeSellers);
     } catch (err) {
       logger.error('Error fetching sellers:', err);

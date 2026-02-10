@@ -140,11 +140,24 @@ async def get_store_kpi_overview(
     resolved_store_id = context["resolved_store_id"]
     target_date = date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
     user_id = context.get("id")
-    overview = await gerant_service.get_store_kpi_overview(
-        store_id=resolved_store_id, user_id=user_id, date=target_date
-    )
-    calculated_kpis = overview.get("calculated_kpis", {})
-    totals = overview.get("totals", {})
+    try:
+        overview = await gerant_service.get_store_kpi_overview(
+            store_id=resolved_store_id, user_id=user_id, date=target_date
+        )
+    except ValueError as e:
+        raise NotFoundError(str(e))
+    except Exception as e:
+        logger.exception("store-kpi-overview unexpected error: %s", e)
+        return {
+            "date": target_date,
+            "store_id": resolved_store_id,
+            "totals": {"ca": 0, "ca_journalier": 0, "nb_ventes": 0, "nb_clients": 0, "nb_articles": 0, "nb_prospects": 0},
+            "derived": {"panier_moyen": None, "taux_transformation": None, "indice_vente": None},
+            "sellers_submitted": 0,
+            "entries_count": 0,
+        }
+    calculated_kpis = overview.get("calculated_kpis") or {}
+    totals = overview.get("totals") or {}
     return {
         "date": target_date,
         "store_id": resolved_store_id,
@@ -161,8 +174,8 @@ async def get_store_kpi_overview(
             "taux_transformation": calculated_kpis.get("taux_transformation"),
             "indice_vente": calculated_kpis.get("indice_vente"),
         },
-        "sellers_submitted": len(overview.get("seller_entries", [])),
-        "entries_count": len(overview.get("seller_entries", [])),
+        "sellers_submitted": len(overview.get("seller_entries") or []),
+        "entries_count": len(overview.get("seller_entries") or []),
     }
 
 
