@@ -7,8 +7,13 @@
  *   const response = await api.get('/manager/objectives');
  */
 import axios from 'axios';
+import { toast } from 'sonner';
 import { API_BASE } from './api';
 import { logger } from '../utils/logger';
+
+/** Évite d'afficher plusieurs toasts 403 d'affilée (plusieurs requêtes en parallèle). */
+let last403ToastAt = 0;
+const SUBSCRIPTION_INACTIVE_SHOWN_KEY = 'apiClient_subscription_inactive_toast_shown';
 
 /**
  * Nettoie l'URL pour éviter les doubles /api/api/
@@ -82,13 +87,35 @@ apiClient.interceptors.response.use(
     if (process.env.NODE_ENV === 'development') {
       logger.error('API Error:', error.response?.data || error.message);
     }
-    
+
     // Gestion erreurs 401 (logout)
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       globalThis.location.href = '/login';
+      return Promise.reject(error);
     }
-    
+
+    // Gestion 403 : afficher une fois un message clair (abonnement ou accès refusé)
+    if (error.response?.status === 403) {
+      const data = error.response?.data || {};
+      const detail = typeof data.detail === 'string' ? data.detail : 'Accès refusé';
+      const code = data.error_code;
+      const now = Date.now();
+      const isSubscriptionInactive = code === 'SUBSCRIPTION_INACTIVE';
+      const alreadyShownSubscription = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(SUBSCRIPTION_INACTIVE_SHOWN_KEY) === '1';
+
+      if (isSubscriptionInactive && !alreadyShownSubscription) {
+        if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(SUBSCRIPTION_INACTIVE_SHOWN_KEY, '1');
+        toast.error(detail, {
+          description: 'Le gérant peut réactiver l\'abonnement depuis son tableau de bord.',
+          duration: 8000,
+        });
+      } else if (!isSubscriptionInactive && now - last403ToastAt > 3000) {
+        last403ToastAt = now;
+        toast.error(detail, { duration: 5000 });
+      }
+    }
+
     return Promise.reject(error);
   }
 );

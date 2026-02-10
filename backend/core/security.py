@@ -372,7 +372,7 @@ async def require_active_space(
     space = current_user.get('space') or {}
     space_status = space.get('status')
     if space_status == 'deleted':
-        raise ForbiddenError("Espace supprimé")
+        raise ForbiddenError("Espace supprimé", error_code="SUBSCRIPTION_INACTIVE")
 
     subscription_status = space.get('subscription_status') or 'inactive'
     allowed = False
@@ -403,16 +403,19 @@ async def require_active_space(
                         {"subscription_status": "trial_expired", "updated_at": datetime.now(timezone.utc).isoformat()}
                     )
                 raise ForbiddenError(
-                    "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer."
+                    "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer.",
+                    error_code="SUBSCRIPTION_INACTIVE",
                 )
         else:
             raise ForbiddenError(
-                "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer."
+                "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer.",
+                error_code="SUBSCRIPTION_INACTIVE",
             )
 
     if not allowed:
         raise ForbiddenError(
-            "Abonnement inactif ou paiement en échec : accès aux fonctionnalités bloqué"
+            "Abonnement inactif ou paiement en échec : accès aux fonctionnalités bloqué",
+            error_code="SUBSCRIPTION_INACTIVE",
         )
     return current_user
 
