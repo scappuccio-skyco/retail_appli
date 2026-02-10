@@ -248,15 +248,23 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
         const rawData = Array.isArray(historyRes.data) ? historyRes.data : [];
         setDatesWithData(rawData.filter(e => (e.ca_journalier > 0) || (e.nb_ventes > 0)).map(e => e.date));
         setLockedDates(rawData.filter(e => e.locked === true).map(e => e.date));
+      } else if (useManagerRoutes) {
+        // Un seul appel au lieu de N appels kpi-entries par vendeur (évite 429 Too Many Requests)
+        const storeParam = storeId ? `?store_id=${storeId}` : '';
+        const res = await api.get(`/manager/dates-with-data${storeParam}`);
+        const dates = Array.isArray(res.data?.dates) ? res.data.dates : [];
+        const locked = Array.isArray(res.data?.lockedDates) ? res.data.lockedDates : [];
+        setDatesWithData(dates);
+        setLockedDates(locked);
       } else {
-        const sellersUrl = '/manager/sellers' + (storeId && useManagerRoutes ? `?store_id=${storeId}` : '');
+        const sellersUrl = '/manager/sellers' + (storeId ? `?store_id=${storeId}` : '');
         const usersRes = await api.get(sellersUrl);
         const sellersList = Array.isArray(usersRes.data?.sellers) ? usersRes.data.sellers : (Array.isArray(usersRes.data) ? usersRes.data : []);
         const today = new Date();
         const startDate = new Date(today);
         startDate.setDate(today.getDate() - days);
         const dateRange = `start_date=${startDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`;
-        const storeSuffix = storeId && useManagerRoutes ? `&store_id=${storeId}` : '';
+        const storeSuffix = storeId ? `&store_id=${storeId}` : '';
         const promises = sellersList.map(seller =>
           api.get(`/manager/kpi-entries/${seller.id}?${dateRange}${storeSuffix}`)
         );
