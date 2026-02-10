@@ -1268,7 +1268,7 @@ async def get_store_kpi_config_gerant(
     Récupère la configuration KPI du magasin pour un gérant (magasin dont il est propriétaire).
     Évite le 403 quand StoreKPIModal est ouvert depuis le dashboard gérant.
     """
-    stores = await gerant_service.get_stores_by_gerant(current_user["id"])
+    stores = await gerant_service.get_all_stores(current_user["id"])
     if not any(s.get("id") == store_id for s in stores):
         raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN)
     try:
@@ -1290,7 +1290,7 @@ async def update_store_kpi_config_gerant(
     """
     Met à jour la configuration KPI du magasin (gérant propriétaire).
     """
-    stores = await gerant_service.get_stores_by_gerant(current_user["id"])
+    stores = await gerant_service.get_all_stores(current_user["id"])
     if not any(s.get("id") == store_id for s in stores):
         raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN)
     update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
@@ -1320,7 +1320,7 @@ async def analyze_store_kpis_gerant(
     Génère une analyse IA des KPIs du magasin (gérant propriétaire).
     Évite le 403 quand le modal d'analyse IA est ouvert depuis le dashboard gérant.
     """
-    stores = await gerant_service.get_stores_by_gerant(current_user["id"])
+    stores = await gerant_service.get_all_stores(current_user["id"])
     if not any(s.get("id") == store_id for s in stores):
         raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN)
     return await run_store_kpi_analysis(
