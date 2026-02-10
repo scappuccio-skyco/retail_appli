@@ -1110,6 +1110,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       {showStoreKPIModal && (
         <StoreKPIModal
           storeId={effectiveStoreId}
+          isManager
           onClose={() => setShowStoreKPIModal(false)}
           onSuccess={() => {
             fetchStoreKPIStats();

@@ -1424,20 +1424,27 @@ class GerantService:
         if not store:
             raise ValueError("Magasin non trouvé ou accès non autorisé")
         
-        # Get distinct years from kpi_entries
+        # Get distinct years from kpi_entries (guard against None/non-iterable)
         kpi_years = await self.kpi_repo.distinct("date", {"store_id": store_id})
+        if kpi_years is None:
+            kpi_years = []
         years_set = set()
-        for date_str in kpi_years:
-            if date_str and len(date_str) >= 4:
-                year = int(date_str[:4])
-                years_set.add(year)
-        
+        for date_str in (kpi_years or []):
+            if date_str and len(str(date_str)) >= 4:
+                try:
+                    years_set.add(int(str(date_str)[:4]))
+                except (ValueError, TypeError):
+                    pass
         # Get distinct years from manager_kpi
         manager_years = await self.manager_kpi_repo.distinct("date", {"store_id": store_id})
-        for date_str in manager_years:
-            if date_str and len(date_str) >= 4:
-                year = int(date_str[:4])
-                years_set.add(year)
+        if manager_years is None:
+            manager_years = []
+        for date_str in (manager_years or []):
+            if date_str and len(str(date_str)) >= 4:
+                try:
+                    years_set.add(int(str(date_str)[:4]))
+                except (ValueError, TypeError):
+                    pass
         
         # Sort descending (most recent first)
         years = sorted(list(years_set), reverse=True)

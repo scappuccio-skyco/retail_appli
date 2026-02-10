@@ -22,7 +22,7 @@ function getOverviewPeriodLabel(viewMode, state) {
 }
 
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null, isManager = false }) {
-  const state = useStoreKPIModal({ onClose, onSuccess, initialDate, storeId });
+  const state = useStoreKPIModal({ onClose, onSuccess, initialDate, storeId, isManager });
 
   const tabClass = (id) =>
     state.activeTab === id

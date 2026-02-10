@@ -61,7 +61,11 @@ const KPI_OPPOSITE_FIELD = {
   seller_track_prospects: 'manager_track_prospects', manager_track_prospects: 'seller_track_prospects'
 };
 
-export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, storeId = null }) {
+export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, storeId = null, isManager = false }) {
+  // Quand isManager est true, utiliser les routes /manager avec store_id en query (évite 403 sur routes gerant).
+  const useManagerRoutes = isManager;
+  const storeParam = storeId ? (useManagerRoutes ? `?store_id=${storeId}` : '') : '';
+  const storeParamAnd = storeId ? (useManagerRoutes ? `&store_id=${storeId}` : '') : '';
   const defaultDate = initialDate || new Date().toISOString().split('T')[0];
   const [activeTab, setActiveTab] = useState('daily');
   const [overviewData, setOverviewData] = useState(null);
@@ -106,9 +110,9 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
 
   const fetchOverviewData = async () => {
     try {
-      const endpoint = storeId
-        ? `/gerant/stores/${storeId}/kpi-overview?date=${overviewDate}`
-        : `/manager/store-kpi-overview?date=${overviewDate}`;
+      const endpoint = useManagerRoutes || !storeId
+        ? `/manager/store-kpi-overview?date=${overviewDate}${storeParamAnd}`
+        : `/gerant/stores/${storeId}/kpi-overview?date=${overviewDate}`;
       const res = await api.get(endpoint);
       setOverviewData(res.data);
     } catch (err) {
@@ -166,7 +170,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   };
 
   async function fetchRawHistoricalData(storeIdParam, startDate, endDate, days) {
-    if (storeIdParam) {
+    if (storeIdParam && !useManagerRoutes) {
       let url = `/gerant/stores/${storeIdParam}/kpi-history?days=${days}`;
       if (startDate && endDate) {
         url = `/gerant/stores/${storeIdParam}/kpi-history?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`;
@@ -239,18 +243,21 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   const fetchDatesWithData = async () => {
     try {
       const days = 730;
-      if (storeId) {
+      if (storeId && !useManagerRoutes) {
         const historyRes = await api.get(`/gerant/stores/${storeId}/kpi-history?days=${days}`);
         const rawData = Array.isArray(historyRes.data) ? historyRes.data : [];
         setDatesWithData(rawData.filter(e => (e.ca_journalier > 0) || (e.nb_ventes > 0)).map(e => e.date));
         setLockedDates(rawData.filter(e => e.locked === true).map(e => e.date));
       } else {
-        const usersRes = await api.get('/manager/sellers');
+        const sellersUrl = '/manager/sellers' + (storeId && useManagerRoutes ? `?store_id=${storeId}` : '');
+        const usersRes = await api.get(sellersUrl);
         const today = new Date();
         const startDate = new Date(today);
         startDate.setDate(today.getDate() - days);
-        const promises = usersRes.data.map(seller =>
-          api.get(`/manager/kpi-entries/${seller.id}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`)
+        const dateRange = `start_date=${startDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`;
+        const storeSuffix = storeId && useManagerRoutes ? `&store_id=${storeId}` : '';
+        const promises = (usersRes.data || []).map(seller =>
+          api.get(`/manager/kpi-entries/${seller.id}?${dateRange}${storeSuffix}`)
         );
         const responses = await Promise.all(promises);
         const allDates = new Set();
@@ -271,9 +278,13 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
 
   const fetchAvailableYears = async () => {
     try {
-      if (storeId) {
+      if (storeId && !useManagerRoutes) {
         const res = await api.get(`/gerant/stores/${storeId}/available-years`);
         if (res.data.years && res.data.years.length > 0) setAvailableYears(res.data.years);
+      } else if ((storeId && useManagerRoutes) || !storeId) {
+        const url = useManagerRoutes && storeId ? `/manager/available-years?store_id=${storeId}` : '/manager/available-years';
+        const res = await api.get(url);
+        if (res.data && res.data.years && res.data.years.length > 0) setAvailableYears(res.data.years);
       }
     } catch (err) {
       logger.error('Error fetching available years:', err);
@@ -298,7 +309,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
 
   const fetchKPIConfig = async () => {
     try {
-      const url = storeId ? `/gerant/stores/${storeId}/kpi-config` : '/manager/kpi-config';
+      const url = (storeId && !useManagerRoutes) ? `/gerant/stores/${storeId}/kpi-config` : `/manager/kpi-config${storeParam}`;
       const res = await api.get(url);
       if (!res.data) return;
       setKpiConfig(normalizeKpiConfig(res.data));
@@ -332,7 +343,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
       if (value === true && KPI_OPPOSITE_FIELD[field]) {
         updatedConfig[KPI_OPPOSITE_FIELD[field]] = false;
       }
-      const kpiConfigUrl = storeId ? `/gerant/stores/${storeId}/kpi-config` : '/manager/kpi-config';
+      const kpiConfigUrl = (storeId && !useManagerRoutes) ? `/gerant/stores/${storeId}/kpi-config` : `/manager/kpi-config${storeParam}`;
       await api.put(kpiConfigUrl, updatedConfig);
       setKpiConfig(updatedConfig);
       toast.success('Configuration mise à jour !');

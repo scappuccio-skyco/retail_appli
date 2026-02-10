@@ -1197,12 +1197,15 @@ async def get_store_kpi_history(
     Security: Accessible to gérants and managers
     """
     try:
-        user_id = current_user['id']
+        user_id = current_user["id"]
         return await gerant_service.get_store_kpi_history(
             store_id, user_id, days, start_date, end_date
         )
     except ValueError as e:
         raise NotFoundError(str(e))
+    except Exception as e:
+        logger.exception("get_store_kpi_history unexpected error: %s", e)
+        return []
 
 
 @router.get("/stores/{store_id}/available-years")
@@ -1220,10 +1223,13 @@ async def get_store_available_years(
     Security: Accessible to gérants and managers
     """
     try:
-        user_id = current_user['id']
+        user_id = current_user["id"]
         return await gerant_service.get_store_available_years(store_id, user_id)
     except ValueError as e:
         raise NotFoundError(str(e))
+    except Exception as e:
+        logger.exception("get_store_available_years unexpected error: %s", e)
+        return {"years": []}
 
 
 @router.get("/stores/{store_id}/kpi-dates")
