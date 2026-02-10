@@ -17,14 +17,22 @@ export default function TrialManagement({ onTrialUpdated }) {
     fetchGerants();
   }, []);
 
+  // API returns { gerants: [...], pagination: {...} }
+  const normalizeGerantsResponse = (data) => {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.gerants)) return data.gerants;
+    return [];
+  };
+
   const fetchGerants = async () => {
     try {
       setLoading(true);
       const response = await api.get('/superadmin/gerants/trials');
-      setGerants(response.data);
+      setGerants(normalizeGerantsResponse(response.data));
     } catch (error) {
       logger.error('Error fetching gerants:', error);
       toast.error('Erreur lors du chargement des gérants');
+      setGerants([]);
     } finally {
       setLoading(false);
     }
@@ -122,7 +130,8 @@ export default function TrialManagement({ onTrialUpdated }) {
     return 'active_trial';
   };
 
-  const filteredGerants = gerants.filter(g => {
+  const gerantList = Array.isArray(gerants) ? gerants : [];
+  const filteredGerants = gerantList.filter(g => {
     // Search filter
     const matchesSearch = g.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       g.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -150,15 +159,15 @@ export default function TrialManagement({ onTrialUpdated }) {
 
   // Count by status for filter badges
   const statusCounts = {
-    all: gerants.length,
-    active_trial: gerants.filter(g => {
+    all: gerantList.length,
+    active_trial: gerantList.filter(g => {
       const status = getGerantStatus(g);
       return status === 'active_trial' || status === 'expiring_soon';
     }).length,
-    expiring_soon: gerants.filter(g => getGerantStatus(g) === 'expiring_soon').length,
-    expired: gerants.filter(g => getGerantStatus(g) === 'expired').length,
-    no_trial: gerants.filter(g => getGerantStatus(g) === 'no_trial').length,
-    subscribed: gerants.filter(g => getGerantStatus(g) === 'subscribed').length
+    expiring_soon: gerantList.filter(g => getGerantStatus(g) === 'expiring_soon').length,
+    expired: gerantList.filter(g => getGerantStatus(g) === 'expired').length,
+    no_trial: gerantList.filter(g => getGerantStatus(g) === 'no_trial').length,
+    subscribed: gerantList.filter(g => getGerantStatus(g) === 'subscribed').length
   };
 
   if (loading) {
