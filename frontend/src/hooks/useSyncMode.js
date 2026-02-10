@@ -69,23 +69,27 @@ export const useSyncMode = (storeId = null) => {
       
       logger.log('🏪 useSyncMode - Using storeId:', effectiveStoreId);
 
-      // Récupérer le mode sync (pour tous les rôles - vendeurs inclus pour Enterprise mode)
-      try {
-        const response = await api.get(`/manager/sync-mode${storeIdParam}`);
-
-        // Ensure sync_mode is never null - default to "manual"
-        const fetchedSyncMode = response.data.sync_mode || 'manual';
-        setSyncMode(fetchedSyncMode);
-        setIsEnterprise(response.data.is_enterprise || false);
-        setCompanyName(response.data.company_name || null);
-        setCanEditKPI(response.data.can_edit_kpi !== false);
-        setCanEditObjectives(response.data.can_edit_objectives !== false);
-      } catch (error) {
-        logger.error('Error fetching sync mode:', error);
+      // Récupérer le mode sync (manager/gerant uniquement ; les vendeurs n'ont pas accès à /manager/sync-mode → 403)
+      if (userRole === 'seller') {
         setSyncMode('manual');
         setIsEnterprise(false);
         setCanEditKPI(true);
         setCanEditObjectives(true);
+      } else {
+        try {
+          const response = await api.get(`/manager/sync-mode${storeIdParam}`);
+          setSyncMode(response.data.sync_mode || 'manual');
+          setIsEnterprise(response.data.is_enterprise || false);
+          setCompanyName(response.data.company_name || null);
+          setCanEditKPI(response.data.can_edit_kpi !== false);
+          setCanEditObjectives(response.data.can_edit_objectives !== false);
+        } catch (error) {
+          logger.error('Error fetching sync mode:', error);
+          setSyncMode('manual');
+          setIsEnterprise(false);
+          setCanEditKPI(true);
+          setCanEditObjectives(true);
+        }
       }
 
       // Vérifier le statut de l'abonnement du gérant parent (pour vendeurs/managers)

@@ -589,12 +589,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   };
 
   const calculateWeeklyKPI = (startDate, endDate, allKpiEntries) => {
-    // Convertir les dates string en objets Date pour comparaison
+    const list = Array.isArray(allKpiEntries) ? allKpiEntries : [];
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
-    // Filtrer les KPI de la semaine
-    const weekKPIs = allKpiEntries.filter(entry => {
+
+    const weekKPIs = list.filter(entry => {
       const entryDate = new Date(entry.date);
       return entryDate >= start && entryDate <= end;
     });
@@ -641,10 +640,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
   const fetchBilanForWeek = async (startDate, endDate, periode) => {
     try {
-      // 1. D'abord récupérer tous les KPI du vendeur
+      // 1. Récupérer les KPI du vendeur (API peut retourner { items, total, page } ou un tableau)
       const kpiRes = await api.get('/seller/kpi-entries');
-      const allKpiEntries = kpiRes.data || [];
-      
+      const raw = kpiRes.data;
+      const allKpiEntries = Array.isArray(raw) ? raw : (raw?.items || []);
+
       logger.log('All KPI entries loaded:', allKpiEntries.length);
       
       // 2. Calculer automatiquement les KPI de la semaine
@@ -653,9 +653,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       // 3. Chercher si un bilan IA existe pour cette semaine
       const res = await api.get('/seller/bilan-individuel/all');
       let existingBilan = null;
-      
-      if (res.data.status === 'success' && res.data.bilans) {
-        existingBilan = res.data.bilans.find(b => b.periode === periode);
+      const bilans = Array.isArray(res.data?.bilans) ? res.data.bilans : [];
+      if (res.data?.status === 'success' && bilans.length > 0) {
+        existingBilan = bilans.find(b => b.periode === periode);
       }
 
       // 4. Créer l'objet bilan avec KPI calculés + analyse IA si disponible

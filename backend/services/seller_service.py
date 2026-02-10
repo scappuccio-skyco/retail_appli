@@ -759,6 +759,8 @@ class SellerService:
             limit=100,
             sort=[("period_start", 1)]
         )
+        if not isinstance(objectives, list):
+            objectives = []
         # Filter by period_end and visible
         objectives = [obj for obj in objectives if obj.get("period_end", "") >= today and obj.get("visible", False)]
         
@@ -1117,6 +1119,8 @@ class SellerService:
             limit=10,
             sort=[("start_date", 1)]
         )
+        if not isinstance(challenges, list):
+            challenges = []
         # Filter by end_date and visible
         challenges = [c for c in challenges if c.get("end_date", "") >= today and c.get("visible", False)]
         
