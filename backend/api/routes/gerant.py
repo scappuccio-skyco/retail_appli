@@ -25,7 +25,16 @@ from services.gerant_service import GerantService
 from services.payment_service import PaymentService
 from services.vat_service import validate_vat_number, calculate_vat_rate, is_eu_country
 from models.billing import BillingProfileCreate, BillingProfileUpdate, BillingProfile, BillingProfileResponse
-from api.dependencies import get_gerant_service, get_payment_service, get_manager_store_service, get_api_key_service
+from api.dependencies import (
+    get_gerant_service,
+    get_payment_service,
+    get_manager_store_service,
+    get_api_key_service,
+    get_manager_service,
+    get_manager_kpi_service,
+    get_ai_service,
+)
+from api.routes.manager.analytics import run_store_kpi_analysis
 from services.manager import ManagerStoreService
 from services.manager_service import APIKeyService
 from models.kpi_config import get_default_kpi_config
@@ -1295,6 +1304,28 @@ async def update_store_kpi_config_gerant(
             update_data[field] = config_update[field]
     config = await store_service.upsert_kpi_config(store_id, current_user["id"], update_data)
     return config
+
+
+@router.post("/stores/{store_id}/analyze-store-kpis")
+async def analyze_store_kpis_gerant(
+    store_id: str,
+    analysis_data: dict,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+    manager_service=Depends(get_manager_service),
+    kpi_service=Depends(get_manager_kpi_service),
+    ai_service=Depends(get_ai_service),
+):
+    """
+    Génère une analyse IA des KPIs du magasin (gérant propriétaire).
+    Évite le 403 quand le modal d'analyse IA est ouvert depuis le dashboard gérant.
+    """
+    stores = await gerant_service.get_stores_by_gerant(current_user["id"])
+    if not any(s.get("id") == store_id for s in stores):
+        raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN)
+    return await run_store_kpi_analysis(
+        store_id, analysis_data, manager_service, kpi_service, ai_service
+    )
 
 
 # (Routes transfer manager/seller déplacées en tête du fichier pour priorité.)

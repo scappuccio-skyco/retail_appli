@@ -304,6 +304,10 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
       setKpiConfig(normalizeKpiConfig(res.data));
     } catch (err) {
       logger.error('Error fetching KPI config:', err);
+      const isNetworkError = err.code === 'ERR_NETWORK' || err.message === 'Network Error';
+      if (isNetworkError) {
+        toast.error('Serveur injoignable. Vérifiez la connexion ou l\'URL du backend (REACT_APP_BACKEND_URL).');
+      }
     }
   };
 

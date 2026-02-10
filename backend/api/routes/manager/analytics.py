@@ -408,122 +408,117 @@ async def delete_team_analysis(
         raise
 
 
-# ===== AI STORE KPI ANALYSIS =====
+# ===== AI STORE KPI ANALYSIS (shared logic for manager + gerant) =====
 
-@router.post("/analyze-store-kpis")
-async def analyze_store_kpis(
+
+async def run_store_kpi_analysis(
+    resolved_store_id: str,
     analysis_data: dict,
-    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
-    context: dict = Depends(get_store_context),
-    ai_service: AIService = Depends(get_ai_service),
-    manager_service: ManagerService = Depends(get_manager_service),
-    kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
+    manager_service: ManagerService,
+    kpi_service: ManagerKpiService,
+    ai_service: AIService,
 ):
     """
-    Generate AI-powered analysis of store KPIs.
-    Uses GPT-4o with expert retail prompts for physical stores.
+    Shared logic: generate AI-powered analysis of store KPIs.
+    Used by both /manager/analyze-store-kpis and /gerant/stores/{store_id}/analyze-store-kpis.
     """
-    try:
-        resolved_store_id = context.get("resolved_store_id") or store_id
-        if not resolved_store_id:
-            raise ValidationError("Le paramètre store_id est requis pour analyser les KPIs d'un magasin")
-        store = await manager_service.get_store_by_id_simple(
-            resolved_store_id,
-            projection={"_id": 0, "name": 1, "location": 1},
-        )
-        if not store:
-            raise NotFoundError("Magasin non trouvé")
-        store_name = store.get("name", "Magasin")
-        start_date = analysis_data.get("start_date") or analysis_data.get("startDate")
-        end_date = analysis_data.get("end_date") or analysis_data.get("endDate")
-        if not end_date:
-            end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        if not start_date:
-            start_dt = datetime.now(timezone.utc) - timedelta(days=30)
-            start_date = start_dt.strftime("%Y-%m-%d")
-        days_diff = (
-            datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d")
-        ).days
-        if days_diff <= 1:
-            period_text = f"le {end_date}"
-        elif days_diff <= 7:
-            period_text = f"la semaine du {start_date} au {end_date}"
-        elif days_diff <= 31:
-            period_text = f"le mois du {start_date} au {end_date}"
-        else:
-            period_text = f"la période du {start_date} au {end_date}"
-        kpi_aggregate_pipeline = [
-            {
-                MONGO_MATCH: {
-                    "store_id": resolved_store_id,
-                    "date": {"$gte": start_date, "$lte": end_date},
-                }
-            },
-            {
-                MONGO_GROUP: {
-                    "_id": None,
-                    "total_ca": {"$sum": {MONGO_IFNULL: ["$ca_journalier", {MONGO_IFNULL: ["$seller_ca", 0]}]}},
-                    "total_ventes": {"$sum": {MONGO_IFNULL: ["$nb_ventes", 0]}},
-                    "total_clients": {"$sum": {MONGO_IFNULL: ["$nb_clients", 0]}},
-                    "total_articles": {"$sum": {MONGO_IFNULL: ["$nb_articles", 0]}},
-                    "total_prospects": {"$sum": {MONGO_IFNULL: ["$nb_prospects", 0]}},
-                    "unique_sellers": {"$addToSet": "$seller_id"},
-                    "unique_dates": {"$addToSet": "$date"},
-                }
-            },
-        ]
-        manager_kpi_aggregate_pipeline = [
-            {
-                MONGO_MATCH: {
-                    "store_id": resolved_store_id,
-                    "date": {"$gte": start_date, "$lte": end_date},
-                }
-            },
-            {
-                MONGO_GROUP: {
-                    "_id": None,
-                    "total_ca": {"$sum": {MONGO_IFNULL: ["$ca_journalier", 0]}},
-                    "total_ventes": {"$sum": {MONGO_IFNULL: ["$nb_ventes", 0]}},
-                }
-            },
-        ]
-        kpi_result = await kpi_service.aggregate_kpi(kpi_aggregate_pipeline, max_results=1)
-        manager_kpi_result = await kpi_service.aggregate_manager_kpi(
-            manager_kpi_aggregate_pipeline, max_results=1
-        )
-        kpi_data = kpi_result[0] if kpi_result else {}
-        manager_kpi_data = manager_kpi_result[0] if manager_kpi_result else {}
-        total_ca = (kpi_data.get("total_ca", 0) or 0) + (manager_kpi_data.get("total_ca", 0) or 0)
-        total_ventes = (kpi_data.get("total_ventes", 0) or 0) + (
-            manager_kpi_data.get("total_ventes", 0) or 0
-        )
-        total_clients = kpi_data.get("total_clients", 0) or 0
-        total_articles = kpi_data.get("total_articles", 0) or 0
-        total_prospects = kpi_data.get("total_prospects", 0) or 0
-        sellers_count = len(kpi_data.get("unique_sellers", []))
-        days_count = len(kpi_data.get("unique_dates", []))
-        panier_moyen = (total_ca / total_ventes) if total_ventes > 0 else 0
-        taux_transformation = (total_ventes / total_prospects * 100) if total_prospects > 0 else 0
-        indice_vente = (total_articles / total_ventes) if total_ventes > 0 else 0
-        available_kpis = []
-        if panier_moyen > 0:
-            available_kpis.append(f"Panier Moyen : {panier_moyen:.2f} €")
-        if taux_transformation > 0:
-            available_kpis.append(f"Taux de Transformation : {taux_transformation:.1f} %")
-        if indice_vente > 0:
-            available_kpis.append(f"Indice de Vente (UPT) : {indice_vente:.2f}")
-        available_totals = []
-        if total_ca > 0:
-            available_totals.append(f"CA Total : {total_ca:.2f} €")
-        if total_ventes > 0:
-            available_totals.append(f"Ventes : {total_ventes}")
-        if total_clients > 0:
-            available_totals.append(f"Clients : {total_clients}")
-        if total_articles > 0:
-            available_totals.append(f"Articles : {total_articles}")
-        if total_prospects > 0:
-            available_totals.append(f"Prospects : {total_prospects}")
-        prompt = f"""Tu es un expert en analyse de performance retail pour BOUTIQUES PHYSIQUES. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
+    store = await manager_service.get_store_by_id_simple(
+        resolved_store_id,
+        projection={"_id": 0, "name": 1, "location": 1},
+    )
+    if not store:
+        raise NotFoundError("Magasin non trouvé")
+    store_name = store.get("name", "Magasin")
+    start_date = analysis_data.get("start_date") or analysis_data.get("startDate")
+    end_date = analysis_data.get("end_date") or analysis_data.get("endDate")
+    if not end_date:
+        end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if not start_date:
+        start_dt = datetime.now(timezone.utc) - timedelta(days=30)
+        start_date = start_dt.strftime("%Y-%m-%d")
+    days_diff = (
+        datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d")
+    ).days
+    if days_diff <= 1:
+        period_text = f"le {end_date}"
+    elif days_diff <= 7:
+        period_text = f"la semaine du {start_date} au {end_date}"
+    elif days_diff <= 31:
+        period_text = f"le mois du {start_date} au {end_date}"
+    else:
+        period_text = f"la période du {start_date} au {end_date}"
+    kpi_aggregate_pipeline = [
+        {
+            MONGO_MATCH: {
+                "store_id": resolved_store_id,
+                "date": {"$gte": start_date, "$lte": end_date},
+            }
+        },
+        {
+            MONGO_GROUP: {
+                "_id": None,
+                "total_ca": {"$sum": {MONGO_IFNULL: ["$ca_journalier", {MONGO_IFNULL: ["$seller_ca", 0]}]}},
+                "total_ventes": {"$sum": {MONGO_IFNULL: ["$nb_ventes", 0]}},
+                "total_clients": {"$sum": {MONGO_IFNULL: ["$nb_clients", 0]}},
+                "total_articles": {"$sum": {MONGO_IFNULL: ["$nb_articles", 0]}},
+                "total_prospects": {"$sum": {MONGO_IFNULL: ["$nb_prospects", 0]}},
+                "unique_sellers": {"$addToSet": "$seller_id"},
+                "unique_dates": {"$addToSet": "$date"},
+            }
+        },
+    ]
+    manager_kpi_aggregate_pipeline = [
+        {
+            MONGO_MATCH: {
+                "store_id": resolved_store_id,
+                "date": {"$gte": start_date, "$lte": end_date},
+            }
+        },
+        {
+            MONGO_GROUP: {
+                "_id": None,
+                "total_ca": {"$sum": {MONGO_IFNULL: ["$ca_journalier", 0]}},
+                "total_ventes": {"$sum": {MONGO_IFNULL: ["$nb_ventes", 0]}},
+            }
+        },
+    ]
+    kpi_result = await kpi_service.aggregate_kpi(kpi_aggregate_pipeline, max_results=1)
+    manager_kpi_result = await kpi_service.aggregate_manager_kpi(
+        manager_kpi_aggregate_pipeline, max_results=1
+    )
+    kpi_data = kpi_result[0] if kpi_result else {}
+    manager_kpi_data = manager_kpi_result[0] if manager_kpi_result else {}
+    total_ca = (kpi_data.get("total_ca", 0) or 0) + (manager_kpi_data.get("total_ca", 0) or 0)
+    total_ventes = (kpi_data.get("total_ventes", 0) or 0) + (
+        manager_kpi_data.get("total_ventes", 0) or 0
+    )
+    total_clients = kpi_data.get("total_clients", 0) or 0
+    total_articles = kpi_data.get("total_articles", 0) or 0
+    total_prospects = kpi_data.get("total_prospects", 0) or 0
+    sellers_count = len(kpi_data.get("unique_sellers", []))
+    days_count = len(kpi_data.get("unique_dates", []))
+    panier_moyen = (total_ca / total_ventes) if total_ventes > 0 else 0
+    taux_transformation = (total_ventes / total_prospects * 100) if total_prospects > 0 else 0
+    indice_vente = (total_articles / total_ventes) if total_ventes > 0 else 0
+    available_kpis = []
+    if panier_moyen > 0:
+        available_kpis.append(f"Panier Moyen : {panier_moyen:.2f} €")
+    if taux_transformation > 0:
+        available_kpis.append(f"Taux de Transformation : {taux_transformation:.1f} %")
+    if indice_vente > 0:
+        available_kpis.append(f"Indice de Vente (UPT) : {indice_vente:.2f}")
+    available_totals = []
+    if total_ca > 0:
+        available_totals.append(f"CA Total : {total_ca:.2f} €")
+    if total_ventes > 0:
+        available_totals.append(f"Ventes : {total_ventes}")
+    if total_clients > 0:
+        available_totals.append(f"Clients : {total_clients}")
+    if total_articles > 0:
+        available_totals.append(f"Articles : {total_articles}")
+    if total_prospects > 0:
+        available_totals.append(f"Prospects : {total_prospects}")
+    prompt = f"""Tu es un expert en analyse de performance retail pour BOUTIQUES PHYSIQUES. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
 
 CONTEXTE IMPORTANT : Il s'agit d'une boutique avec flux naturel de clients. Les "prospects" représentent les visiteurs entrés en boutique, PAS de prospection active à faire. Le travail consiste à transformer les visiteurs en acheteurs.
 
@@ -558,9 +553,9 @@ Fournis une analyse en 2 parties courtes :
 - Focus sur l'amélioration des KPIs faibles (taux de transformation, panier moyen, indice de vente)
 
 Format : Markdown simple et concis."""
-        if not ai_service.available:
-            return {
-                "analysis": f"""## Analyse des KPIs du magasin {store_name}
+    if not ai_service.available:
+        return {
+            "analysis": f"""## Analyse des KPIs du magasin {store_name}
 
 📊 **Période** : {period_text}
 
@@ -571,27 +566,27 @@ Format : Markdown simple et concis."""
 {chr(10).join(['- ' + total for total in available_totals]) if available_totals else '- Aucune donnée'}
 
 💡 Pour une analyse IA détaillée, veuillez configurer le service IA.""",
-                "store_name": store_name,
-                "period": {"start": start_date, "end": end_date},
-                "kpis": {
-                    "total_ca": total_ca,
-                    "total_ventes": total_ventes,
-                    "panier_moyen": round(panier_moyen, 2),
-                    "taux_transformation": round(taux_transformation, 1),
-                },
-            }
-        try:
-            analysis_text = await ai_service._send_message(
-                system_message="Tu es un expert en analyse de performance retail avec 15 ans d'expérience.",
-                user_prompt=prompt,
-                model="gpt-4o",
-                temperature=0.7,
-            )
-            if not analysis_text:
-                raise Exception("No response from AI")
-        except Exception as ai_error:
-            logger.error("Store KPI AI error: %s", ai_error)
-            analysis_text = f"""## Résumé automatique des KPIs
+            "store_name": store_name,
+            "period": {"start": start_date, "end": end_date},
+            "kpis": {
+                "total_ca": total_ca,
+                "total_ventes": total_ventes,
+                "panier_moyen": round(panier_moyen, 2),
+                "taux_transformation": round(taux_transformation, 1),
+            },
+        }
+    try:
+        analysis_text = await ai_service._send_message(
+            system_message="Tu es un expert en analyse de performance retail avec 15 ans d'expérience.",
+            user_prompt=prompt,
+            model="gpt-4o",
+            temperature=0.7,
+        )
+        if not analysis_text:
+            raise Exception("No response from AI")
+    except Exception as ai_error:
+        logger.error("Store KPI AI error: %s", ai_error)
+        analysis_text = f"""## Résumé automatique des KPIs
 
 📊 **Magasin** : {store_name}
 **Période** : {period_text}
@@ -603,23 +598,40 @@ Format : Markdown simple et concis."""
 {chr(10).join(['- ' + total for total in available_totals]) if available_totals else '- Aucune donnée'}
 
 ⚠️ Analyse IA temporairement indisponible."""
-        return {
-            "analysis": analysis_text,
-            "store_name": store_name,
-            "period": {"start": start_date, "end": end_date},
-            "kpis": {
-                "total_ca": total_ca,
-                "total_ventes": total_ventes,
-                "total_clients": total_clients,
-                "total_articles": total_articles,
-                "panier_moyen": round(panier_moyen, 2),
-                "taux_transformation": round(taux_transformation, 1),
-                "indice_vente": round(indice_vente, 2),
-                "sellers_count": sellers_count,
-                "days_count": days_count,
-            },
-        }
-    except (ValidationError, NotFoundError):
-        raise
-    except Exception:
-        raise
+    return {
+        "analysis": analysis_text,
+        "store_name": store_name,
+        "period": {"start": start_date, "end": end_date},
+        "kpis": {
+            "total_ca": total_ca,
+            "total_ventes": total_ventes,
+            "total_clients": total_clients,
+            "total_articles": total_articles,
+            "panier_moyen": round(panier_moyen, 2),
+            "taux_transformation": round(taux_transformation, 1),
+            "indice_vente": round(indice_vente, 2),
+            "sellers_count": sellers_count,
+            "days_count": days_count,
+        },
+    }
+
+
+@router.post("/analyze-store-kpis")
+async def analyze_store_kpis(
+    analysis_data: dict,
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context),
+    ai_service: AIService = Depends(get_ai_service),
+    manager_service: ManagerService = Depends(get_manager_service),
+    kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
+):
+    """
+    Generate AI-powered analysis of store KPIs (manager only).
+    Uses GPT-4o with expert retail prompts for physical stores.
+    """
+    resolved_store_id = context.get("resolved_store_id") or store_id
+    if not resolved_store_id:
+        raise ValidationError("Le paramètre store_id est requis pour analyser les KPIs d'un magasin")
+    return await run_store_kpi_analysis(
+        resolved_store_id, analysis_data, manager_service, kpi_service, ai_service
+    )

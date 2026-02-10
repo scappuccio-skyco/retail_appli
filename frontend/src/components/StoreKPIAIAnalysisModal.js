@@ -18,17 +18,22 @@ export default function StoreKPIAIAnalysisModal({
     setLoading(true);
 
     try {
-      // Build store_id param for gerant
+      // Gérant avec storeId → endpoint gerant pour éviter 403. Manager → endpoint manager.
+      const isGerantContext = Boolean(storeId);
       const storeParam = storeId ? `?store_id=${storeId}` : '';
-      
+      const basePath = isGerantContext ? `/gerant/stores/${storeId}` : '/manager';
       let endpoint = '';
       let payload = {};
 
       if (analysisType === 'daily') {
-        endpoint = `/manager/analyze-store-kpis${storeParam}`;
+        endpoint = isGerantContext
+          ? `${basePath}/analyze-store-kpis`
+          : `/manager/analyze-store-kpis${storeParam}`;
         payload = { kpi_data: kpiData };
       } else if (analysisType === 'overview') {
-        endpoint = `/manager/analyze-store-kpis${storeParam}`;
+        endpoint = isGerantContext
+          ? `${basePath}/analyze-store-kpis`
+          : `/manager/analyze-store-kpis${storeParam}`;
         
         // Calculate aggregated metrics
         const { historicalData, viewMode, period } = viewContext;
@@ -74,7 +79,11 @@ export default function StoreKPIAIAnalysisModal({
       toast.success('Analyse IA générée !');
     } catch (err) {
       logger.error('Error generating AI analysis:', err);
-      toast.error('Erreur lors de l\'analyse IA');
+      const status = err.response?.status;
+      const msg = status === 403
+        ? 'Accès refusé. Utilisez le modal depuis le bon tableau de bord (gérant ou manager).'
+        : 'Erreur lors de l\'analyse IA';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
