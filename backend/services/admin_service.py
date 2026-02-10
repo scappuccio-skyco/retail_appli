@@ -1324,10 +1324,12 @@ class AdminService:
             skip=skip,
             sort=[("created_at", -1)]
         )
-        
+        if not isinstance(gerants, list):
+            gerants = []
+
         total_gerants = await self.user_repo.admin_count_all(role="gerant")
-        pages = (total_gerants + size - 1) // size
-        
+        pages = (total_gerants + size - 1) // size if size else 0
+
         result = []
         for gerant in gerants:
             gerant_id = gerant['id']
@@ -1403,7 +1405,7 @@ class AdminService:
             result.append({
                 "id": gerant_id,
                 "name": gerant.get('name', 'N/A'),
-                "email": gerant['email'],
+                "email": gerant.get('email', ''),
                 "trial_end": trial_end,
                 "active_sellers_count": active_sellers_count,
                 "max_sellers": max_sellers,
@@ -1412,11 +1414,15 @@ class AdminService:
                 "subscription_status": subscription_status
             })
         
-        # Sort by trial_end date (closest first)
-        result.sort(key=lambda x: (
-            x['trial_end'] is None,  # Those without trial last
-            x['trial_end'] if x['trial_end'] else ''
-        ))
+        # Sort by trial_end date (closest first); use string key to avoid TypeError when mixing types
+        def _trial_sort_key(x):
+            te = x.get('trial_end')
+            if te is None:
+                return (True, '')
+            if hasattr(te, 'isoformat'):
+                return (False, te.isoformat())
+            return (False, str(te))
+        result.sort(key=_trial_sort_key)
         
         return {
             "gerants": result,
