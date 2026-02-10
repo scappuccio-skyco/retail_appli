@@ -177,7 +177,6 @@ async def transfer_seller_to_store(
     Body: { "new_store_id": "store_uuid", "new_manager_id": "manager_uuid" } (aligné avec le frontend).
     """
     logger.debug("---> ATTEMPTING TRANSFER FOR SELLER: %s", seller_id)
-    print(f"---> ATTEMPTING TRANSFER FOR SELLER: {seller_id}")
     try:
         return await gerant_service.transfer_seller_to_store(
             seller_id, body.model_dump(), current_user['id']
