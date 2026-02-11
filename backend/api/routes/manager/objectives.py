@@ -277,6 +277,9 @@ async def update_objective(
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
+    achievement_service: ManagerAchievementService = Depends(
+        get_manager_achievement_service
+    ),
 ):
     """Update an existing objective."""
     try:

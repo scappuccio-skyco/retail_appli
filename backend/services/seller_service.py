@@ -737,7 +737,8 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
+        # Exclusion-only projection: repo adds password:0; mixing inclusion (store_id:1) with exclusion causes MongoDB error
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "password": 0})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -839,7 +840,8 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
+        # Exclusion-only projection: repo adds password:0; mixing inclusion (store_id:1) with exclusion causes MongoDB error
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "password": 0})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -917,7 +919,8 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
+        # Exclusion-only projection: repo adds password:0; mixing inclusion (store_id:1) with exclusion causes MongoDB error
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "password": 0})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -1023,7 +1026,8 @@ class SellerService:
         - Gérants (store owners)
         """
         # Get seller's store_id for filtering
-        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
+        # Exclusion-only projection: repo adds password:0; mixing inclusion (store_id:1) with exclusion causes MongoDB error
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "password": 0})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -1096,7 +1100,8 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
+        # Exclusion-only projection: repo adds password:0; mixing inclusion (store_id:1) with exclusion causes MongoDB error
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "password": 0})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
@@ -1179,7 +1184,8 @@ class SellerService:
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
-        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "store_id": 1})
+        # Exclusion-only projection: repo adds password:0; mixing inclusion (store_id:1) with exclusion causes MongoDB error
+        seller = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "password": 0})
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
