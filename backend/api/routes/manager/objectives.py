@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from core.constants import ERR_STORE_ID_REQUIS, QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/objectives/active")
 async def get_active_objectives(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     achievement_service: ManagerAchievementService = Depends(
@@ -47,6 +48,7 @@ async def get_active_objectives(
 
 @router.get("/objectives")
 async def get_all_objectives(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),
@@ -137,6 +139,7 @@ async def get_all_objectives(
 
 @router.post("/objectives")
 async def create_objective(
+    request: Request,
     objective_data: dict,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
@@ -264,6 +267,7 @@ async def create_objective(
 
 @router.put("/objectives/{objective_id}")
 async def update_objective(
+    request: Request,
     objective_id: str,
     objective_data: dict,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
@@ -318,6 +322,7 @@ async def update_objective(
 
 @router.delete("/objectives/{objective_id}")
 async def delete_objective(
+    request: Request,
     objective_id: str,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
@@ -349,6 +354,7 @@ async def delete_objective(
 
 @router.post("/objectives/{objective_id}/mark-achievement-seen")
 async def mark_objective_achievement_seen_manager(
+    request: Request,
     objective_id: str,
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),
@@ -377,6 +383,7 @@ async def mark_objective_achievement_seen_manager(
 @router.post("/objectives/{objective_id}")
 @router.post("/objectives/{objective_id}/progress")
 async def update_objective_progress(
+    request: Request,
     objective_id: str,
     progress_data: dict,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),

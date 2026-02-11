@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/sellers", dependencies=[rate_limit("200/minute")])
 async def get_sellers(
+    request: Request,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
@@ -61,6 +62,7 @@ async def get_sellers(
 
 @router.get("/invitations")
 async def get_invitations(
+    request: Request,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     seller_service: ManagerSellerManagementService = Depends(
@@ -74,6 +76,7 @@ async def get_invitations(
 
 @router.get("/sellers/archived")
 async def get_archived_sellers(
+    request: Request,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     page: int = Query(1, ge=1, description=QUERY_PAGE_NUM_DESC),
     size: int = Query(50, ge=1, le=100, description="Taille de page"),
@@ -182,6 +185,7 @@ async def get_seller_stats(
 
 @router.get("/seller/{seller_id}/kpi-history")
 async def get_seller_kpi_history(
+    request: Request,
     seller_id: str,
     days: int = Query(90, description="Number of days"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
@@ -220,6 +224,7 @@ async def get_seller_kpi_history(
 
 @router.get("/seller/{seller_id}/profile")
 async def get_seller_profile(
+    request: Request,
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context_required),
@@ -286,6 +291,7 @@ async def get_seller_kpi_entries(
 
 @router.get("/seller/{seller_id}/diagnostic")
 async def get_seller_diagnostic(
+    request: Request,
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context_required),
@@ -322,6 +328,7 @@ async def get_seller_diagnostic(
 
 @router.get("/debriefs/{seller_id}")
 async def get_seller_debriefs(
+    request: Request,
     pagination: PaginationParams = Depends(),
     seller: dict = Depends(get_verified_seller),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -346,6 +353,7 @@ _COMPETENCES_HISTORY_DEBRIEFS_CAP = 200
 
 @router.get("/competences-history/{seller_id}")
 async def get_seller_competences_history(
+    request: Request,
     seller: dict = Depends(get_verified_seller),
     manager_service: ManagerService = Depends(get_manager_service),
 ):

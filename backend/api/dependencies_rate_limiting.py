@@ -39,7 +39,8 @@ def rate_limit(limit_str: str):
         if not limiter:
             return None
         # Per-endpoint key so /api/manager/sellers gets 200/min, /api/auth/login 10/min, etc.
-        # slowapi appelle _key_func() sans argument : on utilise request du scope parent.
+        # IMPORTANT: slowapi appelle key_func() sans argument. _key_func ne doit pas prendre
+        # req/request en paramètre ; on utilise l'objet request du scope parent (_check_limit).
         def _key_func():
             return f"{get_remote_address(request)}:{request.url.path}"
         async def _noop(request: Request):

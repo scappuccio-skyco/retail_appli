@@ -6,7 +6,7 @@ import logging
 from typing import Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from core.constants import ERR_ACCES_REFUSE_MAGASIN_NON_ASSIGNE, QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/test")
-async def test_endpoint():
+async def test_endpoint(request: Request):
     """Test endpoint to verify manager router is registered."""
     return {"status": "ok", "message": "Manager router is working", "router_prefix": "/manager"}
 
@@ -38,6 +38,7 @@ async def test_endpoint():
 
 @router.get("/subscription-status")
 async def get_subscription_status(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     gerant_service: GerantService = Depends(get_gerant_service),
@@ -106,6 +107,7 @@ async def get_subscription_status(
 
 @router.get("/sync-mode")
 async def get_sync_mode(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context_with_seller),
     store_service: ManagerStoreService = Depends(get_manager_store_service),
@@ -131,6 +133,7 @@ async def get_sync_mode(
 
 @router.get("/store-kpi-overview")
 async def get_store_kpi_overview(
+    request: Request,
     date: str = Query(None),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context_required),
@@ -172,6 +175,7 @@ def _empty_overview_response(target_date: str, resolved_store_id: str):
 
 @router.get("/dates-with-data")
 async def get_dates_with_data(
+    request: Request,
     year: int = Query(None),
     month: int = Query(None),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
@@ -194,6 +198,7 @@ async def get_dates_with_data(
 
 @router.get("/available-years")
 async def get_available_years(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -217,6 +222,7 @@ async def get_available_years(
 
 @router.get("/kpi-config")
 async def get_kpi_config(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     store_service: ManagerStoreService = Depends(get_manager_store_service),
@@ -240,6 +246,7 @@ async def get_kpi_config(
 
 @router.put("/kpi-config")
 async def update_kpi_config(
+    request: Request,
     config_update: dict,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
@@ -269,6 +276,7 @@ async def update_kpi_config(
 
 @router.get("/manager-kpi")
 async def get_manager_kpis(
+    request: Request,
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
@@ -295,6 +303,7 @@ async def get_manager_kpis(
 
 @router.post("/manager-kpi")
 async def save_manager_kpi(
+    request: Request,
     kpi_data: dict,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
@@ -403,6 +412,7 @@ async def save_manager_kpi(
 
 @router.get("/team-bilans/all")
 async def get_team_bilans_all(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -415,6 +425,7 @@ async def get_team_bilans_all(
 
 @router.get("/store-kpi/stats")
 async def get_store_kpi_stats(
+    request: Request,
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
@@ -432,6 +443,7 @@ async def get_store_kpi_stats(
 
 @router.post("/api-keys")
 async def create_api_key(
+    request: Request,
     key_data: dict,
     current_user: dict = Depends(verify_manager_or_gerant),
     api_key_service: APIKeyService = Depends(get_api_key_service),
@@ -451,6 +463,7 @@ async def create_api_key(
 
 @router.get("/api-keys")
 async def list_api_keys(
+    request: Request,
     current_user: dict = Depends(verify_manager_or_gerant),
     api_key_service: APIKeyService = Depends(get_api_key_service),
 ):
@@ -460,6 +473,7 @@ async def list_api_keys(
 
 @router.delete("/api-keys/{key_id}")
 async def delete_api_key(
+    request: Request,
     key_id: str,
     current_user: dict = Depends(verify_manager_or_gerant),
     api_key_service: APIKeyService = Depends(get_api_key_service),
@@ -473,6 +487,7 @@ async def delete_api_key(
 
 @router.post("/api-keys/{key_id}/regenerate")
 async def regenerate_api_key(
+    request: Request,
     key_id: str,
     current_user: dict = Depends(verify_manager_or_gerant),
     api_key_service: APIKeyService = Depends(get_api_key_service),
@@ -488,6 +503,7 @@ async def regenerate_api_key(
 
 @router.delete("/api-keys/{key_id}/permanent")
 async def delete_api_key_permanent(
+    request: Request,
     key_id: str,
     current_user: dict = Depends(verify_manager_or_gerant),
     api_key_service: APIKeyService = Depends(get_api_key_service),

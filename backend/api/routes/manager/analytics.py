@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/store-kpi-overview")
 async def get_store_kpi_overview(
+    request: Request,
     date: str = Query(None),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
@@ -77,6 +78,7 @@ async def get_store_kpi_overview(
 
 @router.get("/dates-with-data")
 async def get_dates_with_data(
+    request: Request,
     year: int = Query(None),
     month: int = Query(None),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
@@ -100,6 +102,7 @@ async def get_dates_with_data(
 
 @router.get("/available-years")
 async def get_available_years(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
@@ -123,6 +126,7 @@ async def get_available_years(
 
 @router.get("/manager-kpi")
 async def get_manager_kpis(
+    request: Request,
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
@@ -150,6 +154,7 @@ async def get_manager_kpis(
 
 @router.post("/manager-kpi")
 async def save_manager_kpi(
+    request: Request,
     kpi_data: dict,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
@@ -257,6 +262,7 @@ async def save_manager_kpi(
 
 @router.get("/store-kpi/stats")
 async def get_store_kpi_stats(
+    request: Request,
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
@@ -270,6 +276,7 @@ async def get_store_kpi_stats(
 
 @router.get("/team-bilans/all")
 async def get_team_bilans_all(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
@@ -319,6 +326,7 @@ async def get_seller_kpi_entries(
 
 @router.get("/team-analyses-history")
 async def get_team_analyses_history(
+    request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
@@ -340,6 +348,7 @@ async def get_team_analyses_history(
 
 @router.post("/analyze-team")
 async def analyze_team(
+    request: Request,
     analysis_data: dict,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
@@ -392,6 +401,7 @@ async def analyze_team(
 
 @router.delete("/team-analysis/{analysis_id}")
 async def delete_team_analysis(
+    request: Request,
     analysis_id: str,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
@@ -618,6 +628,7 @@ Format : Markdown simple et concis."""
 
 @router.post("/analyze-store-kpis")
 async def analyze_store_kpis(
+    request: Request,
     analysis_data: dict,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),

@@ -4,7 +4,7 @@ Manager - Evaluations: diagnostics vendeur, debriefs, historique compétences, c
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 
 from core.constants import QUERY_STORE_ID_REQUIS_GERANT
@@ -43,6 +43,7 @@ class ConflictResolutionRequest(BaseModel):
 
 @router.get("/seller/{seller_id}/diagnostic")
 async def get_seller_diagnostic(
+    request: Request,
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context_required),
@@ -84,6 +85,7 @@ async def get_seller_diagnostic(
 
 @router.get("/debriefs/{seller_id}")
 async def get_seller_debriefs(
+    request: Request,
     page: int = 1,
     size: int = 50,
     seller: dict = Depends(get_verified_seller),
@@ -115,6 +117,7 @@ def _history_item(debrief_or_diagnostic: dict, item_type: str) -> dict:
 
 @router.get("/competences-history/{seller_id}")
 async def get_seller_competences_history(
+    request: Request,
     page: int = 1,
     size: int = 50,
     seller: dict = Depends(get_verified_seller),
@@ -158,7 +161,8 @@ async def get_seller_competences_history(
 
 @router.post("/relationship-advice")
 async def get_relationship_advice(
-    request: RelationshipAdviceRequest,
+    request: Request,
+    body: RelationshipAdviceRequest,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     relationship_service: RelationshipService = Depends(get_relationship_service),
@@ -170,26 +174,26 @@ async def get_relationship_advice(
         manager_id = context.get("id")
         manager_name = context.get("name", "Manager")
         advice_result = await relationship_service.generate_recommendation(
-            seller_id=request.seller_id,
-            advice_type=request.advice_type,
-            situation_type=request.situation_type,
-            description=request.description,
+            seller_id=body.seller_id,
+            advice_type=body.advice_type,
+            situation_type=body.situation_type,
+            description=body.description,
             manager_id=manager_id,
             manager_name=manager_name,
             store_id=resolved_store_id,
             is_seller_request=False,
         )
-        seller = await manager_service.get_seller_by_id_and_store(request.seller_id, resolved_store_id)
+        seller = await manager_service.get_seller_by_id_and_store(body.seller_id, resolved_store_id)
         seller_status = seller.get("status", "active") if seller else "active"
         consultation_id = await relationship_service.save_consultation({
             "store_id": resolved_store_id,
             "manager_id": manager_id,
-            "seller_id": request.seller_id,
+            "seller_id": body.seller_id,
             "seller_name": advice_result["seller_name"],
             "seller_status": seller_status,
-            "advice_type": request.advice_type,
-            "situation_type": request.situation_type,
-            "description": request.description,
+            "advice_type": body.advice_type,
+            "situation_type": body.situation_type,
+            "description": body.description,
             "recommendation": advice_result["recommendation"],
         })
         return {
@@ -206,6 +210,7 @@ async def get_relationship_advice(
 @router.get("/relationship-history")
 @router.get("/relationship-advice/history")
 async def get_relationship_history(
+    request: Request,
     seller_id: Optional[str] = Query(None, description="Filter by seller ID"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
@@ -235,7 +240,8 @@ async def get_relationship_history(
 
 @router.post("/conflict-resolution")
 async def create_conflict_resolution(
-    request: ConflictResolutionRequest,
+    request: Request,
+    body: ConflictResolutionRequest,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     conflict_service: ConflictService = Depends(get_conflict_service),
@@ -247,12 +253,12 @@ async def create_conflict_resolution(
         manager_id = context.get("id")
         manager_name = context.get("name", "Manager")
         advice_result = await conflict_service.generate_conflict_advice(
-            seller_id=request.seller_id,
-            contexte=request.contexte,
-            comportement_observe=request.comportement_observe,
-            impact=request.impact,
-            tentatives_precedentes=request.tentatives_precedentes,
-            description_libre=request.description_libre,
+            seller_id=body.seller_id,
+            contexte=body.contexte,
+            comportement_observe=body.comportement_observe,
+            impact=body.impact,
+            tentatives_precedentes=body.tentatives_precedentes,
+            description_libre=body.description_libre,
             manager_id=manager_id,
             manager_name=manager_name,
             store_id=resolved_store_id,
@@ -261,13 +267,13 @@ async def create_conflict_resolution(
         conflict_id = await conflict_service.save_conflict({
             "store_id": resolved_store_id,
             "manager_id": manager_id,
-            "seller_id": request.seller_id,
+            "seller_id": body.seller_id,
             "seller_name": advice_result["seller_name"],
-            "contexte": request.contexte,
-            "comportement_observe": request.comportement_observe,
-            "impact": request.impact,
-            "tentatives_precedentes": request.tentatives_precedentes,
-            "description_libre": request.description_libre,
+            "contexte": body.contexte,
+            "comportement_observe": body.comportement_observe,
+            "impact": body.impact,
+            "tentatives_precedentes": body.tentatives_precedentes,
+            "description_libre": body.description_libre,
             "ai_analyse_situation": advice_result["ai_analyse_situation"],
             "ai_approche_communication": advice_result["ai_approche_communication"],
             "ai_actions_concretes": advice_result["ai_actions_concretes"],
@@ -290,6 +296,7 @@ async def create_conflict_resolution(
 
 @router.get("/conflict-history/{seller_id}")
 async def get_conflict_history(
+    request: Request,
     seller_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
@@ -310,6 +317,7 @@ async def get_conflict_history(
 
 @router.delete("/relationship-consultation/{consultation_id}")
 async def delete_relationship_consultation(
+    request: Request,
     consultation_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from core.constants import ERR_STORE_ID_REQUIS, QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/challenges/active")
 async def get_active_challenges(
+    request: Request,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     achievement_service: ManagerAchievementService = Depends(
@@ -47,6 +48,7 @@ async def get_active_challenges(
 
 @router.post("/challenges/{challenge_id}/mark-achievement-seen")
 async def mark_challenge_achievement_seen_manager(
+    request: Request,
     challenge_id: str,
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),
@@ -74,8 +76,10 @@ async def mark_challenge_achievement_seen_manager(
 
 @router.get("/challenges")
 async def get_all_challenges(
+    request: Request,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
+    manager_service: ManagerService = Depends(get_manager_service),
     seller_service: SellerService = Depends(get_seller_service),
     achievement_service: ManagerAchievementService = Depends(
         get_manager_achievement_service
@@ -163,12 +167,14 @@ async def get_all_challenges(
                 log_extra["request_id"] = request_id
         logger.info("get_all_challenges completed", extra=log_extra)
         return enriched_challenges
-    except Exception:
+    except Exception as e:
+        logger.error("GET /api/manager/challenges failed: %s", e, exc_info=True)
         raise
 
 
 @router.post("/challenges")
 async def create_challenge(
+    request: Request,
     challenge_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
@@ -222,6 +228,7 @@ async def create_challenge(
 
 @router.put("/challenges/{challenge_id}")
 async def update_challenge(
+    request: Request,
     challenge_id: str,
     challenge_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
@@ -284,6 +291,7 @@ async def update_challenge(
 
 @router.delete("/challenges/{challenge_id}")
 async def delete_challenge(
+    request: Request,
     challenge_id: str,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
@@ -316,6 +324,7 @@ async def delete_challenge(
 @router.post("/challenges/{challenge_id}")
 @router.post("/challenges/{challenge_id}/progress")
 async def update_challenge_progress(
+    request: Request,
     challenge_id: str,
     progress_data: dict,
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
