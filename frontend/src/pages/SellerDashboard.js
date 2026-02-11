@@ -877,13 +877,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   </span>
                 )}
               </p>
-              {/* Badge Données Sécurisées */}
-              <div className="flex items-center gap-1 mt-1">
+              {/* Badge Données Sécurisées + Espace Vendeur */}
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                   Données sécurisées
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border bg-purple-50 text-purple-800 border-purple-300">
+                  Espace Vendeur
                 </span>
                 <span 
                   className="text-xs text-gray-500 cursor-help" 
@@ -1156,6 +1159,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
                 >
                   <div className="relative h-48 overflow-hidden">
+                    <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md bg-purple-100 text-purple-800 border border-purple-300">
+                      Espace Vendeur
+                    </span>
                     <img 
                       src="https://images.unsplash.com/photo-1608222351212-18fe0ec7b13b?w=800&h=400&fit=crop" 
                       alt="Mes Performances"
@@ -1184,6 +1190,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
                 >
                   <div className="relative h-48 overflow-hidden">
+                    <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md bg-purple-100 text-purple-800 border border-purple-300">
+                      Espace Vendeur
+                    </span>
                     <img 
                       src="https://images.unsplash.com/photo-1753161617988-c5f43e441621?w=800&h=400&fit=crop" 
                       alt="Objectifs et Challenges"
@@ -1220,6 +1229,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-400"
                 >
                   <div className="relative h-48 overflow-hidden">
+                    <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md bg-purple-100 text-purple-800 border border-purple-300">
+                      Espace Vendeur
+                    </span>
                     <img 
                       src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop" 
                       alt="Mon coach IA"
@@ -1249,6 +1261,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-pink-400"
                 >
                   <div className="relative h-48 overflow-hidden">
+                    <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md bg-purple-100 text-purple-800 border border-purple-300">
+                      Espace Vendeur
+                    </span>
                     <img 
                       src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop" 
                       alt="Préparer mon Entretien Annuel"

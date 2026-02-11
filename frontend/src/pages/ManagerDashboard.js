@@ -614,8 +614,17 @@ export default function ManagerDashboard({ user, onLogout }) {
     );
   }
 
+  // Libellé de l'espace courant (Gérant ou Manager)
+  const spaceLabel = (user?.role === 'gerant' || user?.role === 'gérant') ? 'Espace Gérant' : 'Espace Manager';
+  const isGerantSpace = (user?.role === 'gerant' || user?.role === 'gérant');
+
   // Helper function to render sections based on order
   const renderSection = (sectionId) => {
+    const spaceBadge = (
+      <span className={`absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md ${isGerantSpace ? 'bg-orange-100 text-orange-800 border border-orange-300' : 'bg-blue-100 text-blue-800 border border-blue-300'}`}>
+        {spaceLabel}
+      </span>
+    );
     const sections = {
       kpi: dashboardFilters.showKPI && (
         <div
@@ -631,6 +640,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('kpi') }}
         >
           <div className="relative h-56 overflow-hidden">
+            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop" 
               alt="Mon Magasin"
@@ -664,6 +674,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('team') }}
         >
           <div className="relative h-56 overflow-hidden">
+            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?w=800&h=400&fit=crop" 
               alt="Mon Équipe"
@@ -698,6 +709,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('objectives') }}
         >
           <div className="relative h-56 overflow-hidden">
+            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=400&fit=crop" 
               alt="Objectifs"
@@ -726,6 +738,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('challenges') }}
         >
           <div className="relative h-56 overflow-hidden">
+            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop" 
               alt="Challenges"
@@ -753,6 +766,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('relationship') }}
         >
           <div className="relative h-56 overflow-hidden">
+            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=400&fit=crop" 
               alt="Gestion relationnelle"
@@ -808,13 +822,16 @@ export default function ManagerDashboard({ user, onLogout }) {
                   </span>
                 )}
               </p>
-              {/* Badge Données Sécurisées */}
-              <div className="flex items-center gap-1 mt-1">
+              {/* Badge Données Sécurisées + Espace */}
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                   Données sécurisées
+                </span>
+                <span className={`inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border ${isGerantSpace ? 'bg-orange-50 text-orange-800 border-orange-300' : 'bg-blue-50 text-blue-800 border-blue-300'}`}>
+                  {spaceLabel}
                 </span>
                 <span 
                   className="text-xs text-gray-500 cursor-help" 
