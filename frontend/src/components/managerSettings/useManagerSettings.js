@@ -125,12 +125,12 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
         challenges: challengesRes.data?.length,
         sellers: sellersRes.data?.length
       });
-      const objectivesData = objectivesRes.data || [];
-      const challengesData = challengesRes.data || [];
+      const objectivesData = Array.isArray(objectivesRes.data) ? objectivesRes.data : [];
+      const challengesData = Array.isArray(challengesRes.data) ? challengesRes.data : [];
       setKpiConfig(configRes.data);
       setObjectives(objectivesData);
       setChallenges(challengesData);
-      setSellers(sellersRes.data || []);
+      setSellers(Array.isArray(sellersRes.data) ? sellersRes.data : (sellersRes.data?.sellers && Array.isArray(sellersRes.data.sellers) ? sellersRes.data.sellers : []));
       const unseenObjective = objectivesData.find(obj => obj.has_unseen_achievement === true);
       const unseenChallenge = challengesData.find(chall => chall.has_unseen_achievement === true);
       if (unseenObjective && !achievementModal.isOpen) {

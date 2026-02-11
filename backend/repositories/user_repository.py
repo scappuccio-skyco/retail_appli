@@ -44,7 +44,9 @@ class UserRepository(BaseRepository):
                 projection["password"] = 0
         else:
             projection = dict(projection)
-            if not include_password and "password" not in projection:
+            # MongoDB: cannot mix inclusion (1) and exclusion (0) except _id. So only add password:0 when using exclusion-only.
+            has_inclusion = any(v == 1 for k, v in projection.items() if k != "_id")
+            if not include_password and "password" not in projection and not has_inclusion:
                 projection["password"] = 0
         
         user = await self.find_one({"id": user_id}, projection)

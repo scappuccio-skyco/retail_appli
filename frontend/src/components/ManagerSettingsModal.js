@@ -264,7 +264,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                             >
                               <option value="">Sélectionner un vendeur</option>
-                              {sellers.map((seller) => (
+                              {(Array.isArray(sellers) ? sellers : []).map((seller) => (
                                 <option key={seller.id} value={seller.id}>
                                   {seller.name}
                                 </option>
@@ -308,7 +308,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       if (selectedVisibleSellers.length === sellers.length) {
                                         setSelectedVisibleSellers([]);
                                       } else {
-                                        setSelectedVisibleSellers(sellers.map(s => s.id));
+                                        setSelectedVisibleSellers((Array.isArray(sellers) ? sellers : []).map(s => s.id));
                                       }
                                     }}
                                     className="text-xs px-2 sm:px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all whitespace-nowrap"
@@ -345,7 +345,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   
                                   {isSellerDropdownOpen && (
                                     <div className="absolute z-10 w-full mt-2 bg-white border-2 border-green-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                      {sellers.map((seller) => (
+                                      {(Array.isArray(sellers) ? sellers : []).map((seller) => (
                                         <label
                                           key={seller.id}
                                           className="flex items-center gap-3 p-3 hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
@@ -357,7 +357,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                               if (e.target.checked) {
                                                 setSelectedVisibleSellers([...selectedVisibleSellers, seller.id]);
                                               } else {
-                                                setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== seller.id));
+                                                setSelectedVisibleSellers((Array.isArray(selectedVisibleSellers) ? selectedVisibleSellers : []).filter(id => id !== seller.id));
                                               }
                                             }}
                                             className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
@@ -370,10 +370,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 </div>
                                 
                                 {/* Selected sellers badges */}
-                                {selectedVisibleSellers.length > 0 && (
+                                {(Array.isArray(selectedVisibleSellers) ? selectedVisibleSellers : []).length > 0 && (
                                   <div className="mt-3 flex flex-wrap gap-2">
-                                    {selectedVisibleSellers.map(sellerId => {
-                                      const seller = sellers.find(s => s.id === sellerId);
+                                    {(Array.isArray(selectedVisibleSellers) ? selectedVisibleSellers : []).map(sellerId => {
+                                      const seller = (Array.isArray(sellers) ? sellers : []).find(s => s.id === sellerId);
                                       return seller ? (
                                         <span 
                                           key={sellerId}
@@ -382,7 +382,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                           {seller.name}
                                           <button
                                             type="button"
-                                            onClick={() => setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== sellerId))}
+                                            onClick={() => setSelectedVisibleSellers((Array.isArray(selectedVisibleSellers) ? selectedVisibleSellers : []).filter(id => id !== sellerId))}
                                             className="ml-1 hover:text-green-900 font-bold text-lg leading-none"
                                           >
                                             ×
@@ -721,7 +721,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       
                       {(() => {
                         const today = new Date().toISOString().split('T')[0];
-                        const activeObjectives = objectives.filter(obj => {
+                        const objectivesList = Array.isArray(objectives) ? objectives : [];
+                        const activeObjectives = objectivesList.filter(obj => {
                           // Objective is active if:
                           // 1. Period hasn't ended yet (period_end >= today)
                           // 2. AND status is 'active' (not 'achieved' or 'failed')
@@ -753,7 +754,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     }`}>
                                       {objective.type === 'collective' ? '👥 Collectif' : (
                                         objective.seller_id ? 
-                                          `👤 ${sellers.find(s => s.id === objective.seller_id)?.name || 'Individuel'}` 
+                                          `👤 ${(Array.isArray(sellers) ? sellers : []).find(s => s.id === objective.seller_id)?.name || 'Individuel'}` 
                                           : '👤 Individuel'
                                       )}
                                     </span>
@@ -794,8 +795,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 {/* Show specific sellers if any */}
                                 {objective.visible && objective.visible_to_sellers && objective.visible_to_sellers.length > 0 && (
                                   <div className="text-xs text-gray-600 mb-2">
-                                    👤 Visible pour : {objective.visible_to_sellers.map(sellerId => {
-                                      const seller = sellers.find(s => s.id === sellerId);
+                                    👤 Visible pour : {(Array.isArray(objective.visible_to_sellers) ? objective.visible_to_sellers : []).map(sellerId => {
+                                      const seller = (Array.isArray(sellers) ? sellers : []).find(s => s.id === sellerId);
                                       return seller ? seller.name : 'Inconnu';
                                     }).join(', ')}
                                   </div>
@@ -978,7 +979,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         <div className="mt-2 bg-white/70 rounded-lg p-2 border border-gray-200">
                                           <p className="text-xs font-semibold text-gray-600 mb-1">📜 Historique des progression</p>
                                           <div className="max-h-28 overflow-y-auto space-y-1">
-                                            {[...objective.progress_history].slice(-10).reverse().map((entry, idx) => {
+                                            {(Array.isArray(objective.progress_history) ? objective.progress_history : []).slice(-10).reverse().map((entry, idx) => {
                                               const dt = entry?.date;
                                               const label = dt ? new Date(dt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
                                               const who = entry?.updated_by_name ? ` • ${entry.updated_by_name}` : '';
@@ -1128,7 +1129,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none"
                             >
                               <option value="">Sélectionner un vendeur</option>
-                              {sellers.map((seller) => (
+                              {(Array.isArray(sellers) ? sellers : []).map((seller) => (
                                 <option key={seller.id} value={seller.id}>
                                   {seller.name} ({seller.email})
                                 </option>
@@ -1172,7 +1173,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       if (selectedVisibleSellersChallenge.length === sellers.length) {
                                         setSelectedVisibleSellersChallenge([]);
                                       } else {
-                                        setSelectedVisibleSellersChallenge(sellers.map(s => s.id));
+                                        setSelectedVisibleSellersChallenge((Array.isArray(sellers) ? sellers : []).map(s => s.id));
                                       }
                                     }}
                                     className="text-xs px-2 sm:px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all whitespace-nowrap"
@@ -1209,7 +1210,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   
                                   {isChallengeSellerDropdownOpen && (
                                     <div className="absolute z-10 w-full mt-2 bg-white border-2 border-green-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                      {sellers.map((seller) => (
+                                      {(Array.isArray(sellers) ? sellers : []).map((seller) => (
                                         <label
                                           key={seller.id}
                                           className="flex items-center gap-3 p-3 hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
@@ -1236,8 +1237,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 {/* Selected sellers badges */}
                                 {selectedVisibleSellersChallenge.length > 0 && (
                                   <div className="mt-3 flex flex-wrap gap-2">
-                                    {selectedVisibleSellersChallenge.map(sellerId => {
-                                      const seller = sellers.find(s => s.id === sellerId);
+                                    {(Array.isArray(selectedVisibleSellersChallenge) ? selectedVisibleSellersChallenge : []).map(sellerId => {
+                                      const seller = (Array.isArray(sellers) ? sellers : []).find(s => s.id === sellerId);
                                       return seller ? (
                                         <span 
                                           key={sellerId}
@@ -1599,7 +1600,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                     
                     {(() => {
                       const today = new Date().toISOString().split('T')[0];
-                      const activeChallenges = challenges.filter(chall => {
+                      const challengesList = Array.isArray(challenges) ? challenges : [];
+                      const activeChallenges = challengesList.filter(chall => {
                         return chall.end_date >= today && chall.status !== 'achieved';
                       });
                       
@@ -1628,7 +1630,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     }`}>
                                       {challenge.type === 'collective' ? '👥 Collectif' : (
                                         challenge.seller_id ? 
-                                          `👤 ${sellers.find(s => s.id === challenge.seller_id)?.name || 'Individuel'}` 
+                                          `👤 ${(Array.isArray(sellers) ? sellers : []).find(s => s.id === challenge.seller_id)?.name || 'Individuel'}` 
                                           : '👤 Individuel'
                                       )}
                                     </span>
@@ -1669,8 +1671,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 {/* Show specific sellers if any */}
                                 {challenge.visible && challenge.visible_to_sellers && challenge.visible_to_sellers.length > 0 && (
                                   <div className="text-xs text-gray-600 mb-2">
-                                    👤 Visible pour : {challenge.visible_to_sellers.map(sellerId => {
-                                      const seller = sellers.find(s => s.id === sellerId);
+                                    👤 Visible pour : {(Array.isArray(challenge.visible_to_sellers) ? challenge.visible_to_sellers : []).map(sellerId => {
+                                      const seller = (Array.isArray(sellers) ? sellers : []).find(s => s.id === sellerId);
                                       return seller ? seller.name : 'Inconnu';
                                     }).join(', ')}
                                   </div>
@@ -1826,7 +1828,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   return kpiProgressions.length > 0 ? (
                                     <div className="mt-3 space-y-2">
                                       <div className="text-xs font-semibold text-gray-600 mb-2">📊 Progression par KPI</div>
-                                      {kpiProgressions.map((kpi, index) => {
+                                      {(Array.isArray(kpiProgressions) ? kpiProgressions : []).map((kpi, index) => {
                                         let progressColor = 'bg-red-500';
                                         if (kpi.percent >= 75) progressColor = 'bg-green-500';
                                         else if (kpi.percent >= 50) progressColor = 'bg-yellow-500';
@@ -2014,7 +2016,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       <div className="mt-2 bg-white/70 rounded-lg p-2 border border-gray-200">
                                           <p className="text-xs font-semibold text-gray-600 mb-1">📜 Historique des progression</p>
                                         <div className="max-h-28 overflow-y-auto space-y-1">
-                                          {[...challenge.progress_history].slice(-10).reverse().map((entry, idx) => {
+                                          {(Array.isArray(challenge.progress_history) ? challenge.progress_history : []).slice(-10).reverse().map((entry, idx) => {
                                             const dt = entry?.date;
                                             const label = dt ? new Date(dt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
                                             const who = entry?.updated_by_name ? ` • ${entry.updated_by_name}` : '';
