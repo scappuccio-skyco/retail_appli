@@ -1507,8 +1507,10 @@ class SellerService:
         # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
         # If more data is needed, use streaming/cursor approach
         MAX_KPI_BATCH_SIZE = 10000
-        # ✅ PHASE 7: Use repository instead of direct DB access
-        all_kpi_entries = await self.kpi_repo.find_many(kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE)
+        # ✅ PHASE 7: Use repository instead of direct DB access (allow_over_limit for internal batch)
+        all_kpi_entries = await self.kpi_repo.find_many(
+            kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE, allow_over_limit=True
+        )
         
         if len(all_kpi_entries) == MAX_KPI_BATCH_SIZE:
             logger.warning(f"KPI entries query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
@@ -1524,7 +1526,9 @@ class SellerService:
         increment_db_op("db.manager_kpis.find (batch - objectives)")
         # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
         # ✅ PHASE 7: Use repository instead of direct DB access
-        all_manager_kpis = await self.manager_kpi_repo.find_many(manager_kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE)
+        all_manager_kpis = await self.manager_kpi_repo.find_many(
+            manager_kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE, allow_over_limit=True
+        )
         
         if len(all_manager_kpis) == MAX_KPI_BATCH_SIZE:
             logger.warning(f"Manager KPIs query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
@@ -1894,8 +1898,10 @@ class SellerService:
             increment_db_op("db.kpi_entries.find (batch - challenges)")
             # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
             MAX_KPI_BATCH_SIZE = 10000
-            # ✅ PHASE 7: Use repository instead of direct DB access
-            all_kpi_entries = await self.kpi_repo.find_many(kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE)
+            # ✅ PHASE 7: Use repository instead of direct DB access (allow_over_limit for internal batch)
+            all_kpi_entries = await self.kpi_repo.find_many(
+                kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE, allow_over_limit=True
+            )
 
             if len(all_kpi_entries) == MAX_KPI_BATCH_SIZE:
                 logger.warning(f"KPI entries query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
@@ -1911,7 +1917,9 @@ class SellerService:
             increment_db_op("db.manager_kpis.find (batch - challenges)")
             # ⚠️ SECURITY: Limit to 10,000 documents max to prevent OOM
             # ✅ PHASE 7: Use repository instead of direct DB access
-            all_manager_kpis = await self.manager_kpi_repo.find_many(manager_kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE)
+            all_manager_kpis = await self.manager_kpi_repo.find_many(
+                manager_kpi_query, {"_id": 0}, limit=MAX_KPI_BATCH_SIZE, allow_over_limit=True
+            )
 
             if len(all_manager_kpis) == MAX_KPI_BATCH_SIZE:
                 logger.warning(f"Manager KPIs query hit limit of {MAX_KPI_BATCH_SIZE} documents. Consider using pagination or date range filtering.")
