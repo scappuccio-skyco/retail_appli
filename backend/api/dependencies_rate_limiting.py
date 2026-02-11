@@ -39,8 +39,9 @@ def rate_limit(limit_str: str):
         if not limiter:
             return None
         # Per-endpoint key so /api/manager/sellers gets 200/min, /api/auth/login 10/min, etc.
-        def _key_func(req: Request):
-            return f"{get_remote_address(req)}:{req.url.path}"
+        # slowapi appelle _key_func() sans argument : on utilise request du scope parent.
+        def _key_func():
+            return f"{get_remote_address(request)}:{request.url.path}"
         async def _noop(request: Request):
             return None
         wrapped = limiter.limit(limit_str, key_func=_key_func)(_noop)
