@@ -37,11 +37,11 @@ class Evaluation(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     sale_id: str
     seller_id: str
-    accueil: int  # 1-5
-    decouverte: int  # 1-5
-    argumentation: int  # 1-5
-    closing: int  # 1-5
-    fidelisation: int  # 1-5
+    accueil: int  # 1-10
+    decouverte: int  # 1-10
+    argumentation: int  # 1-10
+    closing: int  # 1-10
+    fidelisation: int  # 1-10
     auto_comment: Optional[str] = None
     ai_feedback: Optional[str] = None
     radar_scores: dict = {}
@@ -82,7 +82,7 @@ class Debrief(BaseModel):
     ai_points_travailler: Optional[str] = None
     ai_recommandation: Optional[str] = None
     ai_exemple_concret: Optional[str] = None
-    # Scores de compétences /5 après ce débrief
+    # Scores de compétences sur 10 (une décimale) après ce débrief
     score_accueil: float = 0
     score_decouverte: float = 0
     score_argumentation: float = 0

@@ -838,11 +838,11 @@ async def get_daily_challenge(
     else:
             # Find weakest competence not recently used
             scores = {
-                'accueil': diagnostic.get('score_accueil', 3),
-                'decouverte': diagnostic.get('score_decouverte', 3),
-                'argumentation': diagnostic.get('score_argumentation', 3),
-                'closing': diagnostic.get('score_closing', 3),
-                'fidelisation': diagnostic.get('score_fidelisation', 3)
+                'accueil': diagnostic.get('score_accueil', 6.0),
+                'decouverte': diagnostic.get('score_decouverte', 6.0),
+                'argumentation': diagnostic.get('score_argumentation', 6.0),
+                'closing': diagnostic.get('score_closing', 6.0),
+                'fidelisation': diagnostic.get('score_fidelisation', 6.0)
             }
             sorted_comps = sorted(scores.items(), key=lambda x: x[1])
             
@@ -979,15 +979,23 @@ async def get_my_diagnostic(
         return "Convivial"  # Default
     
     def map_level(level_value):
-        """Convert raw level (number) to formatted level"""
+        """Convert raw level (number or string) to the 4 niveaux gamifiés (aligné Guide des profils)."""
         if not level_value:
             return "Challenger"
-        # If it's already a string, return as is
+        # Niveaux gamifiés = affichage frontend (GuideProfilsModal)
+        valid_levels = ['Nouveau Talent', 'Challenger', 'Ambassadeur', 'Maître du Jeu']
+        # Legacy: accepter anciens libellés et les normaliser
+        legacy_to_gamified = {
+            'Explorateur': 'Nouveau Talent',
+            'Débutant': 'Nouveau Talent',
+            'Intermédiaire': 'Challenger',
+            'Expert terrain': 'Ambassadeur',
+        }
         if isinstance(level_value, str):
-            valid_levels = ['Explorateur', 'Challenger', 'Ambassadeur', 'Maître du Jeu', 'Débutant', 'Intermédiaire', 'Expert terrain']
             if level_value in valid_levels:
                 return level_value
-        # If it's a number, map to level
+            if level_value in legacy_to_gamified:
+                return legacy_to_gamified[level_value]
         if isinstance(level_value, (int, float)):
             if level_value >= 80:
                 return "Maître du Jeu"
@@ -996,7 +1004,7 @@ async def get_my_diagnostic(
             elif level_value >= 40:
                 return "Challenger"
             else:
-                return "Explorateur"
+                return "Nouveau Talent"
         return "Challenger"  # Default
     
     def map_motivation(motivation_value):
@@ -1079,11 +1087,11 @@ async def get_my_diagnostic_live_scores(
             "has_diagnostic": False,
             "seller_id": current_user['id'],
             "scores": {
-                "accueil": 3.0,
-                "decouverte": 3.0,
-                "argumentation": 3.0,
-                "closing": 3.0,
-                "fidelisation": 3.0
+                "accueil": 6.0,
+                "decouverte": 6.0,
+                "argumentation": 6.0,
+                "closing": 6.0,
+                "fidelisation": 6.0
             },
             "message": "Scores par défaut (diagnostic non complété)"
         }
@@ -1092,11 +1100,11 @@ async def get_my_diagnostic_live_scores(
         "has_diagnostic": True,
         "seller_id": current_user['id'],
         "scores": {
-            "accueil": diagnostic.get('score_accueil', 3.0),
-            "decouverte": diagnostic.get('score_decouverte', 3.0),
-            "argumentation": diagnostic.get('score_argumentation', 3.0),
-            "closing": diagnostic.get('score_closing', 3.0),
-            "fidelisation": diagnostic.get('score_fidelisation', 3.0)
+            "accueil": diagnostic.get('score_accueil', 6.0),
+            "decouverte": diagnostic.get('score_decouverte', 6.0),
+            "argumentation": diagnostic.get('score_argumentation', 6.0),
+            "closing": diagnostic.get('score_closing', 6.0),
+            "fidelisation": diagnostic.get('score_fidelisation', 6.0)
         },
         "updated_at": diagnostic.get('updated_at', diagnostic.get('created_at'))
     }
@@ -1408,11 +1416,11 @@ async def get_diagnostic_live_scores(
             "has_diagnostic": False,
             "seller_id": current_user['id'],
             "scores": {
-                "accueil": 3.0,
-                "decouverte": 3.0,
-                "argumentation": 3.0,
-                "closing": 3.0,
-                "fidelisation": 3.0
+                "accueil": 6.0,
+                "decouverte": 6.0,
+                "argumentation": 6.0,
+                "closing": 6.0,
+                "fidelisation": 6.0
             },
             "message": "Scores par défaut (diagnostic non complété)"
         }
@@ -1420,11 +1428,11 @@ async def get_diagnostic_live_scores(
         "has_diagnostic": True,
         "seller_id": current_user['id'],
         "scores": {
-            "accueil": diagnostic.get('score_accueil', 3.0),
-            "decouverte": diagnostic.get('score_decouverte', 3.0),
-            "argumentation": diagnostic.get('score_argumentation', 3.0),
-            "closing": diagnostic.get('score_closing', 3.0),
-            "fidelisation": diagnostic.get('score_fidelisation', 3.0)
+            "accueil": diagnostic.get('score_accueil', 6.0),
+            "decouverte": diagnostic.get('score_decouverte', 6.0),
+            "argumentation": diagnostic.get('score_argumentation', 6.0),
+            "closing": diagnostic.get('score_closing', 6.0),
+            "fidelisation": diagnostic.get('score_fidelisation', 6.0)
         },
         "updated_at": diagnostic.get('updated_at', diagnostic.get('created_at'))
     }
@@ -1518,8 +1526,9 @@ class DiagnosticCreate(BaseModel):
 
 def calculate_competence_scores_from_questionnaire(responses: dict) -> dict:
     """
-    Calculate competence scores from questionnaire responses
-    Questions 1-15 are mapped to 5 competences (3 questions each)
+    Calculate competence scores from questionnaire responses (scale 0-10, one decimal).
+    Questions 1-15 are mapped to 5 competences (3 questions each).
+    Barème: each option score is on 10 (e.g. former 4 -> 8, 5 -> 10).
     """
     competence_mapping = {
         'accueil': [1, 2, 3],
@@ -1528,25 +1537,25 @@ def calculate_competence_scores_from_questionnaire(responses: dict) -> dict:
         'closing': [10, 11, 12],
         'fidelisation': [13, 14, 15]
     }
-    
+    # Barème sur 10 (une décimale). Au moins une option à 3 par question pour marge de progression (~3/10 min).
     question_scores = {
-        1: [5, 3, 4],
-        2: [5, 4, 3, 2],
-        3: [3, 5, 4],
-        4: [5, 4, 3],
-        5: [5, 4, 4, 3],
-        6: [5, 3, 4],
-        7: [3, 5, 4],
-        8: [3, 5, 4, 3],
-        9: [4, 3, 5],
-        10: [5, 4, 5, 3],
-        11: [4, 3, 5],
-        12: [5, 4, 5, 3],
-        13: [4, 4, 5, 5],
-        14: [4, 5, 3],
-        15: [5, 3, 5, 4]
+        1: [10, 3, 8],
+        2: [10, 8, 6, 3],
+        3: [3, 10, 8],
+        4: [10, 8, 3],
+        5: [10, 8, 8, 3],
+        6: [10, 3, 8],
+        7: [3, 10, 8],
+        8: [3, 10, 8, 6],
+        9: [8, 3, 10],
+        10: [10, 8, 10, 3],
+        11: [8, 3, 10],
+        12: [10, 8, 10, 3],
+        13: [3, 8, 10, 10],
+        14: [8, 10, 3],
+        15: [10, 3, 10, 8]
     }
-    
+    default_score = 6.0  # neutral on 0-10 scale
     scores = {
         'accueil': [],
         'decouverte': [],
@@ -1561,23 +1570,20 @@ def calculate_competence_scores_from_questionnaire(responses: dict) -> dict:
             if q_key in responses:
                 response_value = responses[q_key]
                 try:
-                    # Convert to int if string (e.g., "0" -> 0)
                     option_idx = int(response_value) if not isinstance(response_value, int) else response_value
                     if q_id in question_scores and 0 <= option_idx < len(question_scores[q_id]):
                         scores[competence].append(question_scores[q_id][option_idx])
                     else:
-                        scores[competence].append(3.0)
+                        scores[competence].append(default_score)
                 except (ValueError, TypeError):
-                    # Invalid response format, use default
-                    scores[competence].append(3.0)
+                    scores[competence].append(default_score)
     
     final_scores = {}
     for competence, score_list in scores.items():
         if score_list:
             final_scores[f'score_{competence}'] = round(sum(score_list) / len(score_list), 1)
         else:
-            final_scores[f'score_{competence}'] = 3.0
-    
+            final_scores[f'score_{competence}'] = default_score
     return final_scores
 
 
@@ -1701,13 +1707,21 @@ async def _create_diagnostic_impl(
         return "Convivial"
 
     def map_level(level_value):
-        """Convert raw level (number) to formatted level"""
+        """Convert raw level (number or string) to the 4 niveaux gamifiés (aligné Guide des profils)."""
         if not level_value:
             return "Challenger"
+        valid_levels = ['Nouveau Talent', 'Challenger', 'Ambassadeur', 'Maître du Jeu']
+        legacy_to_gamified = {
+            'Explorateur': 'Nouveau Talent',
+            'Débutant': 'Nouveau Talent',
+            'Intermédiaire': 'Challenger',
+            'Expert terrain': 'Ambassadeur',
+        }
         if isinstance(level_value, str):
-            valid_levels = ['Explorateur', 'Challenger', 'Ambassadeur', 'Maître du Jeu', 'Débutant', 'Intermédiaire', 'Expert terrain']
             if level_value in valid_levels:
                 return level_value
+            if level_value in legacy_to_gamified:
+                return legacy_to_gamified[level_value]
         if isinstance(level_value, (int, float)):
             if level_value >= 80:
                 return "Maître du Jeu"
@@ -1716,7 +1730,7 @@ async def _create_diagnostic_impl(
             elif level_value >= 40:
                 return "Challenger"
             else:
-                return "Explorateur"
+                return "Nouveau Talent"
         return "Challenger"
 
     def map_motivation(motivation_value):
@@ -1738,7 +1752,7 @@ async def _create_diagnostic_impl(
 
 Analyse ses réponses pour identifier :
 - son style de vente dominant (Convivial, Explorateur, Dynamique, Discret ou Stratège)
-- son niveau global (Explorateur, Challenger, Ambassadeur, Maître du Jeu)
+- son niveau global (Nouveau Talent, Challenger, Ambassadeur, Maître du Jeu)
 - ses leviers de motivation (Relation, Reconnaissance, Performance, Découverte)
 
 Rédige un retour structuré avec une phrase d'intro, deux points forts, un axe d'amélioration et une phrase motivante.
@@ -1798,11 +1812,11 @@ Réponds au format JSON:
         "motivation": final_motivation,
         "strengths": strengths if strengths else [],
         "axes_de_developpement": axes_de_developpement if axes_de_developpement else [],
-        "score_accueil": competence_scores.get('score_accueil', 3.0),
-        "score_decouverte": competence_scores.get('score_decouverte', 3.0),
-        "score_argumentation": competence_scores.get('score_argumentation', 3.0),
-        "score_closing": competence_scores.get('score_closing', 3.0),
-        "score_fidelisation": competence_scores.get('score_fidelisation', 3.0),
+        "score_accueil": competence_scores.get('score_accueil', 6.0),
+        "score_decouverte": competence_scores.get('score_decouverte', 6.0),
+        "score_argumentation": competence_scores.get('score_argumentation', 6.0),
+        "score_closing": competence_scores.get('score_closing', 6.0),
+        "score_fidelisation": competence_scores.get('score_fidelisation', 6.0),
         "disc_dominant": disc_profile['dominant'],
         "disc_percentages": disc_profile['percentages'],
         "created_at": datetime.now(timezone.utc).isoformat()
@@ -1811,12 +1825,12 @@ Réponds au format JSON:
     validation_errors = []
     if not disc_profile.get('percentages') or sum(disc_profile['percentages'].values()) == 0:
         validation_errors.append("DISC percentages are all zero")
-    if all(score == 3.0 for score in [
+    if all(score == 6.0 for score in [
         diagnostic['score_accueil'], diagnostic['score_decouverte'],
         diagnostic['score_argumentation'], diagnostic['score_closing'],
         diagnostic['score_fidelisation']
     ]):
-        validation_errors.append("All competence scores are default (3.0)")
+        validation_errors.append("All competence scores are default (6.0)")
 
     if validation_errors:
         logger.warning("Diagnostic validation warnings for seller %s: %s", seller_id, validation_errors)
@@ -1896,11 +1910,11 @@ async def refresh_daily_challenge(
         selected_competence = random.choice(available) if available else random.choice(competences)
     else:
         scores = {
-            'accueil': diagnostic.get('score_accueil', 3),
-            'decouverte': diagnostic.get('score_decouverte', 3),
-            'argumentation': diagnostic.get('score_argumentation', 3),
-            'closing': diagnostic.get('score_closing', 3),
-            'fidelisation': diagnostic.get('score_fidelisation', 3)
+            'accueil': diagnostic.get('score_accueil', 6.0),
+            'decouverte': diagnostic.get('score_decouverte', 6.0),
+            'argumentation': diagnostic.get('score_argumentation', 6.0),
+            'closing': diagnostic.get('score_closing', 6.0),
+            'fidelisation': diagnostic.get('score_fidelisation', 6.0)
         }
         sorted_comps = sorted(scores.items(), key=lambda x: x[1])
         selected_competence = None

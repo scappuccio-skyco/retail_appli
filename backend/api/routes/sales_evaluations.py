@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from api.dependencies import get_seller_service
 from core.security import get_current_user, require_active_space
@@ -31,11 +31,11 @@ class SaleCreate(BaseModel):
 
 class EvaluationCreate(BaseModel):
     sale_id: str
-    accueil: int
-    decouverte: int
-    argumentation: int
-    closing: int
-    fidelisation: int
+    accueil: int = Field(..., ge=1, le=10, description="Score sur 10")
+    decouverte: int = Field(..., ge=1, le=10, description="Score sur 10")
+    argumentation: int = Field(..., ge=1, le=10, description="Score sur 10")
+    closing: int = Field(..., ge=1, le=10, description="Score sur 10")
+    fidelisation: int = Field(..., ge=1, le=10, description="Score sur 10")
     auto_comment: str = ""
 
 

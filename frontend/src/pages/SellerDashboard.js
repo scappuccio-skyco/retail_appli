@@ -781,7 +781,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       ]
     : [];
 
-  // Calculate evolution data from competences history - Score global sur 25
+  // Calculate evolution data from competences history - Score global sur 50 (5 compétences × 10)
   const evolutionData = competencesHistory.map((entry, idx) => {
     const date = new Date(entry.date);
     const scoreTotal = 

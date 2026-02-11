@@ -363,11 +363,11 @@ async def get_seller_competences_history(
         history.append({
             "type": "diagnostic",
             "date": diagnostic.get("created_at"),
-            "score_accueil": diagnostic.get("score_accueil", 3.0),
-            "score_decouverte": diagnostic.get("score_decouverte", 3.0),
-            "score_argumentation": diagnostic.get("score_argumentation", 3.0),
-            "score_closing": diagnostic.get("score_closing", 3.0),
-            "score_fidelisation": diagnostic.get("score_fidelisation", 3.0),
+            "score_accueil": diagnostic.get("score_accueil", 6.0),
+            "score_decouverte": diagnostic.get("score_decouverte", 6.0),
+            "score_argumentation": diagnostic.get("score_argumentation", 6.0),
+            "score_closing": diagnostic.get("score_closing", 6.0),
+            "score_fidelisation": diagnostic.get("score_fidelisation", 6.0),
         })
     debriefs = await manager_service.get_debriefs_by_seller(
         seller_id, limit=_COMPETENCES_HISTORY_DEBRIEFS_CAP, skip=0
@@ -376,10 +376,10 @@ async def get_seller_competences_history(
         history.append({
             "type": "debrief",
             "date": debrief.get("created_at"),
-            "score_accueil": debrief.get("score_accueil", 3.0),
-            "score_decouverte": debrief.get("score_decouverte", 3.0),
-            "score_argumentation": debrief.get("score_argumentation", 3.0),
-            "score_closing": debrief.get("score_closing", 3.0),
-            "score_fidelisation": debrief.get("score_fidelisation", 3.0),
+            "score_accueil": debrief.get("score_accueil", 6.0),
+            "score_decouverte": debrief.get("score_decouverte", 6.0),
+            "score_argumentation": debrief.get("score_argumentation", 6.0),
+            "score_closing": debrief.get("score_closing", 6.0),
+            "score_fidelisation": debrief.get("score_fidelisation", 6.0),
         })
     return history

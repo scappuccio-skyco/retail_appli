@@ -18,9 +18,9 @@ class DiagnosticResult(BaseModel):
     responses: dict
     ai_profile_summary: str
     style: str  # Convivial, Explorateur, Dynamique, Discret, Stratège
-    level: str  # Débutant, Intermédiaire, Expert terrain
+    level: str  # Niveaux gamifiés: Nouveau Talent, Challenger, Ambassadeur, Maître du Jeu
     motivation: str  # Relation, Reconnaissance, Performance, Découverte
-    # Scores de compétences /5
+    # Scores de compétences sur 10 (une décimale)
     score_accueil: float = 0
     score_decouverte: float = 0
     score_argumentation: float = 0

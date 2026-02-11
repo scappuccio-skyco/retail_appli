@@ -299,7 +299,7 @@ export default function TeamBilanIA() {
                 {Object.entries(bilan.competences_moyenne).map(([comp, score]) => (
                   <div key={comp} className="text-center">
                     <p className="text-xs text-gray-600 mb-1 capitalize">{comp}</p>
-                    <p className="text-lg font-bold text-gray-800">{score}/5</p>
+                    <p className="text-lg font-bold text-gray-800">{score}/10</p>
                   </div>
                 ))}
               </div>

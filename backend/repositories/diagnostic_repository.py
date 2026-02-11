@@ -52,11 +52,11 @@ class DiagnosticRepository(BaseRepository):
         from datetime import datetime, timezone
         update = {
             "$set": {
-                "score_accueil": scores.get("accueil", 3.0),
-                "score_decouverte": scores.get("decouverte", 3.0),
-                "score_argumentation": scores.get("argumentation", 3.0),
-                "score_closing": scores.get("closing", 3.0),
-                "score_fidelisation": scores.get("fidelisation", 3.0),
+                "score_accueil": scores.get("accueil", 6.0),
+                "score_decouverte": scores.get("decouverte", 6.0),
+                "score_argumentation": scores.get("argumentation", 6.0),
+                "score_closing": scores.get("closing", 6.0),
+                "score_fidelisation": scores.get("fidelisation", 6.0),
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
         }

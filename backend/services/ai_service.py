@@ -776,19 +776,19 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
 💪 Ce qui a le mieux fonctionné : {debrief_data.get('amelioration_pensee', 'Non spécifié')}
 {kpi_context}
 
-### SCORES ACTUELS DES COMPÉTENCES (sur 5)
-- Accueil : {current_scores.get('accueil', 3.0)}
-- Découverte : {current_scores.get('decouverte', 3.0)}
-- Argumentation : {current_scores.get('argumentation', 3.0)}
-- Closing : {current_scores.get('closing', 3.0)}
-- Fidélisation : {current_scores.get('fidelisation', 3.0)}
+### SCORES ACTUELS DES COMPÉTENCES (sur 10, une décimale)
+- Accueil : {current_scores.get('accueil', 6.0)}
+- Découverte : {current_scores.get('decouverte', 6.0)}
+- Argumentation : {current_scores.get('argumentation', 6.0)}
+- Closing : {current_scores.get('closing', 6.0)}
+- Fidélisation : {current_scores.get('fidelisation', 6.0)}
 
 ### OBJECTIF
 1. FÉLICITER le vendeur pour cette réussite avec enthousiasme !
 2. Identifier 2 points forts qui ont contribué au succès
 3. Donner 1 recommandation pour reproduire ou dépasser ce succès
 4. Donner 1 exemple concret et actionnable
-5. **IMPORTANT** : Réévaluer les 5 compétences en valorisant les points forts (+0.2 à +0.5)
+5. **IMPORTANT** : Réévaluer les 5 compétences (sur 10) en valorisant les points forts (+0.4 à +1.0)
 
 ### FORMAT DE SORTIE (JSON uniquement)
 {{
@@ -796,11 +796,11 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
   "points_travailler": "[Point fort 1]\\n[Point fort 2]",
   "recommandation": "[Une phrase courte et motivante]",
   "exemple_concret": "[Action concrète pour reproduire ce succès]",
-  "score_accueil": 3.5,
-  "score_decouverte": 4.0,
-  "score_argumentation": 3.0,
-  "score_closing": 3.5,
-  "score_fidelisation": 4.0
+  "score_accueil": 7.0,
+  "score_decouverte": 8.0,
+  "score_argumentation": 6.0,
+  "score_closing": 7.0,
+  "score_fidelisation": 8.0
 }}
 
 ### STYLE ATTENDU
@@ -825,19 +825,19 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
 🔄 Ce que tu penses pouvoir faire différemment : {debrief_data.get('amelioration_pensee', 'Non spécifié')}
 {kpi_context}
 
-### SCORES ACTUELS DES COMPÉTENCES (sur 5)
-- Accueil : {current_scores.get('accueil', 3.0)}
-- Découverte : {current_scores.get('decouverte', 3.0)}
-- Argumentation : {current_scores.get('argumentation', 3.0)}
-- Closing : {current_scores.get('closing', 3.0)}
-- Fidélisation : {current_scores.get('fidelisation', 3.0)}
+### SCORES ACTUELS DES COMPÉTENCES (sur 10, une décimale)
+- Accueil : {current_scores.get('accueil', 6.0)}
+- Découverte : {current_scores.get('decouverte', 6.0)}
+- Argumentation : {current_scores.get('argumentation', 6.0)}
+- Closing : {current_scores.get('closing', 6.0)}
+- Fidélisation : {current_scores.get('fidelisation', 6.0)}
 
 ### OBJECTIF
 1. Fournir une analyse commerciale réaliste et empathique
 2. Identifier 2 axes d'amélioration concrets
 3. Donner 1 recommandation claire et motivante
 4. Ajouter 1 exemple concret de phrase ou comportement à adopter
-5. **IMPORTANT** : Réévaluer les 5 compétences (ajuster légèrement -0.2 à +0.2)
+5. **IMPORTANT** : Réévaluer les 5 compétences (sur 10, ajuster légèrement -0.4 à +0.4)
 
 ### FORMAT DE SORTIE (JSON uniquement)
 {{
@@ -845,11 +845,11 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
   "points_travailler": "[Axe 1]\\n[Axe 2]",
   "recommandation": "[Une phrase courte, claire et motivante]",
   "exemple_concret": "[Une phrase illustrant ce que tu aurais pu dire ou faire]",
-  "score_accueil": 3.5,
-  "score_decouverte": 4.0,
-  "score_argumentation": 3.0,
-  "score_closing": 3.5,
-  "score_fidelisation": 4.0
+  "score_accueil": 7.0,
+  "score_decouverte": 8.0,
+  "score_argumentation": 6.0,
+  "score_closing": 7.0,
+  "score_fidelisation": 8.0
 }}
 
 ### STYLE ATTENDU
@@ -871,18 +871,18 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
             return self._fallback_debrief(current_scores, is_success)
     
     def _fallback_debrief(self, current_scores: Dict, is_success: bool) -> Dict:
-        """Fallback debrief"""
+        """Fallback debrief (scores sur 10)."""
         if is_success:
             return {
                 "analyse": "Bravo pour cette vente ! Continue sur cette lancée.",
                 "points_travailler": "Argumentation produit\nClosing",
                 "recommandation": "Continue à appliquer ces techniques gagnantes.",
                 "exemple_concret": "La prochaine fois, propose aussi un produit complémentaire.",
-                "score_accueil": current_scores.get('accueil', 3.0),
-                "score_decouverte": current_scores.get('decouverte', 3.0),
-                "score_argumentation": min(current_scores.get('argumentation', 3.0) + 0.2, 5.0),
-                "score_closing": min(current_scores.get('closing', 3.0) + 0.2, 5.0),
-                "score_fidelisation": current_scores.get('fidelisation', 3.0)
+                "score_accueil": current_scores.get('accueil', 6.0),
+                "score_decouverte": current_scores.get('decouverte', 6.0),
+                "score_argumentation": min(current_scores.get('argumentation', 6.0) + 0.4, 10.0),
+                "score_closing": min(current_scores.get('closing', 6.0) + 0.4, 10.0),
+                "score_fidelisation": current_scores.get('fidelisation', 6.0)
             }
         else:
             return {
@@ -890,11 +890,11 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
                 "points_travailler": "Découverte des besoins\nTraitement des objections",
                 "recommandation": "Prends plus de temps pour comprendre les motivations du client.",
                 "exemple_concret": "Essaie de demander : 'Qu'est-ce qui vous ferait hésiter ?'",
-                "score_accueil": current_scores.get('accueil', 3.0),
-                "score_decouverte": max(current_scores.get('decouverte', 3.0) - 0.1, 1.0),
-                "score_argumentation": current_scores.get('argumentation', 3.0),
-                "score_closing": max(current_scores.get('closing', 3.0) - 0.1, 1.0),
-                "score_fidelisation": current_scores.get('fidelisation', 3.0)
+                "score_accueil": current_scores.get('accueil', 6.0),
+                "score_decouverte": max(current_scores.get('decouverte', 6.0) - 0.2, 2.0),
+                "score_argumentation": current_scores.get('argumentation', 6.0),
+                "score_closing": max(current_scores.get('closing', 6.0) - 0.2, 2.0),
+                "score_fidelisation": current_scores.get('fidelisation', 6.0)
             }
 
     # ==========================================================================
@@ -916,11 +916,11 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
         
         prompt = f"""Analyse cette auto-évaluation de vendeur retail:
 
-- Accueil: {evaluation_data.get('accueil', 3)}/5
-- Découverte: {evaluation_data.get('decouverte', 3)}/5
-- Argumentation: {evaluation_data.get('argumentation', 3)}/5
-- Closing: {evaluation_data.get('closing', 3)}/5
-- Fidélisation: {evaluation_data.get('fidelisation', 3)}/5
+- Accueil: {evaluation_data.get('accueil', 6)}/10
+- Découverte: {evaluation_data.get('decouverte', 6)}/10
+- Argumentation: {evaluation_data.get('argumentation', 6)}/10
+- Closing: {evaluation_data.get('closing', 6)}/10
+- Fidélisation: {evaluation_data.get('fidelisation', 6)}/10
 
 Commentaire du vendeur: {evaluation_data.get('auto_comment', 'Aucun')}
 

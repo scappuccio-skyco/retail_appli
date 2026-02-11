@@ -27,14 +27,14 @@ def calculate_competence_scores_from_numeric_answers(answers: dict) -> dict:
         'fidelisation': []
     }
     
-    # Calculate scores for each competence (convert 0-3 to 1-5 scale)
+    # Calculate scores for each competence (convert 0-3 to 2-10 scale)
     for competence, question_ids in competence_mapping.items():
         for q_id in question_ids:
             q_key = f"q{q_id}"
             if q_key in answers:
-                # Convert 0-3 scale to 1-5 scale: 0->1, 1->2.33, 2->3.67, 3->5
+                # Convert 0-3 scale to 2-10 scale: 0->2, 1->4.67, 2->7.33, 3->10
                 numeric_value = answers[q_key]
-                scaled_score = 1 + (numeric_value * 4 / 3)  # Linear scaling
+                scaled_score = 2 + (numeric_value * 8 / 3)
                 scores[competence].append(round(scaled_score, 1))
     
     # Calculate averages
@@ -43,7 +43,7 @@ def calculate_competence_scores_from_numeric_answers(answers: dict) -> dict:
         if score_list:
             final_scores[f'score_{competence}'] = round(sum(score_list) / len(score_list), 1)
         else:
-            final_scores[f'score_{competence}'] = 3.0
+            final_scores[f'score_{competence}'] = 6.0
     
     return final_scores
 
@@ -53,43 +53,43 @@ def determine_level_from_scores(scores: dict, profile: str = None) -> str:
     """
     # Calculate average of all 5 competences
     all_scores = [
-        scores.get('score_accueil', 3.0),
-        scores.get('score_decouverte', 3.0),
-        scores.get('score_argumentation', 3.0),
-        scores.get('score_closing', 3.0),
-        scores.get('score_fidelisation', 3.0)
+        scores.get('score_accueil', 6.0),
+        scores.get('score_decouverte', 6.0),
+        scores.get('score_argumentation', 6.0),
+        scores.get('score_closing', 6.0),
+        scores.get('score_fidelisation', 6.0)
     ]
     avg_score = sum(all_scores) / len(all_scores)
     
-    # Map profile + score to appropriate level
+    # Map profile + score to appropriate level (scale 0-10)
     if profile == 'excellence_commerciale':
-        if avg_score >= 4.0:
+        if avg_score >= 8.0:
             return "Maître du Jeu"
-        elif avg_score >= 3.5:
+        elif avg_score >= 7.0:
             return "Performer"
         else:
             return "Challenger"
     
     elif profile == 'communicant_naturel':
-        if avg_score >= 4.0:
+        if avg_score >= 8.0:
             return "Expert en relation"
-        elif avg_score >= 3.5:
+        elif avg_score >= 7.0:
             return "Challenger"
         else:
             return "Explorateur"
     
     elif profile == 'equilibre':
-        if avg_score >= 4.0:
+        if avg_score >= 8.0:
             return "Performer"
-        elif avg_score >= 3.0:
+        elif avg_score >= 6.0:
             return "Challenger"
         else:
             return "Explorateur"
     
     else:  # potentiel_developper or others
-        if avg_score >= 4.0:
+        if avg_score >= 8.0:
             return "Challenger"
-        elif avg_score >= 3.0:
+        elif avg_score >= 6.0:
             return "Explorateur"
         else:
             return "En progression"

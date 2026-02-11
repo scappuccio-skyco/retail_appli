@@ -20,7 +20,7 @@ class CompetenceService:
     Service for calculating seller competence scores.
     
     Handles:
-    - Calculation from diagnostic answers (0-3 scale → 1-5 scale)
+    - Calculation from diagnostic answers (0-3 scale → 2-10 scale)
     - Aggregation of scores from diagnostics and debriefs
     - Average calculation across multiple sources
     """
@@ -50,17 +50,17 @@ class CompetenceService:
         """
         Calculate competence scores from numeric answers (0-3 scale).
         
-        Converts 0-3 scale to 1-5 scale:
-        - 0 → 1.0
-        - 1 → 2.33
-        - 2 → 3.67
-        - 3 → 5.0
+        Converts 0-3 scale to 2-10 scale:
+        - 0 → 2.0
+        - 1 → 4.67
+        - 2 → 7.33
+        - 3 → 10.0
         
         Args:
             answers: Dict with keys like "q1", "q2", etc. and values 0-3
             
         Returns:
-            Dict with keys like "accueil", "decouverte", etc. and average scores (1-5)
+            Dict with keys like "accueil", "decouverte", etc. and average scores (2-10)
             
         Raises:
             BusinessLogicError: If answers format is invalid
@@ -86,8 +86,8 @@ class CompetenceService:
                             logger.warning(f"Answer {q_key} out of range (0-3): {numeric_value}")
                             continue
                         
-                        # Convert 0-3 scale to 1-5 scale: 0->1, 1->2.33, 2->3.67, 3->5
-                        scaled_score = 1 + (numeric_value * 4 / 3)
+                        # Convert 0-3 scale to 2-10 scale: 0->2, 1->4.67, 2->7.33, 3->10
+                        scaled_score = 2 + (numeric_value * 8 / 3)
                         scores[competence].append(round(scaled_score, 1))
                     except (ValueError, TypeError) as e:
                         logger.warning(f"Error processing answer {q_key}: {e}")
@@ -161,8 +161,8 @@ class CompetenceService:
             debriefs: Optional list of debrief documents
             
         Returns:
-            Dict with competence names as keys and average scores (0-5) as values
-            Example: {"accueil": 3.5, "decouverte": 4.0, ...}
+            Dict with competence names as keys and average scores (0-10) as values
+            Example: {"accueil": 7.0, "decouverte": 8.0, ...}
         """
         # Initialize result with zeros
         avg_scores = {competence: 0.0 for competence in self.ALL_COMPETENCES}

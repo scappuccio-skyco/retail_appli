@@ -169,7 +169,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
   console.log('[SellerDetailView] Radar data:', radarData);
   console.log('[SellerDetailView] Has any score > 0:', hasAnyScore);
 
-  // Calculate evolution data (score global sur 25)
+  // Calculate evolution data (score global sur 50 = 5 compétences × 10)
   const evolutionData = competencesHistory.map((entry) => {
     const date = new Date(entry.date);
     const scoreTotal = 
@@ -312,7 +312,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-white rounded-lg p-2 text-center">
                   <p className="text-[10px] text-gray-500 mb-0.5">📊 Score</p>
-                  <p className="text-sm font-bold text-gray-800">{diagnostic.score ? `${diagnostic.score.toFixed(2)} / 5` : 'N/A'}</p>
+                  <p className="text-sm font-bold text-gray-800">{diagnostic.score != null ? `${Number(diagnostic.score).toFixed(1)} / 10` : 'N/A'}</p>
                 </div>
                 <div className="bg-white rounded-lg p-2 text-center">
                   <p className="text-[10px] text-gray-500 mb-0.5">🎯 Profil</p>
@@ -391,7 +391,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#cbd5e1" />
                 <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 11 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fill: '#64748b', fontSize: 9 }} />
+                <PolarRadiusAxis angle={90} domain={[0, 10]} tick={{ fill: '#64748b', fontSize: 9 }} />
                 <Radar name="Score" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.5} />
               </RadarChart>
             </ResponsiveContainer>
@@ -425,7 +425,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
               <LineChart data={evolutionData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
                 <XAxis dataKey="fullDate" tick={{ fill: '#475569', fontSize: 10 }} />
-                <YAxis domain={[0, 25]} tick={{ fill: '#475569', fontSize: 10 }} />
+                <YAxis domain={[0, 50]} tick={{ fill: '#475569', fontSize: 10 }} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#fff', border: '1px solid #3b82f6', borderRadius: '6px', fontSize: '12px' }}
                   labelStyle={{ color: '#1f2937', fontWeight: 'bold', fontSize: '11px' }}
@@ -1032,23 +1032,23 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                       <div className="grid grid-cols-5 gap-1.5">
                         <div className="bg-purple-50 rounded p-1.5 text-center">
                           <p className="text-[10px] text-purple-600">Accueil</p>
-                          <p className="text-sm font-bold text-purple-900">{debrief.score_accueil || 0}/5</p>
+                          <p className="text-sm font-bold text-purple-900">{debrief.score_accueil ?? 0}/10</p>
                         </div>
                         <div className="bg-green-50 rounded p-1.5 text-center">
                           <p className="text-[10px] text-green-600">{LABEL_DECOUVERTE}</p>
-                          <p className="text-sm font-bold text-green-900">{debrief.score_decouverte || 0}/5</p>
+                          <p className="text-sm font-bold text-green-900">{debrief.score_decouverte ?? 0}/10</p>
                         </div>
                         <div className="bg-orange-50 rounded p-1.5 text-center">
                           <p className="text-[10px] text-orange-600">Argumentation</p>
-                          <p className="text-sm font-bold text-orange-900">{debrief.score_argumentation || 0}/5</p>
+                          <p className="text-sm font-bold text-orange-900">{debrief.score_argumentation ?? 0}/10</p>
                         </div>
                         <div className="bg-red-50 rounded p-1.5 text-center">
                           <p className="text-[10px] text-red-600">Closing</p>
-                          <p className="text-sm font-bold text-red-900">{debrief.score_closing || 0}/5</p>
+                          <p className="text-sm font-bold text-red-900">{debrief.score_closing ?? 0}/10</p>
                         </div>
                         <div className="bg-blue-50 rounded p-1.5 text-center">
                           <p className="text-[10px] text-blue-600">Fidélisation</p>
-                          <p className="text-sm font-bold text-blue-900">{debrief.score_fidelisation || 0}/5</p>
+                          <p className="text-sm font-bold text-blue-900">{debrief.score_fidelisation ?? 0}/10</p>
                         </div>
                       </div>
                     </div>

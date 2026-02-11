@@ -103,7 +103,7 @@ ai_analysis = {
 **Fichier:** `frontend/src/components/SellerProfileModal.js:76-88, 100-116`
 ```javascript
 {diagnostic.disc_percentages?.D || 0}%  // ❌ Affiche 0% sans erreur
-{diagnostic.score_accueil || 0}/5       // ❌ Affiche 0/5 sans erreur
+{diagnostic.score_accueil || 0}/10     // ❌ Affiche 0/10 sans erreur
 ```
 
 **Impact:**
@@ -406,7 +406,7 @@ describe('SellerProfileModal', () => {
 3. **Vérifier dans le modal "Mon Profil de Vente"**
    - Ouvrir le modal après avoir complété le diagnostic
    - ✅ DISC: Les pourcentages D/I/S/C doivent être > 0% (pas tous à 0%)
-   - ✅ Compétences: Les scores doivent varier (pas tous à 3.0/5)
+   - ✅ Compétences: Les scores doivent varier (pas tous à 6.0/10)
    - ✅ Analyse IA: Le message "Profil en cours d'analyse" ne doit PAS apparaître
 
 4. **Vérifier en base de données (optionnel)**
@@ -415,7 +415,7 @@ describe('SellerProfileModal', () => {
    db.diagnostics.findOne({"seller_id": "VOTRE_ID"})
    // Vérifier:
    // - disc_percentages: {"D": X, "I": Y, "S": Z, "C": W} avec X+Y+Z+W > 0
-   // - score_accueil, score_decouverte, etc. != 3.0 (ou au moins variés)
+   // - score_accueil, score_decouverte, etc. != 6.0 (ou au moins variés)
    ```
 
 5. **Tester le cas d'erreur**

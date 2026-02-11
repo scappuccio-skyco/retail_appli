@@ -9,11 +9,11 @@ export default function EvaluationModal({ sales, onClose, onSuccess }) {
     sale_id: '',
     store_name: '',
     total_amount: '',
-    accueil: 3,
-    decouverte: 3,
-    argumentation: 3,
-    closing: 3,
-    fidelisation: 3,
+    accueil: 6,
+    decouverte: 6,
+    argumentation: 6,
+    closing: 6,
+    fidelisation: 6,
     auto_comment: ''
   });
   const [createNewSale, setCreateNewSale] = useState(sales.length === 0);
@@ -135,21 +135,21 @@ export default function EvaluationModal({ sales, onClose, onSuccess }) {
 
           {/* Evaluation Scores */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800">Évaluez vos compétences (1-5)</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Évaluez vos compétences (1-10)</h3>
             
             {['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation'].map((skill) => (
               <div key={skill}>
                 <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
                   {skill}
                 </label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((value) => (
+                <div className="flex flex-wrap gap-1">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
                     <button
                       key={value}
                       type="button"
                       data-testid={`${skill}-${value}`}
                       onClick={() => setFormData({ ...formData, [skill]: value })}
-                      className={`flex-1 py-3 rounded-xl font-medium transition-all ${
+                      className={`min-w-[2.25rem] py-2 px-2 rounded-xl font-medium transition-all ${
                         formData[skill] === value
                           ? 'bg-[#ffd871] text-gray-800 shadow-lg scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

@@ -120,23 +120,23 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
               <div className="grid grid-cols-5 gap-3">
                 <div className="text-center">
                   <p className="text-xs text-gray-600 mb-1">Accueil</p>
-                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_accueil || 0}/5</p>
+                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_accueil ?? 0}/10</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-gray-600 mb-1">{LABEL_DECOUVERTE}</p>
-                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_decouverte || 0}/5</p>
+                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_decouverte ?? 0}/10</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-gray-600 mb-1">Argumentation</p>
-                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_argumentation || 0}/5</p>
+                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_argumentation ?? 0}/10</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-gray-600 mb-1">Closing</p>
-                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_closing || 0}/5</p>
+                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_closing ?? 0}/10</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-gray-600 mb-1">Fidélisation</p>
-                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_fidelisation || 0}/5</p>
+                  <p className="text-2xl font-bold text-gray-800">{diagnostic.score_fidelisation ?? 0}/10</p>
                 </div>
               </div>
             </div>

@@ -52,11 +52,11 @@ async def create_debrief(
     seller_id = current_user['id']
     diagnostic = await seller_service.get_diagnostic_for_seller(seller_id)
     current_scores = {
-        'accueil': diagnostic.get('score_accueil', 3.0) if diagnostic else 3.0,
-        'decouverte': diagnostic.get('score_decouverte', 3.0) if diagnostic else 3.0,
-        'argumentation': diagnostic.get('score_argumentation', 3.0) if diagnostic else 3.0,
-        'closing': diagnostic.get('score_closing', 3.0) if diagnostic else 3.0,
-        'fidelisation': diagnostic.get('score_fidelisation', 3.0) if diagnostic else 3.0
+        'accueil': diagnostic.get('score_accueil', 6.0) if diagnostic else 6.0,
+        'decouverte': diagnostic.get('score_decouverte', 6.0) if diagnostic else 6.0,
+        'argumentation': diagnostic.get('score_argumentation', 6.0) if diagnostic else 6.0,
+        'closing': diagnostic.get('score_closing', 6.0) if diagnostic else 6.0,
+        'fidelisation': diagnostic.get('score_fidelisation', 6.0) if diagnostic else 6.0
     }
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     today_kpi = await seller_service.get_kpi_entry_for_seller_date(seller_id, today)

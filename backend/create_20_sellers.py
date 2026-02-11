@@ -89,18 +89,18 @@ async def create_sellers_with_data():
         answers = {}
         
         for idx, question in enumerate(DIAGNOSTIC_QUESTIONS):
-            answers[f"q{idx+1}"] = random.randint(1, 5)  # Random score 1-5
+            answers[f"q{idx+1}"] = random.randint(0, 3)  # Option index 0-3 (scale 2-10 after conversion)
         
         # Calculate average score
         avg_score = sum(answers.values()) / len(answers)
         
-        # Determine profile based on score variance
+        # Determine profile based on score variance (answers 0-3 → avg 0-3)
         scores = list(answers.values())
         if max(scores) - min(scores) <= 1:
             profile = "equilibre"
-        elif avg_score >= 4:
+        elif avg_score >= 2.5:
             profile = "excellence_commerciale"
-        elif avg_score >= 3:
+        elif avg_score >= 1.5:
             profile = "communicant_naturel"
         else:
             profile = "potentiel_developper"

@@ -105,11 +105,11 @@ def _history_item(debrief_or_diagnostic: dict, item_type: str) -> dict:
     return {
         "type": item_type,
         "date": debrief_or_diagnostic.get("created_at"),
-        "score_accueil": debrief_or_diagnostic.get("score_accueil", 3.0),
-        "score_decouverte": debrief_or_diagnostic.get("score_decouverte", 3.0),
-        "score_argumentation": debrief_or_diagnostic.get("score_argumentation", 3.0),
-        "score_closing": debrief_or_diagnostic.get("score_closing", 3.0),
-        "score_fidelisation": debrief_or_diagnostic.get("score_fidelisation", 3.0),
+        "score_accueil": debrief_or_diagnostic.get("score_accueil", 6.0),
+        "score_decouverte": debrief_or_diagnostic.get("score_decouverte", 6.0),
+        "score_argumentation": debrief_or_diagnostic.get("score_argumentation", 6.0),
+        "score_closing": debrief_or_diagnostic.get("score_closing", 6.0),
+        "score_fidelisation": debrief_or_diagnostic.get("score_fidelisation", 6.0),
     }
 
 
