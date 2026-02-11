@@ -1159,9 +1159,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
                 >
                   <div className="relative h-48 overflow-hidden">
-                    <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md bg-purple-100 text-purple-800 border border-purple-300">
-                      Espace Vendeur
-                    </span>
                     <img 
                       src="https://images.unsplash.com/photo-1608222351212-18fe0ec7b13b?w=800&h=400&fit=crop" 
                       alt="Mes Performances"
@@ -1190,9 +1187,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
                 >
                   <div className="relative h-48 overflow-hidden">
-                    <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md bg-purple-100 text-purple-800 border border-purple-300">
-                      Espace Vendeur
-                    </span>
                     <img 
                       src="https://images.unsplash.com/photo-1753161617988-c5f43e441621?w=800&h=400&fit=crop" 
                       alt="Objectifs et Challenges"
@@ -1229,9 +1223,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-400"
                 >
                   <div className="relative h-48 overflow-hidden">
-                    <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md bg-purple-100 text-purple-800 border border-purple-300">
-                      Espace Vendeur
-                    </span>
                     <img 
                       src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop" 
                       alt="Mon coach IA"
@@ -1261,9 +1252,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-pink-400"
                 >
                   <div className="relative h-48 overflow-hidden">
-                    <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md bg-purple-100 text-purple-800 border border-purple-300">
-                      Espace Vendeur
-                    </span>
                     <img 
                       src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop" 
                       alt="Préparer mon Entretien Annuel"

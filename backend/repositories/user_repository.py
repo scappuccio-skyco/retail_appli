@@ -21,7 +21,8 @@ class UserRepository(BaseRepository):
         store_id: Optional[str] = None,
         gerant_id: Optional[str] = None,
         manager_id: Optional[str] = None,
-        include_password: bool = False
+        include_password: bool = False,
+        projection: Optional[Dict[str, int]] = None,
     ) -> Optional[Dict]:
         """
         Find user by ID (SECURITY: requires store_id, gerant_id, or manager_id for verification)
@@ -32,13 +33,19 @@ class UserRepository(BaseRepository):
             gerant_id: Gérant ID (for security verification)
             manager_id: Manager ID (for security verification)
             include_password: Include password in result
+            projection: Optional MongoDB projection (e.g. {"_id": 0, "store_id": 1})
         """
         if not user_id:
             raise ValueError("user_id is required")
         
-        projection = {"_id": 0}
-        if not include_password:
-            projection["password"] = 0
+        if projection is None:
+            projection = {"_id": 0}
+            if not include_password:
+                projection["password"] = 0
+        else:
+            projection = dict(projection)
+            if not include_password and "password" not in projection:
+                projection["password"] = 0
         
         user = await self.find_one({"id": user_id}, projection)
         

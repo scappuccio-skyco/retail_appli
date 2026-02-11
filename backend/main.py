@@ -39,18 +39,29 @@ app = FastAPI(
 
 # CORS: liste utilisée aussi dans les handlers d'erreur pour que les réponses 4xx/5xx aient l'en-tête
 _cors_allowed_origins = get_allowed_origins(settings)
+# Fallback pour ne jamais renvoyer une réponse sans CORS (évite "blocked by CORS policy" sur 500)
+_CORS_FALLBACK_ORIGINS = [
+    "https://www.retailperformerai.com",
+    "https://retailperformerai.com",
+    "http://localhost:3000",
+]
 
 
 def _cors_headers_for_request(request) -> dict:
-    """En-têtes CORS à ajouter aux réponses (y compris erreurs) pour éviter blocage navigateur."""
-    if request is None:
-        return {"Access-Control-Allow-Origin": _cors_allowed_origins[0], "Access-Control-Allow-Credentials": "true"} if _cors_allowed_origins else {}
-    origin = request.headers.get("origin") if hasattr(request, "headers") else None
-    if origin and origin in _cors_allowed_origins:
-        return {"Access-Control-Allow-Origin": origin, "Access-Control-Allow-Credentials": "true"}
-    if _cors_allowed_origins:
-        return {"Access-Control-Allow-Origin": _cors_allowed_origins[0], "Access-Control-Allow-Credentials": "true"}
-    return {}
+    """En-têtes CORS à ajouter aux réponses (y compris erreurs). Ne lève jamais."""
+    try:
+        origins = _cors_allowed_origins or _CORS_FALLBACK_ORIGINS
+        if not origins:
+            return {}
+        if request is None:
+            return {"Access-Control-Allow-Origin": origins[0], "Access-Control-Allow-Credentials": "true"}
+        origin = request.headers.get("origin") if hasattr(request, "headers") else None
+        if origin and origin in origins:
+            return {"Access-Control-Allow-Origin": origin, "Access-Control-Allow-Credentials": "true"}
+        return {"Access-Control-Allow-Origin": origins[0], "Access-Control-Allow-Credentials": "true"}
+    except Exception as e:
+        logger.warning("CORS headers fallback: %s", e)
+        return {"Access-Control-Allow-Origin": _CORS_FALLBACK_ORIGINS[0], "Access-Control-Allow-Credentials": "true"}
 
 
 # --- Phase 1: Error Handling - FastAPI Exception Handlers (single point of truth) ---
@@ -100,6 +111,8 @@ async def _unhandled_exception_handler(request: Request, exc: Exception):
     except Exception:
         pass
     headers = _cors_headers_for_request(request)
+    if not headers:
+        headers = {"Access-Control-Allow-Origin": _CORS_FALLBACK_ORIGINS[0], "Access-Control-Allow-Credentials": "true"}
     return JSONResponse(
         status_code=500,
         content={

@@ -1,5 +1,4 @@
-# Plan de Correction SonarQube - Projet Sophie
-# 🚀 Plan de Correction SonarQube - Projet Sophie (Complet)
+# 🚀 Plan de Correction SonarQube - Retail Performer AI
 
 ## CHUNK 1 : Bugs de Fiabilité & Sécurité (Priorité Absolue)
 - [ ] **backend/api/routes/docs.py (L46)** : Remplacer `open()` par une API asynchrone (`aiofiles`).

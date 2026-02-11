@@ -620,11 +620,6 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   // Helper function to render sections based on order
   const renderSection = (sectionId) => {
-    const spaceBadge = (
-      <span className={`absolute top-3 right-3 z-10 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md ${isGerantSpace ? 'bg-orange-100 text-orange-800 border border-orange-300' : 'bg-blue-100 text-blue-800 border border-blue-300'}`}>
-        {spaceLabel}
-      </span>
-    );
     const sections = {
       kpi: dashboardFilters.showKPI && (
         <div
@@ -640,7 +635,6 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('kpi') }}
         >
           <div className="relative h-56 overflow-hidden">
-            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop" 
               alt="Mon Magasin"
@@ -674,7 +668,6 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('team') }}
         >
           <div className="relative h-56 overflow-hidden">
-            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?w=800&h=400&fit=crop" 
               alt="Mon Équipe"
@@ -709,7 +702,6 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('objectives') }}
         >
           <div className="relative h-56 overflow-hidden">
-            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=400&fit=crop" 
               alt="Objectifs"
@@ -738,7 +730,6 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('challenges') }}
         >
           <div className="relative h-56 overflow-hidden">
-            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop" 
               alt="Challenges"
@@ -766,7 +757,6 @@ export default function ManagerDashboard({ user, onLogout }) {
           style={{ order: getSectionOrder('relationship') }}
         >
           <div className="relative h-56 overflow-hidden">
-            {spaceBadge}
             <img 
               src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=400&fit=crop" 
               alt="Gestion relationnelle"

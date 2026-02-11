@@ -2,7 +2,7 @@
 ## Source de Vérité pour le Développement
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 30 Janvier 2026
+**Dernière mise à jour**: 11 Février 2026
 
 ---
 
@@ -264,11 +264,10 @@ from api.dependencies import (
 ### 1. Création d'un Nouvel Endpoint
 
 ```python
-# ✅ BON PATTERN
-@router.get("/new-endpoint")
-@limiter.limit("100/minute")  # ⚠️ Rate limiting obligatoire
+# ✅ BON PATTERN (rate_limit depuis api.dependencies_rate_limiting)
+@router.get("/new-endpoint", dependencies=[Depends(rate_limit("100/minute"))])
 async def new_endpoint(
-    request: Request,  # ⚠️ Requis pour rate limiting
+    request: Request,
     current_user: dict = Depends(get_current_user),
     service: Service = Depends(get_service),
     db = Depends(get_db)
@@ -401,7 +400,7 @@ docs/
 - **Backend**: FastAPI sur port 8080
 - **Frontend**: React build sur Vercel
 - **Database**: MongoDB (connection pool: 50 ✅ Production-ready, configurable via MONGO_MAX_POOL_SIZE)
-- **Rate Limiting**: slowapi (10/min IA, 100/min lecture)
+- **Rate Limiting**: slowapi (10/min IA, 100/min lecture). Clé par endpoint (IP + path) via `api.dependencies_rate_limiting.rate_limit(limit_str)` pour que chaque route ait son propre quota.
 - **Timeouts**: connectTimeoutMS=5000ms, socketTimeoutMS=30000ms ✅ Production-ready
 
 ### Endpoints Critiques
@@ -605,6 +604,9 @@ Avant chaque commit, vérifier:
 - ✅ Section **RÈGLES CRITIQUES (Architecture Backend)** - Architecture (Services/Repositories injectés), Erreurs (pas HTTPException 500), Pagination (pas .to_list(1000)), Logs (logger jamais print)
 - ✅ Renforcé: Anti-pattern gestion d'erreurs (exceptions métier obligatoires)
 - ✅ Tests: `backend/tests/test_payment_repository.py` - Preuve de testabilité : `PaymentTransactionRepository` testé avec `unittest.mock` (DB mockée, pas de MongoDB réel)
+
+### [11 Février 2026] - Rate limiting par endpoint
+- ✅ Modifié: `api/dependencies_rate_limiting.py` - `rate_limit(limit_str)` utilise désormais une clé `key_func = IP + path` pour que chaque endpoint ait son propre bucket (évite 429 sur dashboard Manager lorsque plusieurs routes partageaient le même bucket avec la limite la plus stricte).
 
 ---
 
