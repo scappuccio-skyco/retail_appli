@@ -40,6 +40,8 @@ async def get_active_objectives(
     """Get active objectives for the store's team."""
     resolved_store_id = context.get("resolved_store_id")
     manager_id = context.get("id")
+    if not resolved_store_id:
+        return []
     return await achievement_service.get_active_objectives(
         manager_id=manager_id,
         store_id=resolved_store_id,
@@ -66,6 +68,8 @@ async def get_all_objectives(
     init_counter()
     resolved_store_id = context.get("resolved_store_id")
     manager_id = context.get("id")
+    if not resolved_store_id:
+        return []
     objectives = await achievement_service.get_objectives_by_store(
         resolved_store_id, limit=100
     )

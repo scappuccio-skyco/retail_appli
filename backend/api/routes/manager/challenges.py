@@ -40,6 +40,8 @@ async def get_active_challenges(
     """Get active challenges for the store's team."""
     resolved_store_id = context.get("resolved_store_id")
     manager_id = context.get("id")
+    if not resolved_store_id:
+        return []
     return await achievement_service.get_active_challenges(
         manager_id=manager_id,
         store_id=resolved_store_id,
@@ -96,6 +98,8 @@ async def get_all_challenges(
     try:
         resolved_store_id = context.get("resolved_store_id")
         manager_id = context.get("id")
+        if not resolved_store_id:
+            return []
         challenges = await manager_service.get_challenges_by_store(
             resolved_store_id, limit=100
         )
