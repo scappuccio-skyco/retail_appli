@@ -57,6 +57,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 rounded-t-2xl relative flex-shrink-0">
           <button
             onClick={onClose}
+            data-testid="store-modal-close"
             className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
           >
             <X className="w-6 h-6" />
@@ -76,7 +77,10 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 min-h-0">
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg">
+            <div
+              data-testid="store-modal-error"
+              className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg"
+            >
               {error}
             </div>
           )}
@@ -90,6 +94,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
               <input
                 type="text"
                 name="name"
+                data-testid="store-name"
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -106,6 +111,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
               <input
                 type="text"
                 name="location"
+                data-testid="store-location"
                 value={formData.location}
                 onChange={handleChange}
                 required
@@ -122,6 +128,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
               <input
                 type="text"
                 name="address"
+                data-testid="store-address"
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="Ex: 12 Quai du Port, 13001 Marseille"
@@ -137,6 +144,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
               <input
                 type="tel"
                 name="phone"
+                data-testid="store-phone"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="Ex: +33 4 91 90 00 00"
@@ -152,6 +160,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
               <input
                 type="text"
                 name="opening_hours"
+                data-testid="store-opening-hours"
                 value={formData.opening_hours}
                 onChange={handleChange}
                 placeholder="Ex: 9h-19h du Lundi au Samedi"
@@ -165,6 +174,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
             <button
               type="button"
               onClick={onClose}
+              data-testid="store-cancel"
               className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-semibold"
             >
               Annuler
@@ -172,6 +182,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
             <button
               type="submit"
               disabled={loading}
+              data-testid="store-submit"
               className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold disabled:opacity-50"
             >
               {loading ? 'Création...' : 'Créer le Magasin'}
