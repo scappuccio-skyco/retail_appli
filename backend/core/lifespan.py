@@ -93,7 +93,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # System log repo for persisting 5xx errors (visible in SuperAdmin "Logs Système")
     try:
-        if database and getattr(database, "db", None):
+        if database is not None and getattr(database, "db", None) is not None:
             from repositories.system_log_repository import SystemLogRepository
             app.state.system_log_repo = SystemLogRepository(database.db)
         else:
