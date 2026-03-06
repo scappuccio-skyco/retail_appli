@@ -58,8 +58,15 @@ class GerantService:
         )
 
     async def find_user_by_email(self, email: str) -> Optional[Dict]:
-        """Find user by email. Used by routes for duplicate check."""
-        return await self.user_repo.find_by_email(email)
+        """Find *active* user by email.
+
+        Used by routes for duplicate checks (renames). Soft-deleted/inactive users should
+        not block email reuse.
+        """
+        return await self.user_repo.find_one(
+            {"email": email, "status": "active"},
+            {"_id": 0},
+        )
 
     async def update_gerant_user_one(
         self, gerant_id: str, update_data: Dict
@@ -2478,13 +2485,16 @@ class GerantService:
         if user.get('status') == 'deleted':
             raise ValueError(f"Ce {role} a déjà été supprimé")
         
+        anonymized_email = f"deleted+{user_id}@example.invalid"
         await self.user_repo.update_one(
             {"id": user_id},
             {
                 "$set": {
                     "status": "deleted",
+                    "email": anonymized_email,
                     "deleted_at": datetime.now(timezone.utc).isoformat(),
                     "deleted_by": gerant_id,
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
                 }
             },
         )
