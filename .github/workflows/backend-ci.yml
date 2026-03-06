@@ -42,9 +42,12 @@ jobs:
           pip install -r requirements.txt
 
       - name: Start API server (uvicorn)
+        working-directory: backend
+        env:
+          PYTHONPATH: .
         run: |
-          nohup python -m uvicorn backend.main:app --host 127.0.0.1 --port 8001 > uvicorn.log 2>&1 &
-          echo $! > uvicorn.pid
+          nohup python -m uvicorn main:app --host 127.0.0.1 --port 8001 > ../uvicorn.log 2>&1 &
+          echo $! > ../uvicorn.pid
 
       - name: Wait for health
         run: |
