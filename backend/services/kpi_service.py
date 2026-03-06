@@ -7,7 +7,7 @@ from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.user_repository import UserRepository
 from repositories.store_repository import WorkspaceRepository, StoreRepository
 from repositories.kpi_config_repository import KPIConfigRepository
-from core.exceptions import ForbiddenError, NotFoundError, BusinessLogicError
+from core.exceptions import ForbiddenError, NotFoundError, BusinessLogicError, ValidationError
 
 
 class KPIService:
@@ -198,6 +198,12 @@ class KPIService:
         """
         # === GUARD CLAUSE: Check subscription access ===
         await self.check_user_write_access(seller_id)
+
+        # Resolve seller store_id (needed for store-level aggregation)
+        seller_user = await self.user_repo.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        store_id = seller_user.get("store_id") if seller_user else None
+        if not store_id:
+            raise ValidationError("Vendeur non rattaché à un magasin")
         
         # Check if entry exists
         existing = await self.kpi_repo.find_by_seller_and_date(seller_id, date)
@@ -216,6 +222,7 @@ class KPIService:
             update_data = {
                 **kpi_data,
                 **calculated,
+                'store_id': store_id,
                 'updated_at': datetime.now(timezone.utc)
             }
             
@@ -231,6 +238,7 @@ class KPIService:
             new_entry = {
                 "id": str(uuid4()),
                 "seller_id": seller_id,
+                "store_id": store_id,
                 "date": date,
                 **kpi_data,
                 **calculated,
