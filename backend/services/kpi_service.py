@@ -107,6 +107,11 @@ class KPIService:
 
                 now = datetime.now(timezone.utc)
 
+                # Normalize timezone: Mongo/legacy data may store a naive datetime.
+                # Comparing aware (now) to naive (trial_end_dt) raises TypeError.
+                if getattr(trial_end_dt, "tzinfo", None) is None:
+                    trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
+
                 if now <= trial_end_dt:
                     allowed = True
                 else:
