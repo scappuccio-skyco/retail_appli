@@ -2724,7 +2724,7 @@ class GerantService:
             "invitations_modified": inv_modified,
         }
 
-    async def find_user_by_email(self, gerant_id: str, email: str) -> dict:
+    async def find_user_by_email_scoped(self, gerant_id: str, email: str) -> dict:
         """Find a user by email (case-insensitive) within the gérant scope."""
         import re
         email_raw = (email or "").strip()
@@ -2748,7 +2748,7 @@ class GerantService:
         """Soft-delete + anonymize the user that currently owns `email` (within gérant scope)."""
         from datetime import datetime, timezone
 
-        info = await self.find_user_by_email(gerant_id, email)
+        info = await self.find_user_by_email_scoped(gerant_id, email)
         if not info.get("found"):
             return {"found": False}
         if not info.get("in_scope"):

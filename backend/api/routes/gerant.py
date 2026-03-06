@@ -3174,7 +3174,7 @@ async def get_email_owner(
     gerant_service: GerantService = Depends(get_gerant_service),
 ):
     """Return which user currently owns an email (within this gérant scope)."""
-    return await gerant_service.find_user_by_email(current_user["id"], email)
+    return await gerant_service.find_user_by_email_scoped(current_user["id"], email)
 
 
 @router.post("/maintenance/free-email")
