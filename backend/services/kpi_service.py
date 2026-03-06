@@ -8,6 +8,7 @@ from repositories.user_repository import UserRepository
 from repositories.store_repository import WorkspaceRepository, StoreRepository
 from repositories.kpi_config_repository import KPIConfigRepository
 from core.exceptions import ForbiddenError, NotFoundError, BusinessLogicError, ValidationError
+from utils.mongo_json import to_json_safe
 
 
 class KPIService:
@@ -231,7 +232,7 @@ class KPIService:
                 {"$set": update_data}
             )
             
-            return {**existing, **update_data}
+            return to_json_safe({**existing, **update_data})
         
         else:
             calculated = self.calculate_kpis(kpi_data)
@@ -248,7 +249,7 @@ class KPIService:
             }
             
             await self.kpi_repo.insert_one(new_entry)
-            return new_entry
+            return to_json_safe(new_entry)
     
     async def get_seller_kpi_summary(
         self,
