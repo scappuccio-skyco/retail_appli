@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 import secrets
 import logging
+import re
 
 from core.security import (
     get_password_hash,
@@ -40,7 +41,16 @@ class AuthService:
         self.gerant_invitation_repo = gerant_invitation_repo
         self.invitation_repo = invitation_repo
         self.password_reset_repo = password_reset_repo
-    
+
+    @staticmethod
+    def _normalize_email(email: str) -> str:
+        """Normalize email for comparisons/auth.
+
+        Treat email as case-insensitive for login. We keep stored casing as-is,
+        but always compare using a normalized (trimmed, lowercased) form.
+        """
+        return (email or "").strip().lower()
+
     async def login(self, email: str, password: str) -> Dict:
         """
         Authenticate user and return token
@@ -55,9 +65,10 @@ class AuthService:
         Raises:
             Exception: If credentials invalid
         """
-        # Find user
+        # Find user (email is case-insensitive for login)
+        email_raw = (email or "").strip()
         user = await self.user_repo.find_one(
-            {"email": email},
+            {"email": {"$regex": f"^{re.escape(email_raw)}$", "$options": "i"}},
             {"_id": 0}
         )
         
@@ -69,7 +80,7 @@ class AuthService:
             raise UnauthorizedError("Identifiants invalides")
         
         # Generate token
-        token = create_token(user['id'], user['email'], user['role'])
+        token = create_token(user['id'], self._normalize_email(user['email']), user['role'])
         
         # Remove password from response
         user_data = {k: v for k, v in user.items() if k != 'password'}
@@ -172,6 +183,8 @@ class AuthService:
         Raises:
             Exception: If email already exists
         """
+        email = self._normalize_email(email)
+
         # Check if email exists
         if await self.user_repo.email_exists(email):
             raise Exception("Cet email est déjà utilisé")
@@ -251,6 +264,8 @@ class AuthService:
         Raises:
             Exception: If invitation invalid or expired
         """
+        email = self._normalize_email(email)
+
         # Find invitation in gerant_invitations first
         invitation = await self.gerant_invitation_repo.find_by_token(invitation_token, projection={"_id": 0})
         invitation_collection = "gerant_invitations"
@@ -264,7 +279,7 @@ class AuthService:
             raise ValidationError("Invitation invalide ou expirée")
         if invitation.get("status") != "pending":
             raise ValidationError("Cette invitation a déjà été utilisée")
-        if invitation["email"] != email:
+        if self._normalize_email(invitation.get("email", "")) != email:
             raise ValidationError("L'email ne correspond pas à l'invitation")
         
         # Create user
