@@ -2714,3 +2714,52 @@ class GerantService:
             "invitations_modified": inv_modified,
         }
 
+    async def find_user_by_email(self, gerant_id: str, email: str) -> dict:
+        """Find a user by email (case-insensitive) within the gérant scope."""
+        import re
+        email_raw = (email or "").strip()
+        if not email_raw:
+            return {"found": False}
+
+        user = await self.user_repo.find_one(
+            {"email": {"$regex": f"^{re.escape(email_raw)}$", "$options": "i"}},
+            {"_id": 0, "id": 1, "email": 1, "role": 1, "status": 1, "store_id": 1, "gerant_id": 1, "workspace_id": 1, "name": 1},
+        )
+        if not user:
+            return {"found": False}
+
+        # Scope guard: user must belong to this gérant (either direct gerant account or child).
+        if user.get("id") != gerant_id and user.get("gerant_id") != gerant_id:
+            return {"found": True, "in_scope": False}
+
+        return {"found": True, "in_scope": True, "user": user}
+
+    async def free_email(self, gerant_id: str, email: str) -> dict:
+        """Soft-delete + anonymize the user that currently owns `email` (within gérant scope)."""
+        from datetime import datetime, timezone
+
+        info = await self.find_user_by_email(gerant_id, email)
+        if not info.get("found"):
+            return {"found": False}
+        if not info.get("in_scope"):
+            return {"found": True, "in_scope": False}
+
+        user = info.get("user") or {}
+        uid = user.get("id")
+        if not uid:
+            return {"found": True, "in_scope": True, "updated": False}
+
+        new_email = f"deleted+{uid}@example.invalid"
+        await self.user_repo.update_one(
+            {"id": uid},
+            {
+                "$set": {
+                    "status": "deleted",
+                    "email": new_email,
+                    "deleted_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }
+            },
+        )
+        return {"found": True, "in_scope": True, "updated": True, "user_id": uid, "new_email": new_email}
+

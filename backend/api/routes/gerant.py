@@ -3165,3 +3165,23 @@ async def anonymize_inactive_emails(
     Purpose: free up emails for reuse while keeping historical records.
     """
     return await gerant_service.anonymize_inactive_emails(current_user["id"])
+
+
+@router.get("/maintenance/email-owner")
+async def get_email_owner(
+    email: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+):
+    """Return which user currently owns an email (within this gérant scope)."""
+    return await gerant_service.find_user_by_email(current_user["id"], email)
+
+
+@router.post("/maintenance/free-email")
+async def free_email(
+    email: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+):
+    """Soft-delete + anonymize the user that owns `email` (within gérant scope)."""
+    return await gerant_service.free_email(current_user["id"], email)
