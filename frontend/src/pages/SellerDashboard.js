@@ -506,11 +506,14 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       // Get KPI entries
       try {
         const kpiRes = await api.get('/seller/kpi-entries');
-        setKpiEntries(kpiRes.data);
+        // API returns a paginated payload: { items, total, page, size, pages }
+        // Backward-compat: accept an array too.
+        const entries = Array.isArray(kpiRes.data) ? kpiRes.data : (kpiRes.data?.items || []);
+        setKpiEntries(entries);
         
         // Check if today's KPI has been entered
         const today = new Date().toISOString().split('T')[0];
-        const todayKPI = kpiRes.data.find(entry => entry.date === today);
+        const todayKPI = entries.find(entry => entry.date === today);
         
         // Build tasks list
         let newTasks = [...tasksRes.data];

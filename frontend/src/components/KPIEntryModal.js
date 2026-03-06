@@ -37,10 +37,12 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
       
       setEnabled(statusRes.data.enabled || false);
       setKpiConfig(configRes.data);
-      setHistoricalData(historicalRes.data);
+      const hist = Array.isArray(historicalRes.data) ? historicalRes.data : (historicalRes.data?.items || []);
+      setHistoricalData(hist);
       
+      const dayEntries = Array.isArray(entriesRes.data) ? entriesRes.data : (entriesRes.data?.items || []);
       // If there's an entry for selected date, pre-fill it
-      const existingEntry = entriesRes.data.find(e => e.date === date);
+      const existingEntry = dayEntries.find(e => e.date === date);
       if (existingEntry) {
         setCaJournalier(existingEntry.ca_journalier || '');
         setNbVentes(existingEntry.nb_ventes || '');

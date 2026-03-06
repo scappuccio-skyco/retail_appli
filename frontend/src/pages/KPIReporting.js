@@ -32,8 +32,10 @@ export default function KPIReporting({ user, onBack }) {
       ]);
       
       setKpiConfig(configRes.data);
-      setAllEntries(allRes.data);
-      setEntries(filteredRes.data);
+      const allEntriesData = Array.isArray(allRes.data) ? allRes.data : (allRes.data?.items || []);
+      const filteredEntriesData = Array.isArray(filteredRes.data) ? filteredRes.data : (filteredRes.data?.items || []);
+      setAllEntries(allEntriesData);
+      setEntries(filteredEntriesData);
     } catch (err) {
       logger.error('Error loading KPI data:', err);
       toast.error('Erreur de chargement des KPI');
