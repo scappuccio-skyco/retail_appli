@@ -2658,3 +2658,57 @@ class GerantService:
         
         return results
 
+    async def anonymize_inactive_emails(self, gerant_id: str) -> dict:
+        """Anonymize emails for inactive/deleted users + non-pending invitations.
+
+        Goal: free up emails for reuse while keeping historical data.
+        Scope: only users/invitations belonging to this gérant.
+        """
+        import re
+        from datetime import datetime, timezone
+
+        # Users (seller/manager) under this gérant
+        user_query = {
+            "gerant_id": gerant_id,
+            "status": {"$in": ["deleted", "inactive"]},
+            "email": {"$exists": True, "$ne": None, "$ne": "", "$not": re.compile(r"^deleted\\+", re.I)},
+        }
+        users = await self.user_repo.find_many(user_query, projection={"_id": 0, "id": 1, "email": 1}, limit=10000)
+        users_modified = 0
+        for u in users or []:
+            uid = u.get("id")
+            if not uid:
+                continue
+            new_email = f"deleted+{uid}@example.invalid"
+            await self.user_repo.update_one(
+                {"id": uid},
+                {"$set": {"email": new_email, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            )
+            users_modified += 1
+
+        # Invitations (gerant_invitations)
+        inv_query = {
+            "gerant_id": gerant_id,
+            "status": {"$ne": "pending"},
+            "email": {"$exists": True, "$ne": None, "$ne": "", "$not": re.compile(r"^deleted\\+", re.I)},
+        }
+        invitations = await self.gerant_invitation_repo.find_many(inv_query, projection={"_id": 0, "id": 1, "token": 1, "email": 1}, limit=10000)
+        inv_modified = 0
+        for inv in invitations or []:
+            token = inv.get("token") or inv.get("id")
+            if not token:
+                continue
+            new_email = f"deleted-invite+{token}@example.invalid"
+            await self.gerant_invitation_repo.update_many(
+                {"token": inv.get("token")},
+                {"$set": {"email": new_email, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            )
+            inv_modified += 1
+
+        return {
+            "users_matched": len(users or []),
+            "users_modified": users_modified,
+            "invitations_matched": len(invitations or []),
+            "invitations_modified": inv_modified,
+        }
+

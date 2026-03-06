@@ -3151,3 +3151,17 @@ async def update_billing_profile(
         
     except AppException:
         raise
+
+
+# ===== MAINTENANCE (GERANT) =====
+
+@router.post("/maintenance/anonymize-inactive-emails")
+async def anonymize_inactive_emails(
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+):
+    """Anonymize emails for inactive/deleted users and non-pending invitations of this gérant.
+
+    Purpose: free up emails for reuse while keeping historical records.
+    """
+    return await gerant_service.anonymize_inactive_emails(current_user["id"])
