@@ -1859,7 +1859,7 @@ class GerantService:
         managers = await self.user_repo.find_by_store(
             store_id,
             role="manager",
-            projection={"_id": 0, "id": 1, "name": 1},
+            projection={"_id": 0, "id": 1, "name": 1, "status": 1},
             limit=100
         )
         managers = [m for m in managers if m.get('status') == 'active']
@@ -1867,7 +1867,7 @@ class GerantService:
         sellers = await self.user_repo.find_by_store(
             store_id,
             role="seller",
-            projection={"_id": 0, "id": 1, "name": 1},
+            projection={"_id": 0, "id": 1, "name": 1, "status": 1},
             limit=100
         )
         sellers = [s for s in sellers if s.get('status') == 'active']
