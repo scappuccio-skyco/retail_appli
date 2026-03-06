@@ -47,12 +47,13 @@ class KPIRepository(BaseRepository):
     
     async def find_by_seller_and_date(self, seller_id: str, date: str) -> Optional[Dict]:
         """Find KPI entry for a seller on a specific date"""
-        return await self.find_one({"seller_id": seller_id, "date": date})
+        return await self.find_one({"seller_id": seller_id, "date": date}, projection={"_id": 0})
     
     async def find_by_seller(self, seller_id: str, limit: int = 1000) -> List[Dict]:
         """Find all KPI entries for a seller"""
         return await self.find_many(
             {"seller_id": seller_id},
+            projection={"_id": 0},
             sort=[("date", -1)],
             limit=limit
         )
@@ -62,7 +63,7 @@ class KPIRepository(BaseRepository):
         return await self.find_many({
             "seller_id": seller_id,
             "date": {"$gte": start_date, "$lte": end_date}
-        }, sort=[("date", 1)])
+        }, projection={"_id": 0}, sort=[("date", 1)])
     
     async def find_by_store(
         self, store_id: str, date: str, projection: Optional[Dict] = None
