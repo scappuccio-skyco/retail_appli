@@ -2673,9 +2673,10 @@ class GerantService:
             "status": {"$in": ["deleted", "inactive"]},
             "email": {"$exists": True, "$ne": None, "$ne": "", "$not": re.compile(r"^deleted\\+", re.I)},
         }
-        users = await self.user_repo.find_many(user_query, projection={"_id": 0, "id": 1, "email": 1}, limit=10000)
+        users_matched = 0
         users_modified = 0
-        for u in users or []:
+        async for u in self.user_repo.find_iter(user_query, projection={"_id": 0, "id": 1, "email": 1}):
+            users_matched += 1
             uid = u.get("id")
             if not uid:
                 continue
@@ -2692,9 +2693,10 @@ class GerantService:
             "status": {"$ne": "pending"},
             "email": {"$exists": True, "$ne": None, "$ne": "", "$not": re.compile(r"^deleted\\+", re.I)},
         }
-        invitations = await self.gerant_invitation_repo.find_many(inv_query, projection={"_id": 0, "id": 1, "token": 1, "email": 1}, limit=10000)
+        invitations_matched = 0
         inv_modified = 0
-        for inv in invitations or []:
+        async for inv in self.gerant_invitation_repo.find_iter(inv_query, projection={"_id": 0, "id": 1, "token": 1, "email": 1}):
+            invitations_matched += 1
             token = inv.get("token") or inv.get("id")
             if not token:
                 continue
@@ -2706,9 +2708,9 @@ class GerantService:
             inv_modified += 1
 
         return {
-            "users_matched": len(users or []),
+            "users_matched": users_matched,
             "users_modified": users_modified,
-            "invitations_matched": len(invitations or []),
+            "invitations_matched": invitations_matched,
             "invitations_modified": inv_modified,
         }
 
