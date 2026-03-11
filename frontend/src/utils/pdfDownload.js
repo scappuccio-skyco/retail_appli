@@ -29,12 +29,6 @@ import { logger } from '../utils/logger';
  */
 export async function apiDownloadPdf(url, filename = null, options = {}) {
   try {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      throw new Error('Vous devez être connecté pour télécharger le PDF.');
-    }
-
     // Nettoyer l'URL (enlever /api/ si présent, car apiClient l'ajoute déjà)
     let cleanUrl = url;
     if (cleanUrl.startsWith('/api/')) {
@@ -118,7 +112,7 @@ export async function apiDownloadPdf(url, filename = null, options = {}) {
 export async function downloadBlobAsFile(blob, filename) {
   // Verify blob type
   if (blob.type && !blob.type.includes('pdf') && !blob.type.includes('application/pdf')) {
-    console.warn('Type de blob:', blob.type, '- Téléchargement quand même');
+    logger.warn('Type de blob:', blob.type, '- Téléchargement quand même');
   }
 
   // Create object URL

@@ -237,7 +237,6 @@ export default function CoachingModal({
   onOpenChallengeHistory,
   debriefs = [],
   onCreateDebrief,
-  token,
   activeTab: initialTab = 'coach'
 }) {
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -703,8 +702,7 @@ export default function CoachingModal({
 
                 {/* Contenu des sous-onglets */}
                 {analyseSubTab === 'conclue' && (
-                  <VenteConclueForm 
-                    token={token} 
+                  <VenteConclueForm
                     onSuccess={async (newDebrief) => {
                       if (onCreateDebrief) {
                         await onCreateDebrief();
@@ -733,8 +731,7 @@ export default function CoachingModal({
                 )}
 
                 {analyseSubTab === 'manquee' && (
-                  <OpportuniteManqueeForm 
-                    token={token} 
+                  <OpportuniteManqueeForm
                     onSuccess={async (newDebrief) => {
                       if (onCreateDebrief) {
                         await onCreateDebrief();
@@ -870,7 +867,6 @@ CoachingModal.propTypes = {
   onOpenChallengeHistory: PropTypes.func,
   debriefs: PropTypes.arrayOf(PropTypes.object),
   onCreateDebrief: PropTypes.func,
-  token: PropTypes.string,
   activeTab: PropTypes.string
 };
 

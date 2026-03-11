@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Sparkles, Copy, Check, FileText, Calendar, Loader2, CheckCircle, AlertTriangle, Target, MessageSquare, Star, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 
@@ -160,14 +158,11 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     setExportingPDF(true);
     
     try {
-      // ============================================================
-      // ÉTAPE 1: DIAGNOSTIC - Logs des sources de contenu
-      // ============================================================
-      logger.log('=== PDF GENERATION DIAGNOSTIC (ENTRETIEN) ===');
-      logger.log('PDF_SOURCE_rawState:', JSON.stringify(guideData, null, 2));
-      logger.log('PDF_SOURCE_domText:', guideContentRef.current?.innerText?.substring(0, 300) || 'REF_NOT_READY');
-      logger.log('PDF_SOURCE_domHTML:', guideContentRef.current?.innerHTML?.substring(0, 500) || 'REF_NOT_READY');
-      
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+
       // Vérifier si le ref est disponible (le guide doit être rendu)
       if (!guideContentRef.current) {
         logger.warn('⚠️ guideContentRef not ready, cannot generate PDF');

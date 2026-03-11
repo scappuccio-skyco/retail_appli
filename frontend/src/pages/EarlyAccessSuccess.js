@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { logger } from '../utils/logger';
 import { CheckCircle, Calendar, Sparkles, ArrowRight, Mail } from 'lucide-react';
 import Logo from '../components/shared/Logo';
 
@@ -16,7 +17,7 @@ export default function EarlyAccessSuccess() {
         const data = JSON.parse(earlyAdopterData);
         setCandidateData(data);
       } catch (e) {
-        console.error('Error parsing early adopter data:', e);
+        logger.error('Error parsing early adopter data:', e);
       }
     } else {
       // Si pas de données, rediriger vers early-access

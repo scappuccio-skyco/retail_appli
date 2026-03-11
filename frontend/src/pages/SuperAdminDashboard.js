@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../lib/apiClient';
+import { useAuth } from '../contexts';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import AdminManagement from '../components/superadmin/AdminManagement';
@@ -16,6 +17,7 @@ import {
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function SuperAdminDashboard() {
+  const { logout } = useAuth();
   const [stats, setStats] = useState(null);
   const [workspaces, setWorkspaces] = useState([]);
   const [logs, setLogs] = useState([]);
@@ -380,9 +382,8 @@ export default function SuperAdminDashboard() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
+              onClick={async () => {
+                await logout();
                 globalThis.location.href = '/login';
               }}
               className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg transition-all"

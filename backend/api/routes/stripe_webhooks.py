@@ -45,9 +45,9 @@ async def stripe_webhook(
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
     if not webhook_secret:
-        logger.error("❌ STRIPE_WEBHOOK_SECRET not configured")
+        logger.error("❌ STRIPE_WEBHOOK_SECRET not configured - rejecting webhook")
         return JSONResponse(
-            status_code=200,
+            status_code=500,
             content={"status": "webhook_secret_not_configured"}
         )
 

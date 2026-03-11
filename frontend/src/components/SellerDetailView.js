@@ -48,42 +48,17 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
   }, [kpiFilter, loading]);
 
   const fetchKPIData = async () => {
-    if (!seller?.id) {
-      console.warn('[SellerDetailView] Cannot fetch KPI data: seller.id is missing');
-      return;
-    }
-    
+    if (!seller?.id) return;
+
     try {
-      // Determine days parameter based on filter
       const days = kpiFilter === '7j' ? 7 : kpiFilter === '30j' ? 30 : 365; // 'tout' = 365 days
       const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
       const url = `/manager/kpi-entries/${seller.id}?days=${days}${storeParamAnd}`;
-      
-      console.log(`[SellerDetailView] Fetching KPI data: ${url}`);
-      
+
       const kpiRes = await api.get(url);
       const entries = Array.isArray(kpiRes.data?.items) ? kpiRes.data.items : (Array.isArray(kpiRes.data) ? kpiRes.data : []);
       setKpiEntries(entries);
-      
-      // Debug logging
-      console.log(`[SellerDetailView] KPI API response:`, {
-        status: kpiRes.status,
-        dataType: Array.isArray(kpiRes.data) ? 'array' : typeof kpiRes.data,
-        dataLength: Array.isArray(kpiRes.data) ? kpiRes.data.length : 'N/A',
-        firstEntry: entries[0] || null
-      });
-      
-      if (entries.length > 0) {
-        console.log(`[SellerDetailView] ✅ ${entries.length} KPI entries loaded for filter ${kpiFilter} (${days} days)`);
-        console.log(`[SellerDetailView] First entry:`, entries[0]);
-        console.log(`[SellerDetailView] Last entry:`, entries[entries.length - 1]);
-      } else {
-        console.warn(`[SellerDetailView] ⚠️ No KPI entries found for filter ${kpiFilter} (${days} days)`);
-        console.warn(`[SellerDetailView] URL used: ${url}`);
-        console.warn(`[SellerDetailView] Response data:`, kpiRes.data);
-      }
     } catch (err) {
-      console.error('[SellerDetailView] ❌ Error loading KPI data:', err);
       logger.error('Error loading KPI data:', err);
       setKpiEntries([]);
       toast.error(`Erreur de chargement des KPI: ${err.response?.data?.detail || err.message}`);
@@ -103,8 +78,6 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
 
       // Extract LIVE scores from stats endpoint (harmonized with manager overview)
       const statsData = statsRes.data;
-      console.log('[SellerDetailView] Stats data received:', statsData);
-      
       const liveScores = statsData.avg_radar_scores || {
         accueil: 0,
         decouverte: 0,
@@ -112,9 +85,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
         closing: 0,
         fidelisation: 0
       };
-      
-      console.log('[SellerDetailView] Live scores extracted:', liveScores);
-      
+
       // Set live scores for current radar chart (consistent with manager overview)
       setLiveCompetences({
         type: "live",
@@ -125,10 +96,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
         score_closing: liveScores.closing || 0,
         score_fidelisation: liveScores.fidelisation || 0
       });
-      
-      console.log('[SellerDetailView] Diagnostic data:', diagRes.data);
-      console.log('[SellerDetailView] Competences history:', competencesRes.data);
-      
+
       setDiagnostic(diagRes.data);
       setDebriefs(debriefsRes.data);
       setCompetencesHistory(competencesRes.data || []); // Keep historical data for evolution chart
@@ -163,11 +131,6 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
   
   // Check if all scores are zero (no evaluation)
   const hasAnyScore = radarData.some(d => d.value > 0);
-  
-  // Debug logging for competences
-  console.log('[SellerDetailView] Live competences:', currentCompetences);
-  console.log('[SellerDetailView] Radar data:', radarData);
-  console.log('[SellerDetailView] Has any score > 0:', hasAnyScore);
 
   // Calculate evolution data (score global sur 50 = 5 compétences × 10)
   const evolutionData = competencesHistory.map((entry) => {

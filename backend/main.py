@@ -43,8 +43,7 @@ _cors_allowed_origins = get_allowed_origins(settings)
 _CORS_FALLBACK_ORIGINS = [
     "https://www.retailperformerai.com",
     "https://retailperformerai.com",
-    "http://localhost:3000",
-]
+] + (["http://localhost:3000"] if settings.ENVIRONMENT != "production" else [])
 
 
 def _cors_headers_for_request(request) -> dict:

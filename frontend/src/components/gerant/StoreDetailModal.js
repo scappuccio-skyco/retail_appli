@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Users, UserPlus, RefreshCw, Trash2, Pause, Lock } from 'lucide-react';
 import StoreKPIModal from '../StoreKPIModal';
 import { toast } from 'sonner';
-import { API_BASE } from '../../lib/api';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 
 // Mapping des couleurs selon l'index - couleurs de base pour le gradient
 const STORE_COLOR_CONFIG = [
@@ -24,52 +25,24 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0); // Force re-render après changement de statut
-  const backendUrl = API_BASE;
 
-  const fetchStoreTeam = async () => {
+  const fetchStoreTeam = async (signal) => {
+    const config = signal ? { signal } : {};
     try {
-      const token = localStorage.getItem('token');
-
-      // Récupérer les managers actifs
-      const managersResponse = await fetch(`${backendUrl}/api/gerant/stores/${store.id}/managers`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (managersResponse.ok) {
-        const managersData = await managersResponse.json();
-        console.log('Managers chargés:', managersData);
-        setManagers(managersData || []);
-      } else {
-        console.error('Erreur chargement managers:', managersResponse.status);
-        setManagers([]);
-      }
-
-      // Récupérer les vendeurs
-      const sellersResponse = await fetch(`${backendUrl}/api/gerant/stores/${store.id}/sellers`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (sellersResponse.ok) {
-        const sellersData = await sellersResponse.json();
-        console.log('Vendeurs chargés:', sellersData);
-        setSellers(sellersData || []);
-      } else {
-        console.error('Erreur chargement vendeurs:', sellersResponse.status);
-        setSellers([]);
-      }
-
-      // Récupérer toutes les invitations en attente
-      const invitationsResponse = await fetch(`${backendUrl}/api/gerant/invitations`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (invitationsResponse.ok) {
-        const allInvitations = await invitationsResponse.json();
-        // Filtrer les invitations pour ce magasin et status pending
-        const storeInvitations = allInvitations.filter(
-          inv => inv.store_id === store.id && inv.status === 'pending'
-        );
-        setPendingInvitations(storeInvitations);
-      }
+      const [managersRes, sellersRes, invitationsRes] = await Promise.all([
+        api.get(`/gerant/stores/${store.id}/managers`, config),
+        api.get(`/gerant/stores/${store.id}/sellers`, config),
+        api.get('/gerant/invitations', config),
+      ]);
+      setManagers(managersRes.data || []);
+      setSellers(sellersRes.data || []);
+      const storeInvitations = (invitationsRes.data || []).filter(
+        inv => inv.store_id === store.id && inv.status === 'pending'
+      );
+      setPendingInvitations(storeInvitations);
     } catch (error) {
-      console.error('Erreur chargement équipe:', error);
+      if (error.code === 'ERR_CANCELED') return;
+      logger.error('Erreur chargement équipe:', error);
     } finally {
       setLoading(false);
     }
@@ -86,34 +59,19 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const endpoint = userRole === 'manager' 
-        ? `${backendUrl}/api/gerant/managers/${userId}`
-        : `${backendUrl}/api/gerant/sellers/${userId}`;
-        
-      const response = await fetch(endpoint, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        // Mettre à jour la liste localement
-        if (userRole === 'manager') {
-          setManagers(managers.filter(m => m.id !== userId));
-        } else if (userRole === 'seller') {
-          setSellers(sellers.filter(s => s.id !== userId));
-        }
-        // Rafraîchir si besoin
-        if (onRefresh) {
-          onRefresh();
-        }
-      } else {
-        const error = await response.json();
-        alert(error.detail || 'Erreur lors de la suppression');
+      const endpoint = userRole === 'manager'
+        ? `/gerant/managers/${userId}`
+        : `/gerant/sellers/${userId}`;
+      await api.delete(endpoint);
+      if (userRole === 'manager') {
+        setManagers(managers.filter(m => m.id !== userId));
+      } else if (userRole === 'seller') {
+        setSellers(sellers.filter(s => s.id !== userId));
       }
+      if (onRefresh) onRefresh();
     } catch (error) {
-      console.error('Erreur suppression utilisateur:', error);
-      alert('Erreur lors de la suppression');
+      logger.error('Erreur suppression utilisateur:', error);
+      toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
     }
   };
 
@@ -129,34 +87,17 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const endpoint = userRole === 'manager' 
-        ? `${backendUrl}/api/gerant/managers/${userId}/${action}`
-        : `${backendUrl}/api/gerant/sellers/${userId}/${action}`;
-        
-      const response = await fetch(endpoint, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        // Incrémenter refreshKey pour forcer un re-render complet et éviter l'erreur DOM
-        setRefreshKey(prev => prev + 1);
-        // Recharger toutes les données de l'équipe
-        await fetchStoreTeam();
-        // Rafraîchir si besoin
-        if (onRefresh) {
-          onRefresh();
-        }
-        // Message de succès (pas d'alert pour éviter les erreurs DOM)
-        console.log(result.message || `${userRole === 'manager' ? 'Manager' : 'Vendeur'} ${action === 'suspend' ? 'suspendu' : 'réactivé'} avec succès`);
-      } else {
-        const error = await response.json();
-        console.error(error.detail || `Erreur lors de ${actionLabel}`);
-      }
+      const endpoint = userRole === 'manager'
+        ? `/gerant/managers/${userId}/${action}`
+        : `/gerant/sellers/${userId}/${action}`;
+      const res = await api.patch(endpoint);
+      setRefreshKey(prev => prev + 1);
+      await fetchStoreTeam();
+      if (onRefresh) onRefresh();
+      toast.success(res.data?.message || `${userRole === 'manager' ? 'Manager' : 'Vendeur'} ${action === 'suspend' ? 'suspendu' : 'réactivé'} avec succès`);
     } catch (error) {
-      console.error(`Erreur ${actionLabel}:`, error);
+      logger.error(`Erreur ${actionLabel}:`, error);
+      toast.error(error.response?.data?.detail || `Erreur lors de ${actionLabel}`);
     }
   };
 
@@ -166,35 +107,21 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/gerant/invitations/${invitationId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        // Mettre à jour la liste localement
-        setPendingInvitations(pendingInvitations.filter(inv => inv.id !== invitationId));
-        // Optionnel: rafraîchir si besoin
-        if (onRefresh) {
-          onRefresh();
-        }
-      } else {
-        const error = await response.json();
-        alert(error.detail || 'Erreur lors de l\'annulation de l\'invitation');
-      }
+      await api.delete(`/gerant/invitations/${invitationId}`);
+      setPendingInvitations(pendingInvitations.filter(inv => inv.id !== invitationId));
+      if (onRefresh) onRefresh();
     } catch (error) {
-      console.error('Erreur annulation invitation:', error);
-      alert('Erreur lors de l\'annulation de l\'invitation');
+      logger.error('Erreur annulation invitation:', error);
+      toast.error(error.response?.data?.detail || "Erreur lors de l'annulation de l'invitation");
     }
   };
 
   useEffect(() => {
-    if (store && store.id) {
-      console.log('useEffect déclenché pour store:', store.id);
-      fetchStoreTeam();
-    }
-  }, [store?.id]); // Dépendance sur store.id uniquement
+    if (!store?.id) return;
+    const controller = new AbortController();
+    fetchStoreTeam(controller.signal);
+    return () => controller.abort();
+  }, [store?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
@@ -262,8 +189,8 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
               <p className="text-gray-600 mt-4">Chargement...</p>
             </div>
           ) : activeTab === 'performance' ? (
-            <StoreKPIModal 
-              onClose={() => console.log('Close not needed')} 
+            <StoreKPIModal
+              onClose={() => {}}
               onSuccess={() => onRefresh()}
               hideCloseButton={true}
               storeId={store.id}

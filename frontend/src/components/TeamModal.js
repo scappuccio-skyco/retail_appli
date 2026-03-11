@@ -130,15 +130,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           const kpiEntries = Array.isArray(kpiRes.data?.items) ? kpiRes.data.items : (Array.isArray(kpiRes.data) ? kpiRes.data : []);
           const diagnostic = diagRes.data;
 
-          // Debug logging
-          if (kpiEntries.length === 0) {
-            console.warn(`[TeamModal] Aucun KPI trouvé pour vendeur ${seller.id} (${seller.name}) sur ${daysParam} jours`);
-            console.warn(`[TeamModal] URL utilisée: ${kpiUrl}`);
-          } else {
-            console.log(`[TeamModal] ${kpiEntries.length} KPI trouvés pour vendeur ${seller.id} (${seller.name})`);
-            console.log(`[TeamModal] Première entrée:`, kpiEntries[0]);
-            console.log(`[TeamModal] Dernière entrée:`, kpiEntries[kpiEntries.length - 1]);
-          }
 
           // Calculate period totals - Support both ca_journalier and seller_ca for compatibility
           const monthlyCA = kpiEntries.reduce((sum, entry) => {

@@ -3,8 +3,6 @@ import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { X, Coffee, Sparkles, Copy, Check, RefreshCw, Calendar, Clock, Trash2, ChevronDown, Download, FileText } from 'lucide-react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 /**
  * MorningBriefModal - Générateur de Brief Matinal IA
@@ -37,14 +35,11 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
     setExportingPDF(true);
     
     try {
-      // ============================================================
-      // ÉTAPE 1: DIAGNOSTIC - Logs des 3 sources de contenu
-      // ============================================================
-      logger.log('=== PDF GENERATION DIAGNOSTIC ===');
-      logger.log('PDF_SOURCE_rawState:', JSON.stringify(briefData, null, 2));
-      logger.log('PDF_SOURCE_domText:', briefContentRef.current?.innerText || 'REF_NOT_READY');
-      logger.log('PDF_SOURCE_domHTML:', briefContentRef.current?.innerHTML?.substring(0, 500) || 'REF_NOT_READY');
-      
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+
       // Vérifier si le ref est disponible (le brief doit être rendu)
       if (!briefContentRef.current) {
         logger.warn('⚠️ briefContentRef not ready, falling back to string-based PDF');
@@ -135,8 +130,9 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
   // ANCIENNE MÉTHODE (fallback) - À SUPPRIMER après validation
   const exportBriefToPDF_legacy = async (briefData) => {
     logger.warn('⚠️ Using legacy string-based PDF generation (fallback)');
-    
+
     try {
+      const { default: jsPDF } = await import('jspdf');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();

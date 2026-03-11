@@ -1,9 +1,9 @@
 import React, { useMemo, useRef } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
+import { logger } from '../utils/logger';
+import { toast } from 'sonner';
 import { Sparkles, X, TrendingUp, AlertTriangle, Target, ChevronLeft, ChevronRight, BarChart3, Download } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onClose, currentWeekOffset, onWeekChange, onRegenerate, generatingBilan }) {
@@ -16,26 +16,30 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
   const exportToPDF = async () => {
     // Defensive checks
     if (!contentRef.current || !document.body.contains(contentRef.current)) {
-      console.error('Content ref not available or not in DOM');
+      logger.error('Content ref not available or not in DOM');
       return;
     }
-    
+
     // Use batchedUpdates to prevent React reconciliation conflicts
     unstable_batchedUpdates(() => {
       setExportingPDF(true);
     });
-    
+
     try {
+      // Lazy-load heavy PDF libs only when needed
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+
       // Wait for React to finish any pending updates before DOM capture
       await new Promise(resolve => setTimeout(resolve, 150));
-      
+
       // Verify ref is still valid after wait
       if (!contentRef.current || !document.body.contains(contentRef.current)) {
         throw new Error('Content ref became invalid during wait');
       }
-      
-      console.log('Starting PDF export...');
-      
+
       // Capture with html2canvas - wrapped in try/catch for third-party library errors
       const canvas = await html2canvas(contentRef.current, {
         scale: 2,
@@ -58,8 +62,6 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
           }
         }
       });
-      
-      console.log('Canvas captured:', canvas.width, 'x', canvas.height);
       
       const imgData = canvas.toDataURL('image/png', 0.95);
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -97,16 +99,11 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
       const ratio = contentWidth / imgWidth;
       const contentHeight = imgHeight * ratio;
       
-      console.log('PDF dimensions:', { contentWidth, contentHeight, pdfHeight });
-      
       // Calculate how many pages we need
       const headerHeight = 30;
       const footerHeight = 8;
       const firstPageAvailable = pdfHeight - headerHeight - footerHeight;
       const otherPagesAvailable = pdfHeight - (2 * margin) - footerHeight;
-      
-      const estimatedPages = Math.ceil((contentHeight - firstPageAvailable) / otherPagesAvailable) + 1;
-      console.log('Estimated pages needed:', estimatedPages);
       
       if (contentHeight <= firstPageAvailable) {
         // Single page - all content fits
@@ -183,10 +180,9 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
         });
       });
       
-      console.log('PDF export completed successfully');
     } catch (error) {
-      console.error('Erreur lors de l\'export PDF:', error);
-      alert('Erreur lors de l\'export PDF. Veuillez réessayer.');
+      logger.error('Erreur lors de l\'export PDF:', error);
+      toast.error('Erreur lors de l\'export PDF. Veuillez réessayer.');
     } finally {
       // Reset state in batchedUpdates
       unstable_batchedUpdates(() => {

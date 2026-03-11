@@ -19,10 +19,14 @@ def init_database():
     mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
     db_name = os.environ.get('DB_NAME', 'retail_performer')
     
-    # Admin par défaut
-    default_admin_email = os.environ.get('DEFAULT_ADMIN_EMAIL', 's.cappuccio@retailperformerai.com')
-    default_admin_password = os.environ.get('DEFAULT_ADMIN_PASSWORD', 'RetailPerformer2025!')
+    # Admin par défaut — toutes les valeurs doivent être définies via env vars (pas de fallback)
+    default_admin_email = os.environ.get('DEFAULT_ADMIN_EMAIL')
+    default_admin_password = os.environ.get('DEFAULT_ADMIN_PASSWORD')
     default_admin_name = os.environ.get('DEFAULT_ADMIN_NAME', 'Super Admin')
+
+    if not default_admin_email or not default_admin_password:
+        logger.error("❌ DEFAULT_ADMIN_EMAIL et DEFAULT_ADMIN_PASSWORD doivent être définis comme variables d'environnement")
+        return False
     
     try:
         # Connexion à MongoDB
@@ -63,7 +67,6 @@ def init_database():
             
             logger.info("✅ Compte super_admin créé avec succès !")
             logger.info(f"   📧 Email: {default_admin_email}")
-            logger.info(f"   🔑 Mot de passe: {default_admin_password}")
             logger.info(f"   👤 Rôle: super_admin (administrateur plateforme)")
             logger.info(f"   🎯 Accès: Dashboard SuperAdmin - Gestion abonnements & workspaces")
             logger.info("   ⚠️  IMPORTANT: Changez ce mot de passe après la première connexion !")

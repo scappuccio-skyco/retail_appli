@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 
-export default function VenteConclueForm({ token, onSuccess }) {
+export default function VenteConclueForm({ onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [formConclue, setFormConclue] = useState({
     visible_to_manager: false,

@@ -1,26 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar, ChevronDown, Trash2 } from 'lucide-react';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 import { getApiPrefixByRole, normalizeHistoryResponse } from '../utils/apiHelpers';
-
-// Get user role from localStorage or JWT
-const getUserRole = () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) return 'manager'; // Default to manager
-    
-    // Try to decode JWT payload
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload?.role || 'manager';
-  } catch (e) {
-    return 'manager'; // Default fallback
-  }
-};
+import { useAuth } from '../contexts';
 
 export default function RelationshipManagementModal({ onClose, onSuccess, sellers = [], autoShowResult = false, storeId = null }) {
+  const { user } = useAuth();
   // Filter to show only active sellers (exclude suspended and deleted)
   const activeSellers = sellers.filter(seller => 
     !seller.status || seller.status === 'active'
@@ -29,13 +17,6 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   // Build store_id param for API calls
   const storeIdParam = storeId ? `?store_id=${storeId}` : '';
   
-  // Debug
-  logger.log('Total sellers:', sellers.length);
-  logger.log('Active sellers:', activeSellers.length);
-  logger.log('Sellers data:', sellers);
-  if (sellers.length > 0) {
-    logger.log('First seller structure:', sellers[0]);
-  }
   const [activeMainTab, setActiveMainTab] = useState(autoShowResult ? 'history' : 'form'); // 'form' or 'history'
   const [activeFormTab, setActiveFormTab] = useState('relationnel'); // 'relationnel' or 'conflit'
   const [activeHistoryTab, setActiveHistoryTab] = useState('all'); // 'all', 'relationnel', or 'conflit'
@@ -49,6 +30,8 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   const [expandedItems, setExpandedItems] = useState({});
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const filterDropdownRef = useRef(null);
+  const isMountedRef = useRef(true);
+  useEffect(() => () => { isMountedRef.current = false; }, []);
   
   // Types de situations
   const situationTypes = {
@@ -77,7 +60,7 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   // Load history
   const loadHistory = async (sellerId = null) => {
     try {
-      const userRole = getUserRole();
+      const userRole = user?.role || 'manager';
       const apiPrefix = getApiPrefixByRole(userRole);
       
       let url;
@@ -95,17 +78,19 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
       const response = await api.get(url);
       
       // Normalize response (handles both array and {consultations: [...]} formats)
+      if (!isMountedRef.current) return;
       const consultations = normalizeHistoryResponse(response.data);
       setHistory(consultations);
-      
+
       // Si autoShowResult, auto-expand le dernier bilan
       if (autoShowResult && consultations.length > 0) {
         const latestId = consultations[0].id;
         setExpandedItems({ [latestId]: true });
       }
     } catch (error) {
+      if (!isMountedRef.current) return;
       logger.error('Error loading history:', error);
-      toast.error('Erreur lors du chargement de l\'historique');
+      toast.error("Erreur lors du chargement de l'historique");
     }
   };
   

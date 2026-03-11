@@ -6,22 +6,10 @@ import { Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import AIRecommendations from './AIRecommendations';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 import { getApiPrefixByRole, normalizeHistoryResponse } from '../utils/apiHelpers';
-
-// Get user role from localStorage or JWT
-const getUserRole = () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) return 'manager'; // Default to manager
-    
-    // Try to decode JWT payload
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload?.role || 'manager';
-  } catch (e) {
-    return 'manager'; // Default fallback
-  }
-};
+import { useAuth } from '../contexts';
 
 export default function ConflictResolutionForm({ sellerId, sellerName }) {
+  const { user } = useAuth();
   // Pattern Ultra Simple - États séparés avec useState
   const [formData, setFormData] = useState({
     contexte: '',
@@ -46,7 +34,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   const fetchConflictHistory = async () => {
     setLoadingHistory(true);
     try {
-      const userRole = getUserRole();
+      const userRole = user?.role || 'manager';
       const apiPrefix = getApiPrefixByRole(userRole);
       
       let url;
@@ -95,7 +83,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     const loadingToast = toast.loading('🤖 Génération des recommandations IA...');
     
     try {
-      const userRole = getUserRole();
+      const userRole = user?.role || 'manager';
       const apiPrefix = getApiPrefixByRole(userRole);
       
       // Build payload based on role
@@ -136,7 +124,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
       });
       
     } catch (err) {
-      console.error('Error creating conflict resolution:', err);
+      logger.error('Error creating conflict resolution:', err);
       toast.dismiss(loadingToast);
       toast.error('Erreur lors de la génération des recommandations');
     } finally {

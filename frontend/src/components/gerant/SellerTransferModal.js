@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCw, Users } from 'lucide-react';
-import { API_BASE } from '../../lib/api';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 
 const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransfer }) => {
   const [transferMode, setTransferMode] = useState('same_store'); // 'same_store' or 'new_store'
@@ -10,7 +11,6 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
   const [loading, setLoading] = useState(false);
   const [loadingManagers, setLoadingManagers] = useState(false);
   const [error, setError] = useState('');
-  const backendUrl = API_BASE;
 
   useEffect(() => {
     // If same store mode, load managers from current store immediately
@@ -28,17 +28,10 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
   const fetchManagers = async (storeId) => {
     setLoadingManagers(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/gerant/stores/${storeId}/managers`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setManagers(data);
-      }
+      const res = await api.get(`/gerant/stores/${storeId}/managers`);
+      setManagers(res.data);
     } catch (err) {
-      console.error('Erreur chargement managers:', err);
+      logger.error('Erreur chargement managers:', err);
     } finally {
       setLoadingManagers(false);
     }

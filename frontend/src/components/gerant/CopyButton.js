@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Copy, CheckCircle } from 'lucide-react';
+import { logger } from '../../utils/logger';
 
 const CopyButton = ({ text, className = '' }) => {
   const [copied, setCopied] = useState(false);
@@ -51,7 +52,7 @@ const CopyButton = ({ text, className = '' }) => {
         }, 2000);
       }
     } catch (err) {
-      console.error('Copy failed:', err);
+      logger.error('Copy failed:', err);
       try {
         document.body.removeChild(textArea);
       } catch (e) {

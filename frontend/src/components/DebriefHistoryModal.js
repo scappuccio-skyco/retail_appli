@@ -5,7 +5,7 @@ import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 
-export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExpandDebriefId }) {
+export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebriefId }) {
   const [filtreHistorique, setFiltreHistorique] = useState('all');
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [displayLimit, setDisplayLimit] = useState(20);

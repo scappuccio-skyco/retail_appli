@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, field_validator
 from typing import Optional
 
 # Load .env file - IMPORTANT: override=False ensures Kubernetes-injected env vars take precedence
@@ -64,6 +64,13 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = Field(default="development", description="Environment: development, staging, production")
     DEBUG: bool = Field(default=False, description="Debug mode")
     
+    @field_validator('JWT_SECRET')
+    @classmethod
+    def validate_jwt_secret(cls, v):
+        if not v or len(v) < 32:
+            raise ValueError('JWT_SECRET doit faire au moins 32 caractères. Générez-en un avec : openssl rand -base64 32')
+        return v
+
     class Config:
         env_file = ".env"
         case_sensitive = True

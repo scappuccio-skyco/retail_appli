@@ -4,7 +4,7 @@ Security utilities: JWT, password hashing, authentication
 import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends, Header
+from fastapi import Depends, Header, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, Dict
 import logging
@@ -124,20 +124,21 @@ def _extract_user_id(payload: dict) -> Optional[str]:
     return None
 
 
-def _get_token_payload(credentials: Optional[HTTPAuthorizationCredentials]) -> dict:
-    if not credentials or not isinstance(credentials, HTTPAuthorizationCredentials):
-        logger.warning("Auth rejected: missing bearer credentials")
-        raise UnauthorizedError("Missing token")
-    if not credentials.credentials:
-        logger.warning("Auth rejected: missing bearer token")
-        raise UnauthorizedError("Missing token")
-    token = credentials.credentials
-    return decode_token(token)
-
-
-async def _get_current_user_from_token(
+def _get_token_from_request(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials],
-) -> dict:
+) -> str:
+    """Extract JWT from Authorization Bearer header or httpOnly access_token cookie."""
+    if credentials and credentials.credentials:
+        return credentials.credentials
+    cookie_token = request.cookies.get("access_token")
+    if cookie_token:
+        return cookie_token
+    logger.warning("Auth rejected: no bearer token or access_token cookie")
+    raise UnauthorizedError("Missing token")
+
+
+async def _get_current_user_from_token(token: str) -> dict:
     """
     Single point of JWT decoding and user resolution (Token -> User).
     Used by all role-specific dependencies. Uses cache for user lookups (5 min).
@@ -147,7 +148,7 @@ async def _get_current_user_from_token(
     from repositories.user_repository import UserRepository
     from repositories.store_repository import WorkspaceRepository
 
-    payload = _get_token_payload(credentials)
+    payload = decode_token(token)
     user_id = _extract_user_id(payload)
     if not user_id:
         logger.warning("Auth rejected: missing user_id in token payload")
@@ -238,80 +239,92 @@ async def _attach_space_context(workspace_repo, user: dict) -> dict:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> dict:
     """
     Dependency to get current authenticated user.
-    Delegates to _get_current_user_from_token (single JWT + cache path).
+    Accepts JWT from Authorization Bearer header or httpOnly access_token cookie.
 
     Usage:
         @router.get("/me")
         async def get_me(current_user: dict = Depends(get_current_user)):
             return current_user
     """
-    return await _get_current_user_from_token(credentials)
+    token = _get_token_from_request(request, credentials)
+    return await _get_current_user_from_token(token)
 
 
 async def get_current_gerant(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> dict:
     """
     Dependency to get current user and verify they are a gérant.
-    Uses _get_current_user_from_token (JWT + cache), then checks role.
+    Accepts JWT from Bearer header or httpOnly cookie.
     """
-    user = await _get_current_user_from_token(credentials)
+    token = _get_token_from_request(request, credentials)
+    user = await _get_current_user_from_token(token)
     if _normalize_role(user.get("role")) != "gerant":
         raise ForbiddenError("Accès réservé aux gérants")
     return user
 
 
 async def get_current_manager(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> dict:
     """
     Dependency to get current user and verify they are a manager.
-    Uses _get_current_user_from_token (JWT + cache), then checks role.
+    Accepts JWT from Bearer header or httpOnly cookie.
     """
-    user = await _get_current_user_from_token(credentials)
+    token = _get_token_from_request(request, credentials)
+    user = await _get_current_user_from_token(token)
     if _normalize_role(user.get("role")) != "manager":
         raise ForbiddenError("Accès réservé aux managers")
     return user
 
 
 async def get_current_seller(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> dict:
     """
     Dependency to get current user and verify they are a seller.
-    Uses _get_current_user_from_token (JWT + cache), then checks role.
+    Accepts JWT from Bearer header or httpOnly cookie.
     """
-    user = await _get_current_user_from_token(credentials)
+    token = _get_token_from_request(request, credentials)
+    user = await _get_current_user_from_token(token)
     if _normalize_role(user.get("role")) != "seller":
         raise ForbiddenError("Accès réservé aux vendeurs")
     return user
 
 
 async def get_super_admin(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> dict:
     """
     Dependency to get current user and verify they are a super admin.
-    Uses _get_current_user_from_token (JWT + cache), then checks role.
+    Accepts JWT from Bearer header or httpOnly cookie.
     """
-    user = await _get_current_user_from_token(credentials)
+    token = _get_token_from_request(request, credentials)
+    user = await _get_current_user_from_token(token)
     if _normalize_role(user.get("role")) != "super_admin":
         raise ForbiddenError("Super admin access required")
     return user
 
 
 async def get_gerant_or_manager(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> dict:
     """
     Dependency to get current user and verify they are a gérant OR manager.
-    Uses _get_current_user_from_token (JWT + cache), then checks role.
+    Accepts JWT from Bearer header or httpOnly cookie.
     """
-    user = await _get_current_user_from_token(credentials)
+    token = _get_token_from_request(request, credentials)
+    user = await _get_current_user_from_token(token)
     if _normalize_role(user.get("role")) not in ("gerant", "manager"):
         raise ForbiddenError("Accès réservé aux gérants et managers")
     return user

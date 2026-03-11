@@ -261,7 +261,7 @@ export default function StoreKPIModalOverviewTab({
     try {
       if (typeof e.target.showPicker === 'function') e.target.showPicker();
     } catch (err) {
-      console.error('[StoreKPIModalOverviewTab] showPicker failed:', err);
+      logger.error('[StoreKPIModalOverviewTab] showPicker failed:', err);
     }
   };
 

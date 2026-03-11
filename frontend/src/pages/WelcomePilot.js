@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../utils/logger';
 import { CheckCircle, Calendar, Sparkles, ArrowRight } from 'lucide-react';
 import Logo from '../components/shared/Logo';
 
@@ -15,16 +16,10 @@ export default function WelcomePilot() {
         const data = JSON.parse(earlyAdopterData);
         setUserName(data.fullName || '');
       } catch (e) {
-        console.error('Error parsing early adopter data:', e);
+        logger.error('Error parsing early adopter data:', e);
       }
     }
 
-    // Essayer de récupérer depuis le token si disponible
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Optionnel : faire un appel API pour récupérer le nom complet
-      // Pour l'instant, on utilise le nom du formulaire
-    }
   }, []);
 
   const handleCalendlyClick = () => {
@@ -112,16 +107,8 @@ export default function WelcomePilot() {
           <div className="mt-8 text-center">
             <button
               onClick={() => {
-                // Nettoyer le flag early adopter après affichage
                 localStorage.removeItem('early_adopter_candidate');
-                // Rediriger vers le dashboard approprié selon le rôle
-                const token = localStorage.getItem('token');
-                if (token) {
-                  // L'utilisateur est connecté, rediriger vers son dashboard
-                  globalThis.location.href = '/dashboard';
-                } else {
-                  navigate('/login');
-                }
+                globalThis.location.href = '/dashboard';
               }}
               className="text-[#F97316] hover:text-[#EA580C] font-medium transition-colors"
             >

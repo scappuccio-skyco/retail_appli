@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 
-export default function OpportuniteManqueeForm({ token, onSuccess }) {
+export default function OpportuniteManqueeForm({ onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [formManquee, setFormManquee] = useState({
     visible_to_manager: false,

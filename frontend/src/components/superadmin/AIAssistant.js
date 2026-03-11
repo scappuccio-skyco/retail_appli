@@ -147,7 +147,7 @@ export default function AIAssistant() {
       
     } catch (error) {
       toast.error('Erreur lors de l\'exécution de l\'action');
-      console.error('Error executing action:', error);
+      logger.error('Error executing action:', error);
     }
   };
 

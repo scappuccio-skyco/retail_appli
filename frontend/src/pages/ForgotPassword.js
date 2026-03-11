@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { logger } from '../utils/logger';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { api } from '../lib/apiClient';
 
@@ -29,7 +30,7 @@ export default function ForgotPassword() {
       setEmailSent(true);
       // Ne pas afficher d'erreur pour éviter l'énumération d'emails
       if (error.response?.status !== 200) {
-        console.error('Error sending password reset email:', error);
+        logger.error('Error sending password reset email:', error);
       }
     } finally {
       setLoading(false);

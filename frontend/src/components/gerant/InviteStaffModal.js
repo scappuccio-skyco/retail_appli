@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, UserPlus, Building2, Users } from 'lucide-react';
-import { API_BASE } from '../../lib/api';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 
 const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null }) => {
-  const backendUrl = API_BASE;
   
   const [formData, setFormData] = useState({
     name: '',
@@ -28,33 +28,19 @@ const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null })
 
   const fetchManagersAndInvites = async (storeId) => {
     try {
-      const token = localStorage.getItem('token');
-      
-      // Récupérer les managers actifs
-      const managersResponse = await fetch(`${backendUrl}/api/gerant/stores/${storeId}/managers`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (managersResponse.ok) {
-        const managersData = await managersResponse.json();
-        setManagers(managersData);
-      }
+      const [managersRes, invitesRes] = await Promise.all([
+        api.get(`/gerant/stores/${storeId}/managers`),
+        api.get('/gerant/invitations'),
+      ]);
 
-      // Récupérer les invitations en attente
-      const invitesResponse = await fetch(`${backendUrl}/api/gerant/invitations`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (invitesResponse.ok) {
-        const allInvites = await invitesResponse.json();
-        // Filtrer les invitations de managers en attente pour ce magasin
-        const pendingManagers = allInvites.filter(
-          inv => inv.store_id === storeId && inv.role === 'manager' && inv.status === 'pending'
-        );
-        setPendingManagerInvites(pendingManagers);
-      }
+      setManagers(managersRes.data);
+
+      const pendingManagers = invitesRes.data.filter(
+        inv => inv.store_id === storeId && inv.role === 'manager' && inv.status === 'pending'
+      );
+      setPendingManagerInvites(pendingManagers);
     } catch (error) {
-      console.error('Erreur chargement managers:', error);
+      logger.error('Erreur chargement managers:', error);
     }
   };
 

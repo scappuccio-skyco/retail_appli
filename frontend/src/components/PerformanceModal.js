@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { X, TrendingUp, BarChart3, ChevronLeft, ChevronRight, Download, Sparkles, AlertTriangle, Target, Edit3, Lock } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { unstable_batchedUpdates } from 'react-dom';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
@@ -334,8 +332,13 @@ export default function PerformanceModal({
     });
     
     try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+
       await new Promise(resolve => setTimeout(resolve, 150));
-      
+
       const canvas = await html2canvas(contentRef.current, {
         scale: 2,
         useCORS: true,
@@ -390,7 +393,7 @@ export default function PerformanceModal({
       
     } catch (error) {
       logger.error('Erreur export PDF:', error);
-      alert('Erreur lors de l\'export PDF');
+      toast.error('Erreur lors de l\'export PDF');
     } finally {
       unstable_batchedUpdates(() => {
         setExportingPDF(false);

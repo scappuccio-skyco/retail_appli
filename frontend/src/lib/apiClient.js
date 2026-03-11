@@ -11,8 +11,12 @@ import { toast } from 'sonner';
 import { API_BASE } from './api';
 import { logger } from '../utils/logger';
 
-/** Évite d'afficher plusieurs toasts 403 d'affilée (plusieurs requêtes en parallèle). */
+/** Évite d'afficher plusieurs toasts du même type en rafale (requêtes parallèles). */
 let last403ToastAt = 0;
+let last429ToastAt = 0;
+let last5xxToastAt = 0;
+let lastNetworkToastAt = 0;
+const DEDUP_MS = 5000; // 5 s entre deux toasts du même type
 const SUBSCRIPTION_INACTIVE_SHOWN_KEY = 'apiClient_subscription_inactive_toast_shown';
 
 /**
@@ -53,28 +57,21 @@ function cleanUrl(url) {
 const apiClient = axios.create({
   baseURL: `${API_BASE}/api`,
   timeout: 30000,
-  // Note: withCredentials is NOT needed since we use Authorization Bearer token
-  // withCredentials: true would require stricter CORS configuration
+  // withCredentials: true is required to send/receive httpOnly cookies (JWT auth)
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor pour auth (centralisé) + protection URL
+// Interceptor URL protection (double /api/api/ guard)
 apiClient.interceptors.request.use((config) => {
-  // Protection: nettoyer l'URL si elle contient /api/api/
   if (config.url) {
     const originalUrl = config.url;
     config.url = cleanUrl(config.url);
     if (config.url !== originalUrl && process.env.NODE_ENV === 'development') {
       logger.warn(`[apiClient] URL corrigée dans interceptor: ${originalUrl} -> ${config.url}`);
     }
-  }
-  
-  // Ajouter token
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -88,10 +85,13 @@ apiClient.interceptors.response.use(
       logger.error('API Error:', error.response?.data || error.message);
     }
 
-    // Gestion erreurs 401 (logout)
+    // Gestion erreurs 401 (session expirée)
+    // /auth/me est le check de démarrage : on ne redirige pas, AuthContext gère l'état
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      globalThis.location.href = '/login';
+      const requestUrl = error.config?.url || '';
+      if (!requestUrl.includes('/auth/me')) {
+        globalThis.location.href = '/login';
+      }
       return Promise.reject(error);
     }
 
@@ -113,6 +113,47 @@ apiClient.interceptors.response.use(
       } else if (!isSubscriptionInactive && now - last403ToastAt > 3000) {
         last403ToastAt = now;
         toast.error(detail, { duration: 5000 });
+      }
+    }
+
+    // 429 — Rate limit
+    if (error.response?.status === 429) {
+      const now = Date.now();
+      if (now - last429ToastAt > DEDUP_MS) {
+        last429ToastAt = now;
+        const retryAfter = error.response.headers?.['retry-after'];
+        toast.warning(
+          retryAfter
+            ? `Trop de requêtes. Réessayez dans ${retryAfter}s.`
+            : 'Trop de requêtes. Veuillez patienter quelques secondes.',
+          { duration: 5000, icon: '⏳' }
+        );
+      }
+    }
+
+    // 5xx — Erreur serveur
+    if (error.response?.status >= 500) {
+      const now = Date.now();
+      if (now - last5xxToastAt > DEDUP_MS) {
+        last5xxToastAt = now;
+        toast.error('Erreur serveur. Veuillez réessayer.', {
+          duration: 6000,
+          description: process.env.NODE_ENV === 'development'
+            ? `${error.response.status} — ${error.response?.data?.detail || error.message}`
+            : undefined,
+        });
+      }
+    }
+
+    // Réseau hors ligne (pas de réponse HTTP)
+    if (!error.response && error.request) {
+      const now = Date.now();
+      if (now - lastNetworkToastAt > DEDUP_MS) {
+        lastNetworkToastAt = now;
+        toast.error('Impossible de joindre le serveur. Vérifiez votre connexion.', {
+          duration: 6000,
+          icon: '📡',
+        });
       }
     }
 

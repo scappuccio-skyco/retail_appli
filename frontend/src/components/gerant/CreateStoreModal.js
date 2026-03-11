@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Building2 } from 'lucide-react';
+import { logger } from '../../utils/logger';
 
 const CreateStoreModal = ({ onClose, onCreate }) => {
   const [formData, setFormData] = useState({
@@ -21,7 +22,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
       await onCreate(formData);
       onClose();
     } catch (err) {
-      console.error('Creation error:', err);
+      logger.error('Creation error:', err);
       let errorMessage = 'Erreur lors de la création du magasin';
       
       if (err.response?.data?.detail) {

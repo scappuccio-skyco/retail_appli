@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { logger } from '../../utils/logger';
 
 export default function StoreKPIModalProspectsTab({
   kpiConfig,
@@ -31,7 +32,7 @@ export default function StoreKPIModalProspectsTab({
     try {
       if (typeof e.target.showPicker === 'function') e.target.showPicker();
     } catch (err) {
-      console.error('[StoreKPIModalProspectsTab] showPicker failed:', err);
+      logger.error('[StoreKPIModalProspectsTab] showPicker failed:', err);
     }
   };
 

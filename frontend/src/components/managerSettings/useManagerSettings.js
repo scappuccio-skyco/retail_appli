@@ -220,7 +220,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
       if (!confettiFn) return;
       confettiFn({ particleCount: 30, spread: 50, origin: { y: 0.6 }, colors: ['#ffd700', '#ff6b6b', '#4ecdc4'] });
     } catch (err) {
-      console.error('[useManagerSettings] triggerConfetti failed:', err);
+      logger.error('[useManagerSettings] triggerConfetti failed:', err);
     }
   };
 

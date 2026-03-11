@@ -51,6 +51,10 @@ async def root():
 
 @router.get("/_debug/routes", include_in_schema=False)
 async def debug_routes(request: Request):
+    s = _get_settings()
+    if s.ENVIRONMENT == "production":
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404)
     app = request.app
     routes_list = []
     for route in app.routes:

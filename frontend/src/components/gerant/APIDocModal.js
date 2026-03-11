@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Book, ExternalLink, Download } from 'lucide-react';
-import { API_BASE } from '../../lib/api';
+import { toast } from 'sonner';
+import { logger } from '../../utils/logger';
 import SupportModal from '../SupportModal';
 import { apiDownloadPdf } from '../../utils/pdfDownload';
 
@@ -14,8 +15,8 @@ export default function APIDocModal({ isOpen, onClose }) {
       // Use unified PDF download helper
       await apiDownloadPdf('/api/docs/integrations.pdf', 'NOTICE_API_INTEGRATIONS.pdf');
     } catch (error) {
-      console.error('Erreur lors du téléchargement du PDF:', error);
-      alert(`Erreur lors du téléchargement du PDF: ${error.message || 'Veuillez réessayer.'}`);
+      logger.error('Erreur lors du téléchargement du PDF:', error);
+      toast.error(`Erreur lors du téléchargement du PDF: ${error.message || 'Veuillez réessayer.'}`);
     }
   };
 

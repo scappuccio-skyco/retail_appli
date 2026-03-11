@@ -1,28 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
-
-/**
- * Décode le payload d'un JWT (sans vérification de signature)
- * @param {string} token - Le JWT token
- * @returns {object|null} - Le payload décodé ou null si erreur
- */
-const decodeJWTPayload = (token) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-      logger.error('Error decoding JWT:', e);
-    return null;
-  }
-};
+import { useAuth } from '../contexts';
 
 /**
  * Hook pour vérifier si l'utilisateur est en mode synchronisation automatique (Enterprise)
@@ -40,6 +19,7 @@ const decodeJWTPayload = (token) => {
  * - loading: boolean
  */
 export const useSyncMode = (storeId = null) => {
+  const { user } = useAuth();
   const [syncMode, setSyncMode] = useState('manual');
   const [isEnterprise, setIsEnterprise] = useState(false);
   const [companyName, setCompanyName] = useState(null);
@@ -51,23 +31,17 @@ export const useSyncMode = (storeId = null) => {
 
   useEffect(() => {
     const fetchSyncMode = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
+      if (!user) {
         setLoading(false);
         return;
       }
 
-      // Décoder le JWT pour obtenir le rôle utilisateur
-      const payload = decodeJWTPayload(token);
-      const userRole = payload?.role || null;
-      logger.log('🔐 useSyncMode - Decoded role from JWT:', userRole);
+      const userRole = user.role || null;
       
       // Get store_id from URL if not passed as prop (for gerant viewing as manager)
       const urlParams = new URLSearchParams(globalThis.location.search);
       const effectiveStoreId = storeId || urlParams.get('store_id');
       const storeIdParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';
-      
-      logger.log('🏪 useSyncMode - Using storeId:', effectiveStoreId);
 
       // Récupérer le mode sync (manager/gerant uniquement ; les vendeurs n'ont pas accès à /manager/sync-mode → 403)
       if (userRole === 'seller') {
@@ -100,11 +74,7 @@ export const useSyncMode = (storeId = null) => {
             ? `/seller/subscription-status`
             : `/manager/subscription-status${storeIdParam}`;
           
-          logger.log('📡 useSyncMode - Fetching subscription status from:', endpoint);
-          
           const subResponse = await api.get(endpoint);
-          
-          logger.log('✅ useSyncMode - Subscription response:', subResponse.data);
           
           setParentSubscriptionStatus(subResponse.data.status);
           setIsSubscriptionExpired(subResponse.data.isReadOnly === true);
@@ -122,7 +92,7 @@ export const useSyncMode = (storeId = null) => {
     };
 
     fetchSyncMode();
-  }, [storeId]);
+  }, [storeId, user]);
 
   // isReadOnly est true si :
   // 1. Mode sync != manual (Enterprise)
