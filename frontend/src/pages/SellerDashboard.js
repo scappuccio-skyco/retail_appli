@@ -26,6 +26,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [debriefs, setDebriefs] = useState([]);
   const [competencesHistory, setCompetencesHistory] = useState([]);
   const [kpiEntries, setKpiEntries] = useState([]);
+  const [kpiEntriesPage, setKpiEntriesPage] = useState(1);
+  const [kpiEntriesTotal, setKpiEntriesTotal] = useState(0);
   const [kpiConfig, setKpiConfig] = useState(null);
   const [diagnostic, setDiagnostic] = useState(initialDiagnostic);
   const [dailyChallenge, setDailyChallenge] = useState(null);
@@ -263,8 +265,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
       try {
         const kpiRes = await api.get('/seller/kpi-entries');
-        const entries = Array.isArray(kpiRes.data) ? kpiRes.data : (kpiRes.data?.items ?? []);
+        const rawKpi = kpiRes.data;
+        const entries = Array.isArray(rawKpi) ? rawKpi : (rawKpi?.items ?? []);
         setKpiEntries(entries);
+        setKpiEntriesPage(1);
+        setKpiEntriesTotal(rawKpi?.total ?? entries.length);
 
         const today = new Date().toISOString().split('T')[0];
         const hasTodayKPI = entries.some(e => e.date === today);
@@ -424,16 +429,28 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     setGeneratingBilan(true);
     try {
       const { startISO, endISO } = getWeekDates(currentWeekOffset);
-      const res = await api.post(`/seller/bilan-individuel?start_date=${startISO}&end_date=${endISO}`, {});
-      if (res.data) {
-        setBilanIndividuel(res.data);
-        toast.success('✨ Bravo ! Bilan régénéré avec succès');
-      }
+      await api.post(`/seller/bilan-individuel?start_date=${startISO}&end_date=${endISO}`, {});
+      // Reload the full enriched bilan: kpi_resume calculé + periode au bon format
+      await fetchBilanIndividuel(currentWeekOffset);
+      toast.success('✨ Bravo ! Bilan régénéré avec succès');
     } catch (err) {
       logger.error('Error regenerating bilan:', err);
       toast.error('Erreur lors de la régénération du bilan');
     } finally {
       setGeneratingBilan(false);
+    }
+  };
+
+  const loadMoreKpiEntries = async () => {
+    try {
+      const nextPage = kpiEntriesPage + 1;
+      const res = await api.get(`/seller/kpi-entries?page=${nextPage}`);
+      const raw = res.data;
+      const newEntries = Array.isArray(raw) ? raw : (raw?.items ?? []);
+      setKpiEntries(prev => [...prev, ...newEntries]);
+      setKpiEntriesPage(nextPage);
+    } catch (err) {
+      logger.error('Error loading more KPI entries:', err);
     }
   };
 
@@ -623,6 +640,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         fetchBilanIndividuel={fetchBilanIndividuel}
         refreshCompetenceScores={refreshCompetenceScores}
         regenerateBilan={regenerateBilan}
+        loadMoreKpiEntries={loadMoreKpiEntries}
+        kpiEntriesTotal={kpiEntriesTotal}
         handleOpenKPIModal={handleOpenKPIModal}
         // Onboarding
         onboarding={onboarding}

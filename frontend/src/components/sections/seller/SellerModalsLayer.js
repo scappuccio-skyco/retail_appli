@@ -115,6 +115,8 @@ export default function SellerModalsLayer({
   fetchBilanIndividuel,
   refreshCompetenceScores,
   regenerateBilan,
+  loadMoreKpiEntries,
+  kpiEntriesTotal,
   handleOpenKPIModal,
 
   // Onboarding
@@ -326,6 +328,8 @@ export default function SellerModalsLayer({
           generatingBilan={generatingBilan}
           initialTab={initialTab}
           isReadOnly={isSubscriptionExpired}
+          onLoadMoreKpi={loadMoreKpiEntries}
+          kpiEntriesTotal={kpiEntriesTotal}
           onEditKPI={(entry) => {
             handleOpenKPIModal(entry);
             setShowPerformanceModal(false);

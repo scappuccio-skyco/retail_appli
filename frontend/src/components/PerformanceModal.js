@@ -29,7 +29,9 @@ export default function PerformanceModal({
   currentWeekOffset,
   onWeekChange,
   initialTab = 'bilan',
-  isReadOnly = false
+  isReadOnly = false,
+  onLoadMoreKpi,
+  kpiEntriesTotal,
 }) {
   const [activeTab, setActiveTab] = useState(initialTab); // 'bilan', 'kpi', or 'saisie'
   const [displayedKpiCount, setDisplayedKpiCount] = useState(20); // Start with 20 entries
@@ -810,13 +812,20 @@ export default function PerformanceModal({
                   </div>
                   
                   {/* Bouton Charger plus */}
-                  {displayedKpiCount < kpiEntries.length && (
+                  {(displayedKpiCount < kpiEntries.length || kpiEntries.length < (kpiEntriesTotal ?? kpiEntries.length)) && (
                     <div className="mt-6 text-center">
                       <button
-                        onClick={() => setDisplayedKpiCount(prev => prev + 20)}
+                        onClick={async () => {
+                          if (displayedKpiCount < kpiEntries.length) {
+                            setDisplayedKpiCount(prev => prev + 20);
+                          } else if (onLoadMoreKpi) {
+                            await onLoadMoreKpi();
+                            setDisplayedKpiCount(prev => prev + 20);
+                          }
+                        }}
                         className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
                       >
-                        Charger plus ({Math.min(20, kpiEntries.length - displayedKpiCount)} entrées supplémentaires)
+                        Charger plus
                       </button>
                     </div>
                   )}
