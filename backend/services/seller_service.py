@@ -206,27 +206,6 @@ class SellerService:
         result = await self.kpi_repo.aggregate(pipeline, max_results=1)
         return result[0] if result else dict(EMPTY_KPI_METRICS)
 
-    async def get_kpi_aggregate_for_period(
-        self, seller_id: str, start_date: Optional[str], end_date: Optional[str]
-    ) -> Dict:
-        """Aggregate KPI totals for seller in date range. Used by routes instead of kpi_repo.aggregate."""
-        query: Dict = {"seller_id": seller_id}
-        if start_date and end_date:
-            query["date"] = {"$gte": start_date, "$lte": end_date}
-        pipeline = [
-            {"$match": query},
-            {
-                "$group": {
-                    "_id": None,
-                    "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
-                    "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
-                    "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
-                }
-            },
-        ]
-        result = await self.kpi_repo.aggregate(pipeline, max_results=1)
-        return result[0] if result else {}
-
     async def create_diagnostic_for_seller(self, diagnostic_data: Dict) -> str:
         """Create diagnostic. Used by routes instead of service.diagnostic_repo."""
         return await self.diagnostic_repo.create_diagnostic(diagnostic_data)

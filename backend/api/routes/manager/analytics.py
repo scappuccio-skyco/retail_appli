@@ -366,7 +366,7 @@ async def get_team_kpi_metrics(
     # Validation dates
     start_date: Optional[str] = payload.get("start_date")
     end_date: Optional[str] = payload.get("end_date")
-    days: int = int(payload.get("days", 30))
+    days: int = min(int(payload.get("days", 30)), 365)
     try:
         if start_date:
             datetime.strptime(start_date, "%Y-%m-%d")

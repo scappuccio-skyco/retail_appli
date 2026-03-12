@@ -12,6 +12,7 @@ from repositories.user_repository import UserRepository
 from repositories.manager_diagnostic_results_repository import ManagerDiagnosticResultsRepository
 from repositories.diagnostic_repository import DiagnosticRepository
 from repositories.kpi_repository import KPIRepository
+from utils.kpi_pipeline import build_seller_kpi_pipeline, EMPTY_KPI_METRICS
 from repositories.debrief_repository import DebriefRepository
 from repositories.relationship_consultation_repository import RelationshipConsultationRepository
 from services.ai_service import AIService
@@ -86,9 +87,9 @@ class RelationshipService:
                 seller_diagnostic = {}
             thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
             today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-            kpi_entries = await self.kpi_repo.find_by_date_range(seller_id, thirty_days_ago, today_str)
-            if len(kpi_entries) > 100:
-                kpi_entries = kpi_entries[:100]
+            kpi_pipeline = build_seller_kpi_pipeline(seller_id, thirty_days_ago, today_str)
+            kpi_result = await self.kpi_repo.aggregate(kpi_pipeline, max_results=1)
+            kpi_metrics = kpi_result[0] if kpi_result else dict(EMPTY_KPI_METRICS)
             recent_debriefs = await self.debrief_repo.find_many(
                 {"seller_id": seller_id, "shared_with_manager": True},
                 {"_id": 0},
@@ -97,12 +98,18 @@ class RelationshipService:
                 [("created_at", -1)],
             )
             
-            # Prepare data summary for AI
-            kpi_summary = f"KPIs sur les 30 derniers jours : {len(kpi_entries)} entrées"
-            if kpi_entries:
-                total_ca = sum(entry.get('ca_journalier', 0) or entry.get('ca', 0) for entry in kpi_entries)
-                total_ventes = sum(entry.get('nb_ventes', 0) or entry.get('ventes', 0) for entry in kpi_entries)
-                kpi_summary += f"\n- CA total : {total_ca:.2f}€\n- Ventes totales : {total_ventes}"
+            # Prepare data summary for AI (agrégats serveur — source de vérité)
+            kpi_summary = f"KPIs sur les 30 derniers jours : {kpi_metrics['nb_jours']} jours saisis"
+            if kpi_metrics['nb_jours'] > 0:
+                kpi_summary += (
+                    f"\n- CA total : {kpi_metrics['ca']:.2f}€"
+                    f"\n- Ventes : {kpi_metrics['ventes']}"
+                    f"\n- Panier moyen : {kpi_metrics['panier_moyen']:.2f}€"
+                )
+                if kpi_metrics['articles'] > 0:
+                    kpi_summary += f"\n- Indice de vente : {kpi_metrics['indice_vente']:.2f} art/vente"
+                if kpi_metrics['prospects'] > 0:
+                    kpi_summary += f"\n- Taux de transformation : {kpi_metrics['taux_transformation']:.1f}%"
             
             debrief_summary = f"{len(recent_debriefs)} debriefs récents"
             if recent_debriefs:

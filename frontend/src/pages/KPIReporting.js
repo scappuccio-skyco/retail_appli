@@ -19,28 +19,37 @@ export default function KPIReporting({ user, onBack }) {
   const [showAllEntries, setShowAllEntries] = useState(false); // Pour le bouton "Voir plus"
 
   useEffect(() => {
-    fetchKPIData();
+    const controller = new AbortController();
+    fetchKPIData(controller.signal);
+    return () => controller.abort();
   }, [period]);
 
-  const fetchKPIData = async () => {
+  const fetchKPIData = async (signal) => {
     setLoading(true);
     try {
       const days = period === 'week' ? 7 : period === 'month' ? 30 : period === 'quarter' ? 90 : 365;
+      const isYearView = days === 365;
       // Récupérer la config KPI, les entrées et les métriques agrégées côté serveur
-      const [configRes, allRes, filteredRes, metricsRes] = await Promise.all([
-        api.get('/seller/kpi-config'),
-        api.get('/seller/kpi-entries?days=365'),
-        api.get(`/seller/kpi-entries?days=${days}`),
-        api.get(`/seller/kpi-metrics?days=${days}`)
-      ]);
+      // Pour la vue annuelle, allEntries et filteredEntries sont identiques → une seule requête
+      const requests = [
+        api.get('/seller/kpi-config', { signal }),
+        api.get('/seller/kpi-entries?days=365', { signal }),
+        api.get(`/seller/kpi-metrics?days=${days}`, { signal }),
+        ...(!isYearView ? [api.get(`/seller/kpi-entries?days=${days}`, { signal })] : []),
+      ];
+      const [configRes, allRes, metricsRes, filteredRes] = await Promise.all(requests);
 
       setKpiConfig(configRes.data);
       const allEntriesData = Array.isArray(allRes.data) ? allRes.data : (allRes.data?.items || []);
-      const filteredEntriesData = Array.isArray(filteredRes.data) ? filteredRes.data : (filteredRes.data?.items || []);
+      // Vue annuelle : filteredEntries = allEntries (même périmètre, pas de double fetch)
+      const filteredEntriesData = isYearView
+        ? allEntriesData
+        : (Array.isArray(filteredRes?.data) ? filteredRes.data : (filteredRes?.data?.items || []));
       setAllEntries(allEntriesData);
       setEntries(filteredEntriesData);
       setKpiMetrics(metricsRes.data);
     } catch (err) {
+      if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') return;
       logger.error('Error loading KPI data:', err);
       toast.error('Erreur de chargement des KPI');
     } finally {
