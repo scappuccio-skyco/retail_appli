@@ -5,7 +5,6 @@ const CONFIG_ITEMS = [
   { keySeller: 'seller_track_ca', keyManager: 'manager_track_ca', title: '💰 Chiffre d\'Affaires', subtitle: 'CA quotidien', tooltip: 'Total des ventes en euros. Permet de calculer le Panier Moyen (CA ÷ Ventes).' },
   { keySeller: 'seller_track_ventes', keyManager: 'manager_track_ventes', title: '🛍️ Nombre de Ventes', subtitle: 'Transactions', tooltip: 'Nombre de transactions réalisées. Permet de calculer : Panier Moyen (CA ÷ Ventes), Taux de Transformation (Ventes ÷ Prospects) et Indice de Vente (Articles ÷ Ventes).' },
   { keySeller: 'seller_track_articles', keyManager: 'manager_track_articles', title: '📦 Nombre d\'Articles', subtitle: 'Articles vendus', tooltip: 'Nombre total d\'articles vendus. Permet de calculer l\'Indice de Vente/UPT (Articles ÷ Ventes) : nombre moyen d\'articles par transaction.' },
-  { keySeller: 'seller_track_clients', keyManager: 'manager_track_clients', title: '👥 Nombre de Clients', subtitle: 'Clients servis', tooltip: 'Nombre de clients distincts.' },
   { keySeller: 'seller_track_prospects', keyManager: 'manager_track_prospects', title: '🚶 Nombre de Prospects', subtitle: 'Entrées magasin', tooltip: 'Nombre de personnes entrées dans le magasin. Permet de calculer le Taux de Transformation (Ventes ÷ Prospects) : pourcentage de visiteurs qui achètent.' }
 ];
 
