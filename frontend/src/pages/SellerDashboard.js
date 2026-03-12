@@ -395,7 +395,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
       const res = await api.get('/seller/bilan-individuel/all');
       const bilans = Array.isArray(res.data?.bilans) ? res.data.bilans : [];
-      const existing = bilans.find(b => b.periode === periode);
+      // Match on ISO dates (period_start/period_end) — the stored `periode` string
+      // uses "YYYY-MM-DD - YYYY-MM-DD" format while our local `periode` variable
+      // uses "Semaine du DD/MM/YY au DD/MM/YY", so string equality always fails.
+      const existing = bilans.find(b =>
+        b.period_start === startDate && b.period_end === endDate
+      );
 
       setBilanIndividuel(existing
         ? { ...existing, kpi_resume, periode }
