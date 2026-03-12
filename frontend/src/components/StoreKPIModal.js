@@ -110,6 +110,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             <StoreKPIModalProspectsTab
               kpiConfig={state.kpiConfig}
               isManagerDateLocked={state.isManagerDateLocked}
+              isSellerLocked={(sellerId) => state.isSellerLocked(state.managerKPIData.date, sellerId)}
               managerKPIData={state.managerKPIData}
               setManagerKPIData={state.setManagerKPIData}
               sellers={state.sellers}

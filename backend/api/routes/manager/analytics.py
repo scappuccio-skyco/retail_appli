@@ -97,7 +97,14 @@ async def get_dates_with_data(
     all_dates = sorted(set(dates) | set(manager_dates))
     locked_query = {**query, "locked": True}
     locked_dates = await kpi_service.get_kpi_distinct_dates(locked_query)
-    return {"dates": all_dates, "lockedDates": sorted(locked_dates)}
+    locked_sellers_by_date = await kpi_service.get_locked_seller_ids_by_date(
+        resolved_store_id, date_filter=query.get("date")
+    )
+    return {
+        "dates": all_dates,
+        "lockedDates": sorted(locked_dates),
+        "lockedSellersByDate": locked_sellers_by_date,
+    }
 
 
 @router.get("/available-years")
@@ -177,9 +184,6 @@ async def save_manager_kpi(
     if role == "manager" and context.get("store_id") != resolved_store_id:
         raise ForbiddenError("Ce magasin ne vous est pas assigné")
     date = kpi_data.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
-    locked_entries = await manager_service.get_kpi_entries_locked_or_api(resolved_store_id, date, limit=1)
-    if locked_entries:
-        raise ForbiddenError("Cette date est verrouillée (données API/ERP).")
     results = {"sellers_entries": [], "prospects_entry": None}
     sellers_data = kpi_data.get("sellers_data", [])
     if sellers_data and not isinstance(sellers_data, list):
@@ -202,7 +206,8 @@ async def save_manager_kpi(
             seller_manager_id = seller.get("manager_id") if seller else manager_id
             existing = await manager_service.get_kpi_entry_by_seller_and_date(seller_id, date)
             if existing and existing.get("locked"):
-                raise ForbiddenError(f"L'entrée pour {seller_name} est verrouillée (données API).")
+                results.setdefault("skipped_locked", []).append(seller_id)
+                continue
             entry_data = {
                 "seller_id": seller_id,
                 "seller_name": seller_name,

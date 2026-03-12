@@ -81,6 +81,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   const [availableYears, setAvailableYears] = useState([]);
   const [datesWithData, setDatesWithData] = useState([]);
   const [lockedDates, setLockedDates] = useState([]);
+  const [lockedSellersByDate, setLockedSellersByDate] = useState({});
   const [displayMode, setDisplayMode] = useState('chart');
   const [displayedListItems, setDisplayedListItems] = useState(10);
   const [loadingHistorical, setLoadingHistorical] = useState(false);
@@ -102,7 +103,10 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   const [kpiConfig, setKpiConfig] = useState(DEFAULT_KPI_CONFIG);
 
   const isDateLocked = (date) => lockedDates.includes(date);
-  const isManagerDateLocked = isDateLocked(managerKPIData.date);
+  const isSellerLocked = (date, sellerId) => (lockedSellersByDate[date] || []).includes(sellerId);
+  // Date fully locked = tous les vendeurs chargés ont une entrée verrouillée
+  const lockedSellersOnDate = lockedSellersByDate[managerKPIData.date] || [];
+  const isManagerDateLocked = lockedSellersOnDate.length > 0 && sellers.length > 0 && lockedSellersOnDate.length >= sellers.length;
 
   const toggleChart = (chartKey) => {
     setVisibleCharts(prev => ({ ...prev, [chartKey]: !prev[chartKey] }));
@@ -254,6 +258,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
         const locked = Array.isArray(res.data?.lockedDates) ? res.data.lockedDates : [];
         setDatesWithData(dates);
         setLockedDates(locked);
+        setLockedSellersByDate(res.data?.lockedSellersByDate || {});
       } else {
         const sellersUrl = '/manager/sellers' + (storeId ? `?store_id=${storeId}` : '');
         const usersRes = await api.get(sellersUrl);
@@ -383,7 +388,9 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     setLoading(true);
     try {
       const sellers_data = [];
+      const lockedOnDate = lockedSellersByDate[managerKPIData.date] || [];
       sellers.forEach(seller => {
+        if (lockedOnDate.includes(seller.id)) return; // skip locked sellers silently
         const sellerKPI = sellersKPIData[seller.id];
         if (!sellerKPI) return;
         const sellerEntry = { seller_id: seller.id };
@@ -438,6 +445,8 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     availableYears,
     datesWithData,
     lockedDates,
+    lockedSellersByDate,
+    isSellerLocked,
     displayMode,
     setDisplayMode,
     displayedListItems,

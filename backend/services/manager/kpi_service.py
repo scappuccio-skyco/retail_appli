@@ -78,6 +78,24 @@ class ManagerKpiService:
             limit=limit,
         )
 
+    async def get_locked_seller_ids_by_date(self, store_id: str, date_filter: dict = None) -> dict:
+        """Retourne {date: [seller_id, ...]} pour toutes les entrées verrouillées du magasin."""
+        query = {"store_id": store_id, "locked": True}
+        if date_filter:
+            query["date"] = date_filter
+        entries = await self.kpi_repo.find_many(
+            query,
+            {"_id": 0, "date": 1, "seller_id": 1},
+            limit=2000,
+        )
+        result: dict = {}
+        for entry in entries:
+            date_str = entry.get("date")
+            seller_id = entry.get("seller_id")
+            if date_str and seller_id:
+                result.setdefault(date_str, []).append(seller_id)
+        return result
+
     async def get_kpi_entry_by_seller_and_date(
         self, seller_id: str, date: str
     ) -> Optional[Dict]:

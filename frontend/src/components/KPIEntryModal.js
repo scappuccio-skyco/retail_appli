@@ -18,6 +18,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
   const [comment, setComment] = useState(editEntry?.comment || '');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEntryLocked, setIsEntryLocked] = useState(false);
   const [historicalData, setHistoricalData] = useState([]);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warnings, setWarnings] = useState([]);
@@ -52,7 +53,9 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
         setNbArticles(existingEntry.nb_articles || '');
         setNbProspects(existingEntry.nb_prospects || '');
         setComment(existingEntry.comment || '');
+        setIsEntryLocked(existingEntry.locked === true);
       } else {
+        setIsEntryLocked(false);
         setCaJournalier('');
         setNbVentes('');
         setNbClients('');
@@ -294,8 +297,17 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
             </p>
           </div>
 
-          {/* Badge if read-only mode */}
-          {isReadOnly && (
+          {/* Badge if entry locked by API */}
+          {isEntryLocked && (
+            <div className="mb-4 bg-orange-50 border border-orange-300 rounded-lg p-3 flex items-center gap-2">
+              <Lock className="w-4 h-4 text-orange-600 flex-shrink-0" />
+              <p className="text-sm text-orange-800">
+                🔒 Ces données ont été certifiées par le Siège/ERP et ne peuvent pas être modifiées.
+              </p>
+            </div>
+          )}
+          {/* Badge if read-only mode (enterprise sync) */}
+          {isReadOnly && !isEntryLocked && (
             <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
               <Lock className="w-4 h-4 text-blue-600 flex-shrink-0" />
               <p className="text-sm text-blue-800">
@@ -323,7 +335,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    disabled={isReadOnly}
+                    disabled={isReadOnly || isEntryLocked}
                     className={`flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent ${isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''}`}
                   />
                   <span className="text-gray-600 font-medium min-w-[40px]">€</span>
@@ -348,7 +360,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                     placeholder="0"
                     step="1"
                     min="0"
-                    disabled={isReadOnly}
+                    disabled={isReadOnly || isEntryLocked}
                     className={`flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent ${isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''}`}
                   />
                   <span className="text-gray-600 font-medium min-w-[40px]">ventes</span>
@@ -375,7 +387,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                     placeholder="0"
                     step="1"
                     min="0"
-                    disabled={isReadOnly}
+                    disabled={isReadOnly || isEntryLocked}
                     className={`flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent ${isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''}`}
                   />
                   <span className="text-gray-600 font-medium min-w-[40px]">articles</span>
@@ -400,7 +412,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                     placeholder="0"
                     step="1"
                     min="0"
-                    disabled={isReadOnly}
+                    disabled={isReadOnly || isEntryLocked}
                     className={`flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent ${isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''}`}
                   />
                   <span className="text-gray-600 font-medium min-w-[40px]">prospects</span>
@@ -429,9 +441,9 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
               onClick={onClose}
               className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
             >
-              {isReadOnly ? 'Fermer' : 'Annuler'}
+              {(isReadOnly || isEntryLocked) ? 'Fermer' : 'Annuler'}
             </button>
-            {!isReadOnly && (
+            {!isReadOnly && !isEntryLocked && (
               <button
                 onClick={handleSubmit}
                 disabled={saving}

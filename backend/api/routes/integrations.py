@@ -521,7 +521,7 @@ async def sync_kpi_data(
                 "nb_ventes": entry.nb_ventes,
                 "nb_articles": entry.nb_articles,
                 "nb_prospects": entry.prospects or 0,
-                "nb_clients": entry.prospects or 0,  # Use prospects as clients if not provided separately
+                "nb_clients": entry.nb_ventes or 0,  # clients = ventes (cohérent avec la saisie manuelle)
                 "source": "api",
                 "locked": True,
                 "updated_at": datetime.now(timezone.utc)

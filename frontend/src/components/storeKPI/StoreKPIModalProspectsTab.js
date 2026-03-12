@@ -5,6 +5,7 @@ import { logger } from '../../utils/logger';
 export default function StoreKPIModalProspectsTab({
   kpiConfig,
   isManagerDateLocked,
+  isSellerLocked,
   managerKPIData,
   setManagerKPIData,
   sellers,
@@ -18,10 +19,10 @@ export default function StoreKPIModalProspectsTab({
   setActiveTab
 }) {
   const hasManagerData = kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_articles || kpiConfig.manager_track_prospects;
+  const hasPartialLock = !isManagerDateLocked && sellers.some(s => isSellerLocked?.(s.id));
 
   const prospectsBlockClassName = isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200';
-  const dateInputClassName = isManagerDateLocked ? 'border-red-300 bg-red-50' : 'border-gray-300 focus:border-purple-400';
-  const sellerInputClassName = isManagerDateLocked ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-orange-400';
+  const dateInputClassName = (isManagerDateLocked || hasPartialLock) ? 'border-orange-300 bg-orange-50' : 'border-gray-300 focus:border-purple-400';
   const prospectsInputClassName = isManagerDateLocked ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-purple-400';
   const submitButtonLabel = loading ? 'Enregistrement...' : '💾 Enregistrer les données';
   const showSellersLoading = loadingSellers;
@@ -70,10 +71,16 @@ export default function StoreKPIModalProspectsTab({
       {isManagerDateLocked && (
         <div className="bg-red-100 rounded-xl p-4 border-2 border-red-300 mb-6">
           <p className="text-sm text-red-800 font-bold flex items-center gap-2">🔒 <strong>Données certifiées par le Siège/ERP</strong></p>
-          <p className="text-xs text-red-600 mt-1">Les données de cette journée proviennent de l'API et ne peuvent pas être modifiées manuellement. Sélectionnez une autre date pour saisir des données.</p>
+          <p className="text-xs text-red-600 mt-1">Tous les vendeurs de cette journée ont des données API. Sélectionnez une autre date pour saisir des données.</p>
         </div>
       )}
-      {!isManagerDateLocked && (
+      {hasPartialLock && (
+        <div className="bg-orange-100 rounded-xl p-4 border-2 border-orange-300 mb-6">
+          <p className="text-sm text-orange-800 font-bold flex items-center gap-2">🔒 <strong>Données partiellement certifiées</strong></p>
+          <p className="text-xs text-orange-700 mt-1">Certains vendeurs ont des données API (🔒) qui ne peuvent pas être modifiées. Les autres restent éditables.</p>
+        </div>
+      )}
+      {!isManagerDateLocked && !hasPartialLock && (
         <div className="bg-orange-500 rounded-xl p-4 border-2 border-orange-600 mb-6">
           <p className="text-sm text-white font-bold">💡 <strong>Saisie par Vendeur :</strong> Remplissez les données pour chaque vendeur individuellement.</p>
         </div>
@@ -113,10 +120,18 @@ export default function StoreKPIModalProspectsTab({
             )}
             {showSellersList && (
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {sellers.map((seller) => (
-                  <div key={seller.id} className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors">
+                {sellers.map((seller) => {
+                  const sellerLocked = isManagerDateLocked || isSellerLocked?.(seller.id);
+                  const inputCls = sellerLocked
+                    ? 'border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500'
+                    : 'border-gray-300 focus:border-orange-400';
+                  return (
+                  <div key={seller.id} className={`bg-white border-2 rounded-lg p-4 transition-colors ${sellerLocked ? 'border-orange-200 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-800">{seller.name}</h4>
+                      <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                        {seller.name}
+                        {sellerLocked && <span className="text-xs text-orange-700 font-normal">🔒 API</span>}
+                      </h4>
                       <span className="text-xs text-gray-500">ID: {seller.id.substring(0, 8)}...</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -128,10 +143,10 @@ export default function StoreKPIModalProspectsTab({
                             type="number"
                             step="0.01"
                             min="0"
-                            disabled={isManagerDateLocked}
+                            disabled={sellerLocked}
                             value={sellersKPIData[seller.id]?.ca_journalier ?? ''}
                             onChange={(e) => setSellersKPIData(prev => ({ ...prev, [seller.id]: { ...prev[seller.id], ca_journalier: e.target.value } }))}
-                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${sellerInputClassName}`}
+                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${inputCls}`}
                             placeholder="0.00"
                           />
                         </div>
@@ -143,10 +158,10 @@ export default function StoreKPIModalProspectsTab({
                             id={`seller-${seller.id}-ventes`}
                             type="number"
                             min="0"
-                            disabled={isManagerDateLocked}
+                            disabled={sellerLocked}
                             value={sellersKPIData[seller.id]?.nb_ventes ?? ''}
                             onChange={(e) => setSellersKPIData(prev => ({ ...prev, [seller.id]: { ...prev[seller.id], nb_ventes: e.target.value } }))}
-                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${sellerInputClassName}`}
+                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${inputCls}`}
                             placeholder="0"
                           />
                         </div>
@@ -158,17 +173,18 @@ export default function StoreKPIModalProspectsTab({
                             id={`seller-${seller.id}-articles`}
                             type="number"
                             min="0"
-                            disabled={isManagerDateLocked}
+                            disabled={sellerLocked}
                             value={sellersKPIData[seller.id]?.nb_articles ?? ''}
                             onChange={(e) => setSellersKPIData(prev => ({ ...prev, [seller.id]: { ...prev[seller.id], nb_articles: e.target.value } }))}
-                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${sellerInputClassName}`}
+                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${inputCls}`}
                             placeholder="0"
                           />
                         </div>
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -207,6 +223,7 @@ export default function StoreKPIModalProspectsTab({
 StoreKPIModalProspectsTab.propTypes = {
   kpiConfig: PropTypes.object.isRequired,
   isManagerDateLocked: PropTypes.bool.isRequired,
+  isSellerLocked: PropTypes.func,
   managerKPIData: PropTypes.object.isRequired,
   setManagerKPIData: PropTypes.func.isRequired,
   sellers: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.string, name: PropTypes.string })).isRequired,
