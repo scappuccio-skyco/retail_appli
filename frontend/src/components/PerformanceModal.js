@@ -49,6 +49,8 @@ export default function PerformanceModal({
   const [monthOffset, setMonthOffset] = useState(0);
   const [periodEntries, setPeriodEntries] = useState([]);
   const [periodLoading, setPeriodLoading] = useState(false);
+  const [periodBilan, setPeriodBilan] = useState(null);
+  const [periodGenerating, setPeriodGenerating] = useState(false);
 
   // Synchroniser l'onglet actif avec initialTab quand il change
   useEffect(() => {
@@ -303,21 +305,33 @@ export default function PerformanceModal({
     return null;
   }, [viewMode, monthOffset]);
 
-  // Fetch KPI entries for period views
+  // Fetch KPI entries + existing bilan for period views
   useEffect(() => {
     if (!isOpen || viewMode === 'semaine' || !periodRange) return;
     let cancelled = false;
     setPeriodLoading(true);
     setPeriodEntries([]);
-    api.get('/seller/kpi-entries', {
-      params: { start_date: periodRange.start_date, end_date: periodRange.end_date },
-    }).then(res => {
+    setPeriodBilan(null);
+    Promise.all([
+      api.get('/seller/kpi-entries', {
+        params: { start_date: periodRange.start_date, end_date: periodRange.end_date },
+      }),
+      api.get('/seller/bilan-individuel/all'),
+    ]).then(([entriesRes, bilansRes]) => {
       if (cancelled) return;
-      const data = res.data;
+      const data = entriesRes.data;
       const entries = Array.isArray(data) ? data : (data?.items ?? []);
       setPeriodEntries(entries.sort((a, b) => new Date(a.date) - new Date(b.date)));
+      const bilans = Array.isArray(bilansRes.data?.bilans) ? bilansRes.data.bilans : [];
+      const existing = bilans.find(b =>
+        b.period_start === periodRange.start_date && b.period_end === periodRange.end_date
+      );
+      setPeriodBilan(existing
+        ? { ...existing, periode: periodRange.label }
+        : { periode: periodRange.label, synthese: '', points_forts: [], points_attention: [], recommandations: [] }
+      );
     }).catch(err => {
-      logger.error('Error fetching period entries:', err);
+      logger.error('Error fetching period data:', err);
     }).finally(() => {
       if (!cancelled) setPeriodLoading(false);
     });
@@ -354,6 +368,30 @@ export default function PerformanceModal({
       Prospects: entry.nb_prospects || 0,
     }));
   }, [periodEntries]);
+
+  // Generate AI bilan for 30j / mois views
+  const generatePeriodBilan = async () => {
+    if (!periodRange) return;
+    setPeriodGenerating(true);
+    try {
+      await api.post(`/seller/bilan-individuel?start_date=${periodRange.start_date}&end_date=${periodRange.end_date}`, {});
+      const res = await api.get('/seller/bilan-individuel/all');
+      const bilans = Array.isArray(res.data?.bilans) ? res.data.bilans : [];
+      const existing = bilans.find(b =>
+        b.period_start === periodRange.start_date && b.period_end === periodRange.end_date
+      );
+      setPeriodBilan(existing
+        ? { ...existing, periode: periodRange.label }
+        : { periode: periodRange.label, synthese: '', points_forts: [], points_attention: [], recommandations: [] }
+      );
+      toast.success('✨ Bilan généré avec succès');
+    } catch (err) {
+      logger.error('Error generating period bilan:', err);
+      toast.error('Erreur lors de la génération du bilan');
+    } finally {
+      setPeriodGenerating(false);
+    }
+  };
 
   // Auto-scroll to bilan section when generation completes
   useEffect(() => {
@@ -589,7 +627,7 @@ export default function PerformanceModal({
                     ))}
                   </div>
 
-                  {/* Boutons IA + PDF (IA seulement en vue semaine) */}
+                  {/* Boutons IA + PDF */}
                   <div className="flex flex-wrap gap-2">
                     {viewMode === 'semaine' && onRegenerate && (
                       <button
@@ -599,6 +637,16 @@ export default function PerformanceModal({
                       >
                         <TrendingUp className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
                         <span>{generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer' : 'Générer')}</span>
+                      </button>
+                    )}
+                    {viewMode !== 'semaine' && (
+                      <button
+                        onClick={generatePeriodBilan}
+                        disabled={periodGenerating || periodLoading}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <TrendingUp className={`w-4 h-4 ${periodGenerating ? 'animate-spin' : ''}`} />
+                        <span>{periodGenerating ? 'Génération...' : (periodBilan?.synthese ? 'Regénérer' : 'Générer IA')}</span>
                       </button>
                     )}
                     <button
@@ -789,6 +837,95 @@ export default function PerformanceModal({
                           )}
                         </div>
                       )}
+
+                      {/* Section IA pour la période */}
+                      <div className="mt-6">
+                        {periodGenerating && (
+                          <div className="bg-white rounded-2xl p-8 max-w-md mx-auto shadow-2xl border-2 border-blue-200">
+                            <div className="text-center mb-6">
+                              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse">
+                                <Sparkles className="w-8 h-8 text-white" />
+                              </div>
+                              <h3 className="text-xl font-bold text-gray-800 mb-2">Analyse en cours...</h3>
+                              <p className="text-gray-600 text-sm">L'IA analyse vos performances sur {periodRange?.label}</p>
+                            </div>
+                            <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500" style={{ animation: 'progress-slide 2s ease-in-out infinite', backgroundSize: '200% 100%' }} />
+                            </div>
+                          </div>
+                        )}
+
+                        {periodBilan?.synthese && !periodGenerating && (
+                          <div className="space-y-4">
+                            <div className="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500">
+                              <div className="flex items-start gap-2 mb-2">
+                                <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                <h3 className="font-bold text-blue-900">💡 Synthèse — {periodBilan.periode}</h3>
+                              </div>
+                              <p className="text-gray-700 leading-relaxed">{periodBilan.synthese}</p>
+                            </div>
+                            {periodBilan.points_forts?.length > 0 && (
+                              <div className="bg-green-50 rounded-xl p-4 border-l-4 border-green-500">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <TrendingUp className="w-5 h-5 text-green-600" />
+                                  <h3 className="font-bold text-green-900">👍 Points forts</h3>
+                                </div>
+                                <ul className="space-y-2">
+                                  {periodBilan.points_forts.map((p, i) => (
+                                    <li key={i} className="flex items-start gap-2">
+                                      <span className="text-green-600 mt-1">✓</span>
+                                      <span className="text-gray-700">{p}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {periodBilan.points_attention?.length > 0 && (
+                              <div className="bg-orange-50 rounded-xl p-4 border-l-4 border-orange-500">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <AlertTriangle className="w-5 h-5 text-orange-600" />
+                                  <h3 className="font-bold text-orange-900">⚠️ Points à améliorer</h3>
+                                </div>
+                                <ul className="space-y-2">
+                                  {periodBilan.points_attention.map((p, i) => (
+                                    <li key={i} className="flex items-start gap-2">
+                                      <span className="text-orange-600 mt-1">!</span>
+                                      <span className="text-gray-700">{p}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {periodBilan.recommandations?.length > 0 && (
+                              <div className="bg-indigo-50 rounded-xl p-4 border-l-4 border-indigo-500">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <Target className="w-5 h-5 text-indigo-600" />
+                                  <h3 className="font-bold text-indigo-900">🎯 Recommandations</h3>
+                                </div>
+                                <ol className="space-y-2 list-decimal list-inside">
+                                  {periodBilan.recommandations.map((r, i) => (
+                                    <li key={i} className="text-gray-700">{r}</li>
+                                  ))}
+                                </ol>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {!periodBilan?.synthese && !periodGenerating && (
+                          <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                            <Sparkles className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                            <p className="text-gray-600 mb-4">Aucune analyse IA pour cette période</p>
+                            <button
+                              onClick={generatePeriodBilan}
+                              disabled={periodLoading}
+                              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                            >
+                              ✨ Générer l'analyse IA
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </>
                   ) : (
                     <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
