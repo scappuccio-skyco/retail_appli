@@ -229,13 +229,11 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     };
 
     sellersDataResponses.forEach(response => {
-      if (response.data && Array.isArray(response.data)) {
-        response.data.forEach(entry => addEntry(entry, entry.seller_ca || entry.ca_journalier || 0));
-      }
+      const entries = Array.isArray(response.data) ? response.data : (Array.isArray(response.data?.items) ? response.data.items : []);
+      entries.forEach(entry => addEntry(entry, entry.seller_ca || entry.ca_journalier || 0));
     });
-    if (managerKpiRes.data && Array.isArray(managerKpiRes.data)) {
-      managerKpiRes.data.forEach(entry => addEntry(entry, entry.ca_journalier || 0));
-    }
+    const managerEntries = Array.isArray(managerKpiRes.data) ? managerKpiRes.data : (Array.isArray(managerKpiRes.data?.items) ? managerKpiRes.data.items : []);
+    managerEntries.forEach(entry => addEntry(entry, entry.ca_journalier || 0));
 
     return Object.values(dateMap).sort((a, b) => new Date(a.date) - new Date(b.date));
   }
