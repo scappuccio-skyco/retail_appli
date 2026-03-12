@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/apiClient';
 import { logger } from '../../utils/logger';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { UserPlus, Trash2, Mail, Shield } from 'lucide-react';
 
 export default function AdminManagement() {

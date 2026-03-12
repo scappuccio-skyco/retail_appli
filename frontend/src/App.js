@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import '@/App.css';
 import LandingPage from './pages/LandingPage';
@@ -30,166 +30,27 @@ import LegalNotice from './pages/legal/LegalNotice';
 import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 
-// API Client unifié
-import { api } from './lib/apiClient';
-import { logger } from './utils/logger';
+// Contextes
+import { AuthProvider, SubscriptionProvider, useAuth } from './contexts';
 
-// Inner component that has access to navigate
+// Inner component that has access to navigate + auth context
 function AppContent() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [diagnostic, setDiagnostic] = useState(null);
-  const [diagnosticLoading, setDiagnosticLoading] = useState(false);
-  const [showDiagnosticResult, setShowDiagnosticResult] = useState(false);
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const res = await api.get('/auth/me');
-        setUser(res.data);
-        
-        // Check diagnostic status for sellers - MUST complete before setting loading to false
-        if (res.data.role === 'seller') {
-          try {
-            const diagRes = await api.get('/seller/diagnostic/me');
-            if (diagRes.data.status === 'completed') {
-              setDiagnostic(diagRes.data.diagnostic);
-              logger.log('Diagnostic loaded:', diagRes.data.diagnostic);
-            } else {
-              logger.log('Diagnostic not completed yet');
-            }
-          } catch (err) {
-            logger.log('No diagnostic yet:', err.response?.status);
-            // If 404, seller hasn't started diagnostic - this is expected
-            setDiagnostic(null);
-          }
-        }
-      } catch (err) {
-        logger.log('Auth error:', err);
-        localStorage.removeItem('token');
-        setUser(null);
-      }
-    }
-    // Only set loading to false after ALL data fetching is complete
-    setLoading(false);
-  };
-
-  const handleLogin = async (userData, token, isRegistration = false) => {
-    localStorage.setItem('token', token);
-    setUser(userData);
-    
-    // Vérifier si l'utilisateur vient du tunnel Early Adopter ET s'il vient de s'inscrire (pas juste de se connecter)
-    const earlyAdopterData = localStorage.getItem('early_adopter_candidate');
-    const isEarlyAdopter = earlyAdopterData !== null;
-    
-    // IMPORTANT: La page welcome-pilot ne doit apparaître QUE lors d'une INSCRIPTION via Early Access
-    // Pas lors d'une simple connexion, même si early_adopter_candidate existe dans localStorage
-    if (isRegistration && isEarlyAdopter && (userData.role === 'gérant' || userData.role === 'gerant')) {
-      logger.log('✅ Early Adopter - Nouvelle inscription détectée, redirection vers welcome-pilot');
-      // Nettoyer le flag après utilisation pour éviter qu'il persiste
-      localStorage.removeItem('early_adopter_candidate');
-      globalThis.location.href = '/welcome-pilot';
-      return;
-    }
-    
-    // Si c'est juste une connexion (pas une inscription), nettoyer le flag s'il existe
-    if (!isRegistration && isEarlyAdopter) {
-      logger.log('🧹 Nettoyage du flag early_adopter_candidate (connexion normale)');
-      localStorage.removeItem('early_adopter_candidate');
-    }
-    
-    // Redirection selon le rôle
-    logger.log('🔍 User role for redirect:', userData.role, 'Type:', typeof userData.role);
-    if (userData.role === 'gérant' || userData.role === 'gerant') {
-      // Gérant → Dashboard Gérant
-      logger.log('✅ Redirecting to gerant-dashboard');
-      globalThis.location.href = '/gerant-dashboard';
-      return;
-    }
-    
-    if (userData.role === 'it_admin') {
-      // IT Admin → IT Admin Dashboard
-      globalThis.location.href = '/it-admin';
-      return;
-    }
-    
-    if (userData.role === 'superadmin' || userData.role === 'super_admin') {
-      // Super Admin → Super Admin Dashboard
-      globalThis.location.href = '/superadmin';
-      return;
-    }
-    
-    // Check diagnostic for new sellers - ensure it completes before navigation
-    if (userData.role === 'seller') {
-      try {
-        const diagRes = await api.get('/seller/diagnostic/me');
-        if (diagRes.data.status === 'completed') {
-          setDiagnostic(diagRes.data.diagnostic);
-          logger.log('Diagnostic already completed:', diagRes.data.diagnostic);
-        } else {
-          logger.log('Diagnostic not completed');
-          setDiagnostic(null);
-        }
-      } catch (err) {
-        logger.log('No diagnostic yet:', err.response?.status);
-        setDiagnostic(null);
-      }
-    }
-    
-    // Navigate to dashboard after successful login (Manager or Seller)
-    // Using globalThis.location for reliable redirect
-    logger.log('⚠️ Fallback redirect to /dashboard for role:', userData.role);
-    globalThis.location.href = '/dashboard';
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setDiagnostic(null);
-  };
-
-  const handleDiagnosticComplete = async (result) => {
-    logger.log('🎯 handleDiagnosticComplete called with result:', result);
-    logger.log('🎯 Result keys:', Object.keys(result));
-    logger.log('🎯 Full result:', JSON.stringify(result, null, 2));
-    logger.log('🎯 Setting diagnosticLoading to true');
-    
-    setDiagnosticLoading(true);
-    
-    // Set diagnostic immediately from the response
-    setDiagnostic(result);
-    
-    logger.log('🎯 Diagnostic set, now setting showDiagnosticResult to true');
-    setShowDiagnosticResult(true);
-    
-    logger.log('🎯 States updated - navigating or showing result');
-    
-    // Small delay to ensure state updates propagate
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    setDiagnosticLoading(false);
-    
-    // Fetch fresh diagnostic data from backend to ensure consistency
-    try {
-      const diagRes = await api.get('/seller/diagnostic/me');
-      if (diagRes.data.status === 'completed') {
-        setDiagnostic(diagRes.data.diagnostic);
-        logger.log('🎯 Diagnostic reloaded from API:', diagRes.data.diagnostic);
-      }
-    } catch (err) {
-      logger.error('❌ Error reloading diagnostic:', err);
-    }
-  };
+  const {
+    user,
+    loading,
+    diagnostic,
+    diagnosticLoading,
+    showDiagnosticResult,
+    login: handleLogin,
+    logout: handleLogout,
+    handleDiagnosticComplete,
+    handleContinueToDashboard: handleContinueToDashboardCtx,
+  } = useAuth();
 
   const handleContinueToDashboard = () => {
-    setShowDiagnosticResult(false);
-    navigate('/dashboard'); // Go to seller dashboard
+    handleContinueToDashboardCtx();
+    navigate('/dashboard');
   };
 
   if (loading) {
@@ -400,8 +261,12 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <AppContent />
-        <CookieConsent />
+        <AuthProvider>
+          <SubscriptionProvider>
+            <AppContent />
+            <CookieConsent />
+          </SubscriptionProvider>
+        </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );

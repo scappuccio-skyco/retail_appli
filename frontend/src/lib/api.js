@@ -8,7 +8,7 @@
  * Utilise la variable d'environnement REACT_APP_BACKEND_URL
  * Fallback par défaut vers le nouveau domaine API
  */
-export const API_BASE = process.env.REACT_APP_BACKEND_URL || "https://api.retailperformerai.com";
+export const API_BASE = import.meta.env.VITE_BACKEND_URL || "https://api.retailperformerai.com";
 
 /**
  * Construit l'URL complète pour un endpoint API

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Target, Trophy, History, Filter } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
@@ -13,6 +13,9 @@ export default function ObjectivesModal({
   activeChallenges: initialChallenges = [],
   onUpdate
 }) {
+  const isMountedRef = useRef(true);
+  useEffect(() => () => { isMountedRef.current = false; }, []);
+
   // Local state for objectives and challenges
   const [activeObjectives, setActiveObjectives] = useState(initialObjectives);
   const [activeChallenges, setActiveChallenges] = useState(initialChallenges);
@@ -25,10 +28,8 @@ export default function ObjectivesModal({
   
   // Always refresh data when modal opens to ensure latest updates are shown
   useEffect(() => {
-    if (isOpen) {
-      refreshActiveData();
-    }
-  }, [isOpen]);
+    if (isOpen) refreshActiveData();
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
   const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs', 'challenges', or 'historique'
   const [updatingObjectiveId, setUpdatingObjectiveId] = useState(null);
   const [objectiveProgressValue, setObjectiveProgressValue] = useState('');
@@ -55,47 +56,40 @@ export default function ObjectivesModal({
   
   // Fetch history when tab changes to historique
   useEffect(() => {
-    if (activeTab === 'historique' && isOpen) {
-      fetchHistory();
-    }
-  }, [activeTab, isOpen]);
+    if (activeTab === 'historique' && isOpen) fetchHistory();
+  }, [activeTab, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Refresh active data when modal opens or when isOpen changes
-  useEffect(() => {
-    if (isOpen) {
-      // Always refresh data when modal opens to get latest updates
-      refreshActiveData();
-    }
-  }, [isOpen]);
-  
   const fetchHistory = async () => {
     try {
-      // Fetch objectives history
-      const objRes = await api.get('/seller/objectives/history');
+      const [objRes, challRes] = await Promise.all([
+        api.get('/seller/objectives/history'),
+        api.get('/seller/challenges/history'),
+      ]);
+      if (!isMountedRef.current) return;
       setHistoryObjectives(objRes.data);
-      
-      // Fetch challenges history
-      const challRes = await api.get('/seller/challenges/history');
       setHistoryChallenges(challRes.data);
     } catch (err) {
+      if (!isMountedRef.current) return;
       logger.error('Error fetching history:', err);
-      toast.error('Erreur lors du chargement de l\'historique');
+      toast.error("Erreur lors du chargement de l'historique");
     }
   };
-  
+
   const refreshActiveData = async () => {
     try {
       // Fetch active objectives
       const objRes = await api.get('/seller/objectives/active');
       const objectives = objRes.data || [];
-      
+
       // Fetch active challenges
       const challRes = await api.get('/seller/challenges/active');
       const challenges = challRes.data || [];
       
+      if (!isMountedRef.current) return;
+
       // Filter out achieved objectives from active list
       const activeOnly = objectives.filter(obj => obj.status !== 'achieved');
-      
+
       setActiveObjectives(activeOnly);
       setActiveChallenges(challenges);
       
@@ -130,6 +124,7 @@ export default function ObjectivesModal({
         onUpdate();
       }
     } catch (err) {
+      if (!isMountedRef.current) return;
       logger.error('Error refreshing data:', err);
     }
   };

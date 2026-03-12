@@ -11,20 +11,17 @@ export default function ChallengeHistoryModal({ onClose }) {
   const [displayLimit, setDisplayLimit] = useState(20); // Afficher 20 challenges à la fois
 
   useEffect(() => {
-    fetchChallengeHistory();
+    let cancelled = false;
+    api.get('/seller/daily-challenge/history')
+      .then(res => { if (!cancelled) setChallenges(res.data || []); })
+      .catch(err => {
+        if (cancelled) return;
+        logger.error('Error fetching challenge history:', err);
+        toast.error("Erreur lors du chargement de l'historique");
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
-
-  const fetchChallengeHistory = async () => {
-    try {
-      const res = await api.get('/seller/daily-challenge/history');
-      setChallenges(res.data || []);
-    } catch (err) {
-      logger.error('Error fetching challenge history:', err);
-      toast.error('Erreur lors du chargement de l\'historique');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Limiter l'affichage des challenges
   const displayedChallenges = challenges.slice(0, displayLimit);

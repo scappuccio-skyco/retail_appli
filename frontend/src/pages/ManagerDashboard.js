@@ -1,346 +1,273 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { LogOut, Users, TrendingUp, Award, Clock, CheckCircle, XCircle, Sparkles, Settings, RefreshCw, Edit2, Trash2, Target, BarChart3, Bell, ChevronLeft, ChevronRight, Headphones, Coffee } from 'lucide-react';
-import Logo from '../components/shared/Logo';
-import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
-// REMOVED: InviteModal - only gerant can invite
-import KPIConfigModal from '../components/KPIConfigModal';
-import ManagerDiagnosticForm from '../components/ManagerDiagnosticForm';
-import TeamBilanIA from '../components/TeamBilanIA';
-import ManagerProfileModal from '../components/ManagerProfileModal';
-import TeamBilanModal from '../components/TeamBilanModal';
-import SellerDetailView from '../components/SellerDetailView';
-import TeamModal from '../components/TeamModal';
-import ManagerSettingsModal from '../components/ManagerSettingsModal';
-import StoreKPIModal from '../components/StoreKPIModal';
-import RelationshipManagementModal from '../components/RelationshipManagementModal';
-import SyncModeBadge from '../components/SyncModeBadge';
-import SupportModal from '../components/SupportModal';
-import MorningBriefModal from '../components/MorningBriefModal';
-import { useSyncMode } from '../hooks/useSyncMode';
-import TutorialButton from '../components/onboarding/TutorialButton';
-import OnboardingModal from '../components/onboarding/OnboardingModal';
-import { getManagerSteps } from '../components/onboarding/managerSteps';
-import { useOnboarding } from '../hooks/useOnboarding';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { useSyncMode } from '../hooks/useSyncMode';
+import { useOnboarding } from '../hooks/useOnboarding';
+import { getManagerSteps } from '../components/onboarding/managerSteps';
 
-// Component for progress indicator
-const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', colorScheme = 'blue' }) => {
-  const progressPercent = (progress / target) * 100;
-  const reste = target - progress;
-  
-  const colors = {
-    blue: { bg: 'from-blue-50 to-indigo-50', border: 'border-blue-200', text: 'text-indigo-600', textBold: 'text-indigo-700' },
-    purple: { bg: 'from-purple-50 to-pink-50', border: 'border-purple-200', text: 'text-purple-600', textBold: 'text-purple-700' },
-    yellow: { bg: 'from-yellow-50 to-orange-50', border: 'border-yellow-200', text: 'text-yellow-600', textBold: 'text-yellow-700' },
-    green: { bg: 'from-green-50 to-emerald-50', border: 'border-green-200', text: 'text-[#10B981]', textBold: 'text-green-700' }
-  };
-  
-  const scheme = colors[colorScheme];
-  const formatValue = (val) => {
-    if (type === 'currency') return `${val.toLocaleString('fr-FR')}€`;
-    if (type === 'decimal') return val.toFixed(1);
-    return val;
-  };
-  
-  return (
-    <div className={`bg-gradient-to-r ${scheme.bg} rounded-lg p-2.5 border ${scheme.border}`}>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-semibold text-gray-700">{emoji} {label}</span>
-        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
-          progressPercent >= 100 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-        }`}>
-          {progressPercent.toFixed(0)}%
-        </span>
-      </div>
-      <div className="flex items-center justify-between mb-0.5">
-        <span className={`text-xs ${scheme.text} font-medium`}>🎯 Objectif</span>
-        <span className={`text-sm font-bold ${scheme.textBold}`}>
-          {formatValue(target)}
-        </span>
-      </div>
-      <div className="flex items-center justify-between mb-0.5">
-        <span className="text-xs text-[#10B981] font-medium">✅ Réalisé</span>
-        <span className="text-sm font-bold text-green-700">
-          {formatValue(progress)}
-        </span>
-      </div>
-      {progressPercent < 100 ? (
-        <div className={`flex items-center justify-between pt-1 border-t ${scheme.border}`}>
-          <span className="text-xs text-gray-600">📉 Reste</span>
-          <span className="text-xs font-semibold text-gray-700">
-            {formatValue(reste)}
-          </span>
-        </div>
-      ) : (
-        <div className="pt-1 border-t border-green-200">
-          <span className="text-xs text-green-700 font-semibold">
-            🎉 Dépassé de {formatValue(Math.abs(reste))}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-};
+// Section components
+import ManagerStatusBanner from '../components/sections/manager/ManagerStatusBanner';
+import ManagerHeader from '../components/sections/manager/ManagerHeader';
+import ManagerPersonalizationBar from '../components/sections/manager/ManagerPersonalizationBar';
+import ManagerDashboardGrid from '../components/sections/manager/ManagerDashboardGrid';
+import ManagerModalsLayer from '../components/sections/manager/ManagerModalsLayer';
 
 export default function ManagerDashboard({ user, onLogout }) {
-  const navigate = useNavigate();
-  
-  // Get store_id from URL query params (for gerant accessing as manager)
+  // ── URL params (gerant-as-manager mode) ────────────────────
   const urlParams = new URLSearchParams(globalThis.location.search);
   const urlStoreId = urlParams.get('store_id');
   const effectiveStoreId = urlStoreId || user?.store_id;
-  // For API calls: add store_id param if gerant is accessing
   const apiStoreIdParam = urlStoreId ? `?store_id=${urlStoreId}` : '';
-  
-  // Pass store_id to useSyncMode for gerant-as-manager mode
+
   const { canEditKPIConfig, isReadOnly, isSubscriptionExpired } = useSyncMode(urlStoreId);
-  
-  // Onboarding logic - Detect KPI mode
+
+  // ── Onboarding ─────────────────────────────────────────────
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
-  
-  useEffect(() => {
-    const detectKpiMode = async () => {
-      try {
-        const res = await api.get(`/seller/kpi-enabled${apiStoreIdParam}`);
-        
-        let mode;
-        if (isReadOnly) {
-          mode = 'API_SYNC';
-        } else if (!res.data.enabled) {
-          mode = 'MANAGER_SAISIT';
-        } else {
-          mode = 'VENDEUR_SAISIT';
-        }
-        
-        setKpiMode(mode);
-      } catch (error) {
-        // Si erreur, garder le mode par défaut
-        logger.error('Error detecting KPI mode:', error);
-      }
-    };
-    
-    detectKpiMode();
-  }, [isReadOnly]);
-  
-  const managerSteps = getManagerSteps(kpiMode);
+  const managerSteps = useMemo(() => getManagerSteps(kpiMode), [kpiMode]);
   const onboarding = useOnboarding(managerSteps.length);
+
+  // ── Data state ─────────────────────────────────────────────
   const [sellers, setSellers] = useState([]);
-  const [selectedSeller, setSelectedSeller] = useState(null);
-  const [sellerStats, setSellerStats] = useState(null);
-  const [sellerDiagnostic, setSellerDiagnostic] = useState(null);
-  const [sellerKPIs, setSellerKPIs] = useState([]);
-  const [activeTab, setActiveTab] = useState('competences');
   const [invitations, setInvitations] = useState([]);
-  // REMOVED: showInviteModal - only gerant can invite
-  const [showKPIConfigModal, setShowKPIConfigModal] = useState(false);
-  const [showManagerDiagnostic, setShowManagerDiagnostic] = useState(false);
   const [managerDiagnostic, setManagerDiagnostic] = useState(null);
-  const [showManagerProfileModal, setShowManagerProfileModal] = useState(false);
   const [teamBilan, setTeamBilan] = useState(null);
-  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
-  const [showTeamBilanModal, setShowTeamBilanModal] = useState(false);
-  const [showDetailView, setShowDetailView] = useState(false);
-  const [showTeamModal, setShowTeamModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [processingStripeReturn, setProcessingStripeReturn] = useState(false);
-  const [generatingTeamBilan, setGeneratingTeamBilan] = useState(false);
   const [kpiConfig, setKpiConfig] = useState(null);
   const [activeChallenges, setActiveChallenges] = useState([]);
   const [activeObjectives, setActiveObjectives] = useState([]);
+  const [storeKPIStats, setStoreKPIStats] = useState(null);
+  const [storeName, setStoreName] = useState('');
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
+
+  // ── UI state ───────────────────────────────────────────────
+  const [loading, setLoading] = useState(true);
+  const [processingStripeReturn, setProcessingStripeReturn] = useState(false);
+  const [generatingTeamBilan, setGeneratingTeamBilan] = useState(false);
+  const [generatingAIAdvice, setGeneratingAIAdvice] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // ── Modal state ────────────────────────────────────────────
+  const [showKPIConfigModal, setShowKPIConfigModal] = useState(false);
+  const [showManagerDiagnostic, setShowManagerDiagnostic] = useState(false);
+  const [showManagerProfileModal, setShowManagerProfileModal] = useState(false);
+  const [showTeamBilanModal, setShowTeamBilanModal] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
+  const [showTeamModal, setShowTeamModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [settingsModalType, setSettingsModalType] = useState('objectives'); // 'objectives' or 'challenges'
+  const [settingsModalType, setSettingsModalType] = useState('objectives');
   const [showStoreKPIModal, setShowStoreKPIModal] = useState(false);
   const [showRelationshipModal, setShowRelationshipModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showMorningBriefModal, setShowMorningBriefModal] = useState(false);
-  const [storeKPIStats, setStoreKPIStats] = useState(null);
+  const [selectedSeller, setSelectedSeller] = useState(null);
   const [autoShowRelationshipResult, setAutoShowRelationshipResult] = useState(false);
-  const [generatingAIAdvice, setGeneratingAIAdvice] = useState(false);
-  const [storeName, setStoreName] = useState('');
-  const [visibleDashboardCharts, setVisibleDashboardCharts] = useState({
-    ca: true,
-    ventesVsClients: true,
-    ventes: true,
-    clients: true,
-    articles: true,
-    panierMoyen: true,
-    tauxTransfo: true,
-    indiceVente: true
-  });
-  const [currentObjectiveIndex, setCurrentObjectiveIndex] = useState(0);
-  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
-  
-  // Dashboard Filters & Preferences
+
+  // ── Dashboard personalization ──────────────────────────────
   const [dashboardFilters, setDashboardFilters] = useState(() => {
     const saved = localStorage.getItem('manager_dashboard_filters');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Migration: Add showRelationship if not present
-      if (parsed.showRelationship === undefined) {
-        return { ...parsed, showRelationship: true };
-      }
+      if (parsed.showRelationship === undefined) return { ...parsed, showRelationship: true };
       return parsed;
     }
-    return {
-      showKPI: true,
-      showTeam: true,
-      showObjectives: true,
-      showChallenges: true,
-      showRelationship: true
-    };
+    return { showKPI: true, showTeam: true, showObjectives: true, showChallenges: true, showRelationship: true };
   });
-  const [showFilters, setShowFilters] = useState(false);
+
   const [sectionOrder, setSectionOrder] = useState(() => {
     const saved = localStorage.getItem('manager_section_order');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Migration: Add 'relationship' if not present
-      if (!parsed.includes('relationship')) {
-        return [...parsed, 'relationship'];
-      }
+      if (!parsed.includes('relationship')) return [...parsed, 'relationship'];
       return parsed;
     }
     return ['kpi', 'team', 'objectives', 'challenges', 'relationship'];
   });
 
-  // Determine which charts should be available based on manager's KPI configuration
-  const availableDashboardCharts = useMemo(() => {
-    if (!kpiConfig) {
-      return {
-        ca: false,
-        ventes: false,
-        clients: false,
-        articles: false,
-        ventesVsClients: false,
-        panierMoyen: false,
-        tauxTransfo: false,
-        indiceVente: false
-      };
-    }
-    
-    return {
-      ca: kpiConfig.track_ca === true,
-      ventes: kpiConfig.track_ventes === true,
-      articles: kpiConfig.track_articles === true,
-      panierMoyen: kpiConfig.track_ca === true && kpiConfig.track_ventes === true,
-      tauxTransfo: kpiConfig.track_ventes === true && kpiConfig.track_prospects === true,
-      indiceVente: kpiConfig.track_articles === true && kpiConfig.track_ventes === true
-    };
-  }, [kpiConfig]);
+  // ── Derived ────────────────────────────────────────────────
+  const spaceLabel = (user?.role === 'gerant' || user?.role === 'gérant') ? 'Espace Gérant' : 'Espace Manager';
+  const isGerantSpace = (user?.role === 'gerant' || user?.role === 'gérant');
+
+  // ── Persistence ────────────────────────────────────────────
+  useEffect(() => {
+    localStorage.setItem('manager_dashboard_filters', JSON.stringify(dashboardFilters));
+  }, [dashboardFilters]);
 
   useEffect(() => {
-    // Check for Stripe return FIRST before loading anything else
-    const urlParams = new URLSearchParams(globalThis.location.search);
-    const sessionId = urlParams.get('session_id');
-    
+    localStorage.setItem('manager_section_order', JSON.stringify(sectionOrder));
+  }, [sectionOrder]);
+
+  // ── Detect KPI mode ────────────────────────────────────────
+  useEffect(() => {
+    const detectKpiMode = async () => {
+      try {
+        const res = await api.get(`/seller/kpi-enabled${apiStoreIdParam}`);
+        if (isReadOnly) setKpiMode('API_SYNC');
+        else if (!res.data.enabled) setKpiMode('MANAGER_SAISIT');
+        else setKpiMode('VENDEUR_SAISIT');
+      } catch (error) {
+        logger.error('Error detecting KPI mode:', error);
+      }
+    };
+    detectKpiMode();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReadOnly]);
+
+  // ── Initial load ───────────────────────────────────────────
+  useEffect(() => {
+    const sessionId = new URLSearchParams(globalThis.location.search).get('session_id');
     if (sessionId) {
-      // Handle Stripe return - don't load dashboard data yet
       handleStripeCheckoutReturn(sessionId);
     } else {
-      // Normal dashboard load
-      fetchData();
-      fetchManagerDiagnostic();
-      fetchTeamBilan();
-      fetchKpiConfig();
-      fetchActiveChallenges();
-      fetchActiveObjectives();
-      fetchStoreKPIStats();
+      loadAll();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const loadAll = () => {
+    fetchData();
+    fetchManagerDiagnostic();
+    fetchTeamBilan();
+    fetchKpiConfig();
+    fetchActiveChallenges();
+    fetchActiveObjectives();
+    fetchStoreKPIStats();
+  };
+
+  // ── Personalization helpers ────────────────────────────────
+  const toggleFilter = (filterName) => {
+    setDashboardFilters(prev => ({ ...prev, [filterName]: !prev[filterName] }));
+  };
+
+  const moveSectionUp = (sectionId) => {
+    const idx = sectionOrder.indexOf(sectionId);
+    if (idx > 0) {
+      const next = [...sectionOrder];
+      [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+      setSectionOrder(next);
+    }
+  };
+
+  const moveSectionDown = (sectionId) => {
+    const idx = sectionOrder.indexOf(sectionId);
+    if (idx < sectionOrder.length - 1) {
+      const next = [...sectionOrder];
+      [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+      setSectionOrder(next);
+    }
+  };
+
+  // ── Stripe checkout return ─────────────────────────────────
   const handleStripeCheckoutReturn = async (sessionId) => {
-    // Batch all initial state updates to prevent React reconciliation conflicts
     unstable_batchedUpdates(() => {
       setProcessingStripeReturn(true);
       setLoading(true);
     });
-    
     try {
-      // Clean URL immediately to prevent reprocessing
       globalThis.history.replaceState({}, document.title, '/dashboard');
-      
-      // Show loading toast
       const loadingToast = toast.loading('🔄 Vérification du paiement en cours...');
-      
       const response = await api.get(`/checkout/status/${sessionId}`);
-      
       toast.dismiss(loadingToast);
-      
+
       if (response.data.status === 'paid') {
-        toast.success('🎉 Paiement réussi ! Votre abonnement est maintenant actif.', {
-          duration: 5000
-        });
-        
-        // Batch state update before reload
-        unstable_batchedUpdates(() => {
-          setLoading(false);
-          setProcessingStripeReturn(false);
-        });
-        
-        // Reload to show updated subscription data
-        setTimeout(() => {
-          globalThis.location.reload();
-        }, 2000);
-      } else if (response.data.status === 'pending') {
-        toast.info('⏳ Paiement en cours de traitement...', {
-          duration: 5000
-        });
-        
-        // Batch state updates
-        unstable_batchedUpdates(() => {
-          setProcessingStripeReturn(false);
-        });
-        
-        // Load dashboard normally
-        fetchData();
-        fetchManagerDiagnostic();
-        fetchTeamBilan();
-        fetchKpiConfig();
-        fetchActiveChallenges();
-        fetchActiveObjectives();
-        fetchStoreKPIStats();
+        toast.success('🎉 Paiement réussi ! Votre abonnement est maintenant actif.', { duration: 5000 });
+        unstable_batchedUpdates(() => { setLoading(false); setProcessingStripeReturn(false); });
+        setTimeout(() => globalThis.location.reload(), 2000);
       } else {
-        toast.error('❌ Le paiement n\'a pas pu être confirmé. Contactez le support si le problème persiste.', {
-          duration: 6000
-        });
-        
-        // Batch state update
-        unstable_batchedUpdates(() => {
-          setProcessingStripeReturn(false);
-        });
-        
-        // Load dashboard normally
-        fetchData();
-        fetchManagerDiagnostic();
-        fetchTeamBilan();
-        fetchKpiConfig();
-        fetchActiveChallenges();
-        fetchActiveObjectives();
-        fetchStoreKPIStats();
+        if (response.data.status === 'pending') {
+          toast.info('⏳ Paiement en cours de traitement...', { duration: 5000 });
+        } else {
+          toast.error("❌ Le paiement n'a pas pu être confirmé. Contactez le support si le problème persiste.", { duration: 6000 });
+        }
+        unstable_batchedUpdates(() => setProcessingStripeReturn(false));
+        loadAll();
       }
     } catch (error) {
       logger.error('Error checking payment status:', error);
-      toast.error('Erreur lors de la vérification du paiement. Veuillez rafraîchir la page.', {
-        duration: 5000
-      });
-      
-      // Batch state update on error
-      unstable_batchedUpdates(() => {
-        setProcessingStripeReturn(false);
-      });
-      
-      // Load dashboard normally even on error
-      fetchData();
-      fetchManagerDiagnostic();
-      fetchTeamBilan();
-      fetchKpiConfig();
-      fetchActiveChallenges();
-      fetchActiveObjectives();
-      fetchStoreKPIStats();
+      toast.error('Erreur lors de la vérification du paiement. Veuillez rafraîchir la page.', { duration: 5000 });
+      unstable_batchedUpdates(() => setProcessingStripeReturn(false));
+      loadAll();
+    }
+  };
+
+  // ── Data fetch functions ───────────────────────────────────
+  const fetchData = async () => {
+    try {
+      const [sellersRes, invitesRes] = await Promise.all([
+        api.get(`/manager/sellers${apiStoreIdParam}`),
+        api.get(`/manager/invitations${apiStoreIdParam}`),
+      ]);
+      const sellersList = sellersRes.data?.sellers ?? sellersRes.data;
+      setSellers(Array.isArray(sellersList) ? sellersList : []);
+      setInvitations(Array.isArray(invitesRes.data) ? invitesRes.data : []);
+
+      if (effectiveStoreId) {
+        try {
+          const storeRes = await api.get(`/stores/${effectiveStoreId}/info`);
+          if (storeRes.data?.name) setStoreName(storeRes.data.name);
+        } catch (err) {
+          logger.error('Could not fetch store name:', err);
+        }
+      }
+    } catch {
+      toast.error('Erreur de chargement des données');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchManagerDiagnostic = async () => {
+    try {
+      const res = await api.get(`/manager-diagnostic/me${apiStoreIdParam}`);
+      if (res.data.status === 'completed') setManagerDiagnostic(res.data.diagnostic);
+    } catch (err) {
+      logger.error('Error fetching manager diagnostic:', err);
+    }
+  };
+
+  const getWeekDates = (offset) => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset + offset * 7);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const fmt = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getFullYear()).slice(-2)}`;
+    return {
+      startISO: monday.toISOString().split('T')[0],
+      endISO: sunday.toISOString().split('T')[0],
+      periode: `Semaine du ${fmt(monday)} au ${fmt(sunday)}`,
+    };
+  };
+
+  const fetchBilanForWeek = async (startDate, endDate, periode) => {
+    try {
+      const res = await api.get(`/manager/team-bilans/all${apiStoreIdParam}`);
+      if (res.data.status === 'success' && res.data.bilans) {
+        const bilan = res.data.bilans.find(b => b.periode === periode);
+        setTeamBilan(bilan ?? { periode, synthese: '', kpi_resume: {}, points_forts: [], points_attention: [], recommandations: [] });
+      }
+    } catch (err) {
+      logger.error('Error fetching bilan for week:', err);
+    }
+  };
+
+  const fetchTeamBilan = async () => {
+    try {
+      const { startISO, endISO, periode } = getWeekDates(0);
+      await fetchBilanForWeek(startISO, endISO, periode);
+    } catch (err) {
+      logger.error('Error fetching team bilan:', err);
+    }
+  };
+
+  const fetchKpiConfig = async () => {
+    try {
+      const res = await api.get(`/manager/kpi-config${apiStoreIdParam}`);
+      setKpiConfig(res.data);
+    } catch (err) {
+      logger.error('Error fetching KPI config:', err);
     }
   };
 
@@ -362,74 +289,6 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
-  const getWeekDates = (offset) => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    
-    const currentMonday = new Date(today);
-    currentMonday.setDate(today.getDate() + mondayOffset + (offset * 7));
-    
-    const sunday = new Date(currentMonday);
-    sunday.setDate(currentMonday.getDate() + 6);
-    
-    const formatDate = (date) => {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(-2);
-      return `${day}/${month}/${year}`;
-    };
-    
-    return {
-      start: currentMonday,
-      end: sunday,
-      startFormatted: formatDate(currentMonday),
-      endFormatted: formatDate(sunday),
-      periode: `Semaine du ${formatDate(currentMonday)} au ${formatDate(sunday)}`,
-      startISO: currentMonday.toISOString().split('T')[0],
-      endISO: sunday.toISOString().split('T')[0]
-    };
-  };
-
-  const handleWeekNavigation = (direction) => {
-    const newOffset = direction === 'prev' ? currentWeekOffset - 1 : currentWeekOffset + 1;
-    setCurrentWeekOffset(newOffset);
-    const weekDates = getWeekDates(newOffset);
-    fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
-  };
-
-  const fetchBilanForWeek = async (startDate, endDate, periode) => {
-    try {
-      const res = await api.get(`/manager/team-bilans/all${apiStoreIdParam}`);
-      if (res.data.status === 'success' && res.data.bilans) {
-        const bilan = res.data.bilans.find(b => b.periode === periode);
-        if (bilan) {
-          setTeamBilan(bilan);
-        } else {
-          setTeamBilan({
-            periode,
-            synthese: '',
-            kpi_resume: {},
-            points_forts: [],
-            points_attention: [],
-            recommandations: []
-          });
-        }
-      }
-    } catch (err) {
-      logger.error('Error fetching bilan for week:', err);
-    }
-  };
-
-  const fetchKpiConfig = async () => {
-    try {
-      const res = await api.get(`/manager/kpi-config${apiStoreIdParam}`);
-      setKpiConfig(res.data);
-    } catch (err) {
-      logger.error('Error fetching KPI config:', err);
-    }
-  };
-
   const fetchStoreKPIStats = async () => {
     try {
       const res = await api.get(`/manager/store-kpi/stats${apiStoreIdParam}`);
@@ -439,168 +298,11 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
-  useEffect(() => {
-    localStorage.setItem('manager_dashboard_filters', JSON.stringify(dashboardFilters));
-  }, [dashboardFilters]);
-
-  useEffect(() => {
-    localStorage.setItem('manager_section_order', JSON.stringify(sectionOrder));
-  }, [sectionOrder]);
-
-  const toggleFilter = (filterName) => {
-    setDashboardFilters(prev => ({
-      ...prev,
-      [filterName]: !prev[filterName]
-    }));
-  };
-
-  const moveSectionUp = (sectionId) => {
-    const index = sectionOrder.indexOf(sectionId);
-    if (index > 0) {
-      const newOrder = [...sectionOrder];
-      [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
-      setSectionOrder(newOrder);
-    }
-  };
-
-  const moveSectionDown = (sectionId) => {
-    const index = sectionOrder.indexOf(sectionId);
-    if (index < sectionOrder.length - 1) {
-      const newOrder = [...sectionOrder];
-      [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
-      setSectionOrder(newOrder);
-    }
-  };
-
-  const getSectionOrder = (sectionId) => {
-    return sectionOrder.indexOf(sectionId);
-  };
-
-  const fetchData = async () => {
-    try {
-      const [sellersRes, invitesRes] = await Promise.all([
-        api.get(`/manager/sellers${apiStoreIdParam}`),
-        api.get(`/manager/invitations${apiStoreIdParam}`)
-      ]);
-      // API manager/sellers renvoie { sellers: [...], pagination: {...} }
-      const sellersList = sellersRes.data?.sellers ?? sellersRes.data;
-      setSellers(Array.isArray(sellersList) ? sellersList : []);
-      setInvitations(Array.isArray(invitesRes.data) ? invitesRes.data : []);
-      
-      // Récupérer le nom du magasin si on a un store_id
-      if (effectiveStoreId) {
-        try {
-          const storeRes = await api.get(`/stores/${effectiveStoreId}/info`);
-          if (storeRes.data?.name) {
-            setStoreName(storeRes.data.name);
-          }
-        } catch (err) {
-          logger.error('Could not fetch store name:', err);
-        }
-      }
-    } catch (err) {
-      toast.error('Erreur de chargement des données');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchManagerDiagnostic = async () => {
-    try {
-      const res = await api.get(`/manager-diagnostic/me${apiStoreIdParam}`);
-      if (res.data.status === 'completed') {
-        setManagerDiagnostic(res.data.diagnostic);
-      }
-    } catch (err) {
-      logger.error('Error fetching manager diagnostic:', err);
-    }
-  };
-
-  const fetchTeamBilan = async () => {
-    try {
-      const weekDates = getWeekDates(0);
-      await fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
-    } catch (err) {
-      logger.error('Error fetching team bilan:', err);
-    }
-  };
-
-  const regenerateTeamBilan = async () => {
-    setGeneratingTeamBilan(true);
-    try {
-      const weekDates = getWeekDates(currentWeekOffset);
-      const res = await api.post(`/manager/team-bilan?start_date=${weekDates.startISO}&end_date=${weekDates.endISO}`);
-      if (res.data) {
-        setTeamBilan(res.data);
-        toast.success('Bilan régénéré avec succès !');
-      }
-    } catch (err) {
-      logger.error('Error regenerating team bilan:', err);
-      toast.error('Erreur lors de la régénération du bilan');
-    } finally {
-      setGeneratingTeamBilan(false);
-    }
-  };
-
-  const fetchSellerStats = async (sellerId) => {
-    try {
-      const [statsRes, diagRes, kpiRes] = await Promise.all([
-        api.get(`/manager/seller/${sellerId}/stats`),
-        api.get(`/manager-diagnostic/seller/${sellerId}`),
-        api.get(`/manager/kpi-entries/${sellerId}?days=7`)
-      ]);
-      setSellerStats(statsRes.data);
-      setSellerDiagnostic(diagRes.data);
-      setSellerKPIs(kpiRes.data);
-    } catch (err) {
-      toast.error('Erreur de chargement des statistiques');
-    }
-  };
-
-  const handleSellerClick = async (seller) => {
-    setSelectedSeller(seller);
-    setShowDetailView(false);
-    await fetchSellerStats(seller.id);
-  };
-  
-  const handleViewFullDetails = () => {
-    setShowDetailView(true);
-  };
-
-  // REMOVED: handleInviteSuccess - only gerant can invite
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="w-4 h-4 text-[#F97316]" />;
-      case 'accepted':
-        return <CheckCircle className="w-4 h-4 text-[#10B981]" />;
-      case 'expired':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'pending':
-        return 'En attente';
-      case 'accepted':
-        return 'Acceptée';
-      case 'expired':
-        return 'Expirée';
-      default:
-        return status;
-    }
-  };
-
-
   if (loading) {
     return (
       <div data-testid="manager-loading" className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-[#1E40AF] mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-[#1E40AF] mb-4" />
           <div className="text-xl font-medium text-gray-700">
             {processingStripeReturn ? '🔄 Vérification du paiement...' : 'Chargement...'}
           </div>
@@ -614,652 +316,99 @@ export default function ManagerDashboard({ user, onLogout }) {
     );
   }
 
-  // Libellé de l'espace courant (Gérant ou Manager)
-  const spaceLabel = (user?.role === 'gerant' || user?.role === 'gérant') ? 'Espace Gérant' : 'Espace Manager';
-  const isGerantSpace = (user?.role === 'gerant' || user?.role === 'gérant');
-
-  // Helper function to render sections based on order
-  const renderSection = (sectionId) => {
-    const sections = {
-      kpi: dashboardFilters.showKPI && (
-        <div
-          key="kpi"
-          onClick={() => {
-            if (isSubscriptionExpired) {
-              toast.error("Abonnement magasin suspendu. Contactez votre gérant.", { duration: 4000, icon: '🔒' });
-              return;
-            }
-            setShowStoreKPIModal(true);
-          }}
-          className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400 ${isSubscriptionExpired ? 'opacity-60' : ''}`}
-          style={{ order: getSectionOrder('kpi') }}
-        >
-          <div className="relative h-56 overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop" 
-              alt="Mon Magasin"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/80 via-orange-600/80 to-orange-500/80 group-hover:from-orange-500/70 group-hover:via-orange-600/70 group-hover:to-orange-500/70 transition-all"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-                <BarChart3 className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">🏪 Mon Magasin</h3>
-              <p className="text-sm text-white opacity-90 text-center">Performances globales du point de vente</p>
-              <p className="text-xs text-white opacity-80 mt-3">
-                {isSubscriptionExpired ? '🔒 Lecture seule' : 'Cliquer pour voir les détails →'}
-              </p>
-            </div>
-          </div>
-        </div>
-      ),
-      team: dashboardFilters.showTeam && (
-        <div
-          key="team"
-          onClick={() => {
-            if (isSubscriptionExpired) {
-              toast.error("Abonnement magasin suspendu. Contactez votre gérant.", { duration: 4000, icon: '🔒' });
-              return;
-            }
-            setShowTeamModal(true);
-          }}
-          className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-cyan-400 ${isSubscriptionExpired ? 'opacity-60' : ''}`}
-          style={{ order: getSectionOrder('team') }}
-        >
-          <div className="relative h-56 overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?w=800&h=400&fit=crop" 
-              alt="Mon Équipe"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-cyan-900/80 to-blue-900/80 group-hover:from-blue-900/70 group-hover:via-cyan-900/70 group-hover:to-blue-900/70 transition-all"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-                <Users className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2 flex items-center justify-center gap-2">
-                <Users className="w-7 h-7 text-yellow-400" />
-                Mon Équipe
-              </h3>
-              <p className="text-sm text-white opacity-90 text-center">
-                {sellers.filter(s => s.status === 'active').length} vendeur{sellers.filter(s => s.status === 'active').length > 1 ? 's' : ''} actif{sellers.filter(s => s.status === 'active').length > 1 ? 's' : ''}
-              </p>
-              <p className="text-xs text-white opacity-80 mt-3">Vue d'ensemble de l'équipe →</p>
-            </div>
-          </div>
-        </div>
-      ),
-      
-      objectives: dashboardFilters.showObjectives && (
-        <div
-          key="objectives"
-          onClick={() => {
-            setSettingsModalType('objectives');
-            setShowSettingsModal(true);
-          }}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-blue-400"
-          style={{ order: getSectionOrder('objectives') }}
-        >
-          <div className="relative h-56 overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=400&fit=crop" 
-              alt="Objectifs"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/80 to-blue-900/80 group-hover:from-blue-900/70 group-hover:via-blue-800/70 group-hover:to-blue-900/70 transition-all"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-                <Target className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">🎯 Objectifs</h3>
-              <p className="text-sm text-white opacity-90 text-center">Définir et suivre des objectifs collectifs et/ou individuels</p>
-              <p className="text-xs text-white opacity-80 mt-3">Gérer les objectifs →</p>
-            </div>
-          </div>
-        </div>
-      ),
-      challenges: dashboardFilters.showChallenges && (
-        <div
-          key="challenges"
-          onClick={() => {
-            setSettingsModalType('challenges');
-            setShowSettingsModal(true);
-          }}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-400"
-          style={{ order: getSectionOrder('challenges') }}
-        >
-          <div className="relative h-56 overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop" 
-              alt="Challenges"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-green-600/80 via-emerald-600/80 to-green-600/80 group-hover:from-green-600/70 group-hover:via-emerald-600/70 group-hover:to-green-600/70 transition-all"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-                <Award className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">🏆 Challenges</h3>
-              <p className="text-sm text-white opacity-90 text-center">Lancer des challenges collectifs et/ou individuels</p>
-              <p className="text-xs text-white opacity-80 mt-3">Gérer les challenges →</p>
-            </div>
-          </div>
-        </div>
-      ),
-      // Carte Notifications supprimée
-      
-      relationship: dashboardFilters.showRelationship !== false && (
-        <div
-          key="relationship"
-          onClick={() => setShowRelationshipModal(true)}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-400"
-          style={{ order: getSectionOrder('relationship') }}
-        >
-          <div className="relative h-56 overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=400&fit=crop" 
-              alt="Gestion relationnelle"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-purple-900/80 group-hover:from-purple-900/70 group-hover:via-indigo-900/70 group-hover:to-purple-900/70 transition-all"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-                <Users className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">🤝 Gestion relationnelle</h3>
-              <p className="text-sm text-white opacity-90 text-center">Conseils IA pour situations & conflits</p>
-              <p className="text-xs text-white opacity-80 mt-3">Obtenir des recommandations →</p>
-            </div>
-          </div>
-        </div>
-      ),
-    };
-    
-    return sections[sectionId];
-  };
-
   return (
     <div data-testid="manager-dashboard" className="min-h-screen p-4 md:p-8">
-      
-      {/* === BANNIÈRE ABONNEMENT SUSPENDU === */}
-      {isSubscriptionExpired && (
-        <div className="max-w-7xl mx-auto mb-4">
-          <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-center gap-3">
-            <div className="p-1.5 bg-amber-100 rounded-lg">
-              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <p className="text-amber-800 text-sm flex-1">
-              <strong>Abonnement magasin suspendu</strong> - La saisie des KPIs et les modifications d'équipe sont temporairement désactivées. Contactez votre gérant.
-            </p>
-          </div>
-        </div>
-      )}
-      
-      {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <Logo variant="header" size="md" showByline={true} />
-            <div>
-              <p className="text-gray-600 text-sm sm:text-base">
-                Bienvenue, {user.name}
-                {storeName && (
-                  <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
-                    • 🏢 {storeName}
-                  </span>
-                )}
-              </p>
-              {/* Badge Données Sécurisées + Espace */}
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Données sécurisées
-                </span>
-                <span className={`inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border ${isGerantSpace ? 'bg-orange-50 text-orange-800 border-orange-300' : 'bg-blue-50 text-blue-800 border-blue-300'}`}>
-                  {spaceLabel}
-                </span>
-                <span 
-                  className="text-xs text-gray-500 cursor-help" 
-                  title="Vos données sont chiffrées. Les noms de famille sont anonymisés dans les analyses IA. Aucune donnée n'est conservée par l'IA."
-                >
-                  ℹ️
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2 flex-wrap items-center justify-center md:justify-start w-full md:w-auto">
-            {managerDiagnostic && (
-              <button
-                onClick={() => setShowManagerProfileModal(true)}
-                className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
-              >
-                <Sparkles className="w-4 h-4" />
-                Profil
-              </button>
-            )}
-            {!managerDiagnostic && (
-              <button
-                onClick={() => setShowManagerDiagnostic(true)}
-                className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
-              >
-                <Sparkles className="w-4 h-4" />
-                Profil
-              </button>
-            )}
-            {/* REMOVED: Only gerant can invite - managers cannot invite sellers */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-              </svg>
-              Config
-            </button>
-            <button
-              onClick={() => setShowSupportModal(true)}
-              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
-              title="Contacter le support"
-            >
-              <Headphones className="w-4 h-4" />
-              <span className="hidden sm:inline">Support</span>
-            </button>
-            <TutorialButton onClick={onboarding.open} />
-            <button
-              data-testid="logout-button"
-              onClick={onLogout}
-              className="px-3 py-2 flex items-center gap-1.5 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 hover:shadow-lg transition-all text-sm"
-              title="Déconnexion"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Déconnexion</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <ManagerStatusBanner isSubscriptionExpired={isSubscriptionExpired} />
 
-      {/* Sync Mode Badge - Affichage si mode synchronisé */}
-      <div className="max-w-7xl mx-auto">
-        <SyncModeBadge />
-      </div>
-
-      {/* Dashboard Filters Panel */}
-      {showFilters && (
-        <div className="max-w-7xl mx-auto mb-6">
-          <div className="glass-morphism rounded-2xl p-6 border-2 border-purple-200">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                Personnalisation du Dashboard
-              </h3>
-              <button
-                onClick={() => setShowFilters(false)}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Filter Toggles */}
-            <div className="mb-8">
-              <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
-                Afficher/Masquer les cartes
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <button
-                  onClick={() => toggleFilter('showKPI')}
-                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showKPI
-                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">📊</span>
-                    <span className="text-sm font-semibold whitespace-nowrap">KPI Magasin</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showTeam')}
-                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showTeam
-                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">👥</span>
-                    <span className="text-sm font-semibold whitespace-nowrap">Mon Équipe</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showObjectives')}
-                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showObjectives
-                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🎯</span>
-                    <span className="text-sm font-semibold whitespace-nowrap">Objectifs</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showChallenges')}
-                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showChallenges
-                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🏆</span>
-                    <span className="text-sm font-semibold whitespace-nowrap">Challenges</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showRelationship')}
-                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showRelationship
-                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🤝</span>
-                    <span className="text-sm font-semibold whitespace-nowrap">Gestion relationnelle</span>
-                  </div>
-                </button>
-
-              </div>
-            </div>
-
-            {/* Section Reordering */}
-            <div className="pt-6 border-t-2 border-purple-100">
-              <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
-                Réorganiser l'ordre des cartes
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {sectionOrder.map((sectionId, index) => {
-                  const sectionNames = {
-                    kpi: '📊 KPI',
-                    team: '👥 Équipe',
-                    objectives: '🎯 Objectifs',
-                    challenges: '🏆 Challenges',
-                    relationship: '🤝 Gestion rel.'
-                  };
-                  
-                  // Skip if section doesn't exist in current cards
-                  if (!sectionNames[sectionId]) return null;
-                  
-                  return (
-                    <div key={sectionId} className="inline-flex items-center gap-2 bg-white rounded-lg px-3 py-2 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
-                      <span className="text-xs font-bold text-gray-400">#{index + 1}</span>
-                      <span className="text-sm font-semibold text-gray-800">{sectionNames[sectionId]}</span>
-                      <div className="flex gap-1 ml-1">
-                        <button
-                          onClick={() => moveSectionUp(sectionId)}
-                          disabled={index === 0}
-                          className={`p-1 rounded transition-all ${
-                            index === 0
-                              ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
-                          }`}
-                          title="Monter"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => moveSectionDown(sectionId)}
-                          disabled={index === sectionOrder.length - 1}
-                          className={`p-1 rounded transition-all ${
-                            index === sectionOrder.length - 1
-                              ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
-                          }`}
-                          title="Descendre"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Dashboard Cards Grid */}
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-          {sectionOrder.map(renderSection)}
-        </div>
-      </div>
-
-      {/* Modals */}
-      {/* REMOVED: InviteModal - only gerant can invite sellers */}
-
-      {showKPIConfigModal && (
-        <KPIConfigModal
-          onClose={() => setShowKPIConfigModal(false)}
-          onSuccess={() => {
-            setShowKPIConfigModal(false);
-            fetchData();
-          }}
-        />
-      )}
-
-      {showManagerDiagnostic && (
-        <ManagerDiagnosticForm
-          onClose={() => setShowManagerDiagnostic(false)}
-          onSuccess={async () => {
-            setShowManagerDiagnostic(false);
-            await fetchManagerDiagnostic();
-            // Ouvrir automatiquement le modal du profil après la soumission
-            setShowManagerProfileModal(true);
-          }}
-        />
-      )}
-
-      {showManagerProfileModal && (
-        <ManagerProfileModal
-          diagnostic={managerDiagnostic}
-          onClose={() => setShowManagerProfileModal(false)}
-          onRedo={() => {
-            setShowManagerProfileModal(false);
-            setShowManagerDiagnostic(true);
-          }}
-        />
-      )}
-
-      {showTeamBilanModal && (
-        <TeamBilanModal
-          bilan={teamBilan}
-          kpiConfig={kpiConfig}
-          onClose={() => setShowTeamBilanModal(false)}
-        />
-      )}
-
-      {showSettingsModal && (
-        <ManagerSettingsModal
-          isOpen={showSettingsModal}
-          onClose={() => setShowSettingsModal(false)}
-          modalType={settingsModalType}
-          storeIdParam={urlStoreId}
-          onUpdate={() => {
-            fetchActiveChallenges();
-            fetchActiveObjectives();
-            fetchKpiConfig();
-          }}
-        />
-      )}
-
-      {showStoreKPIModal && (
-        <StoreKPIModal
-          storeId={effectiveStoreId}
-          isManager
-          onClose={() => setShowStoreKPIModal(false)}
-          onSuccess={() => {
-            fetchStoreKPIStats();
-          }}
-        />
-      )}
-
-      {showRelationshipModal && (
-        <RelationshipManagementModal
-          onClose={() => {
-            setShowRelationshipModal(false);
-            setAutoShowRelationshipResult(false);
-          }}
-          onSuccess={async (formData) => {
-            // FERMER LE MODAL IMMÉDIATEMENT (pattern correct)
-            setShowRelationshipModal(false);
-            
-            // Afficher barre de chargement
-            setGeneratingAIAdvice(true);
-            
-            try {
-              // Faire l'appel API APRÈS fermeture du modal
-              const response = await api.post(
-                `/manager/relationship-advice${apiStoreIdParam}`,
-                formData
-              );
-              
-              setGeneratingAIAdvice(false);
-              toast.success('Recommandation générée avec succès !');
-              
-              // Rafraîchir les sellers
-              await fetchData();
-              
-              // Rouvrir le modal après 500ms pour afficher le résultat dans l'historique
-              setTimeout(() => {
-                setAutoShowRelationshipResult(true);
-                setShowRelationshipModal(true);
-              }, 500);
-              
-            } catch (error) {
-              setGeneratingAIAdvice(false);
-              logger.error('Error generating advice:', error);
-              toast.error('Erreur lors de la génération des recommandations');
-            }
-          }}
-          sellers={sellers}
-          autoShowResult={autoShowRelationshipResult}
-          storeId={urlStoreId}
-        />
-      )}
-
-      {showTeamModal && (
-        <TeamModal
-          sellers={sellers}
-          storeIdParam={urlStoreId}
-          onClose={() => setShowTeamModal(false)}
-          onViewSellerDetail={(seller) => {
-            setSelectedSeller(seller);
-            setShowDetailView(true);
-            setShowTeamModal(false);
-          }}
-          onDataUpdate={async () => {
-            // Recharger les vendeurs après une modification
-            await fetchData();
-          }}
-          storeName={storeName}
-          managerName={user?.name}
-          userRole={user?.role}
-        />
-      )}
-
-      {/* Seller Detail Modal */}
-      {showDetailView && selectedSeller && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[95vh] shadow-2xl flex flex-col my-4">
-            <SellerDetailView 
-              seller={selectedSeller}
-              storeIdParam={urlStoreId}
-              onBack={() => {
-                setShowDetailView(false);
-                setSelectedSeller(null);
-                setShowTeamModal(true); // Reopen TeamModal when going back
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* AI Generation Loading Overlay */}
-      {generatingAIAdvice && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
-            <div className="text-center mb-6">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse">
-                <Sparkles className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                Génération en cours...
-              </h3>
-              <p className="text-gray-600">
-                L'IA analyse la situation et prépare des recommandations personnalisées
-              </p>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 animate-progress-slide"></div>
-            </div>
-            
-            <div className="mt-4 text-center text-sm text-gray-500">
-              <p>⏱️ Temps estimé : 30-60 secondes</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Onboarding Modal */}
-      <OnboardingModal
-        isOpen={onboarding.isOpen}
-        onClose={onboarding.close}
-        currentStep={onboarding.currentStep}
-        totalSteps={managerSteps.length}
-        steps={managerSteps}
-        onNext={onboarding.next}
-        onPrev={onboarding.prev}
-        onGoTo={onboarding.goTo}
-        onSkip={onboarding.skip}
-        completedSteps={onboarding.completedSteps}
-      />
-
-      {/* Support Modal */}
-      <SupportModal 
-        isOpen={showSupportModal} 
-        onClose={() => setShowSupportModal(false)} 
-      />
-
-      {/* Morning Brief Modal */}
-      <MorningBriefModal
-        isOpen={showMorningBriefModal}
-        onClose={() => setShowMorningBriefModal(false)}
+      <ManagerHeader
+        user={user}
         storeName={storeName}
-        managerName={user?.name}
+        managerDiagnostic={managerDiagnostic}
+        onLogout={onLogout}
+        onboarding={onboarding}
+        onOpenProfile={() => setShowManagerProfileModal(true)}
+        onOpenDiagnostic={() => setShowManagerDiagnostic(true)}
+        showFilters={showFilters}
+        onToggleFilters={() => setShowFilters(f => !f)}
+        onOpenSupport={() => setShowSupportModal(true)}
+        spaceLabel={spaceLabel}
+        isGerantSpace={isGerantSpace}
+      />
+
+      <ManagerPersonalizationBar
+        show={showFilters}
+        dashboardFilters={dashboardFilters}
+        toggleFilter={toggleFilter}
+        sectionOrder={sectionOrder}
+        moveSectionUp={moveSectionUp}
+        moveSectionDown={moveSectionDown}
+        onClose={() => setShowFilters(false)}
+      />
+
+      <ManagerDashboardGrid
+        sectionOrder={sectionOrder}
+        dashboardFilters={dashboardFilters}
+        sellers={sellers}
+        isSubscriptionExpired={isSubscriptionExpired}
+        onOpenKPI={() => setShowStoreKPIModal(true)}
+        onOpenTeam={() => setShowTeamModal(true)}
+        onOpenObjectives={() => { setSettingsModalType('objectives'); setShowSettingsModal(true); }}
+        onOpenChallenges={() => { setSettingsModalType('challenges'); setShowSettingsModal(true); }}
+        onOpenRelationship={() => setShowRelationshipModal(true)}
+      />
+
+      <ManagerModalsLayer
+        // Data
+        sellers={sellers}
+        storeName={storeName}
+        teamBilan={teamBilan}
+        kpiConfig={kpiConfig}
+        effectiveStoreId={effectiveStoreId}
+        urlStoreId={urlStoreId}
+        apiStoreIdParam={apiStoreIdParam}
+        managerDiagnostic={managerDiagnostic}
+        selectedSeller={selectedSeller}
+        settingsModalType={settingsModalType}
+        autoShowRelationshipResult={autoShowRelationshipResult}
+        generatingAIAdvice={generatingAIAdvice}
+        // Modal visibility
+        showKPIConfigModal={showKPIConfigModal}
+        showManagerDiagnostic={showManagerDiagnostic}
+        showManagerProfileModal={showManagerProfileModal}
+        showTeamBilanModal={showTeamBilanModal}
+        showSettingsModal={showSettingsModal}
+        showStoreKPIModal={showStoreKPIModal}
+        showRelationshipModal={showRelationshipModal}
+        showTeamModal={showTeamModal}
+        showDetailView={showDetailView}
+        showSupportModal={showSupportModal}
+        showMorningBriefModal={showMorningBriefModal}
+        // Modal setters
+        setShowKPIConfigModal={setShowKPIConfigModal}
+        setShowManagerDiagnostic={setShowManagerDiagnostic}
+        setShowManagerProfileModal={setShowManagerProfileModal}
+        setShowTeamBilanModal={setShowTeamBilanModal}
+        setShowSettingsModal={setShowSettingsModal}
+        setShowStoreKPIModal={setShowStoreKPIModal}
+        setShowRelationshipModal={setShowRelationshipModal}
+        setShowTeamModal={setShowTeamModal}
+        setShowDetailView={setShowDetailView}
+        setShowSupportModal={setShowSupportModal}
+        setShowMorningBriefModal={setShowMorningBriefModal}
+        // Data setters
+        setSelectedSeller={setSelectedSeller}
+        setAutoShowRelationshipResult={setAutoShowRelationshipResult}
+        setGeneratingAIAdvice={setGeneratingAIAdvice}
+        // Actions
+        fetchData={fetchData}
+        fetchManagerDiagnostic={fetchManagerDiagnostic}
+        fetchActiveChallenges={fetchActiveChallenges}
+        fetchActiveObjectives={fetchActiveObjectives}
+        fetchKpiConfig={fetchKpiConfig}
+        fetchStoreKPIStats={fetchStoreKPIStats}
+        // Onboarding
+        onboarding={onboarding}
+        managerSteps={managerSteps}
       />
     </div>
   );

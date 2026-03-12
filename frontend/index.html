@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="fr" translate="no">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="description" content="Retail Performer AI - La plateforme de coaching commercial pour vos équipes de vente" />
+        <meta name="google" content="notranslate" />
+        <meta http-equiv="Content-Language" content="fr" />
+        
+        <!-- Filtrer les erreurs MetaMask AVANT le chargement de React -->
+        <script>
+            (function() {
+                console.log('[MetaMask Filter] Initializing error suppression...');
+                
+                // PATCH REMOVECHILD - Éviter les erreurs de traducteur
+                var originalRemoveChild = Node.prototype.removeChild;
+                Node.prototype.removeChild = function(child) {
+                    if (child && child.parentNode === this) {
+                        return originalRemoveChild.call(this, child);
+                    }
+                    console.warn('[DOM] removeChild ignoré - noeud modifié par extension');
+                    return child;
+                };
+                
+                // ÉTAPE 1: Désactiver complètement l'overlay React en production
+                if (typeof window !== 'undefined') {
+                    window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = {
+                        reportRuntimeError: function(error) {
+                            const isMetaMaskError = 
+                                error?.message?.includes('MetaMask') ||
+                                error?.message?.includes('Failed to connect') ||
+                                error?.message?.includes('Échec de la connexion') ||
+                                error?.message?.includes('chrome-extension') ||
+                                error?.stack?.includes('chrome-extension://');
+                            
+                            if (isMetaMaskError) {
+                                console.warn('[BLOCKED] MetaMask extension error - overlay suppressed');
+                                return; // Ne rien faire pour les erreurs MetaMask
+                            }
+                        },
+                        reportBuildError: function() {},
+                        dismissRuntimeErrors: function() {},
+                        startReportingRuntimeErrors: function() {}
+                    };
+                }
+                
+                // ÉTAPE 2: Intercepter les erreurs globales
+                window.addEventListener('error', function(event) {
+                    const isMetaMaskError = 
+                        event.message?.includes('MetaMask') ||
+                        event.message?.includes('Failed to connect') ||
+                        event.message?.includes('Échec') ||
+                        event.message?.includes('chrome-extension') ||
+                        event.filename?.includes('chrome-extension://');
+                    
+                    if (isMetaMaskError) {
+                        console.warn('[BLOCKED] Global MetaMask error');
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
+                        return false;
+                    }
+                }, true);
+                
+                // ÉTAPE 3: Intercepter les promesses rejetées
+                window.addEventListener('unhandledrejection', function(event) {
+                    const reason = event.reason;
+                    const isMetaMaskError = 
+                        reason?.message?.includes('MetaMask') ||
+                        reason?.message?.includes('Failed to connect') ||
+                        reason?.message?.includes('Échec') ||
+                        reason?.message?.includes('chrome-extension') ||
+                        String(reason).includes('MetaMask') ||
+                        String(reason).includes('chrome-extension');
+                    
+                    if (isMetaMaskError) {
+                        console.warn('[BLOCKED] Unhandled MetaMask promise rejection');
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                }, true);
+                
+                // ÉTAPE 4: Surveillance continue et suppression de l'overlay s'il apparaît
+                function removeErrorOverlay() {
+                    // Chercher tous les éléments d'overlay possibles
+                    const overlays = [
+                        document.querySelector('iframe[style*="z-index"]'),
+                        document.querySelector('div[style*="position: fixed"][style*="z-index"]'),
+                        document.querySelector('[data-reactroot]'),
+                        ...Array.from(document.querySelectorAll('div')).filter(div => {
+                            const style = window.getComputedStyle(div);
+                            return style.position === 'fixed' && 
+                                   style.zIndex > 9000 &&
+                                   (div.textContent?.includes('ERREUR') || div.textContent?.includes('MetaMask'));
+                        })
+                    ];
+                    
+                    overlays.forEach(overlay => {
+                        if (overlay && overlay.textContent?.includes('MetaMask')) {
+                            console.warn('[REMOVED] MetaMask error overlay detected and removed');
+                            overlay.remove();
+                        }
+                    });
+                }
+                
+                // Vérifier toutes les 100ms pendant les 10 premières secondes
+                let checks = 0;
+                const maxChecks = 100;
+                const intervalId = setInterval(function() {
+                    removeErrorOverlay();
+                    checks++;
+                    if (checks >= maxChecks) {
+                        clearInterval(intervalId);
+                        console.log('[MetaMask Filter] Monitoring completed');
+                    }
+                }, 100);
+                
+                // ÉTAPE 5: Observer les mutations DOM pour attraper les overlays ajoutés dynamiquement
+                if (typeof MutationObserver !== 'undefined') {
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            mutation.addedNodes.forEach(function(node) {
+                                if (node.nodeType === 1) { // Element node
+                                    const text = node.textContent || '';
+                                    if (text.includes('MetaMask') || text.includes('ERREUR')) {
+                                        const style = window.getComputedStyle(node);
+                                        if (style.position === 'fixed' && parseInt(style.zIndex) > 1000) {
+                                            console.warn('[REMOVED] MetaMask overlay caught by MutationObserver');
+                                            node.remove();
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    });
+                    
+                    // Observer dès que le DOM est prêt
+                    if (document.body) {
+                        observer.observe(document.body, { childList: true, subtree: true });
+                    } else {
+                        document.addEventListener('DOMContentLoaded', function() {
+                            observer.observe(document.body, { childList: true, subtree: true });
+                        });
+                    }
+                }
+                
+                console.log('[MetaMask Filter] Error suppression active on all pages');
+            })();
+        </script>
+        <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+        <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+        <title>Retail Performer AI</title>
+        <!--
+        These two scripts have been added for the testing, please do not edit or remove them
+        -->
+        <script src="https://unpkg.com/rrweb@latest/dist/rrweb.min.js" defer></script>
+        <script>
+            // Defer rrweb-recorder initialization to avoid conflicts with React
+            window.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    var script = document.createElement('script');
+                    script.src = 'https://d2adkz2s9zrlge.cloudfront.net/rrweb-recorder-20250919-1.js';
+                    document.head.appendChild(script);
+                }, 2000); // Wait 2 seconds after DOM is ready
+            });
+        </script>
+        <!--
+        These two scripts have been added for the Visual Edits, please do not edit or remove them
+        -->
+        <script>
+            // Only load visual edit scripts when inside an iframe and visual edits are enabled
+            if (false) { // Visual edits disabled — set VITE_ENABLE_VISUAL_EDITS=true to re-enable
+                // Configure Tailwind
+                window.tailwind = window.tailwind || {};
+                tailwind.config = {
+                    corePlugins: { preflight: false },
+                };
+
+                // Load Tailwind CDN
+                var tailwindScript = document.createElement('script');
+                tailwindScript.src = 'https://cdn.tailwindcss.com';
+                document.head.appendChild(tailwindScript);
+            }
+        </script>
+    </head>
+    <body>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="root" translate="no"></div>
+        <script type="module" src="/src/index.js"></script>
+        <script>
+            !(function (t, e) {
+                var o, n, p, r;
+                e.__SV ||
+                    ((window.posthog = e),
+                    (e._i = []),
+                    (e.init = function (i, s, a) {
+                        function g(t, e) {
+                            var o = e.split(".");
+                            2 == o.length && ((t = t[o[0]]), (e = o[1])),
+                                (t[e] = function () {
+                                    t.push(
+                                        [e].concat(
+                                            Array.prototype.slice.call(
+                                                arguments,
+                                                0,
+                                            ),
+                                        ),
+                                    );
+                                });
+                        }
+                        ((p = t.createElement("script")).type =
+                            "text/javascript"),
+                            (p.crossOrigin = "anonymous"),
+                            (p.async = !0),
+                            (p.src =
+                                s.api_host.replace(
+                                    ".i.posthog.com",
+                                    "-assets.i.posthog.com",
+                                ) + "/static/array.js"),
+                            (r =
+                                t.getElementsByTagName(
+                                    "script",
+                                )[0]).parentNode.insertBefore(p, r);
+                        var u = e;
+                        for (
+                            void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
+                                u.people = u.people || [],
+                                u.toString = function (t) {
+                                    var e = "posthog";
+                                    return (
+                                        "posthog" !== a && (e += "." + a),
+                                        t || (e += " (stub)"),
+                                        e
+                                    );
+                                },
+                                u.people.toString = function () {
+                                    return u.toString(1) + ".people (stub)";
+                                },
+                                o =
+                                    "init me ws ys ps bs capture je Di ks register register_once register_for_session unregister unregister_for_session Ps getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Es $s createPersonProfile Is opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing Ss debug xs getPageViewId captureTraceFeedback captureTraceMetric".split(
+                                        " ",
+                                    ),
+                                n = 0;
+                            n < o.length;
+                            n++
+                        )
+                            g(u, o[n]);
+                        e._i.push([i, s, a]);
+                    }),
+                    (e.__SV = 1));
+            })(document, window.posthog || []);
+            posthog.init("phc_yJW1VjHGGwmCbbrtczfqqNxgBDbhlhOWcdzcIJEOTFE", {
+                api_host: "https://us.i.posthog.com",
+                person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well
+            });
+        </script>
+    </body>
+</html>

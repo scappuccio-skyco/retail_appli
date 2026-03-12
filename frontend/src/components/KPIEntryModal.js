@@ -23,23 +23,25 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
   const [warnings, setWarnings] = useState([]);
 
   useEffect(() => {
-    fetchData();
-  }, [date]);
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
+  }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchData = async () => {
+  const fetchData = async (signal) => {
     try {
       const [statusRes, entriesRes, configRes, historicalRes] = await Promise.all([
-        api.get('/seller/kpi-enabled'),
-        api.get('/seller/kpi-entries?days=1'),
-        api.get('/seller/kpi-config'),
-        api.get('/seller/kpi-entries?days=30') // Last 30 days for average
+        api.get('/seller/kpi-enabled', { signal }),
+        api.get('/seller/kpi-entries?days=1', { signal }),
+        api.get('/seller/kpi-config', { signal }),
+        api.get('/seller/kpi-entries?days=30', { signal }) // Last 30 days for average
       ]);
-      
+
       setEnabled(statusRes.data.enabled || false);
       setKpiConfig(configRes.data);
       const hist = Array.isArray(historicalRes.data) ? historicalRes.data : (historicalRes.data?.items || []);
       setHistoricalData(hist);
-      
+
       const dayEntries = Array.isArray(entriesRes.data) ? entriesRes.data : (entriesRes.data?.items || []);
       // If there's an entry for selected date, pre-fill it
       const existingEntry = dayEntries.find(e => e.date === date);
@@ -59,6 +61,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
         setComment('');
       }
     } catch (err) {
+      if (err.code === 'ERR_CANCELED') return;
       logger.error('Error loading KPI data:', err);
       toast.error('Erreur de chargement des KPI');
     } finally {
@@ -470,7 +473,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                       </p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      Number.Number.parseFloat(warning.percentage) > 0 
+                      Number.parseFloat(warning.percentage) > 0
                         ? 'bg-orange-200 text-orange-800' 
                         : 'bg-blue-200 text-blue-800'
                     }`}>

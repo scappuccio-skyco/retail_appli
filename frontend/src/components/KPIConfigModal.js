@@ -10,19 +10,15 @@ export default function KPIConfigModal({ onClose, onSuccess }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    let cancelled = false;
+    api.get('/manager/kpi-config')
+      .then(res => {
+        if (!cancelled) setEnabled(res.data.enabled || res.data.saisie_enabled || false);
+      })
+      .catch(() => { if (!cancelled) toast.error('Erreur de chargement de la configuration'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
-
-  const fetchData = async () => {
-    try {
-      const configRes = await api.get('/manager/kpi-config');
-      setEnabled(configRes.data.enabled || configRes.data.saisie_enabled || false);
-    } catch (err) {
-      toast.error('Erreur de chargement de la configuration');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSave = async () => {
     setSaving(true);

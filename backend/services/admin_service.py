@@ -1948,3 +1948,87 @@ Pour obtenir de l'aide, vous pouvez :
             }
         }
 
+    # ===== SUBSCRIPTION / WORKSPACE SYNC =====
+
+    async def check_subscription_workspace_sync(self) -> Dict:
+        """
+        Détecte les désynchronisations entre subscription.status et workspace.subscription_status.
+        Cas typique : webhook checkout.session.completed raté → workspace pas activé malgré paiement.
+        """
+        gerants = await self.user_repo.find_many(
+            {"role": "gerant", "status": "active"},
+            projection={"_id": 0, "id": 1, "name": 1, "email": 1},
+            limit=2000
+        )
+        gerant_ids = [g["id"] for g in gerants]
+
+        subscriptions = await self.subscription_repo.find_many(
+            {"user_id": {"$in": gerant_ids}, "status": {"$in": ["active", "trialing"]}},
+            limit=2000
+        )
+        sub_by_gerant = {s["user_id"]: s for s in subscriptions}
+
+        workspaces = await self.workspace_repo.find_many(
+            {"gerant_id": {"$in": gerant_ids}},
+            limit=2000
+        )
+        ws_by_gerant = {w["gerant_id"]: w for w in workspaces}
+
+        mismatches = []
+        for g in gerants:
+            gid = g["id"]
+            sub = sub_by_gerant.get(gid)
+            ws = ws_by_gerant.get(gid)
+            if not sub:
+                continue
+            sub_status = sub.get("status")
+            ws_status = ws.get("subscription_status") if ws else None
+            if sub_status != ws_status:
+                mismatches.append({
+                    "gerant_id": gid,
+                    "email": g["email"],
+                    "name": g.get("name"),
+                    "subscription_status": sub_status,
+                    "workspace_subscription_status": ws_status,
+                    "stripe_subscription_id": sub.get("stripe_subscription_id"),
+                })
+
+        return {
+            "total_checked": len(gerants),
+            "mismatches_count": len(mismatches),
+            "mismatches": mismatches,
+        }
+
+    async def fix_subscription_workspace_sync(self, dry_run: bool = True) -> Dict:
+        """
+        Resynchronise workspace.subscription_status pour les gérants désynchronisés.
+        dry_run=True : liste uniquement. dry_run=False : applique les corrections.
+        """
+        check_result = await self.check_subscription_workspace_sync()
+        mismatches = check_result["mismatches"]
+        fixed = []
+
+        if not dry_run:
+            for m in mismatches:
+                ws = await self.workspace_repo.find_by_gerant(m["gerant_id"])
+                if ws:
+                    await self.workspace_repo.update_by_id(
+                        ws["id"],
+                        {
+                            "subscription_status": m["subscription_status"],
+                            "stripe_subscription_id": m["stripe_subscription_id"],
+                        }
+                    )
+                    fixed.append(m["gerant_id"])
+                    logger.info(
+                        f"✅ Sync fix applied: gerant={m['email']} "
+                        f"workspace_status {m['workspace_subscription_status']} → {m['subscription_status']}"
+                    )
+
+        return {
+            "dry_run": dry_run,
+            "mismatches_count": len(mismatches),
+            "fixed_count": len(fixed) if not dry_run else 0,
+            "mismatches": mismatches,
+        }
+

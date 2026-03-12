@@ -304,6 +304,33 @@ async def get_subscription_details(
         raise ValidationError(str(e))
 
 
+@router.get("/subscriptions/sync-check")
+async def check_subscription_sync(
+    admin_service: AdminService = Depends(get_admin_service),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """
+    Détecte les gérants dont workspace.subscription_status est désynchronisé
+    avec subscription.status (ex: ont payé mais workspace pas activé).
+    Utile après l'incident webhook checkout.session.completed.
+    """
+    return await admin_service.check_subscription_workspace_sync()
+
+
+@router.post("/subscriptions/sync-fix")
+async def fix_subscription_sync(
+    dry_run: bool = True,
+    admin_service: AdminService = Depends(get_admin_service),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """
+    Resynchronise les workspaces dont subscription_status est incorrect.
+    dry_run=true (défaut): liste les corrections sans les appliquer.
+    dry_run=false: applique les corrections.
+    """
+    return await admin_service.fix_subscription_workspace_sync(dry_run=dry_run)
+
+
 @router.get("/gerants/trials")
 async def get_gerants_trials(
     page: int = Query(1, ge=1, description="Page number"),

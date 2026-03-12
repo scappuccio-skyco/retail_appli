@@ -392,13 +392,18 @@ class PaymentService:
             update_data["created_at"] = datetime.now(timezone.utc).isoformat()
         
         await self.subscription_repo.upsert_by_stripe_subscription(subscription_id, update_data)
+        if gerant.get("workspace_id") and status in ("active", "trialing"):
+            await self.workspace_repo.update_by_id(
+                gerant["workspace_id"],
+                {"subscription_status": status, "stripe_subscription_id": subscription_id},
+            )
         if has_multiple_active and not checkout_session_id:
             logger.warning(
                 f"⚠️ ANOMALY: Multiple active subscriptions for {gerant['email']} "
                 f"(new: {subscription_id}, existing: {len(existing_active)}). "
                 f"No checkout_session_id correlation - NOT canceling automatically."
             )
-        
+
         logger.info(f"✅ Subscription synced for {gerant['email']}: {subscription_id} (has_multiple_active={has_multiple_active})")
         
         return {
@@ -571,7 +576,11 @@ class PaymentService:
         if not subscription_id:
             logger.warning(f"⚠️ Checkout completed but no subscription_id in session {session_id}")
             return {"status": "skipped", "reason": "no_subscription_id"}
-        
+
+        # Extract event ordering fields (injected by webhook dispatcher at entry point)
+        event_created = session.get('_event_created') or session.get('created')
+        event_id = session.get('_event_id', '')
+
         # Extract metadata from checkout session for correlation
         session_metadata = session.get('metadata', {})
         correlation_id = session_metadata.get('correlation_id')

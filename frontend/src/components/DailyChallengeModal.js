@@ -13,17 +13,12 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
 
   // Fetch challenge stats
   useEffect(() => {
-    fetchStats();
+    let cancelled = false;
+    api.get('/seller/daily-challenge/stats')
+      .then(res => { if (!cancelled) setStats(res.data); })
+      .catch(err => { if (!cancelled) logger.error('Error fetching stats:', err); });
+    return () => { cancelled = true; };
   }, []);
-
-  const fetchStats = async () => {
-    try {
-      const res = await api.get('/seller/daily-challenge/stats');
-      setStats(res.data);
-    } catch (err) {
-      logger.error('Error fetching stats:', err);
-    }
-  };
 
   // Note: Confetti is now triggered directly in handleComplete, not on mount
 
