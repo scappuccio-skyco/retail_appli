@@ -24,6 +24,18 @@ jobs:
       TEST_BASE_URL: http://127.0.0.1:8001
       MONGO_URL: mongodb://127.0.0.1:27017/
       TEST_PASSWORD: TestUserPassword123!
+      # Required by Pydantic Settings — dummy values safe for CI (no real credentials)
+      JWT_SECRET: ci-test-secret-key-at-least-32-characters-long
+      OPENAI_API_KEY: sk-ci-dummy-openai-key
+      STRIPE_API_KEY: sk_test_ci_dummy_stripe_key
+      STRIPE_WEBHOOK_SECRET: whsec_ci_dummy_webhook_secret
+      BREVO_API_KEY: ci-dummy-brevo-key
+      STRIPE_PRICE_ID_MONTHLY: price_ci_monthly
+      STRIPE_PRICE_ID_YEARLY: price_ci_yearly
+      FRONTEND_URL: http://localhost:3000
+      ADMIN_CREATION_SECRET: ci-admin-secret
+      DEFAULT_ADMIN_EMAIL: admin@ci-test.local
+      DEFAULT_ADMIN_PASSWORD: TestAdminPassword123!
 
     steps:
       - name: Checkout
