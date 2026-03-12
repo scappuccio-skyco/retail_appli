@@ -1,16 +1,26 @@
 """
-Centralized MongoDB index definitions (Audit 2.6 & 3.1).
+Centralized MongoDB index definitions.
 Single source of truth for lifespan, ensure_indexes script, and any migration.
-Includes mandatory indexes on users.id, users.email (UNIQUE), users.gerant_id,
-workspaces.id, workspaces.gerant_id, stores.id, stores.gerant_id.
 
-Audit Point 3.2 – Index composés recommandés (déjà présents ici) :
-- Users : email_unique (contrainte d’unicité comptes), gerant_id_idx (recherches par gérant).
-- Stores : gerant_id_idx (find_by_gerant).
-- Vendeurs / users : (store_id, role, status) → store_role_status_idx.
-- KPIs : (seller_id, date) → seller_date_idx sur kpi_entries.
-- Objectives : manager_period_start_idx, store_period_idx (centralisés ici).
-- Débriefs : (seller_id, created_at) → seller_created_at_idx sur debriefs.
+Index coverage :
+- users        : id (UNIQUE), email (UNIQUE), gerant_id, (store_id, role, status)
+- workspaces   : id (UNIQUE), gerant_id, stripe_customer_id
+- stores       : id (UNIQUE), gerant_id
+- subscriptions: stripe_customer_id, stripe_subscription_id (UNIQUE), (user_id, status)
+- kpi_entries  : id (UNIQUE), (seller_id, date), (store_id, date), (store_id, locked, date)
+- manager_kpis : id (UNIQUE), (store_id, date), (manager_id, date)
+- objectives   : (store_id, status), (manager_id, period_start), (store_id, period)
+- challenges   : (store_id, status)
+- sales        : (seller_id, date)
+- debriefs     : (seller_id, created_at)
+- diagnostics  : (seller_id, created_at)
+- api_keys     : (key, is_active)
+- kpi_configs  : store_id, manager_id
+- team_analyses: (store_id, generated_at)
+- team_bilans  : (manager_id, store_id, created_at)
+- evaluations  : (seller_id, created_at), (store_id, created_at)
+- seller_bilans: (seller_id, created_at)
+
 Création au démarrage via lifespan (_create_indexes_background) ou script :
   python -m backend.scripts.ensure_indexes
 """
@@ -77,6 +87,10 @@ INDEXES: Dict[str, List[IndexSpec]] = {
         _spec([("seller_id", 1), ("date", -1)], background=True, name="seller_date_idx"),
         _spec([("store_id", 1), ("date", -1)], background=True, name="store_date_idx"),
         _spec([("seller_id", 1), ("store_id", 1), ("date", -1)], background=True),
+        # Lookup par id interne (update_one / find_one par id)
+        _spec("id", unique=True, background=True, name="id_unique"),
+        # Requêtes de verrou API : {store_id, locked: True} et {store_id, locked: True, date: range}
+        _spec([("store_id", 1), ("locked", 1), ("date", -1)], background=True, name="store_locked_date_idx"),
     ],
     "objectives": [
         _spec([("store_id", 1), ("status", 1)], background=True, name="store_status_idx"),
@@ -86,6 +100,33 @@ INDEXES: Dict[str, List[IndexSpec]] = {
     ],
     "challenges": [
         _spec([("store_id", 1), ("status", 1)], background=True, name="store_status_idx"),
+    ],
+    # --- Collections sans index : ajout prioritaire ---
+    # api_keys : appelé sur CHAQUE requête d'intégration externe (sync KPI, SCIM)
+    "api_keys": [
+        _spec([("key", 1), ("is_active", 1)], unique=False, background=True, name="key_active_idx"),
+    ],
+    # kpi_configs : fetch par store à chaque opération KPI (config des champs actifs)
+    "kpi_configs": [
+        _spec("store_id", sparse=True, background=True, name="store_id_idx"),
+        _spec("manager_id", sparse=True, background=True, name="manager_id_idx"),
+    ],
+    # team_analyses : historique des analyses IA par magasin
+    "team_analyses": [
+        _spec([("store_id", 1), ("generated_at", -1)], background=True, name="store_generated_idx"),
+    ],
+    # team_bilans : bilans équipe par manager + magasin
+    "team_bilans": [
+        _spec([("manager_id", 1), ("store_id", 1), ("created_at", -1)], background=True, name="manager_store_created_idx"),
+    ],
+    # evaluations : évaluations de vente par vendeur et par magasin
+    "evaluations": [
+        _spec([("seller_id", 1), ("created_at", -1)], background=True, name="seller_created_idx"),
+        _spec([("store_id", 1), ("created_at", -1)], background=True, name="store_created_idx"),
+    ],
+    # seller_bilans : bilans vendeur individuels
+    "seller_bilans": [
+        _spec([("seller_id", 1), ("created_at", -1)], background=True, name="seller_created_idx"),
     ],
     "sales": [
         _spec([("seller_id", 1), ("date", -1)], background=True, name="seller_date_idx"),
@@ -97,11 +138,12 @@ INDEXES: Dict[str, List[IndexSpec]] = {
         _spec([("seller_id", 1), ("created_at", -1)], background=True, name="seller_created_at_idx"),
     ],
     "manager_kpis": [
-        _spec(
-            [("manager_id", 1), ("date", -1), ("store_id", 1)],
-            background=True,
-            name="manager_date_store_idx",
-        ),
+        # ⚠️ Index corrigé : store_id en prefix car les requêtes sont {store_id, date}
+        # L'ancien (manager_id, date, store_id) était inutilisable pour les requêtes store-centric
+        _spec([("store_id", 1), ("date", -1)], background=True, name="store_date_idx"),
+        _spec([("manager_id", 1), ("date", -1)], background=True, name="manager_date_idx"),
+        # Lookup par id interne (update_one / find_one par id)
+        _spec("id", unique=True, background=True, name="id_unique"),
     ],
 }
 
