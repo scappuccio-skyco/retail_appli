@@ -57,8 +57,9 @@ async def add_kpi_data():
             nb_ventes = base_ventes
             ca_journalier = base_ca
             nb_clients = random.randint(base_ventes + 2, base_ventes + 10)
+            nb_prospects = random.randint(base_ventes + 3, base_ventes + 15)
             panier_moyen = ca_journalier / nb_ventes if nb_ventes > 0 else 0
-            taux_transformation = (nb_ventes / nb_clients * 100) if nb_clients > 0 else 0
+            taux_transformation = (nb_ventes / nb_prospects * 100) if nb_prospects > 0 else 0
             
             # Check if entry already exists for this date
             existing = await db.kpi_entries.find_one({
@@ -75,6 +76,7 @@ async def add_kpi_data():
                         "nb_ventes": nb_ventes,
                         "panier_moyen": round(panier_moyen, 2),
                         "nb_clients": nb_clients,
+                        "nb_prospects": nb_prospects,
                         "taux_transformation": round(taux_transformation, 2)
                     }}
                 )
@@ -89,6 +91,7 @@ async def add_kpi_data():
                     "nb_ventes": nb_ventes,
                     "panier_moyen": round(panier_moyen, 2),
                     "nb_clients": nb_clients,
+                    "nb_prospects": nb_prospects,
                     "taux_transformation": round(taux_transformation, 2),
                     "created_at": current_date.isoformat()
                 }

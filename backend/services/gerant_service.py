@@ -1936,7 +1936,7 @@ class GerantService:
             "kpi_config": {
                 "seller_track_ca": True,
                 "seller_track_ventes": True,
-                "seller_track_clients": True,
+                "seller_track_clients": False,
                 "seller_track_articles": True,
                 "seller_track_prospects": True
             }

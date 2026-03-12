@@ -347,7 +347,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
                 <p className="text-lg font-bold text-pink-900">{bilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
               </div>
             )}
-            {kpiConfig?.track_articles && kpiConfig?.track_clients && bilan.kpi_resume.indice_vente !== undefined && (
+            {kpiConfig?.track_articles && kpiConfig?.track_ventes && bilan.kpi_resume.indice_vente !== undefined && (
               <div className="bg-teal-50 rounded-lg p-3">
                 <p className="text-xs text-teal-600 mb-1">🎯 Indice</p>
                 <p className="text-lg font-bold text-teal-900">{bilan.kpi_resume.indice_vente.toFixed(1)}</p>

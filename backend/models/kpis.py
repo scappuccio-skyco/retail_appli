@@ -68,7 +68,7 @@ class KPIConfiguration(BaseModel):
     manager_track_ca: Optional[bool] = False
     seller_track_ventes: Optional[bool] = True
     manager_track_ventes: Optional[bool] = False
-    seller_track_clients: Optional[bool] = True
+    seller_track_clients: Optional[bool] = False
     manager_track_clients: Optional[bool] = False
     seller_track_articles: Optional[bool] = True
     manager_track_articles: Optional[bool] = False

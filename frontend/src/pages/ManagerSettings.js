@@ -221,25 +221,25 @@ export default function ManagerSettings() {
                   </div>
                 )}
                 
-                {kpiConfig.track_ventes && kpiConfig.track_clients && (
+                {kpiConfig.track_ventes && kpiConfig.track_prospects && (
                   <div className="flex items-center gap-2 text-sm text-gray-700 bg-white px-3 py-2 rounded-lg">
                     <span className="text-green-600 font-bold">✓</span>
                     <span className="font-medium">Taux de transformation</span>
-                    <span className="text-gray-500 text-xs">(Ventes ÷ Clients × 100)</span>
+                    <span className="text-gray-500 text-xs">(Ventes ÷ Prospects × 100)</span>
                   </div>
                 )}
-                
-                {kpiConfig.track_ca && kpiConfig.track_articles && (
+
+                {kpiConfig.track_articles && kpiConfig.track_ventes && (
                   <div className="flex items-center gap-2 text-sm text-gray-700 bg-white px-3 py-2 rounded-lg">
                     <span className="text-green-600 font-bold">✓</span>
                     <span className="font-medium">Indice de vente</span>
-                    <span className="text-gray-500 text-xs">(CA ÷ Articles)</span>
+                    <span className="text-gray-500 text-xs">(Articles ÷ Ventes)</span>
                   </div>
                 )}
-                
-                {!((kpiConfig.track_ca && kpiConfig.track_ventes) || 
-                   (kpiConfig.track_ventes && kpiConfig.track_clients) || 
-                   (kpiConfig.track_ca && kpiConfig.track_articles)) && (
+
+                {!((kpiConfig.track_ca && kpiConfig.track_ventes) ||
+                   (kpiConfig.track_ventes && kpiConfig.track_prospects) ||
+                   (kpiConfig.track_articles && kpiConfig.track_ventes)) && (
                   <p className="text-sm text-gray-500 italic">
                     Sélectionnez des combinaisons de KPI pour voir les calculs automatiques disponibles
                   </p>
