@@ -141,7 +141,7 @@ async def logout(response: Response):
     return {"message": "Déconnexion réussie"}
 
 
-@router.post("/forgot-password", dependencies=[rate_limit("3/minute")])
+@router.post("/forgot-password", dependencies=[rate_limit("5/minute")])
 async def forgot_password(
     request: ForgotPasswordRequest,
     auth_service: AuthService = Depends(get_auth_service)

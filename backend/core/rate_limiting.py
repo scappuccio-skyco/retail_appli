@@ -49,12 +49,23 @@ def get_dummy_limiter():
 
 
 def rate_limit_exceeded_handler(request, exc: "RateLimitExceeded"):
-    """JSON response for RateLimitExceeded (error_code + detail)."""
+    """JSON response for RateLimitExceeded (error_code + detail + Retry-After header)."""
     from fastapi.responses import JSONResponse
     detail = getattr(exc, "description", None) or "Trop de requêtes. Veuillez réessayer plus tard."
+    # Extract retry-after from slowapi (e.g. "1 minute" → 60s)
+    retry_after = None
+    try:
+        limit_obj = getattr(exc, "limit", None)
+        if limit_obj is not None:
+            import math
+            retry_after = str(math.ceil(limit_obj.reset_at - __import__("time").time()))
+    except Exception:
+        pass
+    headers = {"Retry-After": retry_after} if retry_after and int(retry_after) > 0 else {}
     return JSONResponse(
         status_code=429,
         content={"error_code": "RATE_LIMIT_EXCEEDED", "detail": detail},
+        headers=headers,
     )
 
 
