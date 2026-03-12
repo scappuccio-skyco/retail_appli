@@ -45,6 +45,10 @@ export default function PerformanceModal({
   const [warnings, setWarnings] = useState([]);
   const [pendingKPIData, setPendingKPIData] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
+  const [viewMode, setViewMode] = useState('semaine'); // 'semaine' | '30j' | 'mois'
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [periodEntries, setPeriodEntries] = useState([]);
+  const [periodLoading, setPeriodLoading] = useState(false);
 
   // Synchroniser l'onglet actif avec initialTab quand il change
   useEffect(() => {
@@ -272,6 +276,85 @@ export default function PerformanceModal({
     };
   }, [bilanData?.periode]);
 
+  // Period date range for 30j / mois views
+  const periodRange = useMemo(() => {
+    const now = new Date();
+    if (viewMode === '30j') {
+      const end = new Date(now);
+      const start = new Date(now);
+      start.setDate(start.getDate() - 29);
+      return {
+        start_date: start.toISOString().split('T')[0],
+        end_date: end.toISOString().split('T')[0],
+        label: '30 derniers jours',
+      };
+    }
+    if (viewMode === 'mois') {
+      const d = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+      const start = new Date(d.getFullYear(), d.getMonth(), 1);
+      const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      const raw = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+      return {
+        start_date: start.toISOString().split('T')[0],
+        end_date: end.toISOString().split('T')[0],
+        label: raw.charAt(0).toUpperCase() + raw.slice(1),
+      };
+    }
+    return null;
+  }, [viewMode, monthOffset]);
+
+  // Fetch KPI entries for period views
+  useEffect(() => {
+    if (!isOpen || viewMode === 'semaine' || !periodRange) return;
+    let cancelled = false;
+    setPeriodLoading(true);
+    setPeriodEntries([]);
+    api.get('/seller/kpi-entries', {
+      params: { start_date: periodRange.start_date, end_date: periodRange.end_date },
+    }).then(res => {
+      if (cancelled) return;
+      const data = res.data;
+      const entries = Array.isArray(data) ? data : (data?.items ?? []);
+      setPeriodEntries(entries.sort((a, b) => new Date(a.date) - new Date(b.date)));
+    }).catch(err => {
+      logger.error('Error fetching period entries:', err);
+    }).finally(() => {
+      if (!cancelled) setPeriodLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [isOpen, viewMode, periodRange?.start_date, periodRange?.end_date]);
+
+  // Aggregated KPIs for period view
+  const periodAggregates = useMemo(() => {
+    if (!periodEntries.length) return null;
+    let ca = 0, ventes = 0, articles = 0, prospects = 0;
+    for (const e of periodEntries) {
+      ca += e.ca_journalier || 0;
+      ventes += e.nb_ventes || 0;
+      articles += e.nb_articles || 0;
+      prospects += e.nb_prospects || 0;
+    }
+    return {
+      ca, ventes, articles, prospects,
+      days: periodEntries.length,
+      panier_moyen: ventes > 0 ? ca / ventes : 0,
+      taux_transfo: prospects > 0 ? (ventes / prospects) * 100 : 0,
+      indice_vente: ventes > 0 ? articles / ventes : 0,
+    };
+  }, [periodEntries]);
+
+  // Chart data for period views
+  const periodChartData = useMemo(() => {
+    if (!periodEntries.length) return [];
+    return periodEntries.map(entry => ({
+      date: new Date(entry.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+      CA: entry.ca_journalier || 0,
+      Ventes: entry.nb_ventes || 0,
+      Articles: entry.nb_articles || 0,
+      Prospects: entry.nb_prospects || 0,
+    }));
+  }, [periodEntries]);
+
   // Auto-scroll to bilan section when generation completes
   useEffect(() => {
     // Detect when generation just finished
@@ -480,31 +563,57 @@ export default function PerformanceModal({
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'bilan' && (
             <div>
-              {/* Boutons d'action avec navigation semaines */}
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 py-3 bg-gray-50 border-b">
-                <div className="flex flex-wrap gap-2">
-                  {onRegenerate && (
+              {/* Barre d'action */}
+              <div className="px-4 py-3 bg-gray-50 border-b space-y-3">
+                {/* Ligne 1 : sélecteur de vue + boutons */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  {/* Sélecteur de période */}
+                  <div className="flex gap-1 bg-gray-200 rounded-lg p-1">
+                    {[
+                      { id: 'semaine', label: '📅 Semaine' },
+                      { id: '30j', label: '📆 30 jours' },
+                      { id: 'mois', label: '🗓️ Mois' },
+                    ].map(({ id, label }) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setViewMode(id)}
+                        className={`px-3 py-1.5 text-sm font-semibold rounded-md transition-all ${
+                          viewMode === id
+                            ? 'bg-white text-gray-800 shadow'
+                            : 'text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Boutons IA + PDF (IA seulement en vue semaine) */}
+                  <div className="flex flex-wrap gap-2">
+                    {viewMode === 'semaine' && onRegenerate && (
+                      <button
+                        onClick={onRegenerate}
+                        disabled={generatingBilan}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <TrendingUp className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
+                        <span>{generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer' : 'Générer')}</span>
+                      </button>
+                    )}
                     <button
-                      onClick={onRegenerate}
-                      disabled={generatingBilan}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                      onClick={exportToPDF}
+                      disabled={exportingPDF}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
                     >
-                      <TrendingUp className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
-                      <span>{generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer' : 'Générer')}</span>
+                      <Download className={`w-4 h-4 ${exportingPDF ? 'animate-bounce' : ''}`} />
+                      <span>{exportingPDF ? 'Export...' : 'PDF'}</span>
                     </button>
-                  )}
-                  <button
-                    onClick={exportToPDF}
-                    disabled={exportingPDF}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
-                  >
-                    <Download className={`w-4 h-4 ${exportingPDF ? 'animate-bounce' : ''}`} />
-                    <span>{exportingPDF ? 'Export...' : 'PDF'}</span>
-                  </button>
+                  </div>
                 </div>
-                
-                {/* Navigation semaines - responsive */}
-                {onWeekChange && (
+
+                {/* Ligne 2 : navigation temporelle */}
+                {viewMode === 'semaine' && onWeekChange && (
                   <div className="flex items-center gap-1 bg-gray-200 rounded-lg px-2 py-2 w-full md:w-auto justify-center">
                     <button
                       onClick={() => onWeekChange(currentWeekOffset - 1)}
@@ -526,11 +635,171 @@ export default function PerformanceModal({
                     </button>
                   </div>
                 )}
+                {viewMode === 'mois' && (
+                  <div className="flex items-center gap-1 bg-gray-200 rounded-lg px-2 py-2 w-full md:w-auto justify-center">
+                    <button
+                      onClick={() => setMonthOffset(o => o - 1)}
+                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition flex-shrink-0"
+                      title="Mois précédent"
+                    >
+                      <ChevronLeft className="w-4 h-4 text-white" />
+                    </button>
+                    <span className="text-xs font-semibold text-gray-700 px-2 text-center min-w-[120px]">
+                      {periodRange?.label}
+                    </span>
+                    <button
+                      onClick={() => setMonthOffset(o => o + 1)}
+                      disabled={monthOffset === 0}
+                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+                      title="Mois suivant"
+                    >
+                      <ChevronRight className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+                )}
+                {viewMode === '30j' && (
+                  <div className="text-xs text-gray-500 font-medium">
+                    📆 Du {periodRange?.start_date} au {periodRange?.end_date}
+                  </div>
+                )}
               </div>
 
               {/* Contenu scrollable */}
               <div ref={contentRef} data-pdf-content className="p-6">
-                {bilanData ? (
+
+                {/* === VUES 30 JOURS ET MOIS === */}
+                {viewMode !== 'semaine' && (
+                  periodLoading ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+                      <div className="w-10 h-10 border-4 border-orange-400 border-t-transparent rounded-full animate-spin mb-4" />
+                      <p>Chargement des données...</p>
+                    </div>
+                  ) : periodAggregates ? (
+                    <>
+                      {/* Titre période */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <BarChart3 className="w-5 h-5 text-orange-600" />
+                        <h3 className="font-bold text-gray-800">{periodRange?.label} — {periodAggregates.days} jour{periodAggregates.days > 1 ? 's' : ''} avec données</h3>
+                      </div>
+
+                      {/* KPI Agrégés */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        {kpiConfig?.track_ca && (
+                          <div className="bg-blue-50 rounded-lg p-3">
+                            <p className="text-xs text-blue-600 mb-1">💰 CA total</p>
+                            <p className="text-lg font-bold text-blue-900">{periodAggregates.ca.toFixed(0)}€</p>
+                          </div>
+                        )}
+                        {kpiConfig?.track_ventes && (
+                          <div className="bg-green-50 rounded-lg p-3">
+                            <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
+                            <p className="text-lg font-bold text-green-900">{periodAggregates.ventes}</p>
+                          </div>
+                        )}
+                        {kpiConfig?.track_articles && (
+                          <div className="bg-orange-50 rounded-lg p-3">
+                            <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
+                            <p className="text-lg font-bold text-orange-900">{periodAggregates.articles}</p>
+                          </div>
+                        )}
+                        {kpiConfig?.track_prospects && (
+                          <div className="bg-purple-50 rounded-lg p-3">
+                            <p className="text-xs text-purple-600 mb-1">🚶 Prospects</p>
+                            <p className="text-lg font-bold text-purple-900">{periodAggregates.prospects}</p>
+                          </div>
+                        )}
+                        {kpiConfig?.track_ca && kpiConfig?.track_ventes && periodAggregates.panier_moyen > 0 && (
+                          <div className="bg-indigo-50 rounded-lg p-3">
+                            <p className="text-xs text-indigo-600 mb-1">💳 Panier moyen</p>
+                            <p className="text-lg font-bold text-indigo-900">{periodAggregates.panier_moyen.toFixed(0)}€</p>
+                          </div>
+                        )}
+                        {kpiConfig?.track_ventes && kpiConfig?.track_prospects && periodAggregates.taux_transfo > 0 && (
+                          <div className="bg-pink-50 rounded-lg p-3">
+                            <p className="text-xs text-pink-600 mb-1">📈 Taux transfo</p>
+                            <p className="text-lg font-bold text-pink-900">{periodAggregates.taux_transfo.toFixed(1)}%</p>
+                          </div>
+                        )}
+                        {kpiConfig?.track_articles && kpiConfig?.track_ventes && periodAggregates.indice_vente > 0 && (
+                          <div className="bg-teal-50 rounded-lg p-3">
+                            <p className="text-xs text-teal-600 mb-1">🎯 Indice vente</p>
+                            <p className="text-lg font-bold text-teal-900">{periodAggregates.indice_vente.toFixed(2)}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Graphiques période */}
+                      {periodChartData.length > 0 && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {kpiConfig?.track_ca && (
+                            <div className="bg-blue-50 rounded-xl p-4">
+                              <h4 className="text-sm font-semibold text-blue-900 mb-3">💰 Évolution du CA</h4>
+                              <ResponsiveContainer width="100%" height={180}>
+                                <LineChart data={periodChartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#1e40af' }} stroke="#3b82f6" />
+                                  <YAxis tick={{ fontSize: 10, fill: '#1e40af' }} stroke="#3b82f6" />
+                                  <Tooltip contentStyle={{ backgroundColor: '#eff6ff', border: '2px solid #3b82f6', borderRadius: '8px' }} />
+                                  <Line type="monotone" dataKey="CA" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                          {kpiConfig?.track_ventes && (
+                            <div className="bg-green-50 rounded-xl p-4">
+                              <h4 className="text-sm font-semibold text-green-900 mb-3">🛒 Évolution des Ventes</h4>
+                              <ResponsiveContainer width="100%" height={180}>
+                                <BarChart data={periodChartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#d1fae5" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#065f46' }} stroke="#10b981" />
+                                  <YAxis tick={{ fontSize: 10, fill: '#065f46' }} stroke="#10b981" />
+                                  <Tooltip contentStyle={{ backgroundColor: '#d1fae5', border: '2px solid #10b981', borderRadius: '8px' }} />
+                                  <Bar dataKey="Ventes" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                          {kpiConfig?.track_articles && (
+                            <div className="bg-orange-50 rounded-xl p-4">
+                              <h4 className="text-sm font-semibold text-orange-900 mb-3">📦 Évolution des Articles</h4>
+                              <ResponsiveContainer width="100%" height={180}>
+                                <BarChart data={periodChartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#fed7aa" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9a3412' }} stroke="#f97316" />
+                                  <YAxis tick={{ fontSize: 10, fill: '#9a3412' }} stroke="#f97316" />
+                                  <Tooltip contentStyle={{ backgroundColor: '#ffedd5', border: '2px solid #f97316', borderRadius: '8px' }} />
+                                  <Bar dataKey="Articles" fill="#f97316" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                          {kpiConfig?.track_prospects && (
+                            <div className="bg-purple-50 rounded-xl p-4">
+                              <h4 className="text-sm font-semibold text-purple-900 mb-3">🚶 Évolution des Prospects</h4>
+                              <ResponsiveContainer width="100%" height={180}>
+                                <LineChart data={periodChartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#e9d5ff" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#581c87' }} stroke="#a855f7" />
+                                  <YAxis tick={{ fontSize: 10, fill: '#581c87' }} stroke="#a855f7" />
+                                  <Tooltip contentStyle={{ backgroundColor: '#f3e8ff', border: '2px solid #a855f7', borderRadius: '8px' }} />
+                                  <Line type="monotone" dataKey="Prospects" stroke="#a855f7" strokeWidth={2} dot={false} />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                      <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600">Aucune donnée saisie pour cette période</p>
+                    </div>
+                  )
+                )}
+
+                {/* === VUE SEMAINE (comportement actuel) === */}
+                {viewMode === 'semaine' && bilanData ? (
                   <>
                     {/* KPI Summary */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -740,11 +1009,11 @@ export default function PerformanceModal({
                       </div>
                     )}
                   </>
-                ) : (
+                ) : viewMode === 'semaine' ? (
                   <div className="text-center py-8 text-gray-500">
                     <p>Aucun bilan disponible</p>
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           )}
