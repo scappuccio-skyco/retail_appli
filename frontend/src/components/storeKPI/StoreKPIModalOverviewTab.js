@@ -3,6 +3,36 @@ import PropTypes from 'prop-types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatChartDate, computePeriodTotals, formatListDateLabel } from './storeKPIUtils';
 
+/** Convert a YYYY-MM-DD date string to its ISO week string (YYYY-Www). */
+function dateToISOWeek(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay() === 0 ? 7 : d.getDay(); // Mon=1 … Sun=7
+  d.setDate(d.getDate() + 4 - day);
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+/** Build sorted list of unique ISO weeks from a dates array, most-recent first. */
+function getWeeksWithData(datesWithData) {
+  const weeks = new Set((datesWithData || []).map(dateToISOWeek));
+  return [...weeks].sort((a, b) => b.localeCompare(a));
+}
+
+/** Human-readable label for an ISO week string (e.g. "S12 — 17-23 mar. 2025"). */
+function weekLabel(isoWeek) {
+  const [year, wPart] = isoWeek.split('-W');
+  const weekNo = parseInt(wPart, 10);
+  // Find Monday of that ISO week
+  const jan4 = new Date(parseInt(year, 10), 0, 4);
+  const monday = new Date(jan4);
+  monday.setDate(jan4.getDate() - (jan4.getDay() === 0 ? 6 : jan4.getDay() - 1) + (weekNo - 1) * 7);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = (d) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  return `S${weekNo} · ${fmt(monday)} – ${fmt(sunday)}`;
+}
+
 function getChartInterval(viewMode) {
   if (viewMode === 'week') return 0;
   if (viewMode === 'month') return 2;
@@ -89,7 +119,7 @@ DualLineChart.propTypes = {
 function DateSelectionSection({
   viewMode, setViewMode, selectedWeek, setSelectedWeek, selectedMonth, setSelectedMonth,
   selectedYear, setSelectedYear, availableYears, getCurrentWeek, hasData, allZero,
-  weekIATitle, onShowOverviewAIModal, onShowPicker
+  weekIATitle, onShowOverviewAIModal, onShowPicker, datesWithData
 }) {
   const viewModeTabs = [
     { id: 'week', label: '📅 Vue Hebdomadaire', onClick: () => { setViewMode('week'); if (!selectedWeek) setSelectedWeek(getCurrentWeek()); } },
@@ -109,10 +139,34 @@ function DateSelectionSection({
       {viewMode === 'week' && (
         <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
           <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une semaine</h3>
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center mb-3">
             <input type="week" value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} onClick={onShowPicker} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer" />
             <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || !selectedWeek || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={weekIATitle}>🤖 Analyse IA</button>
           </div>
+          {datesWithData && datesWithData.length > 0 && (() => {
+            const weeks = getWeeksWithData(datesWithData);
+            return (
+              <div>
+                <p className="text-xs text-orange-700 font-semibold mb-2">📊 Semaines avec données ({weeks.length})</p>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                  {weeks.map(w => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => setSelectedWeek(w)}
+                      className={`px-3 py-1 text-xs font-semibold rounded-full border transition-all whitespace-nowrap ${
+                        selectedWeek === w
+                          ? 'bg-orange-500 text-white border-orange-500 shadow-md'
+                          : 'bg-white text-orange-800 border-orange-300 hover:bg-orange-200 hover:border-orange-500'
+                      }`}
+                    >
+                      {weekLabel(w)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
       {viewMode === 'month' && (
@@ -153,7 +207,8 @@ DateSelectionSection.propTypes = {
   allZero: PropTypes.bool.isRequired,
   weekIATitle: PropTypes.string.isRequired,
   onShowOverviewAIModal: PropTypes.func.isRequired,
-  onShowPicker: PropTypes.func.isRequired
+  onShowPicker: PropTypes.func.isRequired,
+  datesWithData: PropTypes.arrayOf(PropTypes.string)
 };
 
 export default function StoreKPIModalOverviewTab({
@@ -176,7 +231,8 @@ export default function StoreKPIModalOverviewTab({
   setVisibleCharts,
   historicalData,
   loadingHistorical,
-  onShowOverviewAIModal
+  onShowOverviewAIModal,
+  datesWithData
 }) {
   const hasData = historicalData.length > 0;
   const allZero = historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0);
@@ -283,6 +339,7 @@ export default function StoreKPIModalOverviewTab({
         weekIATitle={weekIATitle}
         onShowOverviewAIModal={onShowOverviewAIModal}
         onShowPicker={handleShowPicker}
+        datesWithData={datesWithData}
       />
 
       <div className="flex gap-2 mb-4">
@@ -331,7 +388,8 @@ StoreKPIModalOverviewTab.propTypes = {
   setVisibleCharts: PropTypes.func.isRequired,
   historicalData: PropTypes.array.isRequired,
   loadingHistorical: PropTypes.bool.isRequired,
-  onShowOverviewAIModal: PropTypes.func.isRequired
+  onShowOverviewAIModal: PropTypes.func.isRequired,
+  datesWithData: PropTypes.arrayOf(PropTypes.string)
 };
 
 function OverviewListTotals({ historicalData, computePeriodTotals }) {

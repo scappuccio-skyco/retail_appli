@@ -100,6 +100,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               historicalData={state.historicalData}
               loadingHistorical={state.loadingHistorical}
               onShowOverviewAIModal={state.setShowOverviewAIModal}
+              datesWithData={state.datesWithData}
             />
           )}
 
