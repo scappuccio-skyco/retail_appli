@@ -4,12 +4,13 @@ import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 
-export default function StoreKPIAIAnalysisModal({ 
-  kpiData, 
+export default function StoreKPIAIAnalysisModal({
+  kpiData,
   analysisType, // 'daily' or 'overview'
   viewContext, // For overview: { viewMode, period, historicalData }
   storeId, // Store ID for gerant viewing as manager
-  onClose 
+  isManager = false, // true when called from manager context
+  onClose
 }) {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -18,8 +19,8 @@ export default function StoreKPIAIAnalysisModal({
     setLoading(true);
 
     try {
-      // Gérant avec storeId → endpoint gerant pour éviter 403. Manager → endpoint manager.
-      const isGerantContext = Boolean(storeId);
+      // Use role-based routing: manager → /manager/*, gerant → /gerant/stores/*
+      const isGerantContext = !isManager && Boolean(storeId);
       const storeParam = storeId ? `?store_id=${storeId}` : '';
       const basePath = isGerantContext ? `/gerant/stores/${storeId}` : '/manager';
       let endpoint = '';

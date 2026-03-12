@@ -130,6 +130,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
           kpiData={state.overviewData}
           analysisType="daily"
           storeId={storeId}
+          isManager={isManager}
           onClose={() => state.setShowDailyAIModal(false)}
         />
       )}
@@ -138,6 +139,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         <StoreKPIAIAnalysisModal
           analysisType="overview"
           storeId={storeId}
+          isManager={isManager}
           viewContext={{
             viewMode: state.viewMode,
             period: overviewPeriodLabel,
