@@ -72,6 +72,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               onOverviewDateChange={state.setOverviewDate}
               datesWithData={state.datesWithData}
               lockedDates={state.lockedDates}
+              partiallyLockedDates={state.partiallyLockedDates}
               onShowAIModal={state.setShowDailyAIModal}
               storeId={storeId}
             />

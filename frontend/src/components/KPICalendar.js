@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 
-export default function KPICalendar({ selectedDate, onDateChange, datesWithData = [], lockedDates = [] }) {
+export default function KPICalendar({ selectedDate, onDateChange, datesWithData = [], lockedDates = [], partiallyLockedDates = [] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
   const [isOpen, setIsOpen] = useState(false);
   const [openUpwards, setOpenUpwards] = useState(false);
@@ -24,10 +24,10 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
     return datesWithData.includes(dateStr);
   };
 
-  // Check if a date is locked (from API/POS)
-  const isLocked = (dateStr) => {
-    return lockedDates.includes(dateStr);
-  };
+  // Check if a date is fully locked (all sellers from API/POS)
+  const isLocked = (dateStr) => lockedDates.includes(dateStr);
+  // Check if a date is partially locked (some sellers from API, some manual)
+  const isPartiallyLocked = (dateStr) => partiallyLockedDates.includes(dateStr);
 
   // Get days in month
   const getDaysInMonth = (date) => {
@@ -185,7 +185,8 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
               {days.map((day, index) => {
                 const dayDate = day ? formatDate(new Date(year, month, day)) : null;
                 const dataExists = day && hasData(dayDate);
-                const locked = day && isLocked(dayDate);
+                const locked = day && isLocked(dayDate) && !isPartiallyLocked(dayDate);
+                const partial = day && isPartiallyLocked(dayDate);
                 const selected = isSelectedDay(day);
                 const today = isToday(day);
 
@@ -194,26 +195,33 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
                     key={index}
                     onClick={() => handleDayClick(day)}
                     disabled={!day}
-                    title={locked ? "Données importées (non modifiable)" : ""}
+                    title={locked ? "Toutes les données importées (API)" : partial ? "Données mixtes : API + saisie manuelle possible" : ""}
                     className={`
                       relative h-7 text-xs rounded-md transition-all
                       ${!day ? 'invisible' : ''}
                       ${selected ? 'bg-purple-600 text-white font-bold ring-2 ring-purple-400 ring-offset-1' : ''}
                       ${!selected && today ? 'border-2 border-purple-600 font-bold text-purple-600' : ''}
                       ${!selected && !today && locked ? 'bg-amber-100 text-amber-800 font-semibold hover:bg-amber-200' : ''}
-                      ${!selected && !today && dataExists && !locked ? 'bg-green-100 text-green-800 font-semibold hover:bg-green-200' : ''}
-                      ${!selected && !today && !dataExists && !locked ? 'text-gray-700 hover:bg-gray-100' : ''}
+                      ${!selected && !today && partial ? 'bg-orange-50 text-orange-800 font-semibold hover:bg-orange-100 border border-orange-300' : ''}
+                      ${!selected && !today && dataExists && !locked && !partial ? 'bg-green-100 text-green-800 font-semibold hover:bg-green-200' : ''}
+                      ${!selected && !today && !dataExists && !locked && !partial ? 'text-gray-700 hover:bg-gray-100' : ''}
                     `}
                   >
                     {day}
-                    {/* Indicateur cadenas pour les jours verrouillés */}
+                    {/* Cadenas plein pour jours totalement verrouillés */}
                     {locked && !selected && (
                       <div className="absolute -top-0.5 -right-0.5">
                         <Lock className="w-2.5 h-2.5 text-amber-600" />
                       </div>
                     )}
+                    {/* Cadenas partiel pour jours mixtes */}
+                    {partial && !selected && (
+                      <div className="absolute -top-0.5 -right-0.5">
+                        <Lock className="w-2.5 h-2.5 text-orange-500 opacity-60" />
+                      </div>
+                    )}
                     {/* Dot pour les jours avec données (non verrouillés) */}
-                    {dataExists && !locked && !selected && (
+                    {dataExists && !locked && !partial && !selected && (
                       <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2">
                         <div className="w-1 h-1 bg-green-600 rounded-full"></div>
                       </div>
@@ -234,7 +242,13 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
                   <div className="w-3 h-3 bg-amber-100 rounded border border-amber-300 relative">
                     <Lock className="w-2 h-2 text-amber-600 absolute -top-0.5 -right-0.5" />
                   </div>
-                  <span>Verrouillé</span>
+                  <span>Verrouillé (API)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-orange-50 rounded border border-orange-300 relative">
+                    <Lock className="w-2 h-2 text-orange-500 opacity-60 absolute -top-0.5 -right-0.5" />
+                  </div>
+                  <span>Mixte</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 border-2 border-purple-600 rounded"></div>

@@ -148,6 +148,7 @@ export default function StoreKPIModalDailyTab({
   onOverviewDateChange,
   datesWithData,
   lockedDates,
+  partiallyLockedDates,
   onShowAIModal,
   storeId
 }) {
@@ -182,6 +183,7 @@ export default function StoreKPIModalDailyTab({
             onDateChange={onOverviewDateChange}
             datesWithData={datesWithData}
             lockedDates={lockedDates}
+            partiallyLockedDates={partiallyLockedDates}
           />
         </div>
         <button
@@ -227,6 +229,7 @@ StoreKPIModalDailyTab.propTypes = {
   onOverviewDateChange: PropTypes.func.isRequired,
   datesWithData: PropTypes.arrayOf(PropTypes.string),
   lockedDates: PropTypes.arrayOf(PropTypes.string),
+  partiallyLockedDates: PropTypes.arrayOf(PropTypes.string),
   onShowAIModal: PropTypes.func.isRequired,
   storeId: PropTypes.string
 };

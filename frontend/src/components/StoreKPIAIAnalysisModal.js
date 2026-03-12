@@ -45,7 +45,7 @@ export default function StoreKPIAIAnalysisModal({
         const totalProspects = historicalData.reduce((sum, d) => sum + d.total_prospects, 0);
         const avgPanierMoyen = totalVentes > 0 ? totalCA / totalVentes : 0;
         const avgTauxTransformation = totalProspects > 0 ? (totalVentes / totalProspects) * 100 : 0;
-        const avgIndiceVente = totalClients > 0 ? totalArticles / totalClients : 0;
+        const avgIndiceVente = totalVentes > 0 ? totalArticles / totalVentes : 0;
 
         // Format compatible avec l'endpoint backend
         payload = {

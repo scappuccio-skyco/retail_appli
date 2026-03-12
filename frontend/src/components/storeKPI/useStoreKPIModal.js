@@ -107,6 +107,13 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   // Date fully locked = tous les vendeurs chargés ont une entrée verrouillée
   const lockedSellersOnDate = lockedSellersByDate[managerKPIData.date] || [];
   const isManagerDateLocked = lockedSellersOnDate.length > 0 && sellers.length > 0 && lockedSellersOnDate.length >= sellers.length;
+  // Dates partiellement verrouillées : au moins un vendeur verrouillé mais pas tous
+  const partiallyLockedDates = sellers.length > 0
+    ? lockedDates.filter(d => {
+        const count = (lockedSellersByDate[d] || []).length;
+        return count > 0 && count < sellers.length;
+      })
+    : [];
 
   const toggleChart = (chartKey) => {
     setVisibleCharts(prev => ({ ...prev, [chartKey]: !prev[chartKey] }));
@@ -321,6 +328,40 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     }
   };
 
+  const fetchExistingEntriesForDate = async (date, sellersList) => {
+    if (!sellersList || sellersList.length === 0) return;
+    try {
+      const sp = storeId ? `&store_id=${storeId}` : '';
+      const responses = await Promise.all(
+        sellersList.map(seller =>
+          api.get(`/manager/kpi-entries/${seller.id}?start_date=${date}&end_date=${date}${sp}`)
+            .catch(() => ({ data: { items: [] } }))
+        )
+      );
+      const prefilled = {};
+      const lockedOnDate = [];
+      sellersList.forEach((seller, idx) => {
+        const raw = responses[idx]?.data;
+        const items = Array.isArray(raw) ? raw : (Array.isArray(raw?.items) ? raw.items : []);
+        const entry = items.find(e => e.date === date);
+        if (entry) {
+          prefilled[seller.id] = {
+            ca_journalier: entry.ca_journalier ?? entry.seller_ca ?? '',
+            nb_ventes: entry.nb_ventes ?? '',
+            nb_articles: entry.nb_articles ?? '',
+          };
+          if (entry.locked) lockedOnDate.push(seller.id);
+        }
+      });
+      setSellersKPIData(prefilled);
+      if (lockedOnDate.length > 0) {
+        setLockedSellersByDate(prev => ({ ...prev, [date]: lockedOnDate }));
+      }
+    } catch (err) {
+      logger.error('Error fetching existing entries for date:', err);
+    }
+  };
+
   const fetchKPIConfig = async () => {
     try {
       const url = (storeId && !useManagerRoutes) ? `/gerant/stores/${storeId}/kpi-config` : `/manager/kpi-config${storeParam}`;
@@ -340,6 +381,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     fetchKPIConfig();
     if (storeId) fetchAvailableYears();
     fetchDatesWithData();
+    fetchSellers(); // chargé dès le montage pour les calculs partiallyLockedDates
   }, [storeId]);
 
   useEffect(() => {
@@ -348,8 +390,10 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   }, [activeTab, overviewDate, viewMode, selectedWeek, selectedMonth, selectedYear]);
 
   useEffect(() => {
-    if (activeTab === 'prospects') fetchSellers();
-  }, [activeTab, storeId]);
+    if (activeTab === 'prospects' && sellers.length > 0) {
+      fetchExistingEntriesForDate(managerKPIData.date, sellers);
+    }
+  }, [activeTab, managerKPIData.date, sellers.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKPIUpdate = async (field, value) => {
     try {
@@ -411,8 +455,17 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
         payload.nb_prospects = Number.parseInt(managerKPIData.nb_prospects, 10) || 0;
       }
       const storeParam = storeId ? '?store_id=' + storeId : '';
-      await api.post('/manager/manager-kpi' + storeParam, payload);
-      toast.success('KPI Manager enregistrés avec succès !');
+      const res = await api.post('/manager/manager-kpi' + storeParam, payload);
+      const skippedIds = res.data?.skipped_locked || [];
+      if (skippedIds.length > 0) {
+        const skippedNames = sellers
+          .filter(s => skippedIds.includes(s.id))
+          .map(s => s.name)
+          .join(', ');
+        toast.warning(`Enregistré — ${skippedIds.length} vendeur(s) ignoré(s) (données API) : ${skippedNames}`);
+      } else {
+        toast.success('KPI Manager enregistrés avec succès !');
+      }
       onSuccess();
       onClose();
     } catch (err) {
@@ -445,6 +498,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     availableYears,
     datesWithData,
     lockedDates,
+    partiallyLockedDates,
     lockedSellersByDate,
     isSellerLocked,
     displayMode,
