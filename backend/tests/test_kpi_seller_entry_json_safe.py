@@ -49,7 +49,13 @@ def _build_test_graph(db):
 
     db.workspaces.update_one(
         {"id": workspace_id},
-        {"$set": {"id": workspace_id, "subscription_status": "active", "updated_at": now}},
+        {"$set": {
+            "id": workspace_id,
+            "gerant_id": gerant_id,
+            "subscription_status": "active",
+            "status": "active",
+            "updated_at": now,
+        }},
         upsert=True,
     )
 
