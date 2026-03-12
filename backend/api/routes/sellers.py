@@ -772,6 +772,27 @@ async def get_seller_kpi_config(
 
 # ===== KPI ENTRIES FOR SELLER =====
 
+@router.get("/kpi-metrics")
+async def get_my_kpi_metrics(
+    start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
+    days: int = Query(30, description="Nombre de jours si start/end non fournis"),
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service),
+):
+    """
+    Métriques KPI agrégées server-side pour le vendeur connecté.
+    Source de vérité unique — même pipeline que /manager/seller/{id}/kpi-metrics.
+    Retourne: ca, ventes, articles, prospects, panier_moyen, indice_vente, taux_transformation, nb_jours.
+    """
+    seller_id = current_user["id"]
+    if not end_date:
+        end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if not start_date:
+        start_date = (datetime.now(timezone.utc) - timedelta(days=days - 1)).strftime("%Y-%m-%d")
+    return await seller_service.get_seller_kpi_metrics(seller_id, start_date, end_date)
+
+
 @router.get("/kpi-entries")
 async def get_my_kpi_entries(
     days: int = Query(None, description="Number of days to fetch"),

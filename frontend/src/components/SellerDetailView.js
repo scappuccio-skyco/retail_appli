@@ -14,6 +14,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
   const [competencesHistory, setCompetencesHistory] = useState([]);
   const [liveCompetences, setLiveCompetences] = useState(null); // NEW: Live scores for current radar
   const [kpiEntries, setKpiEntries] = useState([]);
+  const [kpiMetrics, setKpiMetrics] = useState(null); // Server-side aggregated metrics
   const [kpiConfig, setKpiConfig] = useState(null); // NEW: Manager's KPI configuration
   const [loading, setLoading] = useState(true);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
@@ -51,16 +52,23 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
     if (!seller?.id) return;
 
     try {
-      const days = kpiFilter === '7j' ? 7 : kpiFilter === '30j' ? 30 : 365; // 'tout' = 365 days
+      const days = kpiFilter === '7j' ? 7 : kpiFilter === '30j' ? 30 : 365;
       const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
-      const url = `/manager/kpi-entries/${seller.id}?days=${days}${storeParamAnd}`;
-
-      const kpiRes = await api.get(url);
-      const entries = Array.isArray(kpiRes.data?.items) ? kpiRes.data.items : (Array.isArray(kpiRes.data) ? kpiRes.data : []);
+      const [entriesRes, metricsRes] = await Promise.all([
+        // Entries pour les graphiques time-series (taille garantie suffisante par le backend)
+        api.get(`/manager/kpi-entries/${seller.id}?days=${days}${storeParamAnd}`),
+        // Métriques agrégées server-side — source de vérité unique
+        api.get(`/manager/seller/${seller.id}/kpi-metrics?days=${days}${storeParamAnd}`),
+      ]);
+      const entries = Array.isArray(entriesRes.data?.items)
+        ? entriesRes.data.items
+        : (Array.isArray(entriesRes.data) ? entriesRes.data : []);
       setKpiEntries(entries);
+      setKpiMetrics(metricsRes.data);
     } catch (err) {
       logger.error('Error loading KPI data:', err);
       setKpiEntries([]);
+      setKpiMetrics(null);
       toast.error(`Erreur de chargement des KPI: ${err.response?.data?.detail || err.message}`);
     }
   };
@@ -557,20 +565,13 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
           
           {kpiEntries.length > 0 ? (
             <>
-              {/* KPI Cards - Only show configured KPIs - Compact */}
+              {/* KPI Cards — métriques server-side (source de vérité unique) */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
                 {isTrack('ca') && (
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="text-xs text-blue-600 mb-1">💰 CA Total</p>
                   <p className="text-lg font-bold text-blue-900">
-                    {(() => {
-                      const filteredEntries = kpiFilter === '7j' 
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-                        : kpiFilter === '30j'
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-                        : kpiEntries;
-                      return filteredEntries.reduce((sum, e) => sum + (e.ca_journalier || 0), 0).toFixed(2);
-                    })()}€
+                    {(kpiMetrics?.ca ?? 0).toFixed(2)}€
                   </p>
                 </div>
                 )}
@@ -578,29 +579,15 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                 <div className="bg-green-50 rounded-lg p-3">
                   <p className="text-xs text-[#10B981] mb-1">🛒 Ventes</p>
                   <p className="text-lg font-bold text-green-900">
-                    {(() => {
-                      const filteredEntries = kpiFilter === '7j' 
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-                        : kpiFilter === '30j'
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-                        : kpiEntries;
-                      return filteredEntries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0);
-                    })()}
+                    {kpiMetrics?.ventes ?? 0}
                   </p>
                 </div>
                 )}
-                {isTrack('clients') && (
+                {isTrack('prospects') && (
                 <div className="bg-purple-50 rounded-lg p-3">
-                  <p className="text-xs text-purple-600 mb-1">👥 Clients</p>
+                  <p className="text-xs text-purple-600 mb-1">🚶 Prospects</p>
                   <p className="text-lg font-bold text-purple-900">
-                    {(() => {
-                      const filteredEntries = kpiFilter === '7j' 
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-                        : kpiFilter === '30j'
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-                        : kpiEntries;
-                      return filteredEntries.reduce((sum, e) => sum + (e.nb_clients || 0), 0);
-                    })()}
+                    {kpiMetrics?.prospects ?? 0}
                   </p>
                 </div>
                 )}
@@ -608,18 +595,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                 <div className="bg-orange-50 rounded-lg p-3">
                   <p className="text-xs text-[#F97316] mb-1">🧮 Panier Moyen</p>
                   <p className="text-lg font-bold text-orange-900">
-                    {(() => {
-                      const filteredEntries = kpiFilter === '7j' 
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-                        : kpiFilter === '30j'
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-                        : kpiEntries;
-                      const totalCA = filteredEntries.reduce((sum, e) => sum + (e.ca_journalier || 0), 0);
-                      const totalVentes = filteredEntries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0);
-                      return totalVentes > 0
-                        ? (totalCA / totalVentes).toFixed(2)
-                        : '0.00';
-                    })()}€
+                    {(kpiMetrics?.panier_moyen ?? 0).toFixed(2)}€
                   </p>
                 </div>
                 )}
@@ -627,18 +603,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                 <div className="bg-amber-50 rounded-lg p-3">
                   <p className="text-xs text-amber-600 mb-1">💎 Indice Vente</p>
                   <p className="text-lg font-bold text-amber-900">
-                    {(() => {
-                      const filteredEntries = kpiFilter === '7j' 
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-                        : kpiFilter === '30j'
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-                        : kpiEntries;
-                      const totalArticles = filteredEntries.reduce((sum, e) => sum + (e.nb_articles || 0), 0);
-                      const totalVentes = filteredEntries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0);
-                      return totalVentes > 0
-                        ? (totalArticles / totalVentes).toFixed(2)
-                        : '0.00';
-                    })()}
+                    {(kpiMetrics?.indice_vente ?? 0).toFixed(2)}
                   </p>
                   <p className="text-[10px] text-amber-700 mt-0.5">articles/vente</p>
                 </div>

@@ -305,23 +305,32 @@ export default function PerformanceModal({
     return null;
   }, [viewMode, monthOffset]);
 
-  // Fetch KPI entries + existing bilan for period views
+  // Fetch KPI entries (graphiques) + métriques server-side + bilan pour les vues 30j/mois
+  const [periodAggregates, setPeriodAggregates] = useState(null);
   useEffect(() => {
     if (!isOpen || viewMode === 'semaine' || !periodRange) return;
     let cancelled = false;
     setPeriodLoading(true);
     setPeriodEntries([]);
     setPeriodBilan(null);
+    setPeriodAggregates(null);
     Promise.all([
+      // Entries pour les graphiques time-series
       api.get('/seller/kpi-entries', {
         params: { start_date: periodRange.start_date, end_date: periodRange.end_date },
       }),
+      // Métriques agrégées server-side — source de vérité unique
+      api.get('/seller/kpi-metrics', {
+        params: { start_date: periodRange.start_date, end_date: periodRange.end_date },
+      }),
+      // Bilan IA existant pour la période
       api.get('/seller/bilan-individuel/all'),
-    ]).then(([entriesRes, bilansRes]) => {
+    ]).then(([entriesRes, metricsRes, bilansRes]) => {
       if (cancelled) return;
       const data = entriesRes.data;
       const entries = Array.isArray(data) ? data : (data?.items ?? []);
       setPeriodEntries(entries.sort((a, b) => new Date(a.date) - new Date(b.date)));
+      setPeriodAggregates(metricsRes.data);
       const bilans = Array.isArray(bilansRes.data?.bilans) ? bilansRes.data.bilans : [];
       const existing = bilans.find(b =>
         b.period_start === periodRange.start_date && b.period_end === periodRange.end_date
@@ -337,25 +346,6 @@ export default function PerformanceModal({
     });
     return () => { cancelled = true; };
   }, [isOpen, viewMode, periodRange?.start_date, periodRange?.end_date]);
-
-  // Aggregated KPIs for period view
-  const periodAggregates = useMemo(() => {
-    if (!periodEntries.length) return null;
-    let ca = 0, ventes = 0, articles = 0, prospects = 0;
-    for (const e of periodEntries) {
-      ca += e.ca_journalier || 0;
-      ventes += e.nb_ventes || 0;
-      articles += e.nb_articles || 0;
-      prospects += e.nb_prospects || 0;
-    }
-    return {
-      ca, ventes, articles, prospects,
-      days: periodEntries.length,
-      panier_moyen: ventes > 0 ? ca / ventes : 0,
-      taux_transfo: prospects > 0 ? (ventes / prospects) * 100 : 0,
-      indice_vente: ventes > 0 ? articles / ventes : 0,
-    };
-  }, [periodEntries]);
 
   // Chart data for period views
   const periodChartData = useMemo(() => {
@@ -727,7 +717,7 @@ export default function PerformanceModal({
                       {/* Titre période */}
                       <div className="flex items-center gap-2 mb-4">
                         <BarChart3 className="w-5 h-5 text-orange-600" />
-                        <h3 className="font-bold text-gray-800">{periodRange?.label} — {periodAggregates.days} jour{periodAggregates.days > 1 ? 's' : ''} avec données</h3>
+                        <h3 className="font-bold text-gray-800">{periodRange?.label} — {periodAggregates.nb_jours} jour{periodAggregates.nb_jours > 1 ? 's' : ''} avec données</h3>
                       </div>
 
                       {/* KPI Agrégés */}
@@ -762,10 +752,10 @@ export default function PerformanceModal({
                             <p className="text-lg font-bold text-indigo-900">{periodAggregates.panier_moyen.toFixed(0)}€</p>
                           </div>
                         )}
-                        {kpiConfig?.track_ventes && kpiConfig?.track_prospects && periodAggregates.taux_transfo > 0 && (
+                        {kpiConfig?.track_ventes && kpiConfig?.track_prospects && periodAggregates.taux_transformation > 0 && (
                           <div className="bg-pink-50 rounded-lg p-3">
                             <p className="text-xs text-pink-600 mb-1">📈 Taux transfo</p>
-                            <p className="text-lg font-bold text-pink-900">{periodAggregates.taux_transfo.toFixed(1)}%</p>
+                            <p className="text-lg font-bold text-pink-900">{periodAggregates.taux_transformation.toFixed(1)}%</p>
                           </div>
                         )}
                         {kpiConfig?.track_articles && kpiConfig?.track_ventes && periodAggregates.indice_vente > 0 && (

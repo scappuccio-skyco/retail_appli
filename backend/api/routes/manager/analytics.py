@@ -294,6 +294,39 @@ async def get_team_bilans_all(
 
 # ===== KPI ENTRIES (seller) =====
 
+@router.get("/seller/{seller_id}/kpi-metrics", dependencies=[rate_limit("200/minute")])
+async def get_seller_kpi_metrics(
+    request: Request,
+    seller_id: str,
+    start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
+    days: int = Query(30, description="Nombre de jours si start/end non fournis"),
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context),
+    manager_service: ManagerService = Depends(get_manager_service),
+) -> dict:
+    """
+    Métriques KPI agrégées server-side pour un vendeur (vue manager).
+    Source de vérité unique — même pipeline que /seller/kpi-metrics.
+    Retourne: ca, ventes, articles, prospects, panier_moyen, indice_vente, taux_transformation, nb_jours.
+    """
+    resolved_store_id = context.get("resolved_store_id")
+    if not resolved_store_id:
+        raise ValidationError(ERR_STORE_ID_REQUIS)
+    await verify_seller_store_access(
+        seller_id=seller_id,
+        user_store_id=resolved_store_id,
+        user_role=context.get("role"),
+        user_id=context.get("id"),
+        manager_service=manager_service,
+    )
+    if not end_date:
+        end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if not start_date:
+        start_date = (datetime.now(timezone.utc) - timedelta(days=days - 1)).strftime("%Y-%m-%d")
+    return await manager_service.get_seller_kpi_metrics(seller_id, start_date, end_date)
+
+
 @router.get("/kpi-entries/{seller_id}", dependencies=[rate_limit("200/minute")])
 async def get_seller_kpi_entries(
     request: Request,
@@ -322,9 +355,11 @@ async def get_seller_kpi_entries(
         query["date"] = {"$gte": start_date, "$lte": end_date}
     else:
         end_dt = datetime.now(timezone.utc)
-        start_dt = end_dt - timedelta(days=days)
+        start_dt = end_dt - timedelta(days=days - 1)
         query["date"] = {"$gte": start_dt.strftime("%Y-%m-%d"), "$lte": end_dt.strftime("%Y-%m-%d")}
-    return await manager_service.get_kpi_entries_paginated(query, page=pagination.page, size=pagination.size)
+    # Taille garantie suffisante pour couvrir la période demandée (graphiques time-series)
+    fetch_size = max(pagination.size, days + 1)
+    return await manager_service.get_kpi_entries_paginated(query, page=pagination.page, size=min(fetch_size, 365))
 
 
 # ===== TEAM ANALYSES =====

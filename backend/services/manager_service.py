@@ -219,6 +219,12 @@ class ManagerService:
             pipeline, max_results=max_results
         )
 
+    async def get_seller_kpi_metrics(
+        self, seller_id: str, start_date: str, end_date: str
+    ) -> Dict:
+        """Source unique de vérité pour les métriques KPI d'un vendeur. Agrégation server-side."""
+        return await self._kpi.get_seller_kpi_metrics(seller_id, start_date, end_date)
+
     async def get_kpi_entries_paginated(
         self,
         query: Dict,
