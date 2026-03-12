@@ -388,7 +388,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
   const fetchBilanForWeek = async (startDate, endDate, periode) => {
     try {
-      const kpiRes = await api.get('/seller/kpi-entries');
+      const kpiRes = await api.get(`/seller/kpi-entries?start_date=${startDate}&end_date=${endDate}`);
       const raw = kpiRes.data;
       const allEntries = Array.isArray(raw) ? raw : (raw?.items ?? []);
       const kpi_resume = calculateWeeklyKPI(startDate, endDate, allEntries);

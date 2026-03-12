@@ -775,6 +775,8 @@ async def get_seller_kpi_config(
 @router.get("/kpi-entries")
 async def get_my_kpi_entries(
     days: int = Query(None, description="Number of days to fetch"),
+    start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD (filtre période)"),
+    end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD (filtre période)"),
     pagination: PaginationParams = Depends(),
     current_user: Dict = Depends(get_current_seller),
     seller_service: SellerService = Depends(get_seller_service),
@@ -783,8 +785,13 @@ async def get_my_kpi_entries(
     Get seller's KPI entries.
     Returns KPI data for the seller.
     ✅ MIGRÉ: Pagination avec PaginatedResponse
+    Si start_date + end_date fournis, filtre par période (pour bilan semaine précise).
     """
     seller_id = current_user["id"]
+    if start_date and end_date:
+        return await seller_service.get_kpis_for_period_paginated(
+            seller_id, start_date, end_date, page=1, size=50
+        )
     size = days if days and days <= 365 else pagination.size
     result = await seller_service.get_kpi_entries_paginated(
         seller_id, pagination.page, min(size, 365)
