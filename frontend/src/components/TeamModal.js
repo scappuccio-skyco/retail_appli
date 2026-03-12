@@ -92,52 +92,65 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
     }
     
     try {
+      const daysParam = periodFilter === 'all' ? 365 : (periodFilter === 'custom' ? 0 : parseInt(periodFilter, 10));
+      const storeParam = storeIdParam ? `&store_id=${storeIdParam}` : '';
+      const storeQueryParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
+
+      // 1 seul appel pour toutes les métriques équipe (N → 1)
+      const teamMetricsPayload = {
+        seller_ids: sellersToUse.map(s => s.id),
+        days: daysParam,
+        ...(periodFilter === 'custom' && customDateRange.start && customDateRange.end
+          ? { start_date: customDateRange.start, end_date: customDateRange.end }
+          : {}),
+      };
+      const teamMetricsUrl = `/manager/team/kpi-metrics${storeIdParam ? `?store_id=${storeIdParam}` : ''}`;
+      const teamMetricsMap = await api.post(teamMetricsUrl, teamMetricsPayload)
+        .then(r => r.data)
+        .catch(() => ({}));
+
       // Fetch data for each seller
       const sellersDataPromises = sellersToUse.map(async (seller) => {
         try {
-          const daysParam = periodFilter === 'all' ? '365' : (periodFilter === 'custom' ? '0' : periodFilter);
-          
           // Build store_id param for gerant viewing as manager
-          const storeParam = storeIdParam ? `&store_id=${storeIdParam}` : '';
-          const storeParamFirst = storeIdParam ? `?store_id=${storeIdParam}` : '';
-          
+          const storeParamFirst = storeQueryParam;
+
           // Build API params
           let apiParams = { _t: Date.now() };
           if (storeIdParam) {
             apiParams.store_id = storeIdParam;
           }
-          
+
           let kpiUrl = `/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
-          
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
             kpiUrl = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
           }
-          
+
           const [statsRes, kpiRes, diagRes] = await Promise.all([
-            api.get(`/manager/seller/${seller.id}/stats${storeParamFirst}`, { 
+            api.get(`/manager/seller/${seller.id}/stats${storeParamFirst}`, {
               params: apiParams
             }),
-            api.get(kpiUrl, { 
+            api.get(kpiUrl, {
               params: { _t: Date.now() }
             }),
-            api.get(`/manager/seller/${seller.id}/diagnostic${storeParamFirst}`, { 
+            api.get(`/manager/seller/${seller.id}/diagnostic${storeParamFirst}`, {
               params: { _t: Date.now(), ...(storeIdParam ? { store_id: storeIdParam } : {}) }
-            }).catch(() => ({ data: null })) // If no diagnostic, return null
+            }).catch(() => ({ data: null })),
           ]);
 
           const stats = statsRes.data;
           // API manager/kpi-entries renvoie { items: [...], total, page, size, pages }
           const kpiEntries = Array.isArray(kpiRes.data?.items) ? kpiRes.data.items : (Array.isArray(kpiRes.data) ? kpiRes.data : []);
           const diagnostic = diagRes.data;
+          const metricsData = teamMetricsMap[seller.id] ?? null;
 
-
-          // Calculate period totals - Support both ca_journalier and seller_ca for compatibility
-          const monthlyCA = kpiEntries.reduce((sum, entry) => {
+          // Utilise les agrégats serveur (source de vérité) — évite la troncature de pagination
+          const monthlyCA = metricsData?.ca ?? kpiEntries.reduce((sum, entry) => {
             const ca = entry.ca_journalier || entry.seller_ca || entry.ca || 0;
             return sum + (typeof ca === 'number' ? ca : 0);
           }, 0);
-          const monthlyVentes = kpiEntries.reduce((sum, entry) => sum + (entry.nb_ventes || 0), 0);
-          const panierMoyen = monthlyVentes > 0 ? monthlyCA / monthlyVentes : 0;
+          const monthlyVentes = metricsData?.ventes ?? kpiEntries.reduce((sum, entry) => sum + (entry.nb_ventes || 0), 0);
+          const panierMoyen = metricsData?.panier_moyen ?? (monthlyVentes > 0 ? monthlyCA / monthlyVentes : 0);
 
           // Get competences scores
           const competences = stats.avg_radar_scores || {};

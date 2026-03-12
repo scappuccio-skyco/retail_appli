@@ -11,6 +11,7 @@ export default function KPIReporting({ user, onBack }) {
   const [entries, setEntries] = useState([]); // Entries filtrées pour les graphiques
   const [allEntries, setAllEntries] = useState([]); // TOUTES les entrées pour le détail
   const [kpiConfig, setKpiConfig] = useState(null); // Configuration KPI du manager
+  const [kpiMetrics, setKpiMetrics] = useState(null); // Agrégats serveur (source de vérité)
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('week'); // week, month, quarter, year
   const [compareYear, setCompareYear] = useState(false);
@@ -24,18 +25,21 @@ export default function KPIReporting({ user, onBack }) {
   const fetchKPIData = async () => {
     setLoading(true);
     try {
-      // Récupérer la config KPI et les entrées
-      const [configRes, allRes, filteredRes] = await Promise.all([
+      const days = period === 'week' ? 7 : period === 'month' ? 30 : period === 'quarter' ? 90 : 365;
+      // Récupérer la config KPI, les entrées et les métriques agrégées côté serveur
+      const [configRes, allRes, filteredRes, metricsRes] = await Promise.all([
         api.get('/seller/kpi-config'),
-        api.get('/seller/kpi-entries'),
-        api.get(`/seller/kpi-entries?days=${period === 'week' ? 7 : period === 'month' ? 30 : period === 'quarter' ? 90 : 365}`)
+        api.get('/seller/kpi-entries?days=365'),
+        api.get(`/seller/kpi-entries?days=${days}`),
+        api.get(`/seller/kpi-metrics?days=${days}`)
       ]);
-      
+
       setKpiConfig(configRes.data);
       const allEntriesData = Array.isArray(allRes.data) ? allRes.data : (allRes.data?.items || []);
       const filteredEntriesData = Array.isArray(filteredRes.data) ? filteredRes.data : (filteredRes.data?.items || []);
       setAllEntries(allEntriesData);
       setEntries(filteredEntriesData);
+      setKpiMetrics(metricsRes.data);
     } catch (err) {
       logger.error('Error loading KPI data:', err);
       toast.error('Erreur de chargement des KPI');
@@ -44,39 +48,35 @@ export default function KPIReporting({ user, onBack }) {
     }
   };
 
-  // Calculate aggregated stats
+  // Build stats from server-side aggregation (source de vérité — évite les erreurs de pagination)
   const calculateStats = () => {
-    if (entries.length === 0 || !kpiConfig) return null;
+    if (!kpiMetrics || !kpiConfig) return null;
 
-    const stats = { nbJours: entries.length };
-    
+    const stats = { nbJours: kpiMetrics.nb_jours ?? entries.length };
+
     if (kpiConfig.track_ca) {
-      stats.totalCA = entries.reduce((sum, e) => sum + (e.ca_journalier || 0), 0).toFixed(2);
+      stats.totalCA = (kpiMetrics.ca ?? 0).toFixed(2);
     }
-    
     if (kpiConfig.track_ventes) {
-      stats.totalVentes = entries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0);
+      stats.totalVentes = kpiMetrics.ventes ?? 0;
     }
-    
     if (kpiConfig.track_clients) {
       stats.totalClients = entries.reduce((sum, e) => sum + (e.nb_clients || 0), 0);
     }
-    
     if (kpiConfig.track_articles) {
-      stats.totalArticles = entries.reduce((sum, e) => sum + (e.nb_articles || 0), 0);
+      stats.totalArticles = kpiMetrics.articles ?? 0;
     }
-    
-    // KPI calculés
-    if (kpiConfig.track_ca && kpiConfig.track_ventes) {
-      stats.avgPanierMoyen = (entries.reduce((sum, e) => sum + (e.panier_moyen || 0), 0) / entries.length).toFixed(2);
+    // panier_moyen = CA total / ventes totales (calculé côté serveur, pas moyenne de moyennes)
+    if (kpiConfig.track_ca && kpiConfig.track_ventes && kpiMetrics.panier_moyen != null) {
+      stats.avgPanierMoyen = (kpiMetrics.panier_moyen ?? 0).toFixed(2);
     }
-    
-    if (kpiConfig.track_ventes && kpiConfig.track_prospects) {
-      stats.avgTauxTransfo = (entries.reduce((sum, e) => sum + (e.taux_transformation || 0), 0) / entries.length).toFixed(2);
+    // taux_transformation = ventes / prospects (calculé côté serveur)
+    if (kpiConfig.track_ventes && kpiConfig.track_prospects && kpiMetrics.taux_transformation != null) {
+      stats.avgTauxTransfo = (kpiMetrics.taux_transformation ?? 0).toFixed(2);
     }
-    
-    if (kpiConfig.track_ca && kpiConfig.track_articles) {
-      stats.avgIndiceVente = (entries.reduce((sum, e) => sum + (e.indice_vente || 0), 0) / entries.length).toFixed(2);
+    // indice_vente = articles / ventes (calculé côté serveur)
+    if (kpiConfig.track_ca && kpiConfig.track_articles && kpiMetrics.indice_vente != null) {
+      stats.avgIndiceVente = (kpiMetrics.indice_vente ?? 0).toFixed(2);
     }
 
     return stats;

@@ -786,6 +786,13 @@ async def get_my_kpi_metrics(
     Retourne: ca, ventes, articles, prospects, panier_moyen, indice_vente, taux_transformation, nb_jours.
     """
     seller_id = current_user["id"]
+    try:
+        if start_date:
+            datetime.strptime(start_date, "%Y-%m-%d")
+        if end_date:
+            datetime.strptime(end_date, "%Y-%m-%d")
+    except ValueError:
+        raise ValidationError("Format de date invalide. Utilisez YYYY-MM-DD")
     if not end_date:
         end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if not start_date:
@@ -1292,18 +1299,22 @@ async def generate_bilan_individuel(
     import json
 
     seller_id = current_user['id']
-    # Get KPI summary and list for the period
-    summary = await seller_service.get_kpi_aggregate_for_period(
-        seller_id, start_date, end_date
-    )
-    total_ca = summary.get('total_ca', 0) or 0
-    total_ventes = summary.get('total_ventes', 0) or 0
-    total_clients = summary.get('total_clients', 0) or 0
-    panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
-    kpis_result = await seller_service.get_kpis_for_period_paginated(
-        seller_id, start_date, end_date, page=1, size=50
-    )
-    kpis_list = kpis_result.items
+    # Dates par défaut : 7 derniers jours si non fournies
+    from datetime import date as _date, timedelta as _timedelta
+    eff_start = start_date or (_date.today() - _timedelta(days=6)).isoformat()
+    eff_end = end_date or _date.today().isoformat()
+
+    # Source unique de vérité — agrégation 100% server-side (pas de pagination, pas d'approximation)
+    metrics = await seller_service.get_seller_kpi_metrics(seller_id, eff_start, eff_end)
+    total_ca = metrics['ca']
+    total_ventes = metrics['ventes']
+    total_articles = metrics['articles']
+    total_prospects = metrics['prospects']
+    panier_moyen = metrics['panier_moyen']
+    indice_vente = metrics['indice_vente']
+    taux_transformation = metrics['taux_transformation']
+    nb_jours = metrics['nb_jours']
+
     # Try to generate AI bilan with structured format
     ai_service = AIService()
     seller_data = await seller_service.get_seller_profile(seller_id)
@@ -1312,8 +1323,16 @@ async def generate_bilan_individuel(
     points_forts = []
     points_attention = []
     recommandations = []
-    if ai_service.available and len(kpis_list) > 0:
+    if ai_service.available and nb_jours > 0:
             try:
+                # KPI optionnels — n'inclure que les métriques disponibles (non nulles)
+                optional_kpis = []
+                if total_prospects > 0:
+                    optional_kpis.append(f"- Prospects: {total_prospects} (taux de transformation: {taux_transformation:.1f}%)")
+                if total_articles > 0:
+                    optional_kpis.append(f"- Articles vendus: {total_articles} (indice de vente: {indice_vente:.2f} art/vente)")
+                optional_block = "\n".join(optional_kpis) if optional_kpis else ""
+
                 # 🛑 STRICT SELLER PROMPT V3 - No marketing, no traffic, no promotions
                 prompt = f"""Génère un bilan de performance pour {seller_name}.
 
@@ -1321,7 +1340,8 @@ async def generate_bilan_individuel(
 - CA total: {total_ca:.0f}€
 - Nombre de ventes: {total_ventes}
 - Panier moyen: {panier_moyen:.2f}€
-- Jours travaillés: {len(kpis_list)}
+- Jours travaillés: {nb_jours}
+{optional_block}
 
 ⚠️ RAPPEL STRICT : Ne parle PAS de trafic, promotions, réseaux sociaux ou marketing.
 Si le CA est bon, félicite simplement. Focus sur accueil, vente additionnelle, closing.
@@ -1367,7 +1387,7 @@ Génère un bilan structuré au format JSON:
                 logger.error("AI bilan error: %s", e, exc_info=True)
     # If no AI, generate basic bilan
     if not synthese:
-        if len(kpis_list) > 0:
+        if nb_jours > 0:
             synthese = f"Cette semaine, tu as réalisé {total_ventes} ventes pour un CA de {total_ca:.0f}€. Continue comme ça !"
             points_forts = ["Assiduité dans la saisie des KPIs"]
             points_attention = ["Continue à développer tes compétences"]
@@ -1376,19 +1396,22 @@ Génère un bilan structuré au format JSON:
             synthese = "Aucune donnée KPI pour cette période. Commence à saisir tes performances !"
             points_attention = ["Pense à saisir tes KPIs quotidiennement"]
             recommandations = ["Saisis tes ventes chaque jour pour obtenir un bilan personnalisé"]
-    periode = f"{start_date} - {end_date}" if start_date and end_date else "Période actuelle"
+    periode = f"{eff_start} - {eff_end}"
     bilan = {
         "id": str(uuid4()),
         "seller_id": seller_id,
         "periode": periode,
-        "period_start": start_date,
-        "period_end": end_date,
+        "period_start": eff_start,
+        "period_end": eff_end,
         "kpi_resume": {
-            "ca": total_ca,
+            "ca": round(total_ca, 2),
             "ventes": total_ventes,
-            "clients": total_clients,
+            "articles": total_articles,
+            "prospects": total_prospects,
             "panier_moyen": round(panier_moyen, 2),
-            "jours": len(kpis_list)
+            "indice_vente": round(indice_vente, 2),
+            "taux_transformation": round(taux_transformation, 1),
+            "jours": nb_jours,
         },
         "synthese": synthese,
         "points_forts": points_forts,

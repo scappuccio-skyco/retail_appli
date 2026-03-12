@@ -320,11 +320,80 @@ async def get_seller_kpi_metrics(
         user_id=context.get("id"),
         manager_service=manager_service,
     )
+    try:
+        if start_date:
+            datetime.strptime(start_date, "%Y-%m-%d")
+        if end_date:
+            datetime.strptime(end_date, "%Y-%m-%d")
+    except ValueError:
+        raise ValidationError("Format de date invalide. Utilisez YYYY-MM-DD")
     if not end_date:
         end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if not start_date:
         start_date = (datetime.now(timezone.utc) - timedelta(days=days - 1)).strftime("%Y-%m-%d")
     return await manager_service.get_seller_kpi_metrics(seller_id, start_date, end_date)
+
+
+@router.post("/team/kpi-metrics", dependencies=[rate_limit("60/minute")])
+async def get_team_kpi_metrics(
+    request: Request,
+    payload: dict,
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context),
+    manager_service: ManagerService = Depends(get_manager_service),
+) -> dict:
+    """
+    Métriques KPI agrégées pour toute l'équipe en un seul appel.
+    Remplace N appels /seller/{id}/kpi-metrics → 1 seul POST.
+
+    Body: { "seller_ids": [...], "days": 30 }
+          ou { "seller_ids": [...], "start_date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD" }
+
+    Retourne: { seller_id: { ca, ventes, articles, prospects, panier_moyen, ... } }
+    """
+    import asyncio
+
+    resolved_store_id = context.get("resolved_store_id")
+    if not resolved_store_id:
+        raise ValidationError(ERR_STORE_ID_REQUIS)
+
+    seller_ids: list = payload.get("seller_ids", [])
+    if not seller_ids or not isinstance(seller_ids, list):
+        raise ValidationError("seller_ids doit être un tableau non vide")
+    if len(seller_ids) > 50:
+        raise ValidationError("Maximum 50 vendeurs par requête")
+
+    # Validation dates
+    start_date: Optional[str] = payload.get("start_date")
+    end_date: Optional[str] = payload.get("end_date")
+    days: int = int(payload.get("days", 30))
+    try:
+        if start_date:
+            datetime.strptime(start_date, "%Y-%m-%d")
+        if end_date:
+            datetime.strptime(end_date, "%Y-%m-%d")
+    except ValueError:
+        raise ValidationError("Format de date invalide. Utilisez YYYY-MM-DD")
+    if not end_date:
+        end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if not start_date:
+        start_date = (datetime.now(timezone.utc) - timedelta(days=days - 1)).strftime("%Y-%m-%d")
+
+    # Vérification sécurité : tous les sellers doivent appartenir au magasin
+    valid_sellers = await manager_service.get_users_by_ids_and_store(
+        seller_ids, resolved_store_id, role="seller", limit=50, projection={"_id": 0, "id": 1}
+    )
+    valid_ids = {s["id"] for s in valid_sellers}
+    invalid = set(seller_ids) - valid_ids
+    if invalid:
+        raise ValidationError(f"Certains vendeurs n'appartiennent pas à ce magasin: {invalid}")
+
+    # Pipeline en parallèle pour tous les sellers validés
+    results = await asyncio.gather(*[
+        manager_service.get_seller_kpi_metrics(sid, start_date, end_date)
+        for sid in valid_ids
+    ])
+    return {sid: metrics for sid, metrics in zip(valid_ids, results)}
 
 
 @router.get("/kpi-entries/{seller_id}", dependencies=[rate_limit("200/minute")])

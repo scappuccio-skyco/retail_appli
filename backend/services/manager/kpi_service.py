@@ -9,6 +9,7 @@ from models.pagination import PaginatedResponse
 from utils.pagination import paginate
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.team_bilan_repository import TeamBilanRepository
+from utils.kpi_pipeline import build_seller_kpi_pipeline, EMPTY_KPI_METRICS
 
 
 class ManagerKpiService:
@@ -153,66 +154,9 @@ class ManagerKpiService:
         Agrégation 100% server-side — pas de pagination, pas d'approximation client.
         Utilisée par : dashboard manager (SellerDetailView) ET dashboard vendeur (PerformanceModal).
         """
-        pipeline = [
-            {
-                "$match": {
-                    "seller_id": seller_id,
-                    "date": {"$gte": start_date, "$lte": end_date},
-                }
-            },
-            {
-                "$group": {
-                    "_id": None,
-                    "nb_jours":        {"$sum": 1},
-                    "total_ca":        {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
-                    "total_ventes":    {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
-                    "total_articles":  {"$sum": {"$ifNull": ["$nb_articles", 0]}},
-                    "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}},
-                }
-            },
-            {
-                "$project": {
-                    "_id": 0,
-                    "nb_jours": 1,
-                    "ca":        "$total_ca",
-                    "ventes":    "$total_ventes",
-                    "articles":  "$total_articles",
-                    "prospects": "$total_prospects",
-                    "panier_moyen": {
-                        "$cond": [
-                            {"$gt": ["$total_ventes", 0]},
-                            {"$divide": ["$total_ca", "$total_ventes"]},
-                            0,
-                        ]
-                    },
-                    "indice_vente": {
-                        "$cond": [
-                            {"$gt": ["$total_ventes", 0]},
-                            {"$divide": ["$total_articles", "$total_ventes"]},
-                            0,
-                        ]
-                    },
-                    "taux_transformation": {
-                        "$cond": [
-                            {"$gt": ["$total_prospects", 0]},
-                            {"$multiply": [
-                                {"$divide": ["$total_ventes", "$total_prospects"]},
-                                100,
-                            ]},
-                            0,
-                        ]
-                    },
-                }
-            },
-        ]
+        pipeline = build_seller_kpi_pipeline(seller_id, start_date, end_date)
         result = await self.kpi_repo.aggregate(pipeline, max_results=1)
-        if result:
-            return result[0]
-        return {
-            "nb_jours": 0, "ca": 0, "ventes": 0, "articles": 0,
-            "prospects": 0, "panier_moyen": 0, "indice_vente": 0,
-            "taux_transformation": 0,
-        }
+        return result[0] if result else dict(EMPTY_KPI_METRICS)
 
     async def get_kpi_entries_paginated(
         self,
