@@ -1110,35 +1110,37 @@ export default function PerformanceModal({
                 )}
 
                 {/* === VUE SEMAINE (comportement actuel) === */}
-                {viewMode === 'semaine' && bilanData ? (
+                {viewMode === 'semaine' ? (
                   <>
-                    {/* KPI Summary */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                      {bilanData.kpi_resume?.ca_total !== undefined && (
-                        <div className="bg-blue-50 rounded-lg p-3">
-                          <p className="text-xs text-blue-600 mb-1">💰 CA</p>
-                          <p className="text-lg font-bold text-blue-900">{bilanData.kpi_resume.ca_total.toFixed(0)}€</p>
-                        </div>
-                      )}
-                      {bilanData.kpi_resume?.ventes !== undefined && (
-                        <div className="bg-green-50 rounded-lg p-3">
-                          <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
-                          <p className="text-lg font-bold text-green-900">{bilanData.kpi_resume.ventes}</p>
-                        </div>
-                      )}
-                      {bilanData.kpi_resume?.articles !== undefined && (
-                        <div className="bg-orange-50 rounded-lg p-3">
-                          <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
-                          <p className="text-lg font-bold text-orange-900">{bilanData.kpi_resume.articles}</p>
-                        </div>
-                      )}
-                      {bilanData.kpi_resume?.panier_moyen !== undefined && (
-                        <div className="bg-indigo-50 rounded-lg p-3">
-                          <p className="text-xs text-indigo-600 mb-1">💳 P. Moyen</p>
-                          <p className="text-lg font-bold text-indigo-900">{bilanData.kpi_resume.panier_moyen.toFixed(0)}€</p>
-                        </div>
-                      )}
-                    </div>
+                    {/* KPI Summary — from bilanData if available */}
+                    {bilanData?.kpi_resume && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        {bilanData.kpi_resume?.ca_total !== undefined && (
+                          <div className="bg-blue-50 rounded-lg p-3">
+                            <p className="text-xs text-blue-600 mb-1">💰 CA</p>
+                            <p className="text-lg font-bold text-blue-900">{bilanData.kpi_resume.ca_total.toFixed(0)}€</p>
+                          </div>
+                        )}
+                        {bilanData.kpi_resume?.ventes !== undefined && (
+                          <div className="bg-green-50 rounded-lg p-3">
+                            <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
+                            <p className="text-lg font-bold text-green-900">{bilanData.kpi_resume.ventes}</p>
+                          </div>
+                        )}
+                        {bilanData.kpi_resume?.articles !== undefined && (
+                          <div className="bg-orange-50 rounded-lg p-3">
+                            <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
+                            <p className="text-lg font-bold text-orange-900">{bilanData.kpi_resume.articles}</p>
+                          </div>
+                        )}
+                        {bilanData.kpi_resume?.panier_moyen !== undefined && (
+                          <div className="bg-indigo-50 rounded-lg p-3">
+                            <p className="text-xs text-indigo-600 mb-1">💳 P. Moyen</p>
+                            <p className="text-lg font-bold text-indigo-900">{bilanData.kpi_resume.panier_moyen.toFixed(0)}€</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Détail journalier semaine — depuis periodEntries (fetchés via API) */}
                     {periodLoading ? (
@@ -1291,7 +1293,7 @@ export default function PerformanceModal({
                     )}
 
                     {/* Analyse IA */}
-                    {bilanData.synthese && !generatingBilan && (
+                    {bilanData?.synthese && !generatingBilan && (
                       <div ref={bilanSectionRef} className="space-y-4">
                         <div className="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500">
                           <div className="flex items-start gap-2 mb-2">
@@ -1351,7 +1353,7 @@ export default function PerformanceModal({
                       </div>
                     )}
 
-                    {!bilanData.synthese && !generatingBilan && (
+                    {!bilanData?.synthese && !generatingBilan && (
                       <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
                         <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                         <p className="text-gray-600 mb-4">Aucune analyse IA disponible pour cette semaine</p>
@@ -1366,10 +1368,6 @@ export default function PerformanceModal({
                       </div>
                     )}
                   </>
-                ) : viewMode === 'semaine' ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>Aucun bilan disponible</p>
-                  </div>
                 ) : null}
               </div>
             </div>
