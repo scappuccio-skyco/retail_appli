@@ -393,7 +393,20 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
 
     setLoading(true);
     try {
-      await api.post('/manager-diagnostic', { responses });
+      // Build rich payload: {question_id: {q: question_text, a: answer_text}}
+      const richResponses = {};
+      questions.forEach(section => {
+        section.items.forEach(question => {
+          const answerIdx = responses[question.id];
+          if (answerIdx !== undefined && answerIdx !== null) {
+            richResponses[question.id] = {
+              q: question.text,
+              a: question.options[answerIdx],
+            };
+          }
+        });
+      });
+      await api.post('/manager-diagnostic', { responses: richResponses });
       toast.success('Ton profil manager est prêt ! 🔥');
       onSuccess();
       onClose();

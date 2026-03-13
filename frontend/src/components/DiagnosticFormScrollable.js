@@ -464,16 +464,9 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const handleAnswer = (questionId, answer, optionIndex = null) => {
-    // For DISC questions (16-39), store the index; for others, store the text
-    const isDISCQuestion = questionId >= 16 && questionId <= 39;
-    const valueToStore = (isDISCQuestion && optionIndex !== null) ? optionIndex : answer;
-    
+  const handleAnswer = (questionId, answer) => {
     setResponses(prev => {
-      const updated = {
-        ...prev,
-        [questionId]: valueToStore
-      };
+      const updated = { ...prev, [questionId]: answer };
       logger.log('Updated responses:', updated);
       return updated;
     });
@@ -580,15 +573,12 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
                   {question.type === 'choice' ? (
                     <div className="space-y-2">
                       {question.options.map((option, optionIdx) => {
-                        const isDISCQuestion = question.id >= 16 && question.id <= 39;
-                        const isSelected = isDISCQuestion 
-                          ? responses[question.id] === optionIdx
-                          : responses[question.id] === option;
+                        const isSelected = responses[question.id] === option;
                         
                         return (
                           <button
                             key={optionIdx}
-                            onClick={() => handleAnswer(question.id, option, optionIdx)}
+                            onClick={() => handleAnswer(question.id, option)}
                             className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                               isSelected
                                 ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-20 font-medium'

@@ -48,6 +48,7 @@ async def analyze_manager_diagnostic_with_ai(responses: dict) -> dict:
         # Fallback default response
         return {
             "profil_nom": PROFIL_LE_COACH,
+            "disc_style": "S",
             "profil_description": "Tu es un manager proche de ton équipe, à l'écoute et orienté développement. Tu valorises la progression individuelle avant tout.",
             "force_1": "Crée un climat de confiance fort",
             "force_2": "Encourage la montée en compétence",
@@ -57,43 +58,47 @@ async def analyze_manager_diagnostic_with_ai(responses: dict) -> dict:
         }
     
     try:
-        # Format responses for prompt
+        # Format responses for prompt — supports both rich {q, a} and legacy plain formats
         responses_text = ""
         for q_num, answer in responses.items():
-            responses_text += f"\nQuestion {q_num}: {answer}\n"
-        
+            if isinstance(answer, dict):
+                q_text = answer.get('q', f'Question {q_num}')
+                a_text = answer.get('a', '')
+                responses_text += f"\n{q_text}\n→ {a_text}\n"
+            else:
+                responses_text += f"\nQuestion {q_num}: {answer}\n"
+
         prompt = f"""Analyse les réponses de ce questionnaire pour déterminer le profil de management dominant.
 
-Voici les réponses :
-{responses_text}
+🔑 CLÉ D'INTERPRÉTATION DISC :
+Les réponses de type "Action rapide / Résultats / Décision ferme / Assertif" → Dominant (D) → Profil Le Pilote
+Les réponses de type "Énergie / Enthousiasme / Ambiance / Motiver / Inspirer" → Influent (I) → Profil Le Dynamiseur
+Les réponses de type "Écoute / Empathie / Patience / Accompagnement / Confiance" → Stable (S) → Profil Le Coach ou L'Inspire
+Les réponses de type "Précision / Analyse / Méthode / Process / Rigueur" → Consciencieux (C) → Profil Le Stratège
 
-Classe ce manager parmi les 5 profils suivants :
-1️⃣ Le Pilote — orienté résultats, aime les chiffres, la clarté et les plans d'action.
-2️⃣ Le Coach — bienveillant, à l'écoute, accompagne individuellement.
-3️⃣ Le Dynamiseur — motivant, charismatique, met de l'énergie dans l'équipe.
-4️⃣ Le Stratège — structuré, process, rigoureux et méthodique.
-5️⃣ L'Inspire — empathique, donne du sens et fédère autour d'une vision.
+Voici les réponses du manager :
+{responses_text}
 
 Réponds UNIQUEMENT au format JSON suivant (sans markdown, sans ```json) :
 {{
   "profil_nom": "Le Pilote/Le Coach/Le Dynamiseur/Le Stratège/L'Inspire",
-  "profil_description": "2 phrases synthétiques pour décrire ce style",
-  "force_1": "Premier point fort concret",
-  "force_2": "Deuxième point fort concret",
-  "axe_progression": "1 domaine clé à renforcer",
-  "recommandation": "1 conseil personnalisé pour développer son management",
-  "exemple_concret": "Une phrase ou un comportement à adopter lors d'un brief, coaching ou feedback"
+  "disc_style": "D, I, S, ou C",
+  "profil_description": "2 phrases synthétiques pour décrire ce style de management",
+  "force_1": "Premier point fort managérial concret",
+  "force_2": "Deuxième point fort managérial concret",
+  "axe_progression": "1 domaine clé à renforcer pour ce profil",
+  "recommandation": "1 conseil personnalisé et actionnable pour développer son management",
+  "exemple_concret": "Une phrase ou un comportement concret à adopter lors d'un brief, coaching ou feedback"
 }}
 
-Ton style doit être positif, professionnel et orienté action. Pas de jargon RH. Mise en pratique et impact terrain. Tout en tutoiement."""
+Ton style doit être positif, professionnel et orienté action terrain. Pas de jargon RH. Tout en tutoiement."""
 
-        chat = ai_service._create_chat(
-            session_id=f"manager_diagnostic_{uuid4()}",
-            system_message="Tu es un coach IA expert en management retail et en accompagnement d'équipes commerciales. Réponds UNIQUEMENT en JSON valide.",
-            model="gpt-4o-mini"
+        response = await ai_service._send_message(
+            system_message="Tu es un coach IA expert en management retail et en développement des équipes commerciales. Réponds UNIQUEMENT en JSON valide, sans markdown.",
+            user_prompt=prompt,
+            model="gpt-4o",
+            temperature=0.4,
         )
-        
-        response = await ai_service._send_message(chat, prompt)
         
         # Clean and parse response
         content = response.strip()
@@ -111,6 +116,7 @@ Ton style doit être positif, professionnel et orienté action. Pas de jargon RH
         # Fallback default response
         return {
             "profil_nom": "Le Coach",
+            "disc_style": "S",
             "profil_description": "Tu es un manager proche de ton équipe, à l'écoute et orienté développement.",
             "force_1": "Crée un climat de confiance fort",
             "force_2": "Encourage la montée en compétence",
@@ -139,6 +145,7 @@ async def create_manager_diagnostic(
         "manager_id": current_user["id"],
         "responses": diagnostic_data.responses,
         "profil_nom": ai_analysis.get("profil_nom", PROFIL_DEFAULT),
+        "disc_style": ai_analysis.get("disc_style", ""),
         "profil_description": ai_analysis.get("profil_description", ""),
         "force_1": ai_analysis.get("force_1", ""),
         "force_2": ai_analysis.get("force_2", ""),
