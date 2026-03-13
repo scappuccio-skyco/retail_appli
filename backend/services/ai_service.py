@@ -715,7 +715,7 @@ Consignes :
             system_message=TEAM_BILAN_SYSTEM_PROMPT,
             user_prompt=prompt,
             model="gpt-4o",
-            temperature=0.7
+            temperature=0.5  # structured JSON output — semi-factual
         )
         
         if response:
@@ -939,7 +939,7 @@ Résume les points forts et les points à améliorer de manière positive et coa
             system_message=FEEDBACK_SYSTEM_PROMPT,
             user_prompt=prompt,
             model="gpt-4o-mini",
-            temperature=0.7
+            temperature=0.5  # structured self-eval feedback — consistency matters
         )
         return response or "Feedback automatique temporairement indisponible. Continuez votre excellent travail!"
 
@@ -1145,7 +1145,7 @@ Génère un bilan terrain motivant avec :
             system_message=SELLER_BILAN_SYSTEM_PROMPT,
             user_prompt=prompt,
             model="gpt-4o-mini",
-            temperature=0.7
+            temperature=0.4  # factual KPI report — lower variance
         )
         return response or f"Bilan pour {seller_name}: Performance en cours d'analyse."
 
@@ -1306,9 +1306,9 @@ Génère un brief motivant et concret basé sur ces données.
                 system_message=system_prompt,
                 user_prompt=user_prompt,
                 model="gpt-4o",
-                temperature=0.7
+                temperature=0.8  # creative daily script — varies each morning
             )
-            
+
             if response:
                 # Parse structured content from the Markdown response
                 structured = self._parse_brief_to_structured(response)
@@ -1808,7 +1808,7 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
                 system_message=system_prompt,
                 user_prompt=user_prompt,
                 model="gpt-4o",
-                temperature=0.7
+                temperature=0.4  # annual review — factual, reproducible
             )
             
             if not response_text:
