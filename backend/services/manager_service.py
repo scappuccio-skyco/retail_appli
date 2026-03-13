@@ -356,6 +356,37 @@ class ManagerService:
             return None
         return await self.diagnostic_repo.find_by_seller(seller_id)
 
+    async def get_team_disc_profiles(self, store_id: str) -> List[Dict]:
+        """
+        Return [{first_name, disc_style}] for all active sellers in the store.
+        Used to personalise the morning brief (tone adaptation per profile).
+        """
+        if not self.diagnostic_repo or not store_id:
+            return []
+        try:
+            sellers = await self.user_repo.find_by_store(
+                store_id, role="seller", status="active",
+                projection={"_id": 0, "id": 1, "name": 1}, limit=50,
+            )
+            if not sellers:
+                return []
+            import asyncio as _asyncio
+            diagnostics = await _asyncio.gather(
+                *[self.diagnostic_repo.find_by_seller(s["id"]) for s in sellers],
+                return_exceptions=True,
+            )
+            profiles = []
+            for seller, diag in zip(sellers, diagnostics):
+                first_name = seller.get("name", "").split()[0]
+                disc_style = ""
+                if isinstance(diag, dict):
+                    disc_style = (diag.get("profile") or {}).get("style", "")
+                profiles.append({"first_name": first_name, "disc_style": disc_style or "?"})
+            return profiles
+        except Exception as e:
+            logger.warning("get_team_disc_profiles failed: %s", e)
+            return []
+
     async def get_debriefs_by_seller(
         self, seller_id: str, limit: int = 100, skip: int = 0
     ) -> List[Dict]:

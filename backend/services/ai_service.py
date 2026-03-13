@@ -1159,8 +1159,9 @@ Génère un bilan terrain motivant avec :
         manager_name: str,
         store_name: str,
         context: Optional[str] = None,
-        data_date: Optional[str] = None,  # Date des données (dernier jour avec data)
-        objective_daily: Optional[float] = None  # Objectif CA du jour saisi par le manager
+        data_date: Optional[str] = None,
+        objective_daily: Optional[float] = None,
+        team_disc_profiles: Optional[List[Dict]] = None,
     ) -> Dict:
         """
         Génère le script du brief matinal pour le manager.
@@ -1267,6 +1268,26 @@ Format : "{data_date_french} : X€"
             # Formater les stats pour le prompt utilisateur (sans objectif dans le flashback)
             stats_text = self._format_brief_stats(stats, include_objective=False)
             
+            # Build team DISC block if profiles are available
+            disc_team_block = ""
+            if team_disc_profiles:
+                disc_lines = "\n".join(
+                    f"- {p['first_name']} : profil {p['disc_style']}"
+                    for p in team_disc_profiles
+                    if p.get("disc_style") and p["disc_style"] != "?"
+                )
+                if disc_lines:
+                    disc_team_block = f"""
+🎨 PROFILS DISC DE L'ÉQUIPE :
+{disc_lines}
+
+→ Adapte le contenu du brief pour résonner avec ces profils :
+  • Profils D → inclure des chiffres précis + challenge résultats
+  • Profils I → inclure un moment de reconnaissance collective + enthousiasme
+  • Profils S → inclure un message rassurant + cohésion d'équipe
+  • Profils C → inclure des données précises + logique derrière les actions
+"""
+
             user_prompt = f"""Génère le brief matinal pour {manager_name}, manager du magasin "{store_name}".
 
 DONNÉES DU {data_date_french.upper()} (dernier jour travaillé) :
@@ -1274,7 +1295,7 @@ DONNÉES DU {data_date_french.upper()} (dernier jour travaillé) :
 
 ÉQUIPE PRÉSENTE AUJOURD'HUI :
 {stats.get('team_present', 'Non renseigné')}
-
+{disc_team_block}
 {progression_text if progression_text else ""}
 
 Génère un brief motivant et concret basé sur ces données.

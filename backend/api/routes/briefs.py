@@ -211,6 +211,13 @@ async def generate_morning_brief(
         stats = _default_brief_stats()
     data_date = stats.get("data_date")
 
+    # Fetch team DISC profiles for personalised brief tone
+    team_disc_profiles = []
+    try:
+        team_disc_profiles = await manager_service.get_team_disc_profiles(final_store_id)
+    except Exception as e:
+        logger.warning("Could not fetch team DISC profiles for brief: %s", e)
+
     try:
         result = await ai_service.generate_morning_brief(
             stats=stats,
@@ -218,7 +225,8 @@ async def generate_morning_brief(
             store_name=store_name,
             context=brief_request.comments,
             data_date=data_date,
-            objective_daily=brief_request.objective_daily
+            objective_daily=brief_request.objective_daily,
+            team_disc_profiles=team_disc_profiles,
         )
 
         if result.get("success"):
