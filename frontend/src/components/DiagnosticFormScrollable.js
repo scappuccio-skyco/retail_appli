@@ -503,10 +503,16 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
       const aiResponse = await api.post('/ai/diagnostic', responsesList);
       
       // Save the diagnostic to database with the AI results
-      // Convert responsesList back to dict format for the diagnostic endpoint
+      // Backend scoring functions expect 0-based option INDEX (not text) for competence + DISC calculation
       const responsesDict = {};
-      responsesList.forEach(r => {
-        responsesDict[r.question_id] = r.answer;
+      questions.forEach(section => {
+        section.items.forEach(question => {
+          const answerText = responses[question.id];
+          if (answerText !== undefined && answerText !== null) {
+            const idx = question.options.indexOf(answerText);
+            responsesDict[question.id] = idx >= 0 ? idx : answerText;
+          }
+        });
       });
       
       // Save diagnostic with AI results included
