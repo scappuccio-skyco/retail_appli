@@ -818,7 +818,7 @@ async def get_my_kpi_entries(
     seller_id = current_user["id"]
     if start_date and end_date:
         return await seller_service.get_kpis_for_period_paginated(
-            seller_id, start_date, end_date, page=1, size=50
+            seller_id, start_date, end_date, page=pagination.page, size=pagination.size
         )
     size = days if days and days <= 365 else pagination.size
     result = await seller_service.get_kpi_entries_paginated(

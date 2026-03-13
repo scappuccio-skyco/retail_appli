@@ -5,6 +5,7 @@ import { unstable_batchedUpdates } from 'react-dom';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import KPICalendar from './KPICalendar';
 
 // Fonction utilitaire pour formater les dates
 const formatDate = (dateString) => {
@@ -53,6 +54,7 @@ export default function PerformanceModal({
   const [periodLoading, setPeriodLoading] = useState(false);
   const [periodBilan, setPeriodBilan] = useState(null);
   const [periodGenerating, setPeriodGenerating] = useState(false);
+  const [datesWithData, setDatesWithData] = useState([]);
 
   // Synchroniser l'onglet actif avec initialTab quand il change
   useEffect(() => {
@@ -444,6 +446,21 @@ export default function PerformanceModal({
     }
   }, [generatingBilan, bilanData?.synthese]);
 
+  // Fetch all dates that have data — used by KPICalendar in jour view
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    api.get('/seller/kpi-entries', { params: { size: 365, page: 1 } })
+      .then(res => {
+        if (cancelled) return;
+        const data = res.data;
+        const entries = Array.isArray(data) ? data : (data?.items ?? []);
+        setDatesWithData(entries.map(e => e.date).filter(Boolean));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [isOpen]);
+
   // Prepare chart data from KPI entries for current week
   // NOTE: must be defined BEFORE the early return to respect Rules of Hooks
   const chartData = useMemo(() => {
@@ -694,12 +711,10 @@ export default function PerformanceModal({
                 {/* Ligne 2 : navigation temporelle */}
                 {viewMode === 'jour' && (
                   <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      value={selectedDay}
-                      max={new Date().toISOString().split('T')[0]}
-                      onChange={e => setSelectedDay(e.target.value)}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                    <KPICalendar
+                      selectedDate={selectedDay}
+                      onDateChange={setSelectedDay}
+                      datesWithData={datesWithData}
                     />
                   </div>
                 )}
@@ -774,8 +789,59 @@ export default function PerformanceModal({
               {/* Contenu scrollable */}
               <div ref={contentRef} data-pdf-content className="p-6">
 
-                {/* === VUES MOIS / ANNEE / JOUR === */}
-                {viewMode !== 'semaine' && (
+                {/* === VUE JOUR (cartes KPI, style StoreKPI) === */}
+                {viewMode === 'jour' && (
+                  periodLoading ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+                      <div className="w-10 h-10 border-4 border-orange-400 border-t-transparent rounded-full animate-spin mb-4" />
+                      <p>Chargement des données...</p>
+                    </div>
+                  ) : periodEntries.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {kpiConfig?.track_ca && (
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                          <p className="text-xs text-blue-700 font-semibold mb-1">💰 CA Réalisé</p>
+                          <p className="text-2xl font-bold text-blue-900">{(periodEntries[0].ca_journalier ?? 0).toFixed(0)} €</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_ventes && (
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                          <p className="text-xs text-green-700 font-semibold mb-1">🛒 Ventes</p>
+                          <p className="text-2xl font-bold text-green-900">{periodEntries[0].nb_ventes ?? 0}</p>
+                          {kpiConfig?.track_ca && periodEntries[0].nb_ventes > 0 && (
+                            <p className="text-xs text-green-600 mt-1">PM: {((periodEntries[0].ca_journalier ?? 0) / periodEntries[0].nb_ventes).toFixed(0)} €</p>
+                          )}
+                        </div>
+                      )}
+                      {kpiConfig?.track_articles && (
+                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                          <p className="text-xs text-orange-700 font-semibold mb-1">📦 Articles</p>
+                          <p className="text-2xl font-bold text-orange-900">{periodEntries[0].nb_articles ?? 0}</p>
+                          {kpiConfig?.track_ventes && periodEntries[0].nb_ventes > 0 && (
+                            <p className="text-xs text-orange-600 mt-1">IV: {(periodEntries[0].nb_articles / periodEntries[0].nb_ventes).toFixed(2)}</p>
+                          )}
+                        </div>
+                      )}
+                      {kpiConfig?.track_prospects && (
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                          <p className="text-xs text-purple-700 font-semibold mb-1">🚶 Prospects</p>
+                          <p className="text-2xl font-bold text-purple-900">{periodEntries[0].nb_prospects ?? 0}</p>
+                          {kpiConfig?.track_ventes && periodEntries[0].nb_prospects > 0 && (
+                            <p className="text-xs text-purple-600 mt-1">Taux: {((periodEntries[0].nb_ventes / periodEntries[0].nb_prospects) * 100).toFixed(0)}%</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                      <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600">Aucune saisie pour cette date</p>
+                    </div>
+                  )
+                )}
+
+                {/* === VUES MOIS / ANNEE === */}
+                {(viewMode === 'mois' || viewMode === 'annee') && (
                   periodLoading ? (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-500">
                       <div className="w-10 h-10 border-4 border-orange-400 border-t-transparent rounded-full animate-spin mb-4" />
@@ -783,16 +849,12 @@ export default function PerformanceModal({
                     </div>
                   ) : periodAggregates ? (
                     <>
-                      {/* Titre période — masqué pour Jour (redondant avec le sélecteur) */}
-                      {viewMode !== 'jour' && (
-                        <div className="flex items-center gap-2 mb-4">
-                          <BarChart3 className="w-5 h-5 text-orange-600" />
-                          <h3 className="font-bold text-gray-800">{periodRange?.label} — {periodAggregates.nb_jours} jour{periodAggregates.nb_jours > 1 ? 's' : ''} avec données</h3>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 mb-4">
+                        <BarChart3 className="w-5 h-5 text-orange-600" />
+                        <h3 className="font-bold text-gray-800">{periodRange?.label} — {periodAggregates.nb_jours} jour{periodAggregates.nb_jours > 1 ? 's' : ''} avec données</h3>
+                      </div>
 
-                      {/* KPI Agrégés — masqués pour Jour (même données que le tableau détail) */}
-                      {viewMode !== 'jour' && <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                         {kpiConfig?.track_ca && (
                           <div className="bg-blue-50 rounded-lg p-3">
                             <p className="text-xs text-blue-600 mb-1">💰 CA total</p>
@@ -835,7 +897,7 @@ export default function PerformanceModal({
                             <p className="text-lg font-bold text-teal-900">{periodAggregates.indice_vente.toFixed(2)}</p>
                           </div>
                         )}
-                      </div>}
+                      </div>
 
                       {/* Détail */}
                       <div className="mb-6">
