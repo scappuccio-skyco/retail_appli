@@ -456,7 +456,13 @@ export default function PerformanceModal({
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        scrollY: -globalThis.scrollY,
+        scrollX: -globalThis.scrollX,
+        width: 1200,
+        windowWidth: 1200,
+        allowTaint: true,
+        foreignObjectRendering: false,
       });
       
       const imgData = canvas.toDataURL('image/png', 0.95);
@@ -486,11 +492,12 @@ export default function PerformanceModal({
           const sy = (currentY / contentHeight) * imgHeight;
           const sh = (sliceHeight / contentHeight) * imgHeight;
           
+          const shInt = Math.max(1, Math.round(sh));
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = imgWidth;
-          tempCanvas.height = sh;
+          tempCanvas.height = shInt;
           const tempCtx = tempCanvas.getContext('2d');
-          tempCtx.drawImage(canvas, 0, sy, imgWidth, sh, 0, 0, imgWidth, sh);
+          tempCtx.drawImage(canvas, 0, sy, imgWidth, sh, 0, 0, imgWidth, shInt);
           
           const sliceImgData = tempCanvas.toDataURL('image/png', 1.0);
           pdf.addImage(sliceImgData, 'PNG', margin, margin, contentWidth, sliceHeight);

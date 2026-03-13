@@ -127,14 +127,15 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
           const sy = (currentY / contentHeight) * imgHeight;
           const sh = (sliceHeight / contentHeight) * imgHeight;
           
-          // Create a temporary canvas for this slice
+          // Create a temporary canvas for this slice (integer dimensions required)
+          const shInt = Math.max(1, Math.round(sh));
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = imgWidth;
-          tempCanvas.height = sh;
+          tempCanvas.height = shInt;
           const tempCtx = tempCanvas.getContext('2d');
-          
+
           // Draw the slice
-          tempCtx.drawImage(canvas, 0, sy, imgWidth, sh, 0, 0, imgWidth, sh);
+          tempCtx.drawImage(canvas, 0, sy, imgWidth, sh, 0, 0, imgWidth, shInt);
           
           // Add to PDF
           const sliceImgData = tempCanvas.toDataURL('image/png', 1.0);
