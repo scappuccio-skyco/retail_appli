@@ -450,12 +450,10 @@ export default function PerformanceModal({
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    api.get('/seller/kpi-entries', { params: { size: 365, page: 1 } })
+    api.get('/seller/dates-with-data')
       .then(res => {
         if (cancelled) return;
-        const data = res.data;
-        const entries = Array.isArray(data) ? data : (data?.items ?? []);
-        setDatesWithData(entries.map(e => e.date).filter(Boolean));
+        setDatesWithData(res.data?.dates ?? []);
       })
       .catch(() => {});
     return () => { cancelled = true; };

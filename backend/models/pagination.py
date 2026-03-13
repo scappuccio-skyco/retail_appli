@@ -43,7 +43,7 @@ class PaginationParams(BaseModel):
     Use this as a dependency in FastAPI routes to get pagination params.
     """
     page: int = Field(default=1, ge=1, description="Page number (1-indexed)")
-    size: int = Field(default=20, ge=1, le=100, description="Number of items per page (max 100)")
+    size: int = Field(default=20, ge=1, le=400, description="Number of items per page (max 400)")
     
     @property
     def skip(self) -> int:
