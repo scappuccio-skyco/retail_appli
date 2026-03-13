@@ -45,8 +45,10 @@ export default function PerformanceModal({
   const [warnings, setWarnings] = useState([]);
   const [pendingKPIData, setPendingKPIData] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
-  const [viewMode, setViewMode] = useState('semaine'); // 'semaine' | '30j' | 'mois'
+  const [viewMode, setViewMode] = useState('semaine'); // 'jour' | 'semaine' | 'mois' | 'annee'
   const [monthOffset, setMonthOffset] = useState(0);
+  const [yearOffset, setYearOffset] = useState(0);
+  const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
   const [periodEntries, setPeriodEntries] = useState([]);
   const [periodLoading, setPeriodLoading] = useState(false);
   const [periodBilan, setPeriodBilan] = useState(null);
@@ -213,9 +215,9 @@ export default function PerformanceModal({
         await onDataUpdate();
       }
       
-      // Basculer vers l'onglet historique après 1 seconde
+      // Basculer vers le bilan après 1 seconde
       setTimeout(() => {
-        setActiveTab('kpi');
+        setActiveTab('bilan');
         setSaveMessage(null);
         setEditingEntry(null);
       }, 1500);
@@ -278,17 +280,15 @@ export default function PerformanceModal({
     };
   }, [bilanData?.periode]);
 
-  // Period date range for 30j / mois views
+  // Period date range for jour / mois / annee views
   const periodRange = useMemo(() => {
     const now = new Date();
-    if (viewMode === '30j') {
-      const end = new Date(now);
-      const start = new Date(now);
-      start.setDate(start.getDate() - 29);
+    if (viewMode === 'jour') {
+      const d = new Date(selectedDay + 'T12:00:00');
       return {
-        start_date: start.toISOString().split('T')[0],
-        end_date: end.toISOString().split('T')[0],
-        label: '30 derniers jours',
+        start_date: selectedDay,
+        end_date: selectedDay,
+        label: d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
       };
     }
     if (viewMode === 'mois') {
@@ -302,13 +302,21 @@ export default function PerformanceModal({
         label: raw.charAt(0).toUpperCase() + raw.slice(1),
       };
     }
-    return null;
-  }, [viewMode, monthOffset]);
+    if (viewMode === 'annee') {
+      const year = now.getFullYear() + yearOffset;
+      return {
+        start_date: `${year}-01-01`,
+        end_date: `${year}-12-31`,
+        label: `Année ${year}`,
+      };
+    }
+    return null; // semaine
+  }, [viewMode, monthOffset, selectedDay, yearOffset]);
 
-  // Fetch KPI entries (graphiques) + métriques server-side + bilan pour les vues 30j/mois
+  // Fetch KPI entries + métriques server-side + bilan pour les vues jour/mois/annee
   const [periodAggregates, setPeriodAggregates] = useState(null);
   useEffect(() => {
-    if (!isOpen || viewMode === 'semaine' || !periodRange) return;
+    if (!isOpen || !periodRange) return;
     let cancelled = false;
     setPeriodLoading(true);
     setPeriodEntries([]);
@@ -359,7 +367,22 @@ export default function PerformanceModal({
     }));
   }, [periodEntries]);
 
-  // Generate AI bilan for 30j / mois views
+  // Monthly aggregation for year view
+  const yearMonthlyData = useMemo(() => {
+    if (viewMode !== 'annee' || !periodEntries.length) return [];
+    const months = {};
+    periodEntries.forEach(e => {
+      const key = e.date.substring(0, 7);
+      if (!months[key]) months[key] = { month: key, ca: 0, ventes: 0, articles: 0, prospects: 0 };
+      months[key].ca += e.ca_journalier || 0;
+      months[key].ventes += e.nb_ventes || 0;
+      months[key].articles += e.nb_articles || 0;
+      months[key].prospects += e.nb_prospects || 0;
+    });
+    return Object.values(months).sort((a, b) => a.month.localeCompare(b.month));
+  }, [viewMode, periodEntries]);
+
+  // Generate AI bilan for mois / annee views
   const generatePeriodBilan = async () => {
     if (!periodRange) return;
     setPeriodGenerating(true);
@@ -553,19 +576,6 @@ export default function PerformanceModal({
                 </div>
               </button>
               <button
-                onClick={() => setActiveTab('kpi')}
-                className={`px-4 py-2 text-sm font-semibold transition-all rounded-t-lg ${
-                  activeTab === 'kpi'
-                    ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
-                    : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-1.5">
-                  <BarChart3 className="w-4 h-4" />
-                  <span>Historique ({kpiEntries?.length || 0})</span>
-                </div>
-              </button>
-              <button
                 onClick={() => {
                   if (isReadOnly) {
                     toast.error("Abonnement magasin suspendu. Saisie désactivée.", {
@@ -605,9 +615,10 @@ export default function PerformanceModal({
                   {/* Sélecteur de période */}
                   <div className="flex gap-1 bg-gray-200 rounded-lg p-1">
                     {[
+                      { id: 'jour', label: '📅 Jour' },
                       { id: 'semaine', label: '📅 Semaine' },
-                      { id: '30j', label: '📆 30 jours' },
                       { id: 'mois', label: '🗓️ Mois' },
+                      { id: 'annee', label: '📆 Année' },
                     ].map(({ id, label }) => (
                       <button
                         key={id}
@@ -636,7 +647,7 @@ export default function PerformanceModal({
                         <span>{generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer' : 'Générer')}</span>
                       </button>
                     )}
-                    {viewMode !== 'semaine' && (
+                    {(viewMode === 'mois' || viewMode === 'annee') && (
                       <button
                         onClick={generatePeriodBilan}
                         disabled={periodGenerating || periodLoading}
@@ -658,6 +669,17 @@ export default function PerformanceModal({
                 </div>
 
                 {/* Ligne 2 : navigation temporelle */}
+                {viewMode === 'jour' && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={selectedDay}
+                      max={new Date().toISOString().split('T')[0]}
+                      onChange={e => setSelectedDay(e.target.value)}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                    />
+                  </div>
+                )}
                 {viewMode === 'semaine' && onWeekChange && (
                   <div className="flex items-center gap-1 bg-gray-200 rounded-lg px-2 py-2 w-full md:w-auto justify-center">
                     <button
@@ -702,9 +724,26 @@ export default function PerformanceModal({
                     </button>
                   </div>
                 )}
-                {viewMode === '30j' && (
-                  <div className="text-xs text-gray-500 font-medium">
-                    📆 Du {periodRange?.start_date} au {periodRange?.end_date}
+                {viewMode === 'annee' && (
+                  <div className="flex items-center gap-1 bg-gray-200 rounded-lg px-2 py-2 w-full md:w-auto justify-center">
+                    <button
+                      onClick={() => setYearOffset(o => o - 1)}
+                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition flex-shrink-0"
+                      title="Année précédente"
+                    >
+                      <ChevronLeft className="w-4 h-4 text-white" />
+                    </button>
+                    <span className="text-xs font-semibold text-gray-700 px-2 text-center min-w-[80px]">
+                      {periodRange?.label}
+                    </span>
+                    <button
+                      onClick={() => setYearOffset(o => o + 1)}
+                      disabled={yearOffset === 0}
+                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+                      title="Année suivante"
+                    >
+                      <ChevronRight className="w-4 h-4 text-white" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -773,8 +812,61 @@ export default function PerformanceModal({
                         )}
                       </div>
 
-                      {/* Graphiques période */}
-                      {periodChartData.length > 0 && (
+                      {/* Détail */}
+                      <div className="mb-6">
+                        <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4 text-gray-500" />
+                          {viewMode === 'annee' ? '📋 Détail par mois' : '📋 Détail par journée'}
+                        </h3>
+                        <div className="overflow-x-auto rounded-xl border border-gray-200">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-100">
+                              <tr>
+                                <th className="text-left px-3 py-2 text-gray-600 font-semibold">{viewMode === 'annee' ? 'Mois' : 'Date'}</th>
+                                {kpiConfig?.track_ca && <th className="text-right px-3 py-2 text-blue-700 font-semibold">💰 CA</th>}
+                                {kpiConfig?.track_ventes && <th className="text-right px-3 py-2 text-green-700 font-semibold">🛒 Ventes</th>}
+                                {kpiConfig?.track_articles && <th className="text-right px-3 py-2 text-orange-700 font-semibold">📦 Articles</th>}
+                                {kpiConfig?.track_prospects && <th className="text-right px-3 py-2 text-purple-700 font-semibold">🚶 Prospects</th>}
+                                {kpiConfig?.track_ca && kpiConfig?.track_ventes && <th className="text-right px-3 py-2 text-indigo-700 font-semibold">💳 P.Moyen</th>}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {viewMode === 'annee' ? yearMonthlyData.map((m, i) => {
+                                const pm = m.ventes > 0 ? m.ca / m.ventes : 0;
+                                const label = new Date(m.month + '-15').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                                return (
+                                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                    <td className="px-3 py-2 text-gray-700 font-medium capitalize">{label}</td>
+                                    {kpiConfig?.track_ca && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{m.ca > 0 ? `${m.ca.toFixed(0)}€` : '—'}</td>}
+                                    {kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-green-900">{m.ventes || '—'}</td>}
+                                    {kpiConfig?.track_articles && <td className="text-right px-3 py-2 text-orange-900">{m.articles || '—'}</td>}
+                                    {kpiConfig?.track_prospects && <td className="text-right px-3 py-2 text-purple-900">{m.prospects || '—'}</td>}
+                                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
+                                  </tr>
+                                );
+                              }) : periodEntries.map((entry, i) => {
+                                const pm = entry.nb_ventes > 0 ? entry.ca_journalier / entry.nb_ventes : 0;
+                                return (
+                                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                    <td className="px-3 py-2 text-gray-700 font-medium">{new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
+                                    {kpiConfig?.track_ca && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{entry.ca_journalier != null ? `${entry.ca_journalier.toFixed(0)}€` : '—'}</td>}
+                                    {kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-green-900">{entry.nb_ventes ?? '—'}</td>}
+                                    {kpiConfig?.track_articles && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
+                                    {kpiConfig?.track_prospects && <td className="text-right px-3 py-2 text-purple-900">{entry.nb_prospects ?? '—'}</td>}
+                                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
+                                  </tr>
+                                );
+                              })}
+                              {(viewMode === 'annee' ? yearMonthlyData : periodEntries).length === 0 && (
+                                <tr><td colSpan={10} className="px-3 py-6 text-center text-gray-500 italic">Aucune donnée saisie pour cette période</td></tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Graphiques période — masqués pour la vue Jour */}
+                      {viewMode !== 'jour' && periodChartData.length > 0 && (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                           {kpiConfig?.track_ca && (
                             <div className="bg-blue-50 rounded-xl p-4">
@@ -835,8 +927,8 @@ export default function PerformanceModal({
                         </div>
                       )}
 
-                      {/* Section IA pour la période */}
-                      <div className="mt-6">
+                      {/* Section IA — uniquement pour Mois et Année */}
+                      {(viewMode === 'mois' || viewMode === 'annee') && <div className="mt-6">
                         {periodGenerating && (
                           <div className="bg-white rounded-2xl p-8 max-w-md mx-auto shadow-2xl border-2 border-blue-200">
                             <div className="text-center mb-6">
@@ -922,7 +1014,7 @@ export default function PerformanceModal({
                             </button>
                           </div>
                         )}
-                      </div>
+                      </div>}
                     </>
                   ) : (
                     <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
@@ -962,6 +1054,45 @@ export default function PerformanceModal({
                         </div>
                       )}
                     </div>
+
+                    {/* Détail journalier semaine */}
+                    {chartData.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4 text-gray-500" />
+                          📋 Détail par journée
+                        </h3>
+                        <div className="overflow-x-auto rounded-xl border border-gray-200">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-100">
+                              <tr>
+                                <th className="text-left px-3 py-2 text-gray-600 font-semibold">Date</th>
+                                {kpiConfig?.track_ca && <th className="text-right px-3 py-2 text-blue-700 font-semibold">💰 CA</th>}
+                                {kpiConfig?.track_ventes && <th className="text-right px-3 py-2 text-green-700 font-semibold">🛒 Ventes</th>}
+                                {kpiConfig?.track_articles && <th className="text-right px-3 py-2 text-orange-700 font-semibold">📦 Articles</th>}
+                                {kpiConfig?.track_prospects && <th className="text-right px-3 py-2 text-purple-700 font-semibold">🚶 Prospects</th>}
+                                {kpiConfig?.track_ca && kpiConfig?.track_ventes && <th className="text-right px-3 py-2 text-indigo-700 font-semibold">💳 P.Moyen</th>}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {chartData.map((row, i) => {
+                                const pm = row.Ventes > 0 ? row.CA / row.Ventes : 0;
+                                return (
+                                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                    <td className="px-3 py-2 text-gray-700 font-medium">{row.date}</td>
+                                    {kpiConfig?.track_ca && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{row.CA ? `${row.CA.toFixed(0)}€` : '—'}</td>}
+                                    {kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-green-900">{row.Ventes || '—'}</td>}
+                                    {kpiConfig?.track_articles && <td className="text-right px-3 py-2 text-orange-900">{row.Articles || '—'}</td>}
+                                    {kpiConfig?.track_prospects && <td className="text-right px-3 py-2 text-purple-900">{row.Prospects || '—'}</td>}
+                                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Charts */}
                     {chartData && chartData.length > 0 && (
@@ -1152,95 +1283,6 @@ export default function PerformanceModal({
             </div>
           )}
           
-          {activeTab === 'kpi' && (
-            <div>
-              {/* Contenu avec padding */}
-              {kpiEntries && kpiEntries.length > 0 ? (
-                <div className="px-6">
-                  <div className="space-y-4">
-                    {kpiEntries.slice(0, displayedKpiCount).map((entry, index) => {
-                      // Calculate days difference
-                      const entryDate = new Date(entry.date);
-                      const today = new Date();
-                      const diffTime = today - entryDate;
-                      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                      
-                      // Format date to DD/MM/YYYY
-                      const formatDate = (dateString) => {
-                        const date = new Date(dateString);
-                        const day = String(date.getDate()).padStart(2, '0');
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const year = date.getFullYear();
-                        return `${day}/${month}/${year}`;
-                      };
-                      
-                      return (
-                        <div 
-                          key={index} 
-                          onClick={() => {
-                            // Charger les données dans le formulaire de saisie
-                            setEditingEntry(entry);
-                            setActiveTab('saisie');
-                          }}
-                          className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
-                        >
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-semibold text-gray-800">{formatDate(entry.date)}</span>
-                            <span className="text-xs text-blue-600 font-medium">
-                              ✏️ Cliquer pour modifier
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            {/* Affichage dynamique selon les données effectivement saisies */}
-                            {entry.ca_journalier !== undefined && entry.ca_journalier !== null && (
-                              <div>💰 CA: {entry.ca_journalier}€</div>
-                            )}
-                            {entry.nb_ventes !== undefined && entry.nb_ventes !== null && (
-                              <div>🛒 Ventes: {entry.nb_ventes}</div>
-                            )}
-                            {entry.nb_articles !== undefined && entry.nb_articles !== null && (
-                              <div>📦 Articles: {entry.nb_articles}</div>
-                            )}
-                            {entry.nb_prospects !== undefined && entry.nb_prospects !== null && (
-                              <div>🚶 Prospects: {entry.nb_prospects}</div>
-                            )}
-                            {/* Message si aucune donnée */}
-                            {!entry.ca_journalier && !entry.nb_ventes && !entry.nb_articles && !entry.nb_prospects && (
-                              <div className="col-span-2 text-gray-500 italic">Aucune donnée saisie</div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Bouton Charger plus */}
-                  {(displayedKpiCount < kpiEntries.length || kpiEntries.length < (kpiEntriesTotal ?? kpiEntries.length)) && (
-                    <div className="mt-6 text-center">
-                      <button
-                        onClick={async () => {
-                          if (displayedKpiCount < kpiEntries.length) {
-                            setDisplayedKpiCount(prev => prev + 20);
-                          } else if (onLoadMoreKpi) {
-                            await onLoadMoreKpi();
-                            setDisplayedKpiCount(prev => prev + 20);
-                          }
-                        }}
-                        className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
-                      >
-                        Charger plus
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="px-6">
-                  <p className="text-gray-500">Aucun KPI enregistré pour le moment.</p>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Onglet Saisie KPI */}
           {activeTab === 'saisie' && (
             <div className="px-6 py-6">
@@ -1252,7 +1294,7 @@ export default function PerformanceModal({
                 <p className="text-sm text-gray-600">
                   {editingEntry 
                     ? `Modification des données du ${formatDate(editingEntry.date)}`
-                    : 'Renseignez vos données quotidiennes. Vous pourrez les corriger à tout moment depuis l\'onglet "Historique".'
+                    : 'Renseignez vos données quotidiennes. Vous pourrez les retrouver et corriger dans l\'onglet "Mon bilan".'
                   }
                 </p>
               </div>
