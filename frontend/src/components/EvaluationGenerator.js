@@ -303,7 +303,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
 
   const generateButtonText = role === 'seller'
     ? "✨ Générer Ma Fiche de Préparation"
-    : "✨ Générer le Guide d&apos;Évaluation";
+    : "✨ Générer le Guide d'Évaluation";
 
   const commentsPlaceholder = role === 'seller'
     ? "Notes supplémentaires (optionnel) - Tes notes du bloc-notes seront automatiquement incluses dans la synthèse"
@@ -448,7 +448,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="w-12 h-12 text-[#1E40AF] animate-spin mb-4" />
               <p className="text-gray-600 font-medium">Génération en cours...</p>
-              <p className="text-gray-400 text-sm mt-1">L&apos;IA analyse les données de performance</p>
+              <p className="text-gray-400 text-sm mt-1">L'IA analyse les données de performance</p>
             </div>
           )}
 
@@ -647,7 +647,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                 className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
-                Régénérer avec d&apos;autres paramètres
+                Régénérer avec d'autres paramètres
               </button>
             </div>
           )}
