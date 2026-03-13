@@ -177,12 +177,16 @@ async def generate_evaluation_guide(
 
     interview_notes = []
     if role_perspective == "seller":
+        # Seller sees all their own notes
         notes = await seller_service.get_interview_notes_by_seller(request.employee_id)
-        notes_in_period = [
-            note for note in notes
-            if request.start_date <= note.get("date", "") <= request.end_date
-        ]
-        interview_notes = notes_in_period[:50]
+    else:
+        # Manager only sees notes the seller explicitly shared
+        notes = await seller_service.get_shared_interview_notes_by_seller(request.employee_id)
+    notes_in_period = [
+        note for note in notes
+        if request.start_date <= note.get("date", "") <= request.end_date
+    ]
+    interview_notes = notes_in_period[:50]
 
     # Fetch debriefs in period → debrief summary + competence evolution
     debrief_summary: Optional[str] = None

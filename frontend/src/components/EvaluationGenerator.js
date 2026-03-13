@@ -66,6 +66,10 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
   if (!isOpen) return null;
 
   const handleGenerate = async () => {
+    if (startDate > endDate) {
+      setError('La date de début doit être antérieure à la date de fin.');
+      return;
+    }
     setLoading(true);
     setError('');
     setGuideData(null);
@@ -293,6 +297,8 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     setStats(null);
     setError('');
     setComments('');
+    setStartDate(defaultStartDate);
+    setEndDate(today);
     onClose();
   };
 
@@ -393,7 +399,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                     ✅ {interviewNotes.length} note{interviewNotes.length > 1 ? 's' : ''} trouvée{interviewNotes.length > 1 ? 's' : ''} dans cette période
                   </p>
                   <p className="text-xs text-pink-600">
-                    💡 Ces notes seront automatiquement incluses dans la synthèse avec tes chiffres
+                    💡 Ces notes seront incluses dans ta synthèse. Les notes marquées 👁️ seront aussi visibles dans le guide de ton manager.
                   </p>
                 </div>
               ) : (
@@ -402,7 +408,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                     📝 Aucune note dans cette période
                   </p>
                   <p className="text-xs text-pink-600">
-                    💡 Utilise le bloc-notes pour prendre des notes quotidiennes. Elles seront utilisées pour créer ta synthèse.
+                    💡 Utilise le bloc-notes pour prendre des notes quotidiennes. Choisis lesquelles partager avec ton manager via l'icône 👁️.
                   </p>
                 </div>
               )}
@@ -642,12 +648,11 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
 
               {/* Regenerate Button */}
               <button
-                onClick={handleGenerate}
-                disabled={loading}
+                onClick={() => { setGuideData(null); setStats(null); }}
                 className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
-                Régénérer avec d'autres paramètres
+                Modifier les paramètres et régénérer
               </button>
             </div>
           )}

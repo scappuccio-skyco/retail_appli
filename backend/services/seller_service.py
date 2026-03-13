@@ -499,6 +499,23 @@ class SellerService:
             return []
         return await self.interview_note_repo.find_by_seller(seller_id)
 
+    async def get_shared_interview_notes_by_seller(self, seller_id: str) -> List[Dict]:
+        """Get interview notes shared with manager for a seller."""
+        if not self.interview_note_repo:
+            return []
+        return await self.interview_note_repo.find_shared_by_seller(seller_id)
+
+    async def toggle_interview_note_visibility(
+        self, note_id: str, seller_id: str, shared: bool
+    ) -> bool:
+        """Toggle shared_with_manager visibility of an interview note."""
+        if not self.interview_note_repo:
+            return False
+        return await self.interview_note_repo.update_one(
+            {"id": note_id, "seller_id": seller_id},
+            {"$set": {"shared_with_manager": shared, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+
     async def create_interview_note(self, note_data: Dict) -> str:
         """Create interview note. Returns note id."""
         if not self.interview_note_repo:

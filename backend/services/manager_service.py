@@ -534,6 +534,17 @@ class ManagerService:
             return False
         return await self.relationship_consultation_repo.delete_one(filter)
 
+    async def resolve_relationship_consultation(
+        self, consultation_id: str, manager_id: str, store_id: str, resolved: bool
+    ) -> bool:
+        """Toggle resolved status of a relationship consultation."""
+        if not self.relationship_consultation_repo:
+            return False
+        return await self.relationship_consultation_repo.update_one(
+            {"id": consultation_id, "manager_id": manager_id, "store_id": store_id},
+            {"$set": {"resolved": resolved}}
+        )
+
     async def get_sellers(
         self,
         manager_id: str,

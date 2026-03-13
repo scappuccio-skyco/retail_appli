@@ -21,6 +21,53 @@ from services.ai_service import AIService
 logger = logging.getLogger(__name__)
 
 
+def _format_manager_profile(manager_diagnostic: Optional[Dict]) -> str:
+    """Format manager DISC diagnostic as readable text for AI prompt."""
+    if not manager_diagnostic:
+        return "Non disponible"
+    profil_nom = manager_diagnostic.get('profil_nom', '')
+    disc_style = manager_diagnostic.get('disc_style', '')
+    if not profil_nom and not disc_style:
+        profile = manager_diagnostic.get('profile', {}) or {}
+        profil_nom = profile.get('profile_type') or profile.get('profil_nom') or ''
+        disc_style = profile.get('disc_style') or profile.get('style') or ''
+    parts = []
+    if profil_nom or disc_style:
+        parts.append(f"Profil : {profil_nom}{f' (style DISC : {disc_style})' if disc_style else ''}")
+    for key, label in [('force_1', 'Force 1'), ('force_2', 'Force 2'), ('axe_progression', 'Axe de progression')]:
+        val = manager_diagnostic.get(key) or (manager_diagnostic.get('profile') or {}).get(key)
+        if val:
+            parts.append(f"{label} : {val}")
+    return "\n".join(parts) if parts else "Non disponible"
+
+
+def _format_seller_profile(seller_diagnostic: Optional[Dict]) -> str:
+    """Format seller DISC diagnostic + competency scores as readable text for AI prompt."""
+    if not seller_diagnostic:
+        return "Non disponible"
+    profil_nom = seller_diagnostic.get('profil_nom', '')
+    disc_style = seller_diagnostic.get('disc_style', '')
+    profile = seller_diagnostic.get('profile', {}) or {}
+    if not profil_nom and not disc_style:
+        profil_nom = profile.get('profile_type') or profile.get('profil_nom') or ''
+        disc_style = profile.get('disc_style') or profile.get('style') or ''
+    parts = []
+    if profil_nom or disc_style:
+        parts.append(f"Profil DISC : {profil_nom}{f' (style {disc_style})' if disc_style else ''}")
+    for key, label in [
+        ('score_accueil', 'Accueil'), ('score_decouverte', 'Découverte'),
+        ('score_argumentation', 'Argumentation'), ('score_closing', 'Closing'),
+        ('score_fidelisation', 'Fidélisation'),
+    ]:
+        val = seller_diagnostic.get(key) or profile.get(key)
+        if val is not None:
+            try:
+                parts.append(f"  {label} : {float(val):.1f}/10")
+            except (TypeError, ValueError):
+                pass
+    return "\n".join(parts) if parts else "Non disponible"
+
+
 class RelationshipService:
     """Service for relationship advice generation. All repos and ai_service injected via __init__."""
 
@@ -100,7 +147,32 @@ class RelationshipService:
                 0,
                 [("created_at", -1)],
             )
-            
+
+            # Previous consultations context (P8 pattern for relationship advice)
+            previous_consultations_block = ""
+            if manager_id:
+                try:
+                    prev_consults = await self.relationship_consultation_repo.find_many_by_filters(
+                        {"manager_id": manager_id, "seller_id": seller_id},
+                        {"_id": 0, "advice_type": 1, "situation_type": 1, "recommendation": 1, "created_at": 1},
+                        limit=3,
+                    )
+                    if prev_consults:
+                        prev_lines = []
+                        for c in prev_consults:
+                            date = (c.get("created_at") or "")[:10]
+                            a_type = c.get("advice_type", "")
+                            s_type = c.get("situation_type", "")
+                            reco = (c.get("recommendation") or "")[:200]
+                            prev_lines.append(f"- [{date}] {a_type}/{s_type} : {reco}...")
+                        previous_consultations_block = (
+                            "\n## Consultations précédentes avec ce vendeur\n"
+                            + "\n".join(prev_lines)
+                            + "\nNe répète pas ces conseils. Construis sur eux ou adresse un angle différent.\n"
+                        )
+                except Exception:
+                    pass
+
             # Prepare data summary for AI (agrégats serveur — source de vérité)
             kpi_summary = f"KPIs sur les 30 derniers jours : {kpi_metrics['nb_jours']} jours saisis"
             if kpi_metrics['nb_jours'] > 0:
@@ -113,11 +185,12 @@ class RelationshipService:
                     kpi_summary += f"\n- Indice de vente : {kpi_metrics['indice_vente']:.2f} art/vente"
                 if kpi_metrics['prospects'] > 0:
                     kpi_summary += f"\n- Taux de transformation : {kpi_metrics['taux_transformation']:.1f}%"
-            
+
             debrief_summary = f"{len(recent_debriefs)} debriefs récents"
             if recent_debriefs:
                 debrief_summary += ":\n" + "\n".join([
-                    f"- {d.get('date', 'Date inconnue')}: {d.get('summary', d.get('analyse', 'Pas de résumé'))[:100]}"
+                    f"- {d.get('date', 'Date inconnue')}: "
+                    f"{(d.get('ai_recommandation') or d.get('recommandation') or d.get('analyse') or 'Pas de résumé')[:200]}"
                     for d in recent_debriefs
                 ])
             
@@ -125,11 +198,14 @@ class RelationshipService:
             advice_type_fr = "relationnelle" if advice_type == "relationnel" else "de conflit"
             
             # Adapt prompt for seller vs manager
+            manager_profile_text = _format_manager_profile(manager_diagnostic)
+            seller_profile_text = _format_seller_profile(seller_diagnostic)
+
             if is_seller_request:
                 system_message = f"""Tu es un coach retail spécialisé en gestion {advice_type_fr}.
 Tu aides un vendeur à gérer une situation {advice_type_fr} avec son manager ou son équipe.
 Fournis des conseils pratiques et actionnables pour améliorer la situation."""
-                
+
                 user_prompt = f"""# Situation {advice_type_fr.upper()}
 
 **Type de situation :** {situation_type}
@@ -137,7 +213,7 @@ Fournis des conseils pratiques et actionnables pour améliorer la situation."""
 
 ## Mon Profil
 **Prénom :** {seller.get('first_name', seller.get('name', 'Vendeur'))}
-**Profil de personnalité :** {json.dumps(seller_diagnostic.get('profile', {}), ensure_ascii=False) if seller_diagnostic else 'Non disponible'}
+{seller_profile_text}
 
 ## Mes Performances
 {kpi_summary}
@@ -165,7 +241,7 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications th�
             else:
                 system_message = f"""Tu es un expert en management d'équipe retail et en gestion {advice_type_fr}.
 Tu dois fournir des conseils personnalisés basés sur les profils de personnalité et les performances."""
-                
+
                 manager_name_display = manager_name or "Manager"
                 user_prompt = f"""# Situation {advice_type_fr.upper()}
 
@@ -174,24 +250,24 @@ Tu dois fournir des conseils personnalisés basés sur les profils de personnali
 
 ## Contexte Manager
 **Prénom :** {manager_name_display}
-**Profil de personnalité :** {json.dumps(manager_diagnostic.get('profile', {}), ensure_ascii=False) if manager_diagnostic else 'Non disponible'}
+{manager_profile_text}
 
 ## Contexte Vendeur
 **Prénom :** {seller.get('first_name', seller.get('name', 'Vendeur'))}
 **Statut :** {seller.get('status', 'actif')}
-**Profil de personnalité :** {json.dumps(seller_diagnostic.get('profile', {}), ensure_ascii=False) if seller_diagnostic else 'Non disponible'}
+{seller_profile_text}
 
 ## Performances
 {kpi_summary}
 
 ## Debriefs récents
 {debrief_summary}
-
+{previous_consultations_block}
 # Ta mission
 Fournis une recommandation CONCISE et ACTIONNABLE (maximum 400 mots) structurée avec :
 
 ## Analyse de la situation (2-3 phrases max)
-- Diagnostic rapide en tenant compte des profils de personnalité
+- Diagnostic rapide en tenant compte des profils DISC (adapte ton approche au style du manager ET du vendeur)
 
 ## Conseils pratiques (3 actions concrètes max)
 - Actions spécifiques et immédiatement applicables

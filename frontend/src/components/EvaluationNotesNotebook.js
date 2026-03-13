@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Plus, Trash2, Edit2, Save, FileText, Sparkles, CheckCircle } from 'lucide-react';
+import { X, Calendar, Plus, Trash2, Edit2, Save, FileText, Sparkles, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
@@ -21,6 +21,7 @@ export default function EvaluationNotesNotebook({ isOpen, onClose, sellerId, sel
   const [noteContent, setNoteContent] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [toggling, setToggling] = useState(null);
 
   // Charger les notes au montage
   useEffect(() => {
@@ -101,6 +102,25 @@ export default function EvaluationNotesNotebook({ isOpen, onClose, sellerId, sel
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleToggleVisibility = async (note) => {
+    try {
+      setToggling(note.id);
+      const newShared = !note.shared_with_manager;
+      await api.patch(`/seller/interview-notes/${note.id}/visibility`, {
+        shared_with_manager: newShared
+      });
+      setNotes(prev => prev.map(n =>
+        n.id === note.id ? { ...n, shared_with_manager: newShared } : n
+      ));
+      toast.success(newShared ? '✅ Note partagée avec le manager' : '🔒 Note masquée au manager');
+    } catch (error) {
+      logger.error('Error toggling visibility:', error);
+      toast.error('Erreur lors de la mise à jour');
+    } finally {
+      setToggling(null);
     }
   };
 
@@ -212,6 +232,27 @@ export default function EvaluationNotesNotebook({ isOpen, onClose, sellerId, sel
                           </p>
                         </div>
                         <div className="flex items-center gap-1 ml-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleVisibility(note);
+                            }}
+                            disabled={toggling === note.id}
+                            className={`p-1 transition-colors disabled:opacity-50 ${
+                              note.shared_with_manager
+                                ? 'text-blue-500 hover:text-blue-700'
+                                : 'text-gray-400 hover:text-blue-500'
+                            }`}
+                            title={note.shared_with_manager ? 'Masquer au manager' : 'Partager avec le manager'}
+                          >
+                            {toggling === note.id ? (
+                              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                            ) : note.shared_with_manager ? (
+                              <Eye className="w-4 h-4" />
+                            ) : (
+                              <EyeOff className="w-4 h-4" />
+                            )}
+                          </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -330,6 +371,10 @@ export default function EvaluationNotesNotebook({ isOpen, onClose, sellerId, sel
                   <p className="text-blue-700">
                     Prends des notes régulièrement sur tes réussites, défis, formations souhaitées, etc.
                     L'IA créera une synthèse claire basée sur tes notes et tes chiffres pour ton entretien.
+                  </p>
+                  <p className="text-blue-600 mt-1">
+                    <Eye className="w-3 h-3 inline mr-1" />
+                    Clique sur l'icône œil pour choisir quelles notes ton manager peut voir dans son guide.
                   </p>
                 </div>
               </div>

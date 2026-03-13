@@ -23,6 +23,13 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   const [selectedSeller, setSelectedSeller] = useState('');
   const [situationType, setSituationType] = useState('');
   const [description, setDescription] = useState('');
+  // Structured conflict form fields (A3)
+  const [conflictContexte, setConflictContexte] = useState('');
+  const [conflictComportement, setConflictComportement] = useState('');
+  const [conflictImpact, setConflictImpact] = useState('');
+  const [conflictTentatives, setConflictTentatives] = useState('');
+  // Resolved state for history items (A4)
+  const [resolvingItem, setResolvingItem] = useState(null);
   const [history, setHistory] = useState([]);
   const [historyFilter, setHistoryFilter] = useState('all');
   const [isSellerDropdownOpen, setIsSellerDropdownOpen] = useState(false);
@@ -146,21 +153,50 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   
   const handleGenerateAdvice = async (e) => {
     e.preventDefault();
-    
-    if (!selectedSeller || !situationType || !description.trim()) {
-      toast.error('Veuillez remplir tous les champs');
-      return;
+
+    let finalDescription = description;
+    if (activeFormTab === 'conflit') {
+      finalDescription = buildConflictDescription();
+      if (!selectedSeller || !situationType || !conflictContexte.trim() || !conflictComportement.trim()) {
+        toast.error('Veuillez remplir au minimum le contexte et le comportement observé');
+        return;
+      }
+    } else {
+      if (!selectedSeller || !situationType || !description.trim()) {
+        toast.error('Veuillez remplir tous les champs');
+        return;
+      }
     }
-    
-    // IMPORTANT : Fermer le modal AVANT l'appel API (pattern correct)
-    // Le parent va faire l'appel API et rouvrir le modal
+
     if (onSuccess) {
       onSuccess({
         seller_id: selectedSeller,
         advice_type: activeFormTab,
         situation_type: situationType,
-        description: description
+        description: finalDescription
       });
+    }
+  };
+
+  const handleToggleResolved = async (item) => {
+    try {
+      setResolvingItem(item.id);
+      const newResolved = !item.resolved;
+      const userRole = user?.role || 'manager';
+      const apiPrefix = getApiPrefixByRole(userRole);
+      await api.patch(
+        `${apiPrefix}/relationship-consultation/${item.id}/resolve${storeIdParam}`,
+        { resolved: newResolved }
+      );
+      setHistory(prev => prev.map(h =>
+        h.id === item.id ? { ...h, resolved: newResolved } : h
+      ));
+      toast.success(newResolved ? '✅ Marqué comme résolu' : 'Consultation rouverte');
+    } catch (error) {
+      logger.error('Error toggling resolved:', error);
+      toast.error('Erreur lors de la mise à jour');
+    } finally {
+      setResolvingItem(null);
     }
   };
   
@@ -168,6 +204,20 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
     setSelectedSeller('');
     setSituationType('');
     setDescription('');
+    setConflictContexte('');
+    setConflictComportement('');
+    setConflictImpact('');
+    setConflictTentatives('');
+  };
+
+  // Build description from structured conflict fields
+  const buildConflictDescription = () => {
+    const parts = [];
+    if (conflictContexte.trim()) parts.push(`Contexte : ${conflictContexte.trim()}`);
+    if (conflictComportement.trim()) parts.push(`Comportement observé : ${conflictComportement.trim()}`);
+    if (conflictImpact.trim()) parts.push(`Impact sur l'équipe : ${conflictImpact.trim()}`);
+    if (conflictTentatives.trim()) parts.push(`Tentatives précédentes : ${conflictTentatives.trim()}`);
+    return parts.join('\n');
   };
   
   // Filter history by type and seller
@@ -352,23 +402,74 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                   </select>
                 </div>
                 
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    📝 Description détaillée
-                  </label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Décrivez la situation en détail : contexte, ce qui s'est passé, ce que le vendeur a dit, vos préoccupations..."
-                    rows={6}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Plus vous donnez de détails, plus les recommandations seront précises
-                  </p>
-                </div>
+                {/* Description — structurée pour conflit, libre pour relationnel */}
+                {activeFormTab === 'conflit' ? (
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      📝 Description structurée du conflit
+                    </label>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Contexte *</label>
+                      <textarea
+                        value={conflictContexte}
+                        onChange={(e) => setConflictContexte(e.target.value)}
+                        placeholder="Quelle est la situation générale ? Depuis quand ? Dans quel contexte ?"
+                        rows={2}
+                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none resize-none text-sm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Comportement observé *</label>
+                      <textarea
+                        value={conflictComportement}
+                        onChange={(e) => setConflictComportement(e.target.value)}
+                        placeholder="Qu'avez-vous observé concrètement ? Faits précis, sans jugement..."
+                        rows={2}
+                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none resize-none text-sm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Impact sur l'équipe / le magasin</label>
+                      <textarea
+                        value={conflictImpact}
+                        onChange={(e) => setConflictImpact(e.target.value)}
+                        placeholder="Quelles sont les conséquences observées ? Ambiance, performance, clients..."
+                        rows={2}
+                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none resize-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Tentatives précédentes</label>
+                      <textarea
+                        value={conflictTentatives}
+                        onChange={(e) => setConflictTentatives(e.target.value)}
+                        placeholder="Avez-vous déjà essayé quelque chose ? Qu'est-ce qui n'a pas fonctionné ?"
+                        rows={2}
+                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none resize-none text-sm"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">* Champs obligatoires — Plus vous détaillez, plus les conseils seront précis</p>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      📝 Description détaillée
+                    </label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Décrivez la situation en détail : contexte, ce qui s'est passé, ce que le vendeur a dit, vos préoccupations..."
+                      rows={6}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Plus vous donnez de détails, plus les recommandations seront précises
+                    </p>
+                  </div>
+                )}
                 
                 {/* Submit button */}
                 <button
@@ -518,15 +619,20 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                               </div>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                                  item.advice_type === 'relationnel' 
-                                    ? 'bg-blue-100 text-blue-700' 
+                                  item.advice_type === 'relationnel'
+                                    ? 'bg-blue-100 text-blue-700'
                                     : 'bg-red-100 text-red-700'
                                 }`}>
                                   {item.advice_type === 'relationnel' ? '🤝 Relationnel' : '⚡ Conflit'}
                                 </span>
                                 <span className="text-sm text-gray-600 font-medium">
-                                  {item.situation_type}
+                                  {situationTypes[item.advice_type]?.find(t => t.value === item.situation_type)?.label || item.situation_type}
                                 </span>
+                                {item.resolved && (
+                                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                                    ✓ Résolu
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -544,6 +650,25 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                                   }`}
                                 />
                               </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleResolved(item);
+                                }}
+                                disabled={resolvingItem === item.id}
+                                className={`p-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-1 ${
+                                  item.resolved
+                                    ? 'text-green-600 hover:bg-green-50'
+                                    : 'text-gray-400 hover:bg-green-50 hover:text-green-600'
+                                }`}
+                                title={item.resolved ? 'Marquer comme non résolu' : 'Marquer comme résolu'}
+                              >
+                                {resolvingItem === item.id ? (
+                                  <Loader className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <span>{item.resolved ? '✓' : '○'}</span>
+                                )}
+                              </button>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();

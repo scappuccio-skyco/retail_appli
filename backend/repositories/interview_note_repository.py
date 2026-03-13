@@ -40,6 +40,13 @@ class InterviewNoteRepository(BaseRepository):
             {"seller_id": seller_id},
             sort=[("created_at", -1)]
         )
+
+    async def find_shared_by_seller(self, seller_id: str) -> List[Dict]:
+        """Find interview notes shared with manager for a seller"""
+        return await self.find_many(
+            {"seller_id": seller_id, "shared_with_manager": True},
+            sort=[("created_at", -1)]
+        )
     
     async def create_note(self, note_data: Dict[str, Any]) -> str:
         """Create a new interview note"""

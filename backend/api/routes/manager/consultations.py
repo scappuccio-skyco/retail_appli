@@ -212,6 +212,28 @@ async def get_conflict_history(
     return {"consultations": conflicts, "total": len(conflicts)}
 
 
+@router.patch("/relationship-consultation/{consultation_id}/resolve")
+async def resolve_relationship_consultation(
+    request: Request,
+    consultation_id: str,
+    body: dict,
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context),
+    manager_service: ManagerService = Depends(get_manager_service),
+):
+    """Toggle resolved status of a relationship consultation."""
+    resolved_store_id = context.get("resolved_store_id")
+    manager_id = context.get("id")
+    resolved = bool(body.get("resolved", False))
+
+    updated = await manager_service.resolve_relationship_consultation(
+        consultation_id, manager_id, resolved_store_id, resolved
+    )
+    if not updated:
+        raise NotFoundError("Consultation non trouvée")
+    return {"success": True, "resolved": resolved}
+
+
 @router.delete("/relationship-consultation/{consultation_id}")
 async def delete_relationship_consultation(
     request: Request,

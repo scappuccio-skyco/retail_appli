@@ -2220,6 +2220,7 @@ async def create_interview_note(
             "seller_id": seller_id,
             "date": date,
             "content": content,
+            "shared_with_manager": False,
             "created_at": now.isoformat(),
             "updated_at": now.isoformat()
         }
@@ -2255,6 +2256,29 @@ async def update_interview_note(
     return {
         "success": True,
         "message": "Note mise à jour avec succès"
+    }
+
+
+@router.patch("/interview-notes/{note_id}/visibility")
+async def toggle_interview_note_visibility(
+    note_id: str,
+    visibility_data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service),
+):
+    """
+    Toggle la visibilité d'une note d'entretien pour le manager.
+    """
+    seller_id = current_user['id']
+    shared = bool(visibility_data.get('shared_with_manager', False))
+    note = await seller_service.get_interview_note_by_id_and_seller(note_id, seller_id)
+    if not note:
+        raise NotFoundError("Note non trouvée")
+    await seller_service.toggle_interview_note_visibility(note_id, seller_id, shared)
+    return {
+        "success": True,
+        "shared_with_manager": shared,
+        "message": "Note partagée avec le manager" if shared else "Note masquée au manager"
     }
 
 
