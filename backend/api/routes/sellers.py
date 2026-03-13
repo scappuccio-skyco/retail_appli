@@ -1448,27 +1448,33 @@ async def generate_bilan_individuel(
                 except Exception as _e:
                     logger.warning("Could not fetch debriefs for bilan: %s", _e)
 
-                # 🛑 STRICT SELLER PROMPT V3 - No marketing, no traffic, no promotions
-                prompt = f"""Génère un bilan de performance pour {seller_name}.
+                # 🛑 SELLER PROMPT V4 — Data-driven, specific, no generic advice
+                prompt = f"""Tu es un coach de vente retail expert. Génère un bilan DÉTAILLÉ et PERSONNALISÉ pour {seller_name}.
 {disc_block}
-📊 DONNÉES VENDEUR (ignore tout ce qui n'est pas listé) :
-- CA total: {total_ca:.0f}€
-- Nombre de ventes: {total_ventes}
-- Panier moyen: {panier_moyen:.2f}€
-- Jours travaillés: {nb_jours}
+📊 DONNÉES DE LA PÉRIODE ({eff_start} → {eff_end}) :
+- CA total : {total_ca:.0f}€  |  Jours avec données : {nb_jours}
+- Ventes conclues : {total_ventes}  |  Panier moyen : {panier_moyen:.2f}€
 {optional_block}
 {scores_block}
 {debrief_bilan_block}
 {prev_bilan_block}
-⚠️ RAPPEL STRICT : Ne parle PAS de trafic, promotions, réseaux sociaux ou marketing.
-Si le CA est bon, félicite simplement. Focus sur accueil, vente additionnelle, closing.
+🚫 RÈGLES ABSOLUES :
+1. Cite les CHIFFRES RÉELS dans chaque point (CA, panier moyen, scores, ratios).
+2. INTERDIT : "Développe tes compétences", "Fixe-toi un objectif", "Continue ainsi", "Analyse tes ventes", tout conseil vague.
+3. INTERDIT : mentionner la saisie des KPI, la régularité, les outils ou la connexion.
+4. INTERDIT : parler de trafic, promotions, réseaux sociaux, marketing.
+5. Points forts = données ÉLEVÉES (bon score, bon panier, bon taux) avec le chiffre exact.
+6. Points d'amélioration = SCORE BAS ou RATIO sous-performant avec valeur exacte + explication terrain concrète.
+7. Recommandations = actions précises en boutique, applicables dès demain (technique de vente, geste commercial, phrase d'accroche).
+8. Minimum 3 points forts, 3 points d'amélioration, 3 recommandations.
+9. La synthèse doit commenter le CA ({total_ca:.0f}€), le panier moyen ({panier_moyen:.2f}€) et la tendance générale.
 
-Génère un bilan structuré au format JSON:
+Génère un bilan structuré au format JSON :
 {{
-  "synthese": "Une phrase de félicitation sincère basée sur le CA et le panier moyen",
-  "points_forts": ["Point fort lié à la VENTE", "Point fort lié au SERVICE CLIENT"],
-  "points_attention": ["Axe d'amélioration terrain (accueil, closing, vente additionnelle)"],
-  "recommandations": ["Action concrète en boutique 1", "Action concrète en boutique 2"]
+  "synthese": "2-3 phrases analysant CA, panier moyen et tendance clé de la période — avec les chiffres réels",
+  "points_forts": ["Point fort 1 avec chiffre précis", "Point fort 2 avec chiffre précis", "Point fort 3 avec chiffre précis"],
+  "points_attention": ["Axe 1 : score ou ratio exact + impact terrain", "Axe 2 : chiffre + explication", "Axe 3 : chiffre + levier d'action"],
+  "recommandations": ["Action concrète terrain 1 (technique précise)", "Action concrète terrain 2", "Action concrète terrain 3"]
 }}"""
 
                 # Import the strict prompt + DISC adaptation instructions

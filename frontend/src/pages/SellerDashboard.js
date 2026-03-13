@@ -271,7 +271,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         setKpiEntriesPage(1);
         setKpiEntriesTotal(rawKpi?.total ?? entries.length);
 
-        const today = new Date().toISOString().split('T')[0];
+        const _now = new Date();
+        const today = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
         const hasTodayKPI = entries.some(e => e.date === today);
 
         let newTasks = [...tasksRes.data];

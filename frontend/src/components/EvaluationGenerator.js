@@ -35,9 +35,9 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
   // Ref pour le container du guide (source unique pour le PDF - DOM snapshot)
   const guideContentRef = useRef(null);
 
-  // Charger les notes d'entretien si vendeur
+  // Charger les notes d'entretien (vendeur = ses propres notes, manager = notes partagées par le vendeur)
   useEffect(() => {
-    if (isOpen && role === 'seller' && employeeId) {
+    if (isOpen && employeeId) {
       loadInterviewNotes();
     }
   }, [isOpen, role, employeeId, startDate, endDate]);
@@ -45,18 +45,18 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
   const loadInterviewNotes = async () => {
     try {
       setLoadingNotes(true);
-      const response = await api.get('/seller/interview-notes');
-      const allNotes = response.data.notes || [];
-      
-      // Filtrer les notes dans la période sélectionnée
-      const notesInPeriod = allNotes.filter(note => {
-        return startDate <= note.date && note.date <= endDate;
-      });
-      
+      let allNotes = [];
+      if (role === 'manager') {
+        const response = await api.get(`/manager/sellers/${employeeId}/interview-notes`);
+        allNotes = response.data.notes || [];
+      } else {
+        const response = await api.get('/seller/interview-notes');
+        allNotes = response.data.notes || [];
+      }
+      const notesInPeriod = allNotes.filter(note => startDate <= note.date && note.date <= endDate);
       setInterviewNotes(notesInPeriod);
     } catch (error) {
       logger.error('Error loading interview notes:', error);
-      // Ne pas bloquer si les notes ne peuvent pas être chargées
       setInterviewNotes([]);
     } finally {
       setLoadingNotes(false);
@@ -162,10 +162,11 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     setExportingPDF(true);
     
     try {
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+      const [jspdfModule, { default: html2canvas }] = await Promise.all([
         import('jspdf'),
         import('html2canvas'),
       ]);
+      const jsPDF = jspdfModule.jsPDF ?? jspdfModule.default;
 
       // Vérifier si le ref est disponible (le guide doit être rendu)
       if (!guideContentRef.current) {
@@ -384,31 +385,48 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
             </div>
           </div>
 
-          {/* Notes Info (Seller) */}
-          {!guideData && !loading && role === 'seller' && (
+          {/* Notes d'entretien */}
+          {!guideData && !loading && (
             <div className="bg-pink-50 rounded-xl p-4 mb-4 border-2 border-pink-100">
               <h3 className="text-sm font-semibold text-pink-800 mb-2 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                Notes du bloc-notes
+                {role === 'manager' ? 'Notes partagées par le vendeur' : 'Notes du bloc-notes'}
               </h3>
               {loadingNotes ? (
                 <p className="text-sm text-pink-600">Chargement des notes...</p>
               ) : interviewNotes.length > 0 ? (
-                <div>
-                  <p className="text-sm text-pink-700 mb-2">
-                    ✅ {interviewNotes.length} note{interviewNotes.length > 1 ? 's' : ''} trouvée{interviewNotes.length > 1 ? 's' : ''} dans cette période
+                <div className="space-y-2">
+                  <p className="text-sm text-pink-700">
+                    ✅ {interviewNotes.length} note{interviewNotes.length > 1 ? 's' : ''} dans cette période
+                    {role === 'manager' && ' — partagées par le vendeur'}
                   </p>
-                  <p className="text-xs text-pink-600">
-                    💡 Ces notes seront incluses dans ta synthèse. Les notes marquées 👁️ seront aussi visibles dans le guide de ton manager.
-                  </p>
+                  {role === 'manager' && (
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                      {interviewNotes.map((note, i) => (
+                        <div key={i} className="bg-white rounded-lg p-2 border border-pink-200">
+                          <p className="text-xs text-pink-500 mb-0.5">
+                            {new Date(note.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                          </p>
+                          <p className="text-sm text-gray-700">{note.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {role === 'seller' && (
+                    <p className="text-xs text-pink-600">
+                      💡 Ces notes seront incluses dans ta synthèse. Les notes marquées 👁️ seront aussi visibles dans le guide de ton manager.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div>
-                  <p className="text-sm text-pink-700 mb-2">
-                    📝 Aucune note dans cette période
+                  <p className="text-sm text-pink-700 mb-1">
+                    {role === 'manager' ? '📝 Aucune note partagée par le vendeur pour cette période' : '📝 Aucune note dans cette période'}
                   </p>
                   <p className="text-xs text-pink-600">
-                    💡 Utilise le bloc-notes pour prendre des notes quotidiennes. Choisis lesquelles partager avec ton manager via l'icône 👁️.
+                    {role === 'manager'
+                      ? '💡 Le vendeur peut partager ses notes via l\'icône 👁️ dans son bloc-notes.'
+                      : '💡 Utilise le bloc-notes pour prendre des notes quotidiennes. Choisis lesquelles partager avec ton manager via l\'icône 👁️.'}
                   </p>
                 </div>
               )}

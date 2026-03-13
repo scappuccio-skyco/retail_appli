@@ -11,7 +11,8 @@ from core.constants import QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError
 from api.routes.manager.dependencies import get_store_context, get_store_context_required, get_verified_seller
 from api.routes.manager.response_utils import pagination_dict
-from api.dependencies import get_manager_service, get_relationship_service, get_conflict_service
+from api.dependencies import get_manager_service, get_relationship_service, get_conflict_service, get_seller_service
+from services.seller_service import SellerService
 from core.security import verify_seller_store_access
 from services.manager_service import ManagerService
 from services.relationship_service import RelationshipService
@@ -335,3 +336,18 @@ async def delete_relationship_consultation(
         return {"success": True, "message": "Consultation supprimée"}
     except AppException:
         raise
+
+
+@router.get("/sellers/{seller_id}/interview-notes")
+async def get_seller_shared_interview_notes(
+    request: Request,
+    seller_id: str,
+    store_id: str = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context),
+    seller_service: SellerService = Depends(get_seller_service),
+):
+    """Récupère les notes d'entretien partagées par un vendeur avec son manager."""
+    resolved_store_id = context.get("resolved_store_id")
+    await get_verified_seller(seller_id, resolved_store_id, seller_service)
+    notes = await seller_service.get_shared_interview_notes_by_seller(seller_id)
+    return {"notes": notes}

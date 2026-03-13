@@ -444,29 +444,28 @@ export default function PerformanceModal({
     }
   }, [generatingBilan, bilanData?.synthese]);
 
-  if (!isOpen) return null;
-
   // Prepare chart data from KPI entries for current week
+  // NOTE: must be defined BEFORE the early return to respect Rules of Hooks
   const chartData = useMemo(() => {
     if (!kpiEntries || kpiEntries.length === 0) return [];
-    
+
     const now = new Date();
     const offsetDays = (currentWeekOffset || 0) * 7;
     const monday = new Date(now);
     monday.setDate(monday.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) + offsetDays);
     monday.setHours(0, 0, 0, 0);
-    
+
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23, 59, 59, 999);
-    
+
     const weekEntries = kpiEntries.filter(entry => {
       const entryDate = new Date(entry.date);
       return entryDate >= monday && entryDate <= sunday;
     });
-    
+
     const sortedEntries = weekEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
-    
+
     return sortedEntries.map(entry => ({
       date: new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
       CA: entry.ca_journalier || 0,
@@ -476,6 +475,8 @@ export default function PerformanceModal({
       'Panier Moyen': entry.ca_journalier && entry.nb_ventes ? (entry.ca_journalier / entry.nb_ventes).toFixed(2) : 0
     }));
   }, [kpiEntries, currentWeekOffset]);
+
+  if (!isOpen) return null;
 
   // Export to PDF function
   const exportToPDF = async () => {
@@ -489,10 +490,11 @@ export default function PerformanceModal({
     });
     
     try {
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+      const [jspdfModule, { default: html2canvas }] = await Promise.all([
         import('jspdf'),
         import('html2canvas'),
       ]);
+      const jsPDF = jspdfModule.jsPDF ?? jspdfModule.default;
 
       await new Promise(resolve => setTimeout(resolve, 150));
 
