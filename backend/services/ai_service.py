@@ -742,7 +742,8 @@ Consignes :
         debrief_data: Dict,
         current_scores: Dict,
         kpi_context: str = "",
-        is_success: bool = True
+        is_success: bool = True,
+        previous_coaching: Optional[List[Dict]] = None,
     ) -> Dict:
         """
         Generate sales debrief analysis
@@ -793,7 +794,7 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
    - Les autres compétences (non impliquées) : delta entre 0.0 et +0.2
    - JAMAIS de delta négatif sur une vente réussie
    - Sois précis et proportionnel à la qualité décrite
-
+{("\\n### HISTORIQUE COACHING RÉCENT\\n" + "\\n".join(f"- [{c['date']}] {'✅' if c.get('was_success') else '❌'} {c['recommendation']}" for c in (previous_coaching or []) if c.get('recommendation')) + "\\nNe répète pas ces recommandations. Construis sur elles ou adresse un angle différent.\\n") if previous_coaching else ""}
 ### FORMAT DE SORTIE (JSON uniquement)
 {{
   "analyse": "[2–3 phrases de FÉLICITATIONS enthousiastes]",
@@ -847,7 +848,7 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
    - Les compétences non impliquées : delta 0.0
    - Si le vendeur a bien géré un aspect malgré l'échec : delta entre 0.0 et +0.2
    - Sois mesuré : un seul débrief ne doit pas tout changer
-
+{("\\n### HISTORIQUE COACHING RÉCENT\\n" + "\\n".join(f"- [{c['date']}] {'✅' if c.get('was_success') else '❌'} {c['recommendation']}" for c in (previous_coaching or []) if c.get('recommendation')) + "\\nNe répète pas ces recommandations. Construis sur elles ou adresse un angle différent.\\n") if previous_coaching else ""}
 ### FORMAT DE SORTIE (JSON uniquement)
 {{
   "analyse": "[2–3 phrases d'analyse réaliste, orientée performance]",

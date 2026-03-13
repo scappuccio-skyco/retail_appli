@@ -86,13 +86,34 @@ async def create_debrief(
     ai_points_travailler = ""
     ai_recommandation = ""
     ai_exemple_concret = ""
+    previous_coaching = []
+    try:
+        prev_debriefs = await seller_service.get_debriefs_by_seller(
+            seller_id,
+            projection={"_id": 0, "ai_recommandation": 1, "vente_conclue": 1, "date": 1},
+            limit=2,
+            sort=[("created_at", -1)],
+        )
+        previous_coaching = [
+            {
+                "date": d.get("date", ""),
+                "recommendation": d.get("ai_recommandation", ""),
+                "was_success": d.get("vente_conclue", False),
+            }
+            for d in prev_debriefs
+            if d.get("ai_recommandation")
+        ]
+    except Exception as _e:
+        logger.warning("Could not fetch previous debriefs for feedback loop: %s", _e)
+
     if ai_service.available:
         try:
             feedback_result = await ai_service.generate_debrief(
                 debrief_data=debrief_data.dict(),
                 current_scores=current_scores,
                 kpi_context=kpi_context,
-                is_success=debrief_data.vente_conclue
+                is_success=debrief_data.vente_conclue,
+                previous_coaching=previous_coaching,
             )
             if feedback_result:
                 ai_analyse = feedback_result.get('analyse', '')

@@ -1388,6 +1388,22 @@ async def generate_bilan_individuel(
                 if disc_style:
                     disc_block = f"\n🎯 PROFIL DISC du vendeur : {disc_style}\nAdapte ton ton et ta formulation à ce profil (D=direct/résultats, I=enthousiaste/humain, S=rassurant/empathique, C=factuel/chiffres).\n"
 
+                # Fetch previous bilan recommandations for continuity
+                prev_bilan_block = ""
+                try:
+                    prev_bilans = await seller_service.get_bilans_paginated(seller_id, page=1, size=1)
+                    prev_items = prev_bilans.get("items") or prev_bilans if isinstance(prev_bilans, list) else []
+                    if prev_items:
+                        prev_recos = prev_items[0].get("recommandations", [])
+                        if prev_recos:
+                            prev_bilan_block = (
+                                "\n📋 RECOMMANDATIONS DU BILAN PRÉCÉDENT (ne pas répéter, construire dessus) :\n"
+                                + "\n".join(f"- {r}" for r in prev_recos[:3])
+                                + "\n"
+                            )
+                except Exception as _e:
+                    logger.warning("Could not fetch previous bilan for feedback loop: %s", _e)
+
                 # 🛑 STRICT SELLER PROMPT V3 - No marketing, no traffic, no promotions
                 prompt = f"""Génère un bilan de performance pour {seller_name}.
 {disc_block}
@@ -1397,7 +1413,7 @@ async def generate_bilan_individuel(
 - Panier moyen: {panier_moyen:.2f}€
 - Jours travaillés: {nb_jours}
 {optional_block}
-
+{prev_bilan_block}
 ⚠️ RAPPEL STRICT : Ne parle PAS de trafic, promotions, réseaux sociaux ou marketing.
 Si le CA est bon, félicite simplement. Focus sur accueil, vente additionnelle, closing.
 
