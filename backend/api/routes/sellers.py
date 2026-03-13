@@ -890,8 +890,8 @@ async def get_daily_challenge(
             if not selected_competence:
                 selected_competence = sorted_comps[0][0]
     
-    # Challenge templates by competence - with pedagogical tips and reasons
-    templates = {
+    # Static fallback templates (used when AI is unavailable)
+    _fallback_templates = {
             'accueil': {
                 'title': 'Accueil Excellence',
                 'description': 'Accueillez chaque client avec un sourire et une phrase personnalisée dans les 10 premières secondes.',
@@ -923,26 +923,72 @@ async def get_daily_challenge(
                 'reason': 'Un client fidélisé revient et recommande. C\'est la clé d\'une carrière commerciale réussie.'
             }
     }
-    
-    template = templates.get(selected_competence, templates['accueil'])
-    
+
+    # Build context for AI generation
+    competence_scores = None
+    disc_profile = {}
+    if diagnostic:
+        competence_scores = {
+            'accueil': diagnostic.get('score_accueil', 6.0),
+            'decouverte': diagnostic.get('score_decouverte', 6.0),
+            'argumentation': diagnostic.get('score_argumentation', 6.0),
+            'closing': diagnostic.get('score_closing', 6.0),
+            'fidelisation': diagnostic.get('score_fidelisation', 6.0),
+        }
+        disc_profile = diagnostic.get('profile', {}) or {}
+
+    recent_challenge_titles = [ch.get('title', '') for ch in recent if ch.get('title')]
+
+    # Fetch recent KPIs for AI context (last 7 days)
+    from datetime import timedelta as _td
+    seven_days_ago = (datetime.now(timezone.utc) - _td(days=7)).strftime('%Y-%m-%d')
+    try:
+        kpi_page = await seller_service.get_kpis_for_period_paginated(
+            seller_id, seven_days_ago, today, page=1, size=7
+        )
+        recent_kpis = kpi_page.items if kpi_page else []
+    except Exception:
+        recent_kpis = []
+
+    # Try AI-generated challenge first, fallback to static template
+    ai_service_inst = None
+    ai_title = None
+    ai_description = None
+    try:
+        from services.ai_service import AIService as _AIService
+        ai_service_inst = _AIService()
+        if ai_service_inst.available:
+            ai_result = await ai_service_inst.generate_daily_challenge(
+                seller_profile=disc_profile,
+                recent_kpis=recent_kpis if isinstance(recent_kpis, list) else [],
+                target_competence=selected_competence,
+                competence_scores=competence_scores,
+                recent_challenge_titles=recent_challenge_titles,
+            )
+            ai_title = ai_result.get('title')
+            ai_description = ai_result.get('description')
+    except Exception as _e:
+        logger.warning("AI daily challenge generation failed, using template: %s", _e)
+
+    template = _fallback_templates.get(selected_competence, _fallback_templates['accueil'])
+
     challenge = {
             "id": str(uuid4()),
             "seller_id": seller_id,
             "date": today,
             "competence": selected_competence,
-            "title": template['title'],
-            "description": template['description'],
+            "title": ai_title or template['title'],
+            "description": ai_description or template['description'],
             "pedagogical_tip": template['pedagogical_tip'],
             "reason": template['reason'],
             "completed": False,
             "created_at": datetime.now(timezone.utc).isoformat()
     }
-    
+
     await seller_service.create_daily_challenge(challenge)
     if '_id' in challenge:
             del challenge['_id']
-    
+
     return challenge
 
 

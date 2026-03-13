@@ -1007,55 +1007,87 @@ Réponds en JSON avec le format attendu (style, level, strengths, axes_de_develo
     async def generate_daily_challenge(
         self,
         seller_profile: Dict,
-        recent_kpis: List[Dict]
+        recent_kpis: List[Dict],
+        target_competence: str = "",
+        competence_scores: Optional[Dict] = None,
+        recent_challenge_titles: Optional[List[str]] = None,
     ) -> Dict:
-        """Generate personalized daily challenge with DISC adaptation"""
+        """
+        Generate personalized daily challenge with DISC adaptation.
+
+        Args:
+            seller_profile: DISC profile dict (style, level, strengths)
+            recent_kpis: Recent KPI entries (last 7 days)
+            target_competence: Pre-selected competence to focus on (weakest not recently used)
+            competence_scores: Dict of {competence: score} for all 5 skills
+            recent_challenge_titles: Titles of the last N challenges (to avoid repetition)
+        """
+        _fallback = {
+            "title": "Augmente ton panier moyen",
+            "description": "Propose 2 produits complémentaires à chaque client",
+            "competence": target_competence or "vente_additionnelle",
+        }
         if not self.available:
-            return {
-                "title": "Augmente ton panier moyen",
-                "description": "Propose 2 produits complémentaires à chaque client",
-                "competence": "vente_additionnelle"
-            }
-        
+            return _fallback
+
         avg_ca = sum(k.get('ca_journalier', 0) for k in recent_kpis) / len(recent_kpis) if recent_kpis else 0
         disc_style = seller_profile.get('style', 'Non défini')
         disc_level = seller_profile.get('level', 50)
         disc_strengths = ', '.join(seller_profile.get('strengths', [])) if seller_profile.get('strengths') else 'N/A'
-        
+
+        # Scores block — helps AI understand the priority
+        scores_block = ""
+        if competence_scores:
+            scores_lines = "\n".join(
+                f"- {k.capitalize()} : {v:.1f}/10" for k, v in competence_scores.items()
+            )
+            scores_block = f"\n📊 SCORES DE COMPÉTENCES ACTUELS :\n{scores_lines}\n"
+
+        # Competence target block
+        target_block = ""
+        if target_competence:
+            target_block = f"\n🎯 COMPÉTENCE CIBLÉE AUJOURD'HUI : **{target_competence}** (c'est la compétence à travailler en priorité — assure-toi que le défi porte bien sur elle)\n"
+
+        # Anti-repeat block
+        avoid_block = ""
+        if recent_challenge_titles:
+            avoid_block = (
+                "\n⛔ DÉFIS RÉCENTS À NE PAS RÉPÉTER (même idée ou même titre) :\n"
+                + "\n".join(f"- {t}" for t in recent_challenge_titles[:7])
+                + "\n"
+            )
+
         prompt = f"""🎯 VENDEUR À CHALLENGER :
 - Profil DISC : {disc_style} (niveau {disc_level}/100)
 - Forces connues : {disc_strengths}
 - Performance récente : CA moyen {avg_ca:.0f}€/jour
-
+{scores_block}{target_block}{avoid_block}
 {DISC_ADAPTATION_INSTRUCTIONS}
 
 📋 MISSION : Génère UN défi quotidien personnalisé qui :
-1. CORRESPOND au style DISC du vendeur (ton, formulation)
-2. S'appuie sur ses forces pour progresser
-3. Est réalisable en une journée
+1. CIBLE obligatoirement la compétence indiquée ci-dessus
+2. CORRESPOND au style DISC du vendeur (ton, formulation)
+3. Est original — différent des défis récents listés
+4. Est réalisable en une journée en boutique
 
 Réponds UNIQUEMENT avec ce JSON :
-{{"title": "Titre accrocheur adapté au profil", "description": "Description motivante en 1-2 phrases", "competence": "accueil|decouverte|argumentation|closing|vente_additionnelle|fidelisation"}}"""
+{{"title": "Titre accrocheur adapté au profil", "description": "Description motivante en 1-2 phrases", "competence": "{target_competence or 'vente_additionnelle'}"}}"""
 
         response = await self._send_message(
             system_message=CHALLENGE_SYSTEM_PROMPT,
             user_prompt=prompt,
             model="gpt-4o-mini",
-            temperature=0.7
+            temperature=0.8
         )
-        
+
         if response:
-            return parse_json_safely(response, {
-                "title": "Augmente ton panier moyen",
-                "description": "Propose 2 produits complémentaires à chaque client",
-                "competence": "vente_additionnelle"
-            })
-        
-        return {
-            "title": "Augmente ton panier moyen",
-            "description": "Propose 2 produits complémentaires à chaque client",
-            "competence": "vente_additionnelle"
-        }
+            result = parse_json_safely(response, _fallback)
+            # Ensure the returned competence matches what was targeted
+            if target_competence:
+                result['competence'] = target_competence
+            return result
+
+        return _fallback
 
     # ==========================================================================
     # 📈 SELLER BILAN
