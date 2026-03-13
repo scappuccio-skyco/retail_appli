@@ -1319,6 +1319,10 @@ async def generate_bilan_individuel(
     ai_service = AIService()
     seller_data = await seller_service.get_seller_profile(seller_id)
     seller_name = seller_data.get('name', 'Vendeur') if seller_data else 'Vendeur'
+    # Retrieve seller DISC profile for personalization
+    diagnostic = await seller_service.get_diagnostic_for_seller(seller_id)
+    disc_profile = diagnostic.get('profile', {}) if diagnostic else {}
+    disc_style = disc_profile.get('style', '') if disc_profile else ''
     synthese = ""
     points_forts = []
     points_attention = []
@@ -1333,9 +1337,14 @@ async def generate_bilan_individuel(
                     optional_kpis.append(f"- Articles vendus: {total_articles} (indice de vente: {indice_vente:.2f} art/vente)")
                 optional_block = "\n".join(optional_kpis) if optional_kpis else ""
 
+                # DISC block — injected only when profile is known
+                disc_block = ""
+                if disc_style:
+                    disc_block = f"\n🎯 PROFIL DISC du vendeur : {disc_style}\nAdapte ton ton et ta formulation à ce profil (D=direct/résultats, I=enthousiaste/humain, S=rassurant/empathique, C=factuel/chiffres).\n"
+
                 # 🛑 STRICT SELLER PROMPT V3 - No marketing, no traffic, no promotions
                 prompt = f"""Génère un bilan de performance pour {seller_name}.
-
+{disc_block}
 📊 DONNÉES VENDEUR (ignore tout ce qui n'est pas listé) :
 - CA total: {total_ca:.0f}€
 - Nombre de ventes: {total_ventes}
@@ -1354,15 +1363,16 @@ Génère un bilan structuré au format JSON:
   "recommandations": ["Action concrète en boutique 1", "Action concrète en boutique 2"]
 }}"""
 
-                # Import the strict prompt
-                from services.ai_service import SELLER_STRICT_SYSTEM_PROMPT
-                
+                # Import the strict prompt + DISC adaptation instructions
+                from services.ai_service import SELLER_STRICT_SYSTEM_PROMPT, DISC_ADAPTATION_INSTRUCTIONS
+                system_prompt = SELLER_STRICT_SYSTEM_PROMPT + "\n" + DISC_ADAPTATION_INSTRUCTIONS + "\nRéponds uniquement en JSON valide."
+
                 chat = ai_service._create_chat(
                     session_id=f"bilan_{seller_id}_{start_date}",
-                    system_message=SELLER_STRICT_SYSTEM_PROMPT + "\nRéponds uniquement en JSON valide.",
+                    system_message=system_prompt,
                     model="gpt-4o-mini"
                 )
-                
+
                 response = await ai_service._send_message(chat, prompt)
                 
                 if response:

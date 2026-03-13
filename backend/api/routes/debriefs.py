@@ -9,6 +9,24 @@ from uuid import uuid4
 from pydantic import BaseModel
 
 from core.exceptions import ForbiddenError, BusinessLogicError, NotFoundError
+
+# Dampening factor: the AI's suggested delta is multiplied by this value before
+# being applied to the running score. Keeps individual debriefs from causing
+# wild swings (max effective change = delta_max * SMOOTHING per debrief).
+_SCORE_SMOOTHING = 0.4
+_SCORE_MIN = 1.0
+_SCORE_MAX = 10.0
+# Allowed delta ranges to guard against out-of-range AI responses
+_SUCCESS_DELTA_RANGE = (-0.1, 0.8)
+_FAILURE_DELTA_RANGE = (-0.5, 0.2)
+
+
+def _apply_delta(current: float, delta: float, is_success: bool) -> float:
+    """Clamp delta to safe range, apply smoothing, return rounded score."""
+    lo, hi = _SUCCESS_DELTA_RANGE if is_success else _FAILURE_DELTA_RANGE
+    clamped = max(lo, min(hi, delta))
+    new_val = current + clamped * _SCORE_SMOOTHING
+    return round(max(_SCORE_MIN, min(_SCORE_MAX, new_val)), 1)
 from core.security import get_current_user, require_active_space
 from api.dependencies import get_ai_service, get_seller_service
 from services.ai_service import AIService
@@ -81,12 +99,14 @@ async def create_debrief(
                 ai_points_travailler = feedback_result.get('points_travailler', '')
                 ai_recommandation = feedback_result.get('recommandation', '')
                 ai_exemple_concret = feedback_result.get('exemple_concret', '')
+                is_success = debrief_data.vente_conclue
                 new_scores = {
-                    'accueil': feedback_result.get('score_accueil', current_scores['accueil']),
-                    'decouverte': feedback_result.get('score_decouverte', current_scores['decouverte']),
-                    'argumentation': feedback_result.get('score_argumentation', current_scores['argumentation']),
-                    'closing': feedback_result.get('score_closing', current_scores['closing']),
-                    'fidelisation': feedback_result.get('score_fidelisation', current_scores['fidelisation'])
+                    k: _apply_delta(
+                        current_scores[k],
+                        feedback_result.get(f'delta_{k}', 0.0),
+                        is_success,
+                    )
+                    for k in ('accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation')
                 }
         except Exception as e:
             logger.error("AI debrief error: %s", e, exc_info=True)

@@ -788,7 +788,11 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
 2. Identifier 2 points forts qui ont contribué au succès
 3. Donner 1 recommandation pour reproduire ou dépasser ce succès
 4. Donner 1 exemple concret et actionnable
-5. **IMPORTANT** : Réévaluer les 5 compétences (sur 10) en valorisant les points forts (+0.4 à +1.0)
+5. **IMPORTANT** : Propose un ajustement (delta) pour chaque compétence.
+   - Les compétences qui ont contribué au succès : delta entre +0.3 et +0.8
+   - Les autres compétences (non impliquées) : delta entre 0.0 et +0.2
+   - JAMAIS de delta négatif sur une vente réussie
+   - Sois précis et proportionnel à la qualité décrite
 
 ### FORMAT DE SORTIE (JSON uniquement)
 {{
@@ -796,11 +800,11 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
   "points_travailler": "[Point fort 1]\\n[Point fort 2]",
   "recommandation": "[Une phrase courte et motivante]",
   "exemple_concret": "[Action concrète pour reproduire ce succès]",
-  "score_accueil": 7.0,
-  "score_decouverte": 8.0,
-  "score_argumentation": 6.0,
-  "score_closing": 7.0,
-  "score_fidelisation": 8.0
+  "delta_accueil": 0.5,
+  "delta_decouverte": 0.3,
+  "delta_argumentation": 0.0,
+  "delta_closing": 0.6,
+  "delta_fidelisation": 0.2
 }}
 
 ### STYLE ATTENDU
@@ -837,7 +841,12 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
 2. Identifier 2 axes d'amélioration concrets
 3. Donner 1 recommandation claire et motivante
 4. Ajouter 1 exemple concret de phrase ou comportement à adopter
-5. **IMPORTANT** : Réévaluer les 5 compétences (sur 10, ajuster légèrement -0.4 à +0.4)
+5. **IMPORTANT** : Propose un ajustement (delta) pour chaque compétence.
+   - La compétence principale en cause : delta entre -0.4 et -0.1
+   - Les compétences secondaires liées : delta entre -0.2 et 0.0
+   - Les compétences non impliquées : delta 0.0
+   - Si le vendeur a bien géré un aspect malgré l'échec : delta entre 0.0 et +0.2
+   - Sois mesuré : un seul débrief ne doit pas tout changer
 
 ### FORMAT DE SORTIE (JSON uniquement)
 {{
@@ -845,11 +854,11 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
   "points_travailler": "[Axe 1]\\n[Axe 2]",
   "recommandation": "[Une phrase courte, claire et motivante]",
   "exemple_concret": "[Une phrase illustrant ce que tu aurais pu dire ou faire]",
-  "score_accueil": 7.0,
-  "score_decouverte": 8.0,
-  "score_argumentation": 6.0,
-  "score_closing": 7.0,
-  "score_fidelisation": 8.0
+  "delta_accueil": 0.0,
+  "delta_decouverte": -0.2,
+  "delta_argumentation": 0.0,
+  "delta_closing": -0.3,
+  "delta_fidelisation": 0.0
 }}
 
 ### STYLE ATTENDU
@@ -871,18 +880,18 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
             return self._fallback_debrief(current_scores, is_success)
     
     def _fallback_debrief(self, current_scores: Dict, is_success: bool) -> Dict:
-        """Fallback debrief (scores sur 10)."""
+        """Fallback debrief — returns deltas (same contract as AI response)."""
         if is_success:
             return {
                 "analyse": "Bravo pour cette vente ! Continue sur cette lancée.",
                 "points_travailler": "Argumentation produit\nClosing",
                 "recommandation": "Continue à appliquer ces techniques gagnantes.",
                 "exemple_concret": "La prochaine fois, propose aussi un produit complémentaire.",
-                "score_accueil": current_scores.get('accueil', 6.0),
-                "score_decouverte": current_scores.get('decouverte', 6.0),
-                "score_argumentation": min(current_scores.get('argumentation', 6.0) + 0.4, 10.0),
-                "score_closing": min(current_scores.get('closing', 6.0) + 0.4, 10.0),
-                "score_fidelisation": current_scores.get('fidelisation', 6.0)
+                "delta_accueil": 0.0,
+                "delta_decouverte": 0.0,
+                "delta_argumentation": 0.5,
+                "delta_closing": 0.5,
+                "delta_fidelisation": 0.2,
             }
         else:
             return {
@@ -890,11 +899,11 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
                 "points_travailler": "Découverte des besoins\nTraitement des objections",
                 "recommandation": "Prends plus de temps pour comprendre les motivations du client.",
                 "exemple_concret": "Essaie de demander : 'Qu'est-ce qui vous ferait hésiter ?'",
-                "score_accueil": current_scores.get('accueil', 6.0),
-                "score_decouverte": max(current_scores.get('decouverte', 6.0) - 0.2, 2.0),
-                "score_argumentation": current_scores.get('argumentation', 6.0),
-                "score_closing": max(current_scores.get('closing', 6.0) - 0.2, 2.0),
-                "score_fidelisation": current_scores.get('fidelisation', 6.0)
+                "delta_accueil": 0.0,
+                "delta_decouverte": -0.2,
+                "delta_argumentation": 0.0,
+                "delta_closing": -0.2,
+                "delta_fidelisation": 0.0,
             }
 
     # ==========================================================================
