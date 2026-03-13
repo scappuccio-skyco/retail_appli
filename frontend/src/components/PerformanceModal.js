@@ -280,7 +280,11 @@ export default function PerformanceModal({
     };
   }, [bilanData?.periode]);
 
-  // Period date range for jour / mois / annee views
+  // Helper: build YYYY-MM-DD from a local Date without UTC shift
+  const toDateStr = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  // Period date range for toutes les vues (semaine incluse)
   const periodRange = useMemo(() => {
     const now = new Date();
     if (viewMode === 'jour') {
@@ -291,14 +295,27 @@ export default function PerformanceModal({
         label: d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
       };
     }
+    if (viewMode === 'semaine') {
+      const offsetDays = (currentWeekOffset || 0) * 7;
+      const dow = now.getDay() || 7; // 1=Lun … 7=Dim
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - dow + 1 + offsetDays);
+      monday.setHours(0, 0, 0, 0);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      return {
+        start_date: toDateStr(monday),
+        end_date: toDateStr(sunday),
+        label: bilanData?.periode || (currentWeekOffset === 0 ? 'Semaine actuelle' : toDateStr(monday)),
+      };
+    }
     if (viewMode === 'mois') {
       const d = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
-      const start = new Date(d.getFullYear(), d.getMonth(), 1);
       const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
       const raw = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
       return {
-        start_date: start.toISOString().split('T')[0],
-        end_date: end.toISOString().split('T')[0],
+        start_date: toDateStr(new Date(d.getFullYear(), d.getMonth(), 1)),
+        end_date: toDateStr(end),
         label: raw.charAt(0).toUpperCase() + raw.slice(1),
       };
     }
@@ -310,43 +327,47 @@ export default function PerformanceModal({
         label: `Année ${year}`,
       };
     }
-    return null; // semaine
-  }, [viewMode, monthOffset, selectedDay, yearOffset]);
+    return null;
+  }, [viewMode, monthOffset, selectedDay, yearOffset, currentWeekOffset, bilanData?.periode]);
 
-  // Fetch KPI entries + métriques server-side + bilan pour les vues jour/mois/annee
+  // Fetch KPI entries + métriques + bilan selon la vue active
   const [periodAggregates, setPeriodAggregates] = useState(null);
   useEffect(() => {
     if (!isOpen || !periodRange) return;
     let cancelled = false;
     setPeriodLoading(true);
     setPeriodEntries([]);
-    setPeriodBilan(null);
-    setPeriodAggregates(null);
+    if (viewMode !== 'semaine') {
+      setPeriodBilan(null);
+      setPeriodAggregates(null);
+    }
+    const needsBilan = viewMode === 'mois' || viewMode === 'annee';
     Promise.all([
-      // Entries pour les graphiques time-series
       api.get('/seller/kpi-entries', {
-        params: { start_date: periodRange.start_date, end_date: periodRange.end_date },
+        params: { start_date: periodRange.start_date, end_date: periodRange.end_date, size: 366 },
       }),
-      // Métriques agrégées server-side — source de vérité unique
       api.get('/seller/kpi-metrics', {
         params: { start_date: periodRange.start_date, end_date: periodRange.end_date },
       }),
-      // Bilan IA existant pour la période
-      api.get('/seller/bilan-individuel/all'),
+      ...(needsBilan ? [api.get('/seller/bilan-individuel/all')] : []),
     ]).then(([entriesRes, metricsRes, bilansRes]) => {
       if (cancelled) return;
       const data = entriesRes.data;
       const entries = Array.isArray(data) ? data : (data?.items ?? []);
       setPeriodEntries(entries.sort((a, b) => new Date(a.date) - new Date(b.date)));
-      setPeriodAggregates(metricsRes.data);
-      const bilans = Array.isArray(bilansRes.data?.bilans) ? bilansRes.data.bilans : [];
-      const existing = bilans.find(b =>
-        b.period_start === periodRange.start_date && b.period_end === periodRange.end_date
-      );
-      setPeriodBilan(existing
-        ? { ...existing, periode: periodRange.label }
-        : { periode: periodRange.label, synthese: '', points_forts: [], points_attention: [], recommandations: [] }
-      );
+      if (viewMode !== 'semaine') {
+        setPeriodAggregates(metricsRes.data);
+      }
+      if (needsBilan && bilansRes) {
+        const bilans = Array.isArray(bilansRes.data?.bilans) ? bilansRes.data.bilans : [];
+        const existing = bilans.find(b =>
+          b.period_start === periodRange.start_date && b.period_end === periodRange.end_date
+        );
+        setPeriodBilan(existing
+          ? { ...existing, periode: periodRange.label }
+          : { periode: periodRange.label, synthese: '', points_forts: [], points_attention: [], recommandations: [] }
+        );
+      }
     }).catch(err => {
       logger.error('Error fetching period data:', err);
     }).finally(() => {
@@ -751,7 +772,7 @@ export default function PerformanceModal({
               {/* Contenu scrollable */}
               <div ref={contentRef} data-pdf-content className="p-6">
 
-                {/* === VUES 30 JOURS ET MOIS === */}
+                {/* === VUES MOIS / ANNEE / JOUR === */}
                 {viewMode !== 'semaine' && (
                   periodLoading ? (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-500">
@@ -760,14 +781,16 @@ export default function PerformanceModal({
                     </div>
                   ) : periodAggregates ? (
                     <>
-                      {/* Titre période */}
-                      <div className="flex items-center gap-2 mb-4">
-                        <BarChart3 className="w-5 h-5 text-orange-600" />
-                        <h3 className="font-bold text-gray-800">{periodRange?.label} — {periodAggregates.nb_jours} jour{periodAggregates.nb_jours > 1 ? 's' : ''} avec données</h3>
-                      </div>
+                      {/* Titre période — masqué pour Jour (redondant avec le sélecteur) */}
+                      {viewMode !== 'jour' && (
+                        <div className="flex items-center gap-2 mb-4">
+                          <BarChart3 className="w-5 h-5 text-orange-600" />
+                          <h3 className="font-bold text-gray-800">{periodRange?.label} — {periodAggregates.nb_jours} jour{periodAggregates.nb_jours > 1 ? 's' : ''} avec données</h3>
+                        </div>
+                      )}
 
-                      {/* KPI Agrégés */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                      {/* KPI Agrégés — masqués pour Jour (même données que le tableau détail) */}
+                      {viewMode !== 'jour' && <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                         {kpiConfig?.track_ca && (
                           <div className="bg-blue-50 rounded-lg p-3">
                             <p className="text-xs text-blue-600 mb-1">💰 CA total</p>
@@ -810,7 +833,7 @@ export default function PerformanceModal({
                             <p className="text-lg font-bold text-teal-900">{periodAggregates.indice_vente.toFixed(2)}</p>
                           </div>
                         )}
-                      </div>
+                      </div>}
 
                       {/* Détail */}
                       <div className="mb-6">
@@ -848,7 +871,7 @@ export default function PerformanceModal({
                                 const pm = entry.nb_ventes > 0 ? entry.ca_journalier / entry.nb_ventes : 0;
                                 return (
                                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                    <td className="px-3 py-2 text-gray-700 font-medium">{new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
+                                    <td className="px-3 py-2 text-gray-700 font-medium">{new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
                                     {kpiConfig?.track_ca && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{entry.ca_journalier != null ? `${entry.ca_journalier.toFixed(0)}€` : '—'}</td>}
                                     {kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-green-900">{entry.nb_ventes ?? '—'}</td>}
                                     {kpiConfig?.track_articles && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
@@ -1055,8 +1078,13 @@ export default function PerformanceModal({
                       )}
                     </div>
 
-                    {/* Détail journalier semaine */}
-                    {chartData.length > 0 && (
+                    {/* Détail journalier semaine — depuis periodEntries (fetchés via API) */}
+                    {periodLoading ? (
+                      <div className="flex items-center gap-2 py-4 text-gray-500 text-sm">
+                        <div className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                        Chargement du détail...
+                      </div>
+                    ) : periodEntries.length > 0 ? (
                       <div className="mb-6">
                         <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
                           <BarChart3 className="w-4 h-4 text-gray-500" />
@@ -1075,15 +1103,15 @@ export default function PerformanceModal({
                               </tr>
                             </thead>
                             <tbody>
-                              {chartData.map((row, i) => {
-                                const pm = row.Ventes > 0 ? row.CA / row.Ventes : 0;
+                              {periodEntries.map((entry, i) => {
+                                const pm = entry.nb_ventes > 0 ? entry.ca_journalier / entry.nb_ventes : 0;
                                 return (
                                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                    <td className="px-3 py-2 text-gray-700 font-medium">{row.date}</td>
-                                    {kpiConfig?.track_ca && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{row.CA ? `${row.CA.toFixed(0)}€` : '—'}</td>}
-                                    {kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-green-900">{row.Ventes || '—'}</td>}
-                                    {kpiConfig?.track_articles && <td className="text-right px-3 py-2 text-orange-900">{row.Articles || '—'}</td>}
-                                    {kpiConfig?.track_prospects && <td className="text-right px-3 py-2 text-purple-900">{row.Prospects || '—'}</td>}
+                                    <td className="px-3 py-2 text-gray-700 font-medium">{new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
+                                    {kpiConfig?.track_ca && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{entry.ca_journalier != null ? `${entry.ca_journalier.toFixed(0)}€` : '—'}</td>}
+                                    {kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-green-900">{entry.nb_ventes ?? '—'}</td>}
+                                    {kpiConfig?.track_articles && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
+                                    {kpiConfig?.track_prospects && <td className="text-right px-3 py-2 text-purple-900">{entry.nb_prospects ?? '—'}</td>}
                                     {kpiConfig?.track_ca && kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
                                   </tr>
                                 );
@@ -1092,6 +1120,8 @@ export default function PerformanceModal({
                           </table>
                         </div>
                       </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 mb-4">Aucune saisie pour cette semaine.</p>
                     )}
 
                     {/* Charts */}
