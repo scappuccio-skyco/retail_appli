@@ -61,8 +61,9 @@ from services.manager import (
 )
 from services.seller_service import SellerService
 from services.notification_service import NotificationService
-from services.conflict_service import ConflictService
 from services.relationship_service import RelationshipService
+# ConflictService merged into RelationshipService — alias kept for import compat in routes
+ConflictService = RelationshipService
 from services.competence_service import CompetenceService
 from services.admin_service import AdminService
 from services.payment_service import PaymentService
@@ -344,27 +345,12 @@ def get_payment_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> PaymentSe
     return PaymentService(db)
 
 
-# Conflict Service (repos + AIService injected)
-def get_conflict_service(
-    db: AsyncIOMotorDatabase = Depends(get_db),
-    ai_service: AIService = Depends(get_ai_service),
-) -> ConflictService:
-    """Get ConflictService. Repos assembled here (no self.db in service)."""
-    return ConflictService(
-        user_repo=UserRepository(db),
-        manager_diagnostic_results_repo=ManagerDiagnosticResultsRepository(db),
-        diagnostic_repo=DiagnosticRepository(db),
-        conflict_consultation_repo=ConflictConsultationRepository(db),
-        ai_service=ai_service,
-    )
-
-
-# Relationship Service (repos + AIService injected)
+# Relationship Service — also handles conflict resolution (ConflictService merged in)
 def get_relationship_service(
     db: AsyncIOMotorDatabase = Depends(get_db),
     ai_service: AIService = Depends(get_ai_service),
 ) -> RelationshipService:
-    """Get RelationshipService. Repos assembled here (no self.db in service)."""
+    """Get RelationshipService (includes conflict resolution methods)."""
     return RelationshipService(
         user_repo=UserRepository(db),
         manager_diagnostic_results_repo=ManagerDiagnosticResultsRepository(db),
@@ -373,7 +359,12 @@ def get_relationship_service(
         debrief_repo=DebriefRepository(db),
         relationship_consultation_repo=RelationshipConsultationRepository(db),
         ai_service=ai_service,
+        conflict_consultation_repo=ConflictConsultationRepository(db),
     )
+
+
+# Conflict Service — alias: returns a RelationshipService with all repos (backward compat)
+get_conflict_service = get_relationship_service
 
 
 # Competence Service

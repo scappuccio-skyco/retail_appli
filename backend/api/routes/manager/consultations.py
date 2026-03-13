@@ -18,7 +18,7 @@ from api.dependencies import (
 from models.pagination import PaginationParams
 from services.manager_service import ManagerService
 from services.relationship_service import RelationshipService
-from services.conflict_service import ConflictService
+from services.relationship_service import RelationshipService as ConflictService
 
 router = APIRouter(prefix="")
 

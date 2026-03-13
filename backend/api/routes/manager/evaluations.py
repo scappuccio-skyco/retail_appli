@@ -15,7 +15,7 @@ from api.dependencies import get_manager_service, get_relationship_service, get_
 from core.security import verify_seller_store_access
 from services.manager_service import ManagerService
 from services.relationship_service import RelationshipService
-from services.conflict_service import ConflictService
+from services.relationship_service import RelationshipService as ConflictService
 
 router = APIRouter(prefix="")
 logger = logging.getLogger(__name__)

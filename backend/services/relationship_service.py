@@ -15,6 +15,7 @@ from repositories.kpi_repository import KPIRepository
 from utils.kpi_pipeline import build_seller_kpi_pipeline, EMPTY_KPI_METRICS
 from repositories.debrief_repository import DebriefRepository
 from repositories.relationship_consultation_repository import RelationshipConsultationRepository
+from repositories.conflict_consultation_repository import ConflictConsultationRepository
 from services.ai_service import AIService
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ class RelationshipService:
         debrief_repo: DebriefRepository,
         relationship_consultation_repo: RelationshipConsultationRepository,
         ai_service: AIService,
+        conflict_consultation_repo: Optional[ConflictConsultationRepository] = None,
     ):
         self.user_repo = user_repo
         self.manager_diagnostic_results_repo = manager_diagnostic_results_repo
@@ -40,6 +42,7 @@ class RelationshipService:
         self.debrief_repo = debrief_repo
         self.relationship_consultation_repo = relationship_consultation_repo
         self.ai_service = ai_service
+        self.conflict_consultation_repo = conflict_consultation_repo
     
     async def generate_recommendation(
         self,
@@ -323,4 +326,228 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications th�
         except Exception as e:
             logger.error(f"Error listing consultations: {e}", exc_info=True)
             raise ValueError(f"Erreur lors de la récupération: {str(e)}")
+
+    # ==========================================================================
+    # CONFLICT RESOLUTION — merged from ConflictService
+    # ==========================================================================
+
+    async def generate_conflict_advice(
+        self,
+        seller_id: str,
+        contexte: str,
+        comportement_observe: str,
+        impact: str,
+        tentatives_precedentes: str,
+        description_libre: str,
+        manager_id: Optional[str] = None,
+        manager_name: Optional[str] = None,
+        store_id: Optional[str] = None,
+        is_seller_request: bool = False,
+    ) -> Dict:
+        """Generate AI-powered conflict resolution advice (seller or manager perspective)."""
+        try:
+            seller_query = {"id": seller_id}
+            if store_id:
+                seller_query["store_id"] = store_id
+            seller = await self.user_repo.find_one(seller_query, {"_id": 0, "password": 0})
+            if not seller:
+                raise ValueError("Vendeur non trouvé")
+            if is_seller_request:
+                manager_id = seller.get("manager_id")
+                if not manager_id:
+                    raise ValueError("Vendeur sans manager associé")
+
+            manager_diagnostic = None
+            if manager_id:
+                manager_diagnostic = await self.manager_diagnostic_results_repo.find_by_manager(manager_id)
+            seller_diagnostic = await self.diagnostic_repo.find_by_seller(seller_id)
+
+            if is_seller_request:
+                system_message = (
+                    "Tu es un coach retail spécialisé en résolution de conflits.\n"
+                    "Tu aides un vendeur à gérer un conflit avec son manager ou son équipe.\n"
+                    "Fournis une analyse claire et des actions concrètes pour résoudre la situation."
+                )
+                user_prompt = f"""# Conflit Signalé
+
+**Contexte :** {contexte}
+**Comportement observé :** {comportement_observe}
+**Impact :** {impact}
+**Tentatives précédentes :** {tentatives_precedentes}
+**Détails supplémentaires :** {description_libre}
+
+## Mon Profil
+**Prénom :** {seller.get('first_name', seller.get('name', 'Vendeur'))}
+**Profil de personnalité :** {json.dumps(seller_diagnostic.get('profile', {}), ensure_ascii=False) if seller_diagnostic else 'Non disponible'}
+
+# Ta mission
+Fournis une analyse structurée avec :
+
+## Analyse de la situation
+- Diagnostic du conflit (2-3 phrases)
+
+## Approche de communication
+- Comment aborder la conversation (3 points concrets)
+
+## Actions concrètes
+- Liste d'actions à mettre en place (3-5 actions)
+
+## Points de vigilance
+- Ce qu'il faut éviter (2-3 points)
+
+IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE."""
+            else:
+                system_message = (
+                    "Tu es un expert en résolution de conflits en équipe retail.\n"
+                    "Tu aides un manager à gérer un conflit avec un vendeur.\n"
+                    "Fournis une analyse claire et des actions concrètes."
+                )
+                manager_name_display = manager_name or "Manager"
+                user_prompt = f"""# Conflit Signalé
+
+**Contexte :** {contexte}
+**Comportement observé :** {comportement_observe}
+**Impact :** {impact}
+**Tentatives précédentes :** {tentatives_precedentes}
+**Détails supplémentaires :** {description_libre}
+
+## Contexte Manager
+**Prénom :** {manager_name_display}
+**Profil de personnalité :** {json.dumps(manager_diagnostic.get('profile', {}), ensure_ascii=False) if manager_diagnostic else 'Non disponible'}
+
+## Contexte Vendeur
+**Prénom :** {seller.get('first_name', seller.get('name', 'Vendeur'))}
+**Statut :** {seller.get('status', 'actif')}
+**Profil de personnalité :** {json.dumps(seller_diagnostic.get('profile', {}), ensure_ascii=False) if seller_diagnostic else 'Non disponible'}
+
+# Ta mission
+Fournis une analyse structurée avec :
+
+## Analyse de la situation
+- Diagnostic du conflit (2-3 phrases)
+
+## Approche de communication
+- Comment aborder la conversation (3 points concrets)
+
+## Actions concrètes
+- Liste d'actions à mettre en place (3-5 actions)
+
+## Points de vigilance
+- Ce qu'il faut éviter (2-3 points)
+
+IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE."""
+
+            if not self.ai_service.available:
+                raise ValueError("Service IA non disponible")
+
+            try:
+                ai_response = await self.ai_service._send_message(
+                    system_message=system_message,
+                    user_prompt=user_prompt,
+                    model="gpt-4o",
+                )
+            except Exception as ai_error:
+                logger.exception("Conflict advice AI call error", extra={"seller_id": seller_id})
+                raise ValueError(f"Erreur lors de la génération: {str(ai_error)}")
+
+            if not ai_response:
+                raise ValueError("Erreur lors de la génération: réponse vide")
+
+            analysis = self._extract_section(ai_response, "Analyse de la situation")
+            communication = self._extract_section(ai_response, "Approche de communication")
+            actions = self._extract_list_items(ai_response, "Actions concrètes")
+            vigilance = self._extract_list_items(ai_response, "Points de vigilance")
+
+            return {
+                "ai_analyse_situation": analysis or ai_response[:500],
+                "ai_approche_communication": communication or "",
+                "ai_actions_concretes": actions or [],
+                "ai_points_vigilance": vigilance or [],
+                "seller_name": (
+                    f"{seller.get('first_name', '')} {seller.get('last_name', '')}".strip()
+                    or seller.get("name", "Vendeur")
+                ),
+            }
+
+        except ValueError:
+            raise
+        except Exception as e:
+            logger.exception("Conflict advice generation failed", extra={"seller_id": seller_id})
+            raise ValueError(f"Erreur lors de la génération: {str(e)}")
+
+    async def save_conflict(self, conflict_data: Dict) -> str:
+        """Save a conflict consultation to history."""
+        if not self.conflict_consultation_repo:
+            raise ValueError("ConflictConsultationRepository non configuré")
+        try:
+            conflict_id = str(uuid4())
+            conflict = {"id": conflict_id, **conflict_data, "created_at": datetime.now(timezone.utc).isoformat()}
+            await self.conflict_consultation_repo.create_consultation(conflict)
+            return conflict_id
+        except Exception as e:
+            logger.error(f"Error saving conflict: {e}", exc_info=True)
+            raise ValueError(f"Erreur lors de la sauvegarde: {str(e)}")
+
+    async def list_conflicts(
+        self,
+        manager_id: Optional[str] = None,
+        seller_id: Optional[str] = None,
+        store_id: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[Dict]:
+        """List conflict consultations with filters."""
+        if not self.conflict_consultation_repo:
+            return []
+        try:
+            query: Dict = {}
+            if manager_id:
+                query["manager_id"] = manager_id
+            if seller_id:
+                query["seller_id"] = seller_id
+            if store_id:
+                query["store_id"] = store_id
+            return await self.conflict_consultation_repo.find_many_by_filters(query, limit=limit)
+        except Exception as e:
+            logger.error(f"Error listing conflicts: {e}", exc_info=True)
+            raise ValueError(f"Erreur lors de la récupération: {str(e)}")
+
+    # ------------------------------------------------------------------
+    # Internal helpers (shared by conflict methods)
+    # ------------------------------------------------------------------
+
+    def _extract_section(self, text: str, section_name: str) -> Optional[str]:
+        """Extract a named markdown section from AI response text."""
+        try:
+            lines = text.split("\n")
+            in_section = False
+            section_lines: List[str] = []
+            for line in lines:
+                if section_name.lower() in line.lower() and ("#" in line):
+                    in_section = True
+                    continue
+                if in_section:
+                    if line.strip().startswith("#"):
+                        break
+                    if line.strip():
+                        section_lines.append(line.strip())
+            return "\n".join(section_lines) if section_lines else None
+        except Exception:
+            return None
+
+    def _extract_list_items(self, text: str, section_name: str) -> List[str]:
+        """Extract bullet-list items from a named markdown section."""
+        try:
+            section = self._extract_section(text, section_name)
+            if not section:
+                return []
+            items = []
+            for line in section.split("\n"):
+                line = line.strip()
+                if line.startswith("-") or line.startswith("*"):
+                    item = line[1:].strip()
+                    if item:
+                        items.append(item)
+            return items
+        except Exception:
+            return []
 
