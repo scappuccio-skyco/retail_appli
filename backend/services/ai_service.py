@@ -520,7 +520,8 @@ class AIService:
         team_data: Dict,
         period_label: str = "sur 30 jours",
         manager_id: str = None,
-        manager_disc_profile: Optional[Dict] = None
+        manager_disc_profile: Optional[Dict] = None,
+        prev_period_data: Optional[Dict] = None
     ) -> str:
         """
         Generate comprehensive team analysis using GPT-4o
@@ -558,7 +559,26 @@ class AIService:
 Adapte ton résumé exécutif et ton ton à ce style de communication.
 {DISC_ADAPTATION_INSTRUCTIONS}
 """ if manager_disc_profile else ""
-        
+
+        # Build previous period comparison block
+        prev_period_block = ""
+        if prev_period_data:
+            prev_ca = prev_period_data.get("team_total_ca") or prev_period_data.get("ca_total") or 0
+            prev_ventes = prev_period_data.get("team_total_ventes") or prev_period_data.get("ventes") or 0
+            curr_ca = team_data.get("team_total_ca", 0) or 0
+            curr_ventes = team_data.get("team_total_ventes", 0) or 0
+            if prev_ca > 0:
+                ca_delta = ((curr_ca - prev_ca) / prev_ca) * 100
+                ventes_delta = ((curr_ventes - prev_ventes) / prev_ventes) * 100 if prev_ventes > 0 else 0
+                ca_arrow = "↗" if ca_delta > 1 else ("↘" if ca_delta < -1 else "→")
+                v_arrow = "↗" if ventes_delta > 1 else ("↘" if ventes_delta < -1 else "→")
+                prev_period_block = f"""
+📊 ÉVOLUTION VS PÉRIODE PRÉCÉDENTE :
+- CA : {curr_ca:.0f}€ vs {prev_ca:.0f}€ ({ca_delta:+.1f}%) {ca_arrow}
+- Ventes : {curr_ventes} vs {prev_ventes} ({ventes_delta:+.1f}%) {v_arrow}
+→ Intègre cette évolution dans ton analyse (est-ce une progression, régression ou stabilité ?).
+"""
+
         # 🎯 LEGACY PROMPT RESTORED + DISC INTEGRATION
         prompt = f"""Tu es un expert en management retail et coaching d'équipe. Analyse cette équipe de boutique physique et fournis des recommandations managériales pour MOTIVER et DÉVELOPPER l'équipe.
 
@@ -573,7 +593,7 @@ PÉRIODE D'ANALYSE : {period_label}
 
 VENDEURS :
 {chr(10).join(sellers_summary)}
-{disc_section}
+{prev_period_block}{disc_section}
 CONSIGNES :
 - NE MENTIONNE PAS la complétion KPI (saisie des données) - c'est un sujet administratif, pas commercial
 - Concentre-toi sur les PERFORMANCES COMMERCIALES et la DYNAMIQUE D'ÉQUIPE
@@ -714,7 +734,7 @@ Consignes :
         response = await self._send_message(
             system_message=TEAM_BILAN_SYSTEM_PROMPT,
             user_prompt=prompt,
-            model="gpt-4o",
+            model="gpt-4o-mini",
             temperature=0.5  # structured JSON output — semi-factual
         )
         
@@ -744,6 +764,7 @@ Consignes :
         kpi_context: str = "",
         is_success: bool = True,
         previous_coaching: Optional[List[Dict]] = None,
+        disc_style: str = "",
     ) -> Dict:
         """
         Generate sales debrief analysis
@@ -759,7 +780,18 @@ Consignes :
         """
         if not self.available:
             return self._fallback_debrief(current_scores, is_success)
-        
+
+        disc_block = ""
+        if disc_style:
+            _disc_tones = {
+                "D": "Direct et orienté résultats — phrases courtes, chiffres, action immédiate.",
+                "I": "Enthousiaste et humain — énergie, valorise l'effort, points d'exclamation.",
+                "S": "Rassurant et empathique — explique le pourquoi, ton doux, encourage.",
+                "C": "Factuel et analytique — structuré, précis, cite des chiffres et processus.",
+            }
+            _tone = _disc_tones.get(disc_style.upper(), "Professionnel et bienveillant.")
+            disc_block = f"\n🎯 PROFIL DISC DU VENDEUR : {disc_style}\n→ Adapte absolument ton ton : {_tone}\n"
+
         if is_success:
             # 🎯 PROMPT FOR SUCCESSFUL SALE (Legacy Restored)
             prompt = f"""Tu es un coach expert en vente retail.
@@ -783,7 +815,7 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
 - Argumentation : {current_scores.get('argumentation', 6.0)}
 - Closing : {current_scores.get('closing', 6.0)}
 - Fidélisation : {current_scores.get('fidelisation', 6.0)}
-
+{disc_block}
 ### OBJECTIF
 1. FÉLICITER le vendeur pour cette réussite avec enthousiasme !
 2. Identifier 2 points forts qui ont contribué au succès
@@ -836,7 +868,7 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
 - Argumentation : {current_scores.get('argumentation', 6.0)}
 - Closing : {current_scores.get('closing', 6.0)}
 - Fidélisation : {current_scores.get('fidelisation', 6.0)}
-
+{disc_block}
 ### OBJECTIF
 1. Fournir une analyse commerciale réaliste et empathique
 2. Identifier 2 axes d'amélioration concrets
@@ -871,7 +903,7 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
         response = await self._send_message(
             system_message=DEBRIEF_SYSTEM_PROMPT,
             user_prompt=prompt,
-            model="gpt-4o-mini",
+            model="gpt-4o",
             temperature=0.7
         )
         

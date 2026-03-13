@@ -76,11 +76,25 @@ async def create_debrief(
         'closing': diagnostic.get('score_closing', 6.0) if diagnostic else 6.0,
         'fidelisation': diagnostic.get('score_fidelisation', 6.0) if diagnostic else 6.0
     }
+    disc_style = ""
+    if diagnostic:
+        disc_style = (diagnostic.get('profile') or {}).get('style', '') or ''
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     today_kpi = await seller_service.get_kpi_entry_for_seller_date(seller_id, today)
+    kpi_benchmark = ""
+    try:
+        from datetime import timedelta as _td
+        seven_days_ago = (datetime.now(timezone.utc) - _td(days=7)).strftime('%Y-%m-%d')
+        week_metrics = await seller_service.get_seller_kpi_metrics(seller_id, seven_days_ago, today)
+        nb_jours_w = week_metrics.get('nb_jours', 0)
+        if nb_jours_w > 1:
+            avg_ca_week = week_metrics.get('ca', 0) / nb_jours_w
+            kpi_benchmark = f" (moyenne 7j : {avg_ca_week:.0f}€/j)"
+    except Exception:
+        pass
     kpi_context = ""
     if today_kpi:
-        kpi_context = f"\n\nKPIs du jour: CA {today_kpi.get('ca_journalier', 0):.0f}€, {today_kpi.get('nb_ventes', 0)} ventes"
+        kpi_context = f"\n\nKPIs du jour: CA {today_kpi.get('ca_journalier', 0):.0f}€{kpi_benchmark}, {today_kpi.get('nb_ventes', 0)} ventes"
     new_scores = current_scores.copy()
     ai_analyse = ""
     ai_points_travailler = ""
@@ -114,6 +128,7 @@ async def create_debrief(
                 kpi_context=kpi_context,
                 is_success=debrief_data.vente_conclue,
                 previous_coaching=previous_coaching,
+                disc_style=disc_style,
             )
             if feedback_result:
                 ai_analyse = feedback_result.get('analyse', '')

@@ -1404,6 +1404,50 @@ async def generate_bilan_individuel(
                 except Exception as _e:
                     logger.warning("Could not fetch previous bilan for feedback loop: %s", _e)
 
+                # R2: Competence scores block
+                scores_block = ""
+                if diagnostic:
+                    scores_block = (
+                        "\n📈 SCORES DE COMPÉTENCES ACTUELS (sur 10) :\n"
+                        f"- Accueil : {diagnostic.get('score_accueil', 6.0):.1f}/10\n"
+                        f"- Découverte : {diagnostic.get('score_decouverte', 6.0):.1f}/10\n"
+                        f"- Argumentation : {diagnostic.get('score_argumentation', 6.0):.1f}/10\n"
+                        f"- Closing : {diagnostic.get('score_closing', 6.0):.1f}/10\n"
+                        f"- Fidélisation : {diagnostic.get('score_fidelisation', 6.0):.1f}/10\n"
+                        "→ Lie tes recommandations à ces scores : renforce les forces, travaille les scores bas.\n"
+                    )
+
+                # R3: Debrief patterns for the period
+                debrief_bilan_block = ""
+                try:
+                    all_debriefs_bilan = await seller_service.get_debriefs_by_seller(
+                        seller_id,
+                        projection={"_id": 0, "vente_conclue": 1, "moment_perte_client": 1, "date": 1},
+                        limit=100,
+                        sort=[("date", -1)],
+                    )
+                    period_debriefs_bilan = [
+                        d for d in all_debriefs_bilan
+                        if eff_start <= (d.get("date") or "") <= eff_end
+                    ]
+                    if period_debriefs_bilan:
+                        nb_d = len(period_debriefs_bilan)
+                        nb_success_d = sum(1 for d in period_debriefs_bilan if d.get("vente_conclue"))
+                        nb_fail_d = nb_d - nb_success_d
+                        pertes = [
+                            d.get("moment_perte_client", "")
+                            for d in period_debriefs_bilan
+                            if not d.get("vente_conclue") and d.get("moment_perte_client")
+                        ]
+                        most_common_perte = max(set(pertes), key=pertes.count) if pertes else None
+                        perte_line = f"\n  - Moment de perte récurrent : \"{most_common_perte}\"" if most_common_perte else ""
+                        debrief_bilan_block = (
+                            f"\n🎯 DEBRIEFS DE LA PÉRIODE ({nb_d} soumis : {nb_success_d} ✅ ventes conclues, {nb_fail_d} ❌ manquées){perte_line}\n"
+                            "→ Fais le lien entre ces résultats de vente et les scores de compétences pour des recommandations précises.\n"
+                        )
+                except Exception as _e:
+                    logger.warning("Could not fetch debriefs for bilan: %s", _e)
+
                 # 🛑 STRICT SELLER PROMPT V3 - No marketing, no traffic, no promotions
                 prompt = f"""Génère un bilan de performance pour {seller_name}.
 {disc_block}
@@ -1413,6 +1457,8 @@ async def generate_bilan_individuel(
 - Panier moyen: {panier_moyen:.2f}€
 - Jours travaillés: {nb_jours}
 {optional_block}
+{scores_block}
+{debrief_bilan_block}
 {prev_bilan_block}
 ⚠️ RAPPEL STRICT : Ne parle PAS de trafic, promotions, réseaux sociaux ou marketing.
 Si le CA est bon, félicite simplement. Focus sur accueil, vente additionnelle, closing.

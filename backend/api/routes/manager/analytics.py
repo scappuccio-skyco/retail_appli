@@ -493,7 +493,34 @@ async def analyze_team(
         period_start = (today - timedelta(days=days_val)).strftime("%Y-%m-%d")
         period_end = today.strftime("%Y-%m-%d")
         period_label = f"sur {days_val} jours"
-    analysis_text = await ai_service.generate_team_analysis(team_data=team_data, period_label=period_label, manager_id=manager_id)
+    # R7: Fetch previous period data for temporal evolution
+    prev_period_data = None
+    try:
+        from datetime import datetime as _dt, timedelta as _tdd
+        _curr_start = _dt.strptime(period_start, "%Y-%m-%d")
+        _curr_end = _dt.strptime(period_end, "%Y-%m-%d")
+        _duration = (_curr_end - _curr_start).days + 1
+        _prev_end = (_curr_start - _tdd(days=1)).strftime("%Y-%m-%d")
+        _prev_start = (_curr_start - _tdd(days=_duration)).strftime("%Y-%m-%d")
+        if resolved_store_id:
+            prev_kpi_stats = await manager_service.get_store_kpi_stats(
+                store_id=resolved_store_id,
+                start_date=_prev_start,
+                end_date=_prev_end,
+            )
+            if prev_kpi_stats:
+                prev_period_data = {
+                    "team_total_ca": prev_kpi_stats.get("ca_total") or prev_kpi_stats.get("total_ca") or 0,
+                    "team_total_ventes": prev_kpi_stats.get("ventes") or prev_kpi_stats.get("total_ventes") or 0,
+                }
+    except Exception as _e:
+        logger.warning("Could not fetch previous period data for team analysis: %s", _e)
+    analysis_text = await ai_service.generate_team_analysis(
+        team_data=team_data,
+        period_label=period_label,
+        manager_id=manager_id,
+        prev_period_data=prev_period_data,
+    )
     analysis_record = {
         "id": str(uuid4()),
         "store_id": resolved_store_id,
