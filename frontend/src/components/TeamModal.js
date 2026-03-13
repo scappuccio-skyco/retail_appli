@@ -151,6 +151,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           }, 0);
           const monthlyVentes = metricsData?.ventes ?? kpiEntries.reduce((sum, entry) => sum + (entry.nb_ventes || 0), 0);
           const panierMoyen = metricsData?.panier_moyen ?? (monthlyVentes > 0 ? monthlyCA / monthlyVentes : 0);
+          const articles = metricsData?.articles ?? 0;
+          const indice_vente = metricsData?.indice_vente ?? 0;
 
           // Get competences scores
           const competences = stats.avg_radar_scores || {};
@@ -196,6 +198,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
             monthlyCA,
             monthlyVentes,
             panierMoyen,
+            articles,
+            indice_vente,
             avgCompetence,
             bestCompetence,
             worstCompetence,
@@ -783,12 +787,14 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                         </th>
                         <th className="px-3 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">Ventes</th>
                         <th className="px-4 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">PM</th>
+                        <th className="px-0 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">Articles</th>
+                        <th className="px-0 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">Indice de vente</th>
                         <th className="px-0 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">
                           <div className="flex items-center justify-center gap-1">
                             <span>Niveau</span>
                             <div className="relative">
-                              <Info 
-                                className="w-3.5 h-3.5 text-blue-500 cursor-help" 
+                              <Info
+                                className="w-3.5 h-3.5 text-blue-500 cursor-help"
                                 onMouseEnter={() => setShowNiveauTooltip(true)}
                                 onMouseLeave={() => setShowNiveauTooltip(false)}
                               />
@@ -807,8 +813,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                             </div>
                           </div>
                         </th>
-                        <th className="px-0 sm:px-4 py-3 text-left font-semibold text-gray-700 text-xs">Point Fort</th>
-                        <th className="px-0 sm:px-4 py-3 text-left font-semibold text-gray-700 text-xs">À Améliorer</th>
                         <th className="px-0 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">Action</th>
                       </tr>
                     </thead>
@@ -852,6 +856,12 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                           <td className="px-4 sm:px-4 py-3 text-center text-gray-700 font-medium text-xs whitespace-nowrap">{formatNumber(seller.monthlyCA)} €</td>
                           <td className="px-3 sm:px-4 py-3 text-center text-gray-700 text-xs whitespace-nowrap">{formatNumber(seller.monthlyVentes)}</td>
                           <td className="px-4 sm:px-4 py-3 text-center text-gray-700 text-xs whitespace-nowrap">{formatNumber(seller.panierMoyen)} €</td>
+                          <td className="px-0 sm:px-4 py-3 text-center text-gray-700 text-xs whitespace-nowrap">
+                            {formatNumber(seller.articles)}
+                          </td>
+                          <td className="px-0 sm:px-4 py-3 text-center text-gray-700 text-xs whitespace-nowrap">
+                            {seller.indice_vente > 0 ? seller.indice_vente.toFixed(2) : '—'}
+                          </td>
                           <td className="px-0 sm:px-4 py-3 text-center text-xs">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
                               (seller.niveau === 'Maître du Jeu' || seller.niveau === 'Expert') ? 'bg-red-100 text-red-800' :
@@ -866,12 +876,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                               {(seller.niveau === 'Nouveau Talent' || seller.niveau === 'Explorateur' || seller.niveau === 'Apprenti') && '⚡ '}
                               {seller.niveau}
                             </span>
-                          </td>
-                          <td className="px-0 sm:px-4 py-3">
-                            <span className="text-green-700 font-medium text-xs">{seller.bestCompetence.name}</span>
-                          </td>
-                          <td className="px-0 sm:px-4 py-3">
-                            <span className="text-orange-700 font-medium text-xs">{seller.worstCompetence.name}</span>
                           </td>
                           <td className="px-0 sm:px-4 py-3 text-xs">
                             <div className="flex items-center gap-2 justify-center">
