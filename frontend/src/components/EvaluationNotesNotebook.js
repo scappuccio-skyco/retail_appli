@@ -304,20 +304,19 @@ export default function EvaluationNotesNotebook({ isOpen, onClose, sellerId, sel
             </div>
 
             {/* Note editor */}
-            <div className="flex-1 flex flex-col p-4 overflow-hidden">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="flex-1 min-h-0 flex flex-col p-4 gap-3">
+              <label className="block text-sm font-medium text-gray-700">
                 {currentNote ? 'Modifier la note' : 'Nouvelle note'}
               </label>
-              
+
               <textarea
                 value={noteContent}
                 onChange={(e) => setNoteContent(e.target.value)}
-                placeholder="Écris tes notes ici... Réfléchis à tes réussites, tes défis, tes souhaits, tes questions pour l'entretien..."
-                className="flex-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
-                rows={10}
+                placeholder="Écris tes notes ici… Réussites, défis, souhaits, questions pour l'entretien…"
+                className="flex-1 min-h-[180px] w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-400 resize-none text-gray-800 placeholder-gray-400 bg-white shadow-sm"
               />
 
-              <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center justify-between">
                 <div className="text-xs text-gray-500">
                   {currentNote ? (
                     <span>Note créée le {new Date(currentNote.created_at).toLocaleDateString('fr-FR')}</span>
@@ -363,21 +362,13 @@ export default function EvaluationNotesNotebook({ isOpen, onClose, sellerId, sel
             </div>
 
             {/* Info box */}
-            <div className="p-4 bg-blue-50 border-t border-blue-200">
-              <div className="flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-semibold mb-1">💡 Astuce</p>
-                  <p className="text-blue-700">
-                    Prends des notes régulièrement sur tes réussites, défis, formations souhaitées, etc.
-                    L'IA créera une synthèse claire basée sur tes notes et tes chiffres pour ton entretien.
-                  </p>
-                  <p className="text-blue-600 mt-1">
-                    <Eye className="w-3 h-3 inline mr-1" />
-                    Clique sur l'icône œil pour choisir quelles notes ton manager peut voir dans son guide.
-                  </p>
-                </div>
-              </div>
+            <div className="px-4 py-2 bg-blue-50 border-t border-blue-100 flex items-center gap-2 text-xs text-blue-700">
+              <Sparkles className="w-4 h-4 text-blue-500 flex-shrink-0" />
+              <span>
+                Notes régulières → synthèse IA pour ton entretien.{' '}
+                <Eye className="w-3 h-3 inline mx-0.5" />
+                Icône œil = partager avec le manager.
+              </span>
             </div>
           </div>
         </div>
