@@ -1044,9 +1044,9 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                   ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             }`}
-                            title={!canSelect ? 'Maximum 5 vendeurs sélectionnés' : ''}
+                            title={!canSelect ? 'Maximum 5 vendeurs sélectionnés' : seller.name}
                           >
-                            {visibleSellers[seller.id] ? '✓' : ''} {seller.name.split(' ')[0]}
+                            {visibleSellers[seller.id] ? '✓ ' : ''}{seller.name}
                           </button>
                         );
                       })}
