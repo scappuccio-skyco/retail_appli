@@ -955,7 +955,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                   </div>
                 )}
                 {!isUpdatingCharts && (
-                <>
+                <div>
                 <div className="space-y-3">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-3">
                     <h3 className="text-base sm:text-lg font-bold text-gray-800">📊 Comparaison des Performances</h3>
@@ -1324,7 +1324,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                     </div>
                   )}
                 </div>
-                </>
+                </div>
                 )}
               </div>
               )}
