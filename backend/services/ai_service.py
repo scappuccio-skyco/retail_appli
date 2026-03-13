@@ -1675,7 +1675,9 @@ class EvaluationGuideService:
         period: str,
         comments: Optional[str] = None,
         disc_profile: Optional[Dict] = None,
-        interview_notes: Optional[List[Dict]] = None
+        interview_notes: Optional[List[Dict]] = None,
+        debrief_summary: Optional[str] = None,
+        competence_evolution: Optional[str] = None,
     ) -> Dict:
         """
         Génère un guide d'entretien adapté au rôle de l'appelant.
@@ -1724,7 +1726,17 @@ class EvaluationGuideService:
         context_section = ""
         if comments and comments.strip():
             context_section = f"\n\n📝 CONTEXTE SPÉCIFIQUE DE L'UTILISATEUR :\n\"{comments}\"\n→ Prends en compte ces observations dans ton analyse."
-        
+
+        # Historique debriefs + évolution des compétences
+        debrief_section = ""
+        if debrief_summary or competence_evolution:
+            parts = []
+            if debrief_summary:
+                parts.append(f"📋 HISTORIQUE DEBRIEFS :\n{debrief_summary}")
+            if competence_evolution:
+                parts.append(f"📈 {competence_evolution}")
+            debrief_section = "\n\n" + "\n\n".join(parts) + "\n→ Utilise ces données pour identifier les tendances et les axes de progression réels sur la période."
+
         # Ajout du profil DISC si disponible
         disc_section = ""
         if disc_profile:
@@ -1747,6 +1759,7 @@ class EvaluationGuideService:
 📅 Période analysée : {period}
 📊 Données de performance :
 {stats_text}
+{debrief_section}
 {context_section}
 {disc_section}
 Réponds avec ce JSON EXACT (pas de texte avant/après) :
@@ -1764,6 +1777,7 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
 📅 Période analysée : {period}
 📊 Chiffres de performance :
 {stats_text}
+{debrief_section}
 {notes_section}
 {context_section}
 {disc_section}

@@ -174,7 +174,7 @@ async def generate_evaluation_guide(
     period = _format_evaluation_period(request.start_date, request.end_date)
     
     disc_profile = await get_disc_profile(seller_service, request.employee_id)
-    
+
     interview_notes = []
     if role_perspective == "seller":
         notes = await seller_service.get_interview_notes_by_seller(request.employee_id)
@@ -183,8 +183,76 @@ async def generate_evaluation_guide(
             if request.start_date <= note.get("date", "") <= request.end_date
         ]
         interview_notes = notes_in_period[:50]
-    
-    # 7. Générer le guide IA avec le profil DISC et les notes
+
+    # Fetch debriefs in period → debrief summary + competence evolution
+    debrief_summary: Optional[str] = None
+    competence_evolution: Optional[str] = None
+    try:
+        all_debriefs = await seller_service.get_debriefs_by_seller(
+            request.employee_id,
+            projection={"_id": 0, "date": 1, "vente_conclue": 1,
+                        "ai_recommandation": 1,
+                        "score_accueil": 1, "score_decouverte": 1,
+                        "score_argumentation": 1, "score_closing": 1,
+                        "score_fidelisation": 1},
+            limit=200,
+            sort=[("date", 1)],  # oldest first for evolution
+        )
+        period_debriefs = [
+            d for d in all_debriefs
+            if request.start_date <= (d.get("date") or "") <= request.end_date
+        ]
+        if period_debriefs:
+            nb_total = len(period_debriefs)
+            nb_success = sum(1 for d in period_debriefs if d.get("vente_conclue"))
+            nb_miss = nb_total - nb_success
+            # Collect up to 4 non-empty AI recommendations
+            reco_seen: set = set()
+            recos = []
+            for d in reversed(period_debriefs):  # most recent first
+                r = (d.get("ai_recommandation") or "").strip()
+                if r and r not in reco_seen:
+                    reco_seen.add(r)
+                    recos.append(f'"{r}"')
+                if len(recos) >= 4:
+                    break
+            reco_line = f"Recommandations récurrentes : {', '.join(recos)}" if recos else ""
+            debrief_summary = (
+                f"{nb_total} debriefs sur la période : "
+                f"{nb_success} ventes conclues, {nb_miss} opportunités manquées.\n"
+                + (reco_line or "")
+            )
+
+            # Competence evolution: first debrief scores vs last debrief scores
+            _SCORE_KEYS = [
+                ("score_accueil", "Accueil"),
+                ("score_decouverte", "Découverte"),
+                ("score_argumentation", "Argumentation"),
+                ("score_closing", "Closing"),
+                ("score_fidelisation", "Fidélisation"),
+            ]
+            first = period_debriefs[0]
+            last = period_debriefs[-1]
+            evo_lines = []
+            for key, label in _SCORE_KEYS:
+                s_first = first.get(key)
+                s_last = last.get(key)
+                if s_first is not None and s_last is not None:
+                    delta = round(s_last - s_first, 1)
+                    arrow = "↗" if delta > 0.05 else ("↘" if delta < -0.05 else "→")
+                    evo_lines.append(
+                        f"- {label} : {s_first:.1f} → {s_last:.1f} "
+                        f"({'+'  if delta >= 0 else ''}{delta}) {arrow}"
+                    )
+            if evo_lines:
+                competence_evolution = (
+                    f"Évolution des compétences ({nb_total} debriefs) :\n"
+                    + "\n".join(evo_lines)
+                )
+    except Exception as _e:
+        logger.warning("Could not fetch debrief history for evaluation guide: %s", _e)
+
+    # 7. Générer le guide IA avec le profil DISC, les notes et l'historique debriefs
     evaluation_service = EvaluationGuideService()
     guide_content = await evaluation_service.generate_evaluation_guide(
         role=role_perspective,
@@ -193,7 +261,9 @@ async def generate_evaluation_guide(
         period=period,
         comments=request.comments,
         disc_profile=disc_profile,
-        interview_notes=interview_notes  # ✅ Ajout des notes
+        interview_notes=interview_notes,
+        debrief_summary=debrief_summary,
+        competence_evolution=competence_evolution,
     )
     
     return EvaluationGuideResponse(
