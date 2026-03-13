@@ -805,6 +805,22 @@ Consignes :
             _tone = _disc_tones.get(disc_style.upper(), "Professionnel et bienveillant.")
             disc_block = f"\n🎯 PROFIL DISC DU VENDEUR : {disc_style}\n→ Adapte absolument ton ton : {_tone}\n"
 
+        # Pre-build coaching history block (backslashes not allowed inside f-string expressions in Python < 3.12)
+        coaching_block = ""
+        if previous_coaching:
+            _nl = "\n"
+            _lines = _nl.join(
+                f"- [{c['date']}] {'OK' if c.get('was_success') else 'KO'} {c['recommendation']}"
+                for c in previous_coaching
+                if c.get('recommendation')
+            )
+            if _lines:
+                coaching_block = (
+                    "\n### HISTORIQUE COACHING RÉCENT\n"
+                    + _lines
+                    + "\nNe répète pas ces recommandations. Construis sur elles ou adresse un angle différent.\n"
+                )
+
         if is_success:
             # 🎯 PROMPT FOR SUCCESSFUL SALE (Legacy Restored)
             prompt = f"""Tu es un coach expert en vente retail.
@@ -839,7 +855,7 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
    - Les autres compétences (non impliquées) : delta entre 0.0 et +0.2
    - JAMAIS de delta négatif sur une vente réussie
    - Sois précis et proportionnel à la qualité décrite
-{("\\n### HISTORIQUE COACHING RÉCENT\\n" + "\\n".join(f"- [{c['date']}] {'✅' if c.get('was_success') else '❌'} {c['recommendation']}" for c in (previous_coaching or []) if c.get('recommendation')) + "\\nNe répète pas ces recommandations. Construis sur elles ou adresse un angle différent.\\n") if previous_coaching else ""}
+{coaching_block}
 ### FORMAT DE SORTIE (JSON uniquement)
 {{
   "analyse": "[2–3 phrases de FÉLICITATIONS enthousiastes]",
@@ -893,7 +909,7 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
    - Les compétences non impliquées : delta 0.0
    - Si le vendeur a bien géré un aspect malgré l'échec : delta entre 0.0 et +0.2
    - Sois mesuré : un seul débrief ne doit pas tout changer
-{("\\n### HISTORIQUE COACHING RÉCENT\\n" + "\\n".join(f"- [{c['date']}] {'✅' if c.get('was_success') else '❌'} {c['recommendation']}" for c in (previous_coaching or []) if c.get('recommendation')) + "\\nNe répète pas ces recommandations. Construis sur elles ou adresse un angle différent.\\n") if previous_coaching else ""}
+{coaching_block}
 ### FORMAT DE SORTIE (JSON uniquement)
 {{
   "analyse": "[2–3 phrases d'analyse réaliste, orientée performance]",
