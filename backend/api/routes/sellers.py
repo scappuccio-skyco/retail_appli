@@ -1375,54 +1375,132 @@ async def generate_bilan_individuel(
     recommandations = []
     if ai_service.available and nb_jours > 0:
             try:
-                # KPI optionnels — n'inclure que les métriques disponibles (non nulles)
-                optional_kpis = []
-                if total_prospects > 0:
-                    optional_kpis.append(f"- Prospects: {total_prospects} (taux de transformation: {taux_transformation:.1f}%)")
-                if total_articles > 0:
-                    optional_kpis.append(f"- Articles vendus: {total_articles} (indice de vente: {indice_vente:.2f} art/vente)")
-                optional_block = "\n".join(optional_kpis) if optional_kpis else ""
-
-                # DISC block — injected only when profile is known
-                disc_block = ""
-                if disc_style:
-                    disc_block = f"\n🎯 PROFIL DISC du vendeur : {disc_style}\nAdapte ton ton et ta formulation à ce profil (D=direct/résultats, I=enthousiaste/humain, S=rassurant/empathique, C=factuel/chiffres).\n"
-
-                # Fetch previous bilan recommandations for continuity
-                prev_bilan_block = ""
+                # --- Période précédente (même durée) pour comparaison ---
+                prev_metrics_block = ""
                 try:
-                    prev_bilans = await seller_service.get_bilans_paginated(seller_id, page=1, size=1)
-                    prev_items = prev_bilans.get("items") or prev_bilans if isinstance(prev_bilans, list) else []
-                    if prev_items:
-                        prev_recos = prev_items[0].get("recommandations", [])
-                        if prev_recos:
-                            prev_bilan_block = (
-                                "\n📋 RECOMMANDATIONS DU BILAN PRÉCÉDENT (ne pas répéter, construire dessus) :\n"
-                                + "\n".join(f"- {r}" for r in prev_recos[:3])
-                                + "\n"
+                    _prev_end = (_start - _timedelta(days=1))
+                    _prev_start = (_start - _timedelta(days=_nb_days))
+                    prev_m = await seller_service.get_seller_kpi_metrics(
+                        seller_id, _prev_start.isoformat(), _prev_end.isoformat()
+                    )
+                    if prev_m.get('nb_jours', 0) > 0:
+                        def _pct(cur, prev):
+                            if prev == 0:
+                                return "N/A"
+                            diff = ((cur - prev) / prev) * 100
+                            return f"+{diff:.0f}%" if diff >= 0 else f"{diff:.0f}%"
+                        prev_metrics_block = (
+                            f"\n📊 PÉRIODE PRÉCÉDENTE ({_prev_start.strftime('%d/%m')} → {_prev_end.strftime('%d/%m')}) :\n"
+                            f"- CA : {prev_m['ca']:.0f}€  ({_pct(total_ca, prev_m['ca'])} vs période actuelle)\n"
+                            f"- Ventes : {prev_m['ventes']}  ({_pct(total_ventes, prev_m['ventes'])})\n"
+                            f"- Panier moyen : {prev_m['panier_moyen']:.2f}€  ({_pct(panier_moyen, prev_m['panier_moyen'])})\n"
+                        )
+                        if prev_m.get('indice_vente', 0) > 0:
+                            prev_metrics_block += f"- IV : {prev_m['indice_vente']:.2f}  ({_pct(indice_vente, prev_m['indice_vente'])})\n"
+                        prev_metrics_block += "→ Commente OBLIGATOIREMENT les variations significatives (>10%) dans ta synthèse.\n"
+                except Exception as _e:
+                    logger.warning("Could not fetch previous period metrics: %s", _e)
+
+                # --- Objectifs actifs pour la période ---
+                objectives_block = ""
+                try:
+                    active_objectives = await seller_service.get_seller_objectives_active(seller_id)
+                    period_objs = [
+                        o for o in (active_objectives or [])
+                        if o.get("period_start", "") <= eff_end and o.get("period_end", "") >= eff_start
+                    ]
+                    if period_objs:
+                        obj_lines = []
+                        for o in period_objs[:3]:
+                            target = o.get("target_value", 0)
+                            kpi = o.get("kpi_type", "")
+                            if kpi == "ca":
+                                realized = total_ca
+                                unit = "€"
+                            elif kpi == "ventes":
+                                realized = total_ventes
+                                unit = " ventes"
+                            elif kpi == "panier_moyen":
+                                realized = panier_moyen
+                                unit = "€"
+                            elif kpi == "indice_vente":
+                                realized = indice_vente
+                                unit = ""
+                            else:
+                                continue
+                            pct_obj = (realized / target * 100) if target > 0 else 0
+                            obj_lines.append(
+                                f"- Objectif {kpi.upper()} : {target}{unit} → réalisé {realized:.0f}{unit} ({pct_obj:.0f}%)"
+                            )
+                        if obj_lines:
+                            objectives_block = (
+                                "\n🎯 OBJECTIFS DE LA PÉRIODE :\n"
+                                + "\n".join(obj_lines)
+                                + "\n→ Indique clairement si les objectifs sont atteints ou non, avec les écarts chiffrés.\n"
                             )
                 except Exception as _e:
-                    logger.warning("Could not fetch previous bilan for feedback loop: %s", _e)
+                    logger.warning("Could not fetch objectives for bilan: %s", _e)
 
-                # R2: Competence scores block
+                # --- KPI optionnels ---
+                optional_kpis = []
+                if total_prospects > 0:
+                    optional_kpis.append(f"- Prospects contactés : {total_prospects} → taux de transformation : {taux_transformation:.1f}%")
+                if total_articles > 0:
+                    optional_kpis.append(f"- Articles vendus : {total_articles} → indice de vente : {indice_vente:.2f} art/vente")
+                optional_block = "\n".join(optional_kpis) if optional_kpis else ""
+
+                # --- Meilleur jour (pour périodes > 7 jours) ---
+                best_day_block = ""
+                if _nb_days > 7:
+                    try:
+                        _best_page = await seller_service.get_kpis_for_period_paginated(seller_id, eff_start, eff_end, page=1, size=400)
+                        entries_for_best = _best_page.items if hasattr(_best_page, 'items') else []
+                        if entries_for_best:
+                            best = max(entries_for_best, key=lambda e: e.get("ca_journalier", 0))
+                            worst = min(
+                                [e for e in entries_for_best if e.get("ca_journalier", 0) > 0],
+                                key=lambda e: e.get("ca_journalier", 0),
+                                default=None,
+                            )
+                            best_day_block = f"\n📅 MEILLEUR JOUR : {best.get('date','')} — {best.get('ca_journalier',0):.0f}€ CA, {best.get('nb_ventes',0)} ventes"
+                            if worst and worst.get("date") != best.get("date"):
+                                best_day_block += f"\n📅 JOUR LE PLUS FAIBLE : {worst.get('date','')} — {worst.get('ca_journalier',0):.0f}€ CA"
+                            best_day_block += "\n→ Identifie ce qui a fait la différence sur le meilleur jour.\n"
+                    except Exception as _e:
+                        logger.warning("Could not fetch entries for best day: %s", _e)
+
+                # --- DISC block ---
+                disc_block = ""
+                if disc_style:
+                    disc_block = f"\n🎭 PROFIL DISC : {disc_style} — adapte ton ton (D=direct/résultats, I=enthousiaste, S=rassurant, C=factuel/chiffres).\n"
+
+                # --- Scores de compétences ---
                 scores_block = ""
                 if diagnostic:
+                    scores = {
+                        "Accueil": diagnostic.get('score_accueil', 6.0),
+                        "Découverte": diagnostic.get('score_decouverte', 6.0),
+                        "Argumentation": diagnostic.get('score_argumentation', 6.0),
+                        "Closing": diagnostic.get('score_closing', 6.0),
+                        "Fidélisation": diagnostic.get('score_fidelisation', 6.0),
+                    }
+                    sorted_scores = sorted(scores.items(), key=lambda x: x[1])
+                    weakest = sorted_scores[:2]
+                    strongest = sorted_scores[-2:]
                     scores_block = (
-                        "\n📈 SCORES DE COMPÉTENCES ACTUELS (sur 10) :\n"
-                        f"- Accueil : {diagnostic.get('score_accueil', 6.0):.1f}/10\n"
-                        f"- Découverte : {diagnostic.get('score_decouverte', 6.0):.1f}/10\n"
-                        f"- Argumentation : {diagnostic.get('score_argumentation', 6.0):.1f}/10\n"
-                        f"- Closing : {diagnostic.get('score_closing', 6.0):.1f}/10\n"
-                        f"- Fidélisation : {diagnostic.get('score_fidelisation', 6.0):.1f}/10\n"
-                        "→ Lie tes recommandations à ces scores : renforce les forces, travaille les scores bas.\n"
+                        "\n📈 COMPÉTENCES (sur 10) :\n"
+                        + "".join(f"- {k} : {v:.1f}/10\n" for k, v in scores.items())
+                        + f"→ Forces : {', '.join(f'{k} ({v:.1f})' for k,v in strongest)}\n"
+                        + f"→ À travailler : {', '.join(f'{k} ({v:.1f})' for k,v in weakest)}\n"
+                        + "→ Lie chaque recommandation à une compétence précise.\n"
                     )
 
-                # R3: Debrief patterns for the period
+                # --- Debriefs ---
                 debrief_bilan_block = ""
                 try:
                     all_debriefs_bilan = await seller_service.get_debriefs_by_seller(
                         seller_id,
-                        projection={"_id": 0, "vente_conclue": 1, "moment_perte_client": 1, "date": 1},
+                        projection={"_id": 0, "vente_conclue": 1, "moment_perte_client": 1, "raison_perte": 1, "date": 1},
                         limit=100,
                         sort=[("date", -1)],
                     )
@@ -1435,46 +1513,82 @@ async def generate_bilan_individuel(
                         nb_success_d = sum(1 for d in period_debriefs_bilan if d.get("vente_conclue"))
                         nb_fail_d = nb_d - nb_success_d
                         pertes = [
-                            d.get("moment_perte_client", "")
+                            d.get("moment_perte_client", "") or d.get("raison_perte", "")
                             for d in period_debriefs_bilan
-                            if not d.get("vente_conclue") and d.get("moment_perte_client")
+                            if not d.get("vente_conclue")
                         ]
+                        pertes = [p for p in pertes if p]
                         most_common_perte = max(set(pertes), key=pertes.count) if pertes else None
-                        perte_line = f"\n  - Moment de perte récurrent : \"{most_common_perte}\"" if most_common_perte else ""
+                        taux_debrief = (nb_success_d / nb_d * 100) if nb_d > 0 else 0
                         debrief_bilan_block = (
-                            f"\n🎯 DEBRIEFS DE LA PÉRIODE ({nb_d} soumis : {nb_success_d} ✅ ventes conclues, {nb_fail_d} ❌ manquées){perte_line}\n"
-                            "→ Fais le lien entre ces résultats de vente et les scores de compétences pour des recommandations précises.\n"
+                            f"\n🗒️ DEBRIEFS ({nb_d} soumis) : {nb_success_d} ✅ ventes conclues ({taux_debrief:.0f}%), {nb_fail_d} ❌ manquées\n"
                         )
+                        if most_common_perte:
+                            debrief_bilan_block += f"  - Perte récurrente : \"{most_common_perte}\"\n"
+                        debrief_bilan_block += "→ Lie directement ces résultats aux scores de compétences pour des recommandations précises.\n"
                 except Exception as _e:
                     logger.warning("Could not fetch debriefs for bilan: %s", _e)
 
-                # 🛑 SELLER PROMPT V4 — Data-driven, specific, no generic advice
-                prompt = f"""Tu es un coach de vente retail expert. Génère un bilan DÉTAILLÉ et PERSONNALISÉ pour {seller_name}.
+                # --- Continuité avec le bilan précédent ---
+                prev_bilan_block = ""
+                try:
+                    prev_bilans = await seller_service.get_bilans_paginated(seller_id, page=1, size=1)
+                    prev_items = prev_bilans.items if hasattr(prev_bilans, 'items') else (prev_bilans if isinstance(prev_bilans, list) else [])
+                    if prev_items:
+                        prev_recos = prev_items[0].get("recommandations", [])
+                        if prev_recos:
+                            prev_bilan_block = (
+                                "\n📋 RECOMMANDATIONS DU BILAN PRÉCÉDENT (construis dessus, ne répète pas) :\n"
+                                + "\n".join(f"- {r}" for r in prev_recos[:3])
+                                + "\n"
+                            )
+                except Exception as _e:
+                    logger.warning("Could not fetch previous bilan: %s", _e)
+
+                # --- Adaptation selon la durée de la période ---
+                if _nb_days == 1:
+                    period_context = "C'est une analyse JOURNALIÈRE. Sois concis (1-2 points max par section). Focus sur ce qui s'est passé aujourd'hui spécifiquement."
+                    min_points = 2
+                elif _nb_days <= 7:
+                    period_context = "C'est une analyse HEBDOMADAIRE. 2-3 points par section. Identifie les tendances de la semaine."
+                    min_points = 2
+                elif _nb_days <= 31:
+                    period_context = "C'est une analyse MENSUELLE. 3 points par section. Donne une vue d'ensemble du mois avec les temps forts."
+                    min_points = 3
+                else:
+                    period_context = "C'est une analyse ANNUELLE. 3-4 points par section. Analyse les grandes tendances, les mois forts/faibles, et la progression globale."
+                    min_points = 3
+
+                # 🛑 SELLER PROMPT V5 — Context-rich, period-aware, comparison-driven
+                prompt = f"""Tu es un coach de vente retail expert. Génère un bilan PERSONNALISÉ pour {seller_name}.
 {disc_block}
-📊 DONNÉES DE LA PÉRIODE ({_period_label}) :
-- CA total : {total_ca:.0f}€  |  Jours avec données : {nb_jours}
-- Ventes conclues : {total_ventes}  |  Panier moyen : {panier_moyen:.2f}€
+⏱️ TYPE D'ANALYSE : {period_context}
+
+📊 DONNÉES DE {_period_label.upper()} :
+- CA : {total_ca:.0f}€  |  Jours avec données : {nb_jours}/{_nb_days}
+- Ventes : {total_ventes}  |  Panier moyen : {panier_moyen:.2f}€
 {optional_block}
+{prev_metrics_block}
+{objectives_block}
+{best_day_block}
 {scores_block}
 {debrief_bilan_block}
 {prev_bilan_block}
-🚫 RÈGLES ABSOLUES :
-1. Cite les CHIFFRES RÉELS dans chaque point (CA, panier moyen, scores, ratios).
-2. INTERDIT : "Développe tes compétences", "Fixe-toi un objectif", "Continue ainsi", "Analyse tes ventes", tout conseil vague.
-3. INTERDIT : mentionner la saisie des KPI, la régularité, les outils ou la connexion.
-4. INTERDIT : parler de trafic, promotions, réseaux sociaux, marketing.
-5. Points forts = données ÉLEVÉES (bon score, bon panier, bon taux) avec le chiffre exact.
-6. Points d'amélioration = SCORE BAS ou RATIO sous-performant avec valeur exacte + explication terrain concrète.
-7. Recommandations = actions précises en boutique, applicables dès demain (technique de vente, geste commercial, phrase d'accroche).
-8. Minimum 3 points forts, 3 points d'amélioration, 3 recommandations.
-9. La synthèse doit commenter le CA ({total_ca:.0f}€), le panier moyen ({panier_moyen:.2f}€) et la tendance générale.
+🚫 RÈGLES :
+1. Cite TOUJOURS les chiffres réels (CA, PM, IV, scores, % variation).
+2. INTERDIT : conseils vagues, "saisie des KPI", trafic, marketing, promotions.
+3. Si une variation vs période précédente est notable (>10%), explique-la.
+4. Points forts = chiffres ÉLEVÉS ou PROGRESSIONS avec valeur exacte.
+5. Points d'amélioration = scores BAS ou ratios sous-performants avec valeur + impact terrain.
+6. Recommandations = techniques de vente concrètes applicables dès demain.
+7. Minimum {min_points} éléments par section.
 
-Génère un bilan structuré au format JSON :
+Réponds en JSON :
 {{
-  "synthese": "2-3 phrases analysant CA, panier moyen et tendance clé de la période — avec les chiffres réels",
-  "points_forts": ["Point fort 1 avec chiffre précis", "Point fort 2 avec chiffre précis", "Point fort 3 avec chiffre précis"],
-  "points_attention": ["Axe 1 : score ou ratio exact + impact terrain", "Axe 2 : chiffre + explication", "Axe 3 : chiffre + levier d'action"],
-  "recommandations": ["Action concrète terrain 1 (technique précise)", "Action concrète terrain 2", "Action concrète terrain 3"]
+  "synthese": "2-4 phrases : bilan du CA ({total_ca:.0f}€), comparaison période précédente si disponible, tendance clé",
+  "points_forts": ["Fort 1 avec chiffre précis", "Fort 2", ...],
+  "points_attention": ["Axe 1 : chiffre + impact terrain", "Axe 2", ...],
+  "recommandations": ["Action terrain précise 1", "Action terrain précise 2", ...]
 }}"""
 
                 # Import the strict prompt + DISC adaptation instructions
