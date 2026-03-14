@@ -1373,6 +1373,22 @@ async def generate_bilan_individuel(
     points_forts = []
     points_attention = []
     recommandations = []
+    action_prioritaire = ""
+
+    # Calcul du libellé de période et des bornes (utilisé par IA + fallback)
+    from datetime import date as _date2
+    _start = _date2.fromisoformat(eff_start)
+    _end = _date2.fromisoformat(eff_end)
+    _nb_days = (_end - _start).days + 1
+    if _nb_days == 1:
+        _period_label = f"le {_start.strftime('%d/%m/%Y')}"
+    elif _nb_days <= 7:
+        _period_label = f"la semaine du {_start.strftime('%d/%m')} au {_end.strftime('%d/%m/%Y')}"
+    elif _nb_days <= 31:
+        _period_label = f"le mois du {_start.strftime('%d/%m')} au {_end.strftime('%d/%m/%Y')}"
+    else:
+        _period_label = f"la période du {_start.strftime('%d/%m/%Y')} au {_end.strftime('%d/%m/%Y')}"
+
     if ai_service.available and nb_jours > 0:
             try:
                 # --- Période précédente (même durée) pour comparaison ---
@@ -1449,23 +1465,41 @@ async def generate_bilan_individuel(
                     optional_kpis.append(f"- Articles vendus : {total_articles} → indice de vente : {indice_vente:.2f} art/vente")
                 optional_block = "\n".join(optional_kpis) if optional_kpis else ""
 
-                # --- Meilleur jour (pour périodes > 7 jours) ---
+                # --- Meilleur jour + jour de semaine le plus fort (périodes > 7 jours) ---
                 best_day_block = ""
                 if _nb_days > 7:
                     try:
+                        from collections import defaultdict
+                        from datetime import datetime as _dt
                         _best_page = await seller_service.get_kpis_for_period_paginated(seller_id, eff_start, eff_end, page=1, size=400)
                         entries_for_best = _best_page.items if hasattr(_best_page, 'items') else []
                         if entries_for_best:
-                            best = max(entries_for_best, key=lambda e: e.get("ca_journalier", 0))
-                            worst = min(
-                                [e for e in entries_for_best if e.get("ca_journalier", 0) > 0],
-                                key=lambda e: e.get("ca_journalier", 0),
-                                default=None,
-                            )
-                            best_day_block = f"\n📅 MEILLEUR JOUR : {best.get('date','')} — {best.get('ca_journalier',0):.0f}€ CA, {best.get('nb_ventes',0)} ventes"
-                            if worst and worst.get("date") != best.get("date"):
-                                best_day_block += f"\n📅 JOUR LE PLUS FAIBLE : {worst.get('date','')} — {worst.get('ca_journalier',0):.0f}€ CA"
-                            best_day_block += "\n→ Identifie ce qui a fait la différence sur le meilleur jour.\n"
+                            active_entries = [e for e in entries_for_best if e.get("ca_journalier", 0) > 0]
+                            if active_entries:
+                                best = max(active_entries, key=lambda e: e.get("ca_journalier", 0))
+                                worst = min(active_entries, key=lambda e: e.get("ca_journalier", 0))
+                                best_day_block = f"\n📅 MEILLEUR JOUR : {best.get('date','')} — {best.get('ca_journalier',0):.0f}€, {best.get('nb_ventes',0)} ventes"
+                                if worst.get("date") != best.get("date"):
+                                    best_day_block += f"\n📅 JOUR LE PLUS FAIBLE : {worst.get('date','')} — {worst.get('ca_journalier',0):.0f}€"
+                                # Jour de semaine le plus performant
+                                _day_names = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+                                _dow = defaultdict(lambda: {"ca": 0.0, "n": 0})
+                                for e in active_entries:
+                                    try:
+                                        _d = _dt.fromisoformat(e["date"])
+                                        _dow[_d.weekday()]["ca"] += e.get("ca_journalier", 0)
+                                        _dow[_d.weekday()]["n"] += 1
+                                    except Exception:
+                                        pass
+                                _dow_avgs = {k: v["ca"] / v["n"] for k, v in _dow.items() if v["n"] > 0}
+                                if len(_dow_avgs) >= 3:
+                                    _best_dow = max(_dow_avgs, key=_dow_avgs.get)
+                                    _worst_dow = min(_dow_avgs, key=_dow_avgs.get)
+                                    best_day_block += (
+                                        f"\n📆 MEILLEUR JOUR DE SEMAINE : {_day_names[_best_dow]} (moy. {_dow_avgs[_best_dow]:.0f}€/jour)"
+                                        f"\n📆 JOUR LE PLUS FAIBLE : {_day_names[_worst_dow]} (moy. {_dow_avgs[_worst_dow]:.0f}€/jour)"
+                                    )
+                                best_day_block += "\n→ Cite ces patterns dans tes recommandations (ex : renforcer la préparation le jour faible).\n"
                     except Exception as _e:
                         logger.warning("Could not fetch entries for best day: %s", _e)
 
@@ -1545,6 +1579,54 @@ async def generate_bilan_individuel(
                 except Exception as _e:
                     logger.warning("Could not fetch previous bilan: %s", _e)
 
+                # --- Benchmarks équipe (moyenne des autres vendeurs du même magasin) ---
+                team_benchmark_block = ""
+                try:
+                    store_id = current_user.get("store_id") or seller_data.get("store_id") if seller_data else None
+                    if store_id:
+                        _team_pipeline = [
+                            {"$match": {"store_id": store_id, "date": {"$gte": eff_start, "$lte": eff_end}}},
+                            {"$group": {
+                                "_id": "$seller_id",
+                                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
+                                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
+                            }},
+                            {"$group": {
+                                "_id": None,
+                                "nb_sellers": {"$sum": 1},
+                                "avg_ca": {"$avg": "$total_ca"},
+                                "avg_ventes": {"$avg": "$total_ventes"},
+                                "avg_pm": {"$avg": {
+                                    "$cond": [{"$gt": ["$total_ventes", 0]},
+                                              {"$divide": ["$total_ca", "$total_ventes"]}, 0]
+                                }},
+                                "avg_iv": {"$avg": {
+                                    "$cond": [{"$gt": ["$total_articles", 0]},
+                                              {"$cond": [{"$gt": ["$total_ventes", 0]},
+                                                         {"$divide": ["$total_articles", "$total_ventes"]}, 0]}, 0]
+                                }},
+                            }},
+                        ]
+                        _team_res = await seller_service.kpi_repo.aggregate(_team_pipeline, max_results=1)
+                        if _team_res and _team_res[0].get("nb_sellers", 0) > 1:
+                            _t = _team_res[0]
+                            _nb_s = _t["nb_sellers"]
+                            def _vs_team(val, avg):
+                                if avg == 0: return ""
+                                diff = ((val - avg) / avg) * 100
+                                return f" ({'au-dessus' if diff > 0 else 'en-dessous'} de {abs(diff):.0f}% de la moy. équipe)"
+                            team_benchmark_block = (
+                                f"\n🏆 COMPARAISON ÉQUIPE ({_nb_s} vendeurs, même période) :\n"
+                                f"- CA moyen équipe : {_t['avg_ca']:.0f}€ → toi : {total_ca:.0f}€{_vs_team(total_ca, _t['avg_ca'])}\n"
+                                f"- PM moyen équipe : {_t['avg_pm']:.2f}€ → toi : {panier_moyen:.2f}€{_vs_team(panier_moyen, _t['avg_pm'])}\n"
+                            )
+                            if _t.get("avg_iv", 0) > 0 and indice_vente > 0:
+                                team_benchmark_block += f"- IV moyen équipe : {_t['avg_iv']:.2f} → toi : {indice_vente:.2f}{_vs_team(indice_vente, _t['avg_iv'])}\n"
+                            team_benchmark_block += "→ Mentionne OBLIGATOIREMENT ces comparaisons dans ta synthèse et tes points forts/attention.\n"
+                except Exception as _e:
+                    logger.warning("Could not fetch team benchmarks: %s", _e)
+
                 # --- Adaptation selon la durée de la période ---
                 if _nb_days == 1:
                     period_context = "C'est une analyse JOURNALIÈRE. Sois concis (1-2 points max par section). Focus sur ce qui s'est passé aujourd'hui spécifiquement."
@@ -1559,7 +1641,7 @@ async def generate_bilan_individuel(
                     period_context = "C'est une analyse ANNUELLE. 3-4 points par section. Analyse les grandes tendances, les mois forts/faibles, et la progression globale."
                     min_points = 3
 
-                # 🛑 SELLER PROMPT V5 — Context-rich, period-aware, comparison-driven
+                # 🛑 SELLER PROMPT V6 — Context-rich, team-benchmarked, period-aware
                 prompt = f"""Tu es un coach de vente retail expert. Génère un bilan PERSONNALISÉ pour {seller_name}.
 {disc_block}
 ⏱️ TYPE D'ANALYSE : {period_context}
@@ -1569,26 +1651,30 @@ async def generate_bilan_individuel(
 - Ventes : {total_ventes}  |  Panier moyen : {panier_moyen:.2f}€
 {optional_block}
 {prev_metrics_block}
+{team_benchmark_block}
 {objectives_block}
 {best_day_block}
 {scores_block}
 {debrief_bilan_block}
 {prev_bilan_block}
 🚫 RÈGLES :
-1. Cite TOUJOURS les chiffres réels (CA, PM, IV, scores, % variation).
+1. Cite TOUJOURS les chiffres réels (CA, PM, IV, scores, % variation, position équipe).
 2. INTERDIT : conseils vagues, "saisie des KPI", trafic, marketing, promotions.
-3. Si une variation vs période précédente est notable (>10%), explique-la.
-4. Points forts = chiffres ÉLEVÉS ou PROGRESSIONS avec valeur exacte.
-5. Points d'amélioration = scores BAS ou ratios sous-performants avec valeur + impact terrain.
-6. Recommandations = techniques de vente concrètes applicables dès demain.
-7. Minimum {min_points} éléments par section.
+3. Si tu as les benchmarks équipe, positionne le vendeur clairement (meilleur/dans la moyenne/en-dessous).
+4. Si une variation vs période précédente est notable (>10%), explique-la avec un levier d'action.
+5. Points forts = chiffres ÉLEVÉS, PROGRESSIONS ou POSITION HAUTE dans l'équipe.
+6. Points d'amélioration = scores BAS, ratios sous-performants ou retard vs équipe, avec valeur + impact.
+7. Recommandations = techniques de vente concrètes et spécifiques applicables dès demain.
+8. action_prioritaire = UNE seule priorité absolue pour la prochaine période (phrase courte, percutante).
+9. Minimum {min_points} éléments par section (sauf action_prioritaire = 1).
 
 Réponds en JSON :
 {{
-  "synthese": "2-4 phrases : bilan du CA ({total_ca:.0f}€), comparaison période précédente si disponible, tendance clé",
+  "synthese": "2-4 phrases : CA ({total_ca:.0f}€), position vs équipe si disponible, évolution vs période précédente",
+  "action_prioritaire": "La seule chose à faire absolument cette période — courte, précise, avec chiffre cible",
   "points_forts": ["Fort 1 avec chiffre précis", "Fort 2", ...],
   "points_attention": ["Axe 1 : chiffre + impact terrain", "Axe 2", ...],
-  "recommandations": ["Action terrain précise 1", "Action terrain précise 2", ...]
+  "recommandations": ["Action terrain précise 1 (technique + geste)", "Action 2", ...]
 }}"""
 
                 # Import the strict prompt + DISC adaptation instructions
@@ -1614,6 +1700,7 @@ Réponds en JSON :
                     try:
                         parsed = json.loads(clean.strip())
                         synthese = parsed.get('synthese', '')
+                        action_prioritaire = parsed.get('action_prioritaire', '')
                         points_forts = parsed.get('points_forts', [])
                         points_attention = parsed.get('points_attention', [])
                         recommandations = parsed.get('recommandations', [])
@@ -1623,20 +1710,6 @@ Réponds en JSON :
                         
             except Exception as e:
                 logger.error("AI bilan error: %s", e, exc_info=True)
-    # Build a human-readable period label for fallback messages
-    from datetime import date as _date2
-    _start = _date2.fromisoformat(eff_start)
-    _end = _date2.fromisoformat(eff_end)
-    _nb_days = (_end - _start).days + 1
-    if _nb_days == 1:
-        _period_label = f"le {_start.strftime('%d/%m/%Y')}"
-    elif _nb_days <= 7:
-        _period_label = f"la semaine du {_start.strftime('%d/%m')} au {_end.strftime('%d/%m/%Y')}"
-    elif _nb_days <= 31:
-        _period_label = f"le mois du {_start.strftime('%d/%m')} au {_end.strftime('%d/%m/%Y')}"
-    else:
-        _period_label = f"la période du {_start.strftime('%d/%m/%Y')} au {_end.strftime('%d/%m/%Y')}"
-
     # If no AI, generate basic bilan
     if not synthese:
         if nb_jours > 0:
@@ -1666,6 +1739,7 @@ Réponds en JSON :
             "jours": nb_jours,
         },
         "synthese": synthese,
+        "action_prioritaire": action_prioritaire,
         "points_forts": points_forts,
         "points_attention": points_attention,
         "recommandations": recommandations,

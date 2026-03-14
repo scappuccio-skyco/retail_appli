@@ -888,6 +888,15 @@ export default function PerformanceModal({
                             </div>
                             <p className="text-gray-700 leading-relaxed">{periodBilan.synthese}</p>
                           </div>
+                          {periodBilan.action_prioritaire && (
+                            <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-4 text-white shadow-lg">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Target className="w-5 h-5 flex-shrink-0" />
+                                <h3 className="font-bold text-sm uppercase tracking-wide">🎯 Action prioritaire</h3>
+                              </div>
+                              <p className="text-lg font-semibold leading-snug">{periodBilan.action_prioritaire}</p>
+                            </div>
+                          )}
                           {periodBilan.points_forts?.length > 0 && (
                             <div className="bg-green-50 rounded-xl p-4 border-l-4 border-green-500">
                               <div className="flex items-center gap-2 mb-3">
@@ -1145,6 +1154,15 @@ export default function PerformanceModal({
                               </div>
                               <p className="text-gray-700 leading-relaxed">{periodBilan.synthese}</p>
                             </div>
+                            {periodBilan.action_prioritaire && (
+                              <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-4 text-white shadow-lg">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Target className="w-5 h-5 flex-shrink-0" />
+                                  <h3 className="font-bold text-sm uppercase tracking-wide">🎯 Action prioritaire</h3>
+                                </div>
+                                <p className="text-lg font-semibold leading-snug">{periodBilan.action_prioritaire}</p>
+                              </div>
+                            )}
                             {periodBilan.points_forts?.length > 0 && (
                               <div className="bg-green-50 rounded-xl p-4 border-l-4 border-green-500">
                                 <div className="flex items-center gap-2 mb-3">
@@ -1418,6 +1436,16 @@ export default function PerformanceModal({
                           </div>
                           <p className="text-gray-700 leading-relaxed">{bilanData.synthese}</p>
                         </div>
+
+                        {bilanData.action_prioritaire && (
+                          <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-4 text-white shadow-lg">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Target className="w-5 h-5 flex-shrink-0" />
+                              <h3 className="font-bold text-sm uppercase tracking-wide">🎯 Action prioritaire</h3>
+                            </div>
+                            <p className="text-lg font-semibold leading-snug">{bilanData.action_prioritaire}</p>
+                          </div>
+                        )}
 
                         {bilanData.points_forts && bilanData.points_forts.length > 0 && (
                           <div className="bg-green-50 rounded-xl p-4 border-l-4 border-green-500">
