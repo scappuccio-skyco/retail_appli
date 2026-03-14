@@ -343,7 +343,7 @@ export default function PerformanceModal({
       setPeriodBilan(null);
       setPeriodAggregates(null);
     }
-    const needsBilan = viewMode === 'mois' || viewMode === 'annee';
+    const needsBilan = viewMode === 'jour' || viewMode === 'mois' || viewMode === 'annee';
 
     // Fetch KPI entries — for année paginate in blocks of 100 (safe with old backend cap)
     const fetchEntries = async (start_date, end_date) => {
@@ -425,21 +425,13 @@ export default function PerformanceModal({
     return Object.values(months).sort((a, b) => a.month.localeCompare(b.month));
   }, [viewMode, periodEntries]);
 
-  // Generate AI bilan for mois / annee views
+  // Generate AI bilan for jour / mois / annee views
   const generatePeriodBilan = async () => {
     if (!periodRange) return;
     setPeriodGenerating(true);
     try {
-      await api.post(`/seller/bilan-individuel?start_date=${periodRange.start_date}&end_date=${periodRange.end_date}`, {});
-      const res = await api.get('/seller/bilan-individuel/all');
-      const bilans = Array.isArray(res.data?.bilans) ? res.data.bilans : [];
-      const existing = bilans.find(b =>
-        b.period_start === periodRange.start_date && b.period_end === periodRange.end_date
-      );
-      setPeriodBilan(existing
-        ? { ...existing, periode: periodRange.label }
-        : { periode: periodRange.label, synthese: '', points_forts: [], points_attention: [], recommandations: [] }
-      );
+      const postRes = await api.post(`/seller/bilan-individuel?start_date=${periodRange.start_date}&end_date=${periodRange.end_date}`, {});
+      setPeriodBilan({ ...postRes.data, periode: periodRange.label });
       toast.success('✨ Bilan généré avec succès');
     } catch (err) {
       logger.error('Error generating period bilan:', err);
@@ -705,14 +697,14 @@ export default function PerformanceModal({
                         <span>{generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer' : 'Générer')}</span>
                       </button>
                     )}
-                    {(viewMode === 'mois' || viewMode === 'annee') && (
+                    {(viewMode === 'jour' || viewMode === 'mois' || viewMode === 'annee') && (
                       <button
                         onClick={generatePeriodBilan}
                         disabled={periodGenerating || periodLoading}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
                       >
                         <TrendingUp className={`w-4 h-4 ${periodGenerating ? 'animate-spin' : ''}`} />
-                        <span>{periodGenerating ? 'Génération...' : (periodBilan?.synthese ? 'Regénérer' : 'Générer IA')}</span>
+                        <span>{periodGenerating ? 'Génération...' : (periodBilan?.synthese ? 'Regénérer IA' : 'Générer IA')}</span>
                       </button>
                     )}
                     <button
@@ -809,7 +801,8 @@ export default function PerformanceModal({
 
                 {/* === VUE JOUR (cartes KPI, style StoreKPI) === */}
                 {viewMode === 'jour' && (
-                  periodLoading ? (
+                  <>
+                  {periodLoading ? (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-500">
                       <div className="w-10 h-10 border-4 border-orange-400 border-t-transparent rounded-full animate-spin mb-4" />
                       <p>Chargement des données...</p>
@@ -867,7 +860,84 @@ export default function PerformanceModal({
                       <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                       <p className="text-gray-600">Aucune saisie pour cette date</p>
                     </div>
-                  )
+                  )}
+
+                  {/* Section IA — Jour */}
+                  {!periodLoading && (
+                    <div className="mt-6">
+                      {periodGenerating && (
+                        <div className="bg-white rounded-2xl p-8 max-w-md mx-auto shadow-2xl border-2 border-blue-200">
+                          <div className="text-center mb-6">
+                            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse">
+                              <Sparkles className="w-8 h-8 text-white" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-2">Analyse en cours...</h3>
+                            <p className="text-gray-600 text-sm">L'IA analyse vos performances du {periodRange?.label}</p>
+                          </div>
+                          <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500" style={{ animation: 'progress-slide 2s ease-in-out infinite', backgroundSize: '200% 100%' }} />
+                          </div>
+                        </div>
+                      )}
+                      {periodBilan?.synthese && !periodGenerating && (
+                        <div className="space-y-4">
+                          <div className="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500">
+                            <div className="flex items-start gap-2 mb-2">
+                              <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                              <h3 className="font-bold text-blue-900">💡 Synthèse — {periodBilan.periode}</h3>
+                            </div>
+                            <p className="text-gray-700 leading-relaxed">{periodBilan.synthese}</p>
+                          </div>
+                          {periodBilan.points_forts?.length > 0 && (
+                            <div className="bg-green-50 rounded-xl p-4 border-l-4 border-green-500">
+                              <div className="flex items-center gap-2 mb-3">
+                                <TrendingUp className="w-5 h-5 text-green-600" />
+                                <h3 className="font-bold text-green-900">👍 Points forts</h3>
+                              </div>
+                              <ul className="space-y-2">
+                                {periodBilan.points_forts.map((p, i) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="text-green-600 mt-1">✓</span>
+                                    <span className="text-gray-700">{p}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {periodBilan.points_attention?.length > 0 && (
+                            <div className="bg-orange-50 rounded-xl p-4 border-l-4 border-orange-500">
+                              <div className="flex items-center gap-2 mb-3">
+                                <AlertTriangle className="w-5 h-5 text-orange-600" />
+                                <h3 className="font-bold text-orange-900">⚠️ Points à améliorer</h3>
+                              </div>
+                              <ul className="space-y-2">
+                                {periodBilan.points_attention.map((p, i) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="text-orange-600 mt-1">!</span>
+                                    <span className="text-gray-700">{p}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {periodBilan.recommandations?.length > 0 && (
+                            <div className="bg-indigo-50 rounded-xl p-4 border-l-4 border-indigo-500">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Target className="w-5 h-5 text-indigo-600" />
+                                <h3 className="font-bold text-indigo-900">🎯 Recommandations</h3>
+                              </div>
+                              <ol className="space-y-2 list-decimal list-inside">
+                                {periodBilan.recommandations.map((r, i) => (
+                                  <li key={i} className="text-gray-700">{r}</li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  </>
                 )}
 
                 {/* === VUES MOIS / ANNEE === */}
@@ -1049,8 +1119,8 @@ export default function PerformanceModal({
                         </div>
                       )}
 
-                      {/* Section IA — uniquement pour Mois et Année */}
-                      {(viewMode === 'mois' || viewMode === 'annee') && <div className="mt-6">
+                      {/* Section IA — pour Jour, Mois et Année */}
+                      {(viewMode === 'jour' || viewMode === 'mois' || viewMode === 'annee') && <div className="mt-6">
                         {periodGenerating && (
                           <div className="bg-white rounded-2xl p-8 max-w-md mx-auto shadow-2xl border-2 border-blue-200">
                             <div className="text-center mb-6">
