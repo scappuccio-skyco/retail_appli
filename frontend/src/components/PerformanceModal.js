@@ -966,6 +966,7 @@ export default function PerformanceModal({
                                 );
                               }) : periodEntries.map((entry, i) => {
                                 const pm = entry.nb_ventes > 0 ? entry.ca_journalier / entry.nb_ventes : 0;
+                                const iv = entry.nb_ventes > 0 ? (entry.nb_articles ?? 0) / entry.nb_ventes : 0;
                                 return (
                                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                     <td className="px-3 py-2 text-gray-700 font-medium">{new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
@@ -974,6 +975,7 @@ export default function PerformanceModal({
                                     {(kpiConfig?.track_articles ?? true) && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
                                     {(kpiConfig?.track_prospects ?? true) && <td className="text-right px-3 py-2 text-purple-900">{entry.nb_prospects ?? '—'}</td>}
                                     {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
+                                    {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-teal-900">{entry.nb_ventes > 0 ? iv.toFixed(2) : '—'}</td>}
                                   </tr>
                                 );
                               })}
