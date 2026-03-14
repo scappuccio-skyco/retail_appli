@@ -344,19 +344,38 @@ export default function PerformanceModal({
       setPeriodAggregates(null);
     }
     const needsBilan = viewMode === 'mois' || viewMode === 'annee';
-    const periodSize = viewMode === 'annee' ? 366 : viewMode === 'mois' ? 31 : 7;
+
+    // Fetch KPI entries — for année paginate in blocks of 100 (safe with old backend cap)
+    const fetchEntries = async (start_date, end_date) => {
+      if (viewMode === 'annee') {
+        const all = [];
+        for (let page = 1; page <= 4; page++) {
+          const res = await api.get('/seller/kpi-entries', {
+            params: { start_date, end_date, size: 100, page },
+          });
+          const d = res.data;
+          const items = Array.isArray(d) ? d : (d?.items ?? []);
+          all.push(...items);
+          if (items.length < 100) break;
+        }
+        return all;
+      }
+      const size = viewMode === 'mois' ? 31 : 7;
+      const res = await api.get('/seller/kpi-entries', {
+        params: { start_date, end_date, size },
+      });
+      const d = res.data;
+      return Array.isArray(d) ? d : (d?.items ?? []);
+    };
+
     Promise.all([
-      api.get('/seller/kpi-entries', {
-        params: { start_date: periodRange.start_date, end_date: periodRange.end_date, size: periodSize },
-      }),
+      fetchEntries(periodRange.start_date, periodRange.end_date),
       api.get('/seller/kpi-metrics', {
         params: { start_date: periodRange.start_date, end_date: periodRange.end_date },
       }),
       ...(needsBilan ? [api.get('/seller/bilan-individuel/all')] : []),
-    ]).then(([entriesRes, metricsRes, bilansRes]) => {
+    ]).then(([entries, metricsRes, bilansRes]) => {
       if (cancelled) return;
-      const data = entriesRes.data;
-      const entries = Array.isArray(data) ? data : (data?.items ?? []);
       setPeriodEntries(entries.sort((a, b) => new Date(a.date) - new Date(b.date)));
       if (viewMode !== 'semaine') {
         setPeriodAggregates(metricsRes.data);
@@ -830,6 +849,18 @@ export default function PerformanceModal({
                           )}
                         </div>
                       )}
+                      {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && periodEntries[0].nb_ventes > 0 && (
+                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
+                          <p className="text-xs text-indigo-700 font-semibold mb-1">💳 P.Moyen</p>
+                          <p className="text-2xl font-bold text-indigo-900">{((periodEntries[0].ca_journalier ?? 0) / periodEntries[0].nb_ventes).toFixed(0)} €</p>
+                        </div>
+                      )}
+                      {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && periodEntries[0].nb_ventes > 0 && (
+                        <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
+                          <p className="text-xs text-teal-700 font-semibold mb-1">🎯 Ind.Vente</p>
+                          <p className="text-2xl font-bold text-teal-900">{(periodEntries[0].nb_articles / periodEntries[0].nb_ventes).toFixed(2)}</p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
@@ -914,11 +945,13 @@ export default function PerformanceModal({
                                 {(kpiConfig?.track_articles ?? true) && <th className="text-right px-3 py-2 text-orange-700 font-semibold">📦 Articles</th>}
                                 {(kpiConfig?.track_prospects ?? true) && <th className="text-right px-3 py-2 text-purple-700 font-semibold">🚶 Prospects</th>}
                                 {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-indigo-700 font-semibold">💳 P.Moyen</th>}
+                                {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-teal-700 font-semibold">🎯 IV</th>}
                               </tr>
                             </thead>
                             <tbody>
                               {viewMode === 'annee' ? yearMonthlyData.map((m, i) => {
                                 const pm = m.ventes > 0 ? m.ca / m.ventes : 0;
+                                const iv = m.ventes > 0 ? m.articles / m.ventes : 0;
                                 const label = new Date(m.month + '-15').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
                                 return (
                                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -928,6 +961,7 @@ export default function PerformanceModal({
                                     {(kpiConfig?.track_articles ?? true) && <td className="text-right px-3 py-2 text-orange-900">{m.articles || '—'}</td>}
                                     {(kpiConfig?.track_prospects ?? true) && <td className="text-right px-3 py-2 text-purple-900">{m.prospects || '—'}</td>}
                                     {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
+                                    {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-teal-900">{iv > 0 ? iv.toFixed(2) : '—'}</td>}
                                   </tr>
                                 );
                               }) : periodEntries.map((entry, i) => {
@@ -1165,11 +1199,14 @@ export default function PerformanceModal({
                                 {(kpiConfig?.track_articles ?? true) && <th className="text-right px-3 py-2 text-orange-700 font-semibold">📦 Articles</th>}
                                 {(kpiConfig?.track_prospects ?? true) && <th className="text-right px-3 py-2 text-purple-700 font-semibold">🚶 Prospects</th>}
                                 {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-indigo-700 font-semibold">💳 P.Moyen</th>}
+                                {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-teal-700 font-semibold">🎯 IV</th>}
+                                {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-teal-700 font-semibold">🎯 IV</th>}
                               </tr>
                             </thead>
                             <tbody>
                               {periodEntries.map((entry, i) => {
                                 const pm = entry.nb_ventes > 0 ? entry.ca_journalier / entry.nb_ventes : 0;
+                                const iv = entry.nb_ventes > 0 ? entry.nb_articles / entry.nb_ventes : 0;
                                 return (
                                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                     <td className="px-3 py-2 text-gray-700 font-medium">{new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
@@ -1178,6 +1215,7 @@ export default function PerformanceModal({
                                     {(kpiConfig?.track_articles ?? true) && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
                                     {(kpiConfig?.track_prospects ?? true) && <td className="text-right px-3 py-2 text-purple-900">{entry.nb_prospects ?? '—'}</td>}
                                     {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
+                                    {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-teal-900">{iv > 0 ? iv.toFixed(2) : '—'}</td>}
                                   </tr>
                                 );
                               })}
