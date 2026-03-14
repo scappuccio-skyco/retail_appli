@@ -961,7 +961,7 @@ export default function PerformanceModal({
                                     {(kpiConfig?.track_articles ?? true) && <td className="text-right px-3 py-2 text-orange-900">{m.articles || '—'}</td>}
                                     {(kpiConfig?.track_prospects ?? true) && <td className="text-right px-3 py-2 text-purple-900">{m.prospects || '—'}</td>}
                                     {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
-                                    {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-teal-900">{iv > 0 ? iv.toFixed(2) : '—'}</td>}
+                                    {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-teal-900">{m.ventes > 0 ? iv.toFixed(2) : '—'}</td>}
                                   </tr>
                                 );
                               }) : periodEntries.map((entry, i) => {
@@ -1174,6 +1174,12 @@ export default function PerformanceModal({
                             <p className="text-lg font-bold text-indigo-900">{bilanData.kpi_resume.panier_moyen.toFixed(0)}€</p>
                           </div>
                         )}
+                        {bilanData.kpi_resume?.indice_vente > 0 && (
+                          <div className="bg-teal-50 rounded-lg p-3">
+                            <p className="text-xs text-teal-600 mb-1">🎯 Ind. Vente</p>
+                            <p className="text-lg font-bold text-teal-900">{bilanData.kpi_resume.indice_vente.toFixed(2)}</p>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -1200,7 +1206,6 @@ export default function PerformanceModal({
                                 {(kpiConfig?.track_prospects ?? true) && <th className="text-right px-3 py-2 text-purple-700 font-semibold">🚶 Prospects</th>}
                                 {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-indigo-700 font-semibold">💳 P.Moyen</th>}
                                 {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-teal-700 font-semibold">🎯 IV</th>}
-                                {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-teal-700 font-semibold">🎯 IV</th>}
                               </tr>
                             </thead>
                             <tbody>
@@ -1215,7 +1220,7 @@ export default function PerformanceModal({
                                     {(kpiConfig?.track_articles ?? true) && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
                                     {(kpiConfig?.track_prospects ?? true) && <td className="text-right px-3 py-2 text-purple-900">{entry.nb_prospects ?? '—'}</td>}
                                     {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
-                                    {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-teal-900">{iv > 0 ? iv.toFixed(2) : '—'}</td>}
+                                    {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-teal-900">{entry.nb_ventes > 0 ? iv.toFixed(2) : '—'}</td>}
                                   </tr>
                                 );
                               })}
