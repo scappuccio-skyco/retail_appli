@@ -344,9 +344,10 @@ export default function PerformanceModal({
       setPeriodAggregates(null);
     }
     const needsBilan = viewMode === 'mois' || viewMode === 'annee';
+    const periodSize = viewMode === 'annee' ? 366 : viewMode === 'mois' ? 31 : 7;
     Promise.all([
       api.get('/seller/kpi-entries', {
-        params: { start_date: periodRange.start_date, end_date: periodRange.end_date, size: 366 },
+        params: { start_date: periodRange.start_date, end_date: periodRange.end_date, size: periodSize },
       }),
       api.get('/seller/kpi-metrics', {
         params: { start_date: periodRange.start_date, end_date: periodRange.end_date },
@@ -796,35 +797,35 @@ export default function PerformanceModal({
                     </div>
                   ) : periodEntries.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {kpiConfig?.track_ca && (
+                      {(kpiConfig?.track_ca ?? true) && (
                         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
                           <p className="text-xs text-blue-700 font-semibold mb-1">💰 CA Réalisé</p>
                           <p className="text-2xl font-bold text-blue-900">{(periodEntries[0].ca_journalier ?? 0).toFixed(0)} €</p>
                         </div>
                       )}
-                      {kpiConfig?.track_ventes && (
+                      {(kpiConfig?.track_ventes ?? true) && (
                         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
                           <p className="text-xs text-green-700 font-semibold mb-1">🛒 Ventes</p>
                           <p className="text-2xl font-bold text-green-900">{periodEntries[0].nb_ventes ?? 0}</p>
-                          {kpiConfig?.track_ca && periodEntries[0].nb_ventes > 0 && (
+                          {(kpiConfig?.track_ca ?? true) && periodEntries[0].nb_ventes > 0 && (
                             <p className="text-xs text-green-600 mt-1">PM: {((periodEntries[0].ca_journalier ?? 0) / periodEntries[0].nb_ventes).toFixed(0)} €</p>
                           )}
                         </div>
                       )}
-                      {kpiConfig?.track_articles && (
+                      {(kpiConfig?.track_articles ?? true) && (
                         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
                           <p className="text-xs text-orange-700 font-semibold mb-1">📦 Articles</p>
                           <p className="text-2xl font-bold text-orange-900">{periodEntries[0].nb_articles ?? 0}</p>
-                          {kpiConfig?.track_ventes && periodEntries[0].nb_ventes > 0 && (
+                          {(kpiConfig?.track_ventes ?? true) && periodEntries[0].nb_ventes > 0 && (
                             <p className="text-xs text-orange-600 mt-1">IV: {(periodEntries[0].nb_articles / periodEntries[0].nb_ventes).toFixed(2)}</p>
                           )}
                         </div>
                       )}
-                      {kpiConfig?.track_prospects && (
+                      {(kpiConfig?.track_prospects ?? true) && (
                         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
                           <p className="text-xs text-purple-700 font-semibold mb-1">🚶 Prospects</p>
                           <p className="text-2xl font-bold text-purple-900">{periodEntries[0].nb_prospects ?? 0}</p>
-                          {kpiConfig?.track_ventes && periodEntries[0].nb_prospects > 0 && (
+                          {(kpiConfig?.track_ventes ?? true) && periodEntries[0].nb_prospects > 0 && (
                             <p className="text-xs text-purple-600 mt-1">Taux: {((periodEntries[0].nb_ventes / periodEntries[0].nb_prospects) * 100).toFixed(0)}%</p>
                           )}
                         </div>
@@ -853,43 +854,43 @@ export default function PerformanceModal({
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                        {kpiConfig?.track_ca && (
+                        {(kpiConfig?.track_ca ?? true) && (
                           <div className="bg-blue-50 rounded-lg p-3">
                             <p className="text-xs text-blue-600 mb-1">💰 CA total</p>
                             <p className="text-lg font-bold text-blue-900">{periodAggregates.ca.toFixed(0)}€</p>
                           </div>
                         )}
-                        {kpiConfig?.track_ventes && (
+                        {(kpiConfig?.track_ventes ?? true) && (
                           <div className="bg-green-50 rounded-lg p-3">
                             <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
                             <p className="text-lg font-bold text-green-900">{periodAggregates.ventes}</p>
                           </div>
                         )}
-                        {kpiConfig?.track_articles && (
+                        {(kpiConfig?.track_articles ?? true) && (
                           <div className="bg-orange-50 rounded-lg p-3">
                             <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
                             <p className="text-lg font-bold text-orange-900">{periodAggregates.articles}</p>
                           </div>
                         )}
-                        {kpiConfig?.track_prospects && (
+                        {(kpiConfig?.track_prospects ?? true) && (
                           <div className="bg-purple-50 rounded-lg p-3">
                             <p className="text-xs text-purple-600 mb-1">🚶 Prospects</p>
                             <p className="text-lg font-bold text-purple-900">{periodAggregates.prospects}</p>
                           </div>
                         )}
-                        {kpiConfig?.track_ca && kpiConfig?.track_ventes && periodAggregates.panier_moyen > 0 && (
+                        {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && periodAggregates.panier_moyen > 0 && (
                           <div className="bg-indigo-50 rounded-lg p-3">
                             <p className="text-xs text-indigo-600 mb-1">💳 Panier moyen</p>
                             <p className="text-lg font-bold text-indigo-900">{periodAggregates.panier_moyen.toFixed(0)}€</p>
                           </div>
                         )}
-                        {kpiConfig?.track_ventes && kpiConfig?.track_prospects && periodAggregates.taux_transformation > 0 && (
+                        {(kpiConfig?.track_ventes ?? true) && (kpiConfig?.track_prospects ?? true) && periodAggregates.taux_transformation > 0 && (
                           <div className="bg-pink-50 rounded-lg p-3">
                             <p className="text-xs text-pink-600 mb-1">📈 Taux transfo</p>
                             <p className="text-lg font-bold text-pink-900">{periodAggregates.taux_transformation.toFixed(1)}%</p>
                           </div>
                         )}
-                        {kpiConfig?.track_articles && kpiConfig?.track_ventes && periodAggregates.indice_vente > 0 && (
+                        {(kpiConfig?.track_articles ?? true) && (kpiConfig?.track_ventes ?? true) && periodAggregates.indice_vente > 0 && (
                           <div className="bg-teal-50 rounded-lg p-3">
                             <p className="text-xs text-teal-600 mb-1">🎯 Indice vente</p>
                             <p className="text-lg font-bold text-teal-900">{periodAggregates.indice_vente.toFixed(2)}</p>
@@ -908,11 +909,11 @@ export default function PerformanceModal({
                             <thead className="bg-gray-100">
                               <tr>
                                 <th className="text-left px-3 py-2 text-gray-600 font-semibold">{viewMode === 'annee' ? 'Mois' : 'Date'}</th>
-                                {kpiConfig?.track_ca && <th className="text-right px-3 py-2 text-blue-700 font-semibold">💰 CA</th>}
-                                {kpiConfig?.track_ventes && <th className="text-right px-3 py-2 text-green-700 font-semibold">🛒 Ventes</th>}
-                                {kpiConfig?.track_articles && <th className="text-right px-3 py-2 text-orange-700 font-semibold">📦 Articles</th>}
-                                {kpiConfig?.track_prospects && <th className="text-right px-3 py-2 text-purple-700 font-semibold">🚶 Prospects</th>}
-                                {kpiConfig?.track_ca && kpiConfig?.track_ventes && <th className="text-right px-3 py-2 text-indigo-700 font-semibold">💳 P.Moyen</th>}
+                                {(kpiConfig?.track_ca ?? true) && <th className="text-right px-3 py-2 text-blue-700 font-semibold">💰 CA</th>}
+                                {(kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-green-700 font-semibold">🛒 Ventes</th>}
+                                {(kpiConfig?.track_articles ?? true) && <th className="text-right px-3 py-2 text-orange-700 font-semibold">📦 Articles</th>}
+                                {(kpiConfig?.track_prospects ?? true) && <th className="text-right px-3 py-2 text-purple-700 font-semibold">🚶 Prospects</th>}
+                                {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-indigo-700 font-semibold">💳 P.Moyen</th>}
                               </tr>
                             </thead>
                             <tbody>
@@ -922,11 +923,11 @@ export default function PerformanceModal({
                                 return (
                                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                     <td className="px-3 py-2 text-gray-700 font-medium capitalize">{label}</td>
-                                    {kpiConfig?.track_ca && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{m.ca > 0 ? `${m.ca.toFixed(0)}€` : '—'}</td>}
-                                    {kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-green-900">{m.ventes || '—'}</td>}
-                                    {kpiConfig?.track_articles && <td className="text-right px-3 py-2 text-orange-900">{m.articles || '—'}</td>}
-                                    {kpiConfig?.track_prospects && <td className="text-right px-3 py-2 text-purple-900">{m.prospects || '—'}</td>}
-                                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
+                                    {(kpiConfig?.track_ca ?? true) && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{m.ca > 0 ? `${m.ca.toFixed(0)}€` : '—'}</td>}
+                                    {(kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-green-900">{m.ventes || '—'}</td>}
+                                    {(kpiConfig?.track_articles ?? true) && <td className="text-right px-3 py-2 text-orange-900">{m.articles || '—'}</td>}
+                                    {(kpiConfig?.track_prospects ?? true) && <td className="text-right px-3 py-2 text-purple-900">{m.prospects || '—'}</td>}
+                                    {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
                                   </tr>
                                 );
                               }) : periodEntries.map((entry, i) => {
@@ -934,11 +935,11 @@ export default function PerformanceModal({
                                 return (
                                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                     <td className="px-3 py-2 text-gray-700 font-medium">{new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
-                                    {kpiConfig?.track_ca && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{entry.ca_journalier != null ? `${entry.ca_journalier.toFixed(0)}€` : '—'}</td>}
-                                    {kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-green-900">{entry.nb_ventes ?? '—'}</td>}
-                                    {kpiConfig?.track_articles && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
-                                    {kpiConfig?.track_prospects && <td className="text-right px-3 py-2 text-purple-900">{entry.nb_prospects ?? '—'}</td>}
-                                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
+                                    {(kpiConfig?.track_ca ?? true) && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{entry.ca_journalier != null ? `${entry.ca_journalier.toFixed(0)}€` : '—'}</td>}
+                                    {(kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-green-900">{entry.nb_ventes ?? '—'}</td>}
+                                    {(kpiConfig?.track_articles ?? true) && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
+                                    {(kpiConfig?.track_prospects ?? true) && <td className="text-right px-3 py-2 text-purple-900">{entry.nb_prospects ?? '—'}</td>}
+                                    {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
                                   </tr>
                                 );
                               })}
@@ -953,7 +954,7 @@ export default function PerformanceModal({
                       {/* Graphiques période — masqués pour la vue Jour */}
                       {viewMode !== 'jour' && periodChartData.length > 0 && (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          {kpiConfig?.track_ca && (
+                          {(kpiConfig?.track_ca ?? true) && (
                             <div className="bg-blue-50 rounded-xl p-4">
                               <h4 className="text-sm font-semibold text-blue-900 mb-3">💰 Évolution du CA</h4>
                               <ResponsiveContainer width="100%" height={180}>
@@ -967,7 +968,7 @@ export default function PerformanceModal({
                               </ResponsiveContainer>
                             </div>
                           )}
-                          {kpiConfig?.track_ventes && (
+                          {(kpiConfig?.track_ventes ?? true) && (
                             <div className="bg-green-50 rounded-xl p-4">
                               <h4 className="text-sm font-semibold text-green-900 mb-3">🛒 Évolution des Ventes</h4>
                               <ResponsiveContainer width="100%" height={180}>
@@ -981,7 +982,7 @@ export default function PerformanceModal({
                               </ResponsiveContainer>
                             </div>
                           )}
-                          {kpiConfig?.track_articles && (
+                          {(kpiConfig?.track_articles ?? true) && (
                             <div className="bg-orange-50 rounded-xl p-4">
                               <h4 className="text-sm font-semibold text-orange-900 mb-3">📦 Évolution des Articles</h4>
                               <ResponsiveContainer width="100%" height={180}>
@@ -995,7 +996,7 @@ export default function PerformanceModal({
                               </ResponsiveContainer>
                             </div>
                           )}
-                          {kpiConfig?.track_prospects && (
+                          {(kpiConfig?.track_prospects ?? true) && (
                             <div className="bg-purple-50 rounded-xl p-4">
                               <h4 className="text-sm font-semibold text-purple-900 mb-3">🚶 Évolution des Prospects</h4>
                               <ResponsiveContainer width="100%" height={180}>
@@ -1159,11 +1160,11 @@ export default function PerformanceModal({
                             <thead className="bg-gray-100">
                               <tr>
                                 <th className="text-left px-3 py-2 text-gray-600 font-semibold">Date</th>
-                                {kpiConfig?.track_ca && <th className="text-right px-3 py-2 text-blue-700 font-semibold">💰 CA</th>}
-                                {kpiConfig?.track_ventes && <th className="text-right px-3 py-2 text-green-700 font-semibold">🛒 Ventes</th>}
-                                {kpiConfig?.track_articles && <th className="text-right px-3 py-2 text-orange-700 font-semibold">📦 Articles</th>}
-                                {kpiConfig?.track_prospects && <th className="text-right px-3 py-2 text-purple-700 font-semibold">🚶 Prospects</th>}
-                                {kpiConfig?.track_ca && kpiConfig?.track_ventes && <th className="text-right px-3 py-2 text-indigo-700 font-semibold">💳 P.Moyen</th>}
+                                {(kpiConfig?.track_ca ?? true) && <th className="text-right px-3 py-2 text-blue-700 font-semibold">💰 CA</th>}
+                                {(kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-green-700 font-semibold">🛒 Ventes</th>}
+                                {(kpiConfig?.track_articles ?? true) && <th className="text-right px-3 py-2 text-orange-700 font-semibold">📦 Articles</th>}
+                                {(kpiConfig?.track_prospects ?? true) && <th className="text-right px-3 py-2 text-purple-700 font-semibold">🚶 Prospects</th>}
+                                {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <th className="text-right px-3 py-2 text-indigo-700 font-semibold">💳 P.Moyen</th>}
                               </tr>
                             </thead>
                             <tbody>
@@ -1172,11 +1173,11 @@ export default function PerformanceModal({
                                 return (
                                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                     <td className="px-3 py-2 text-gray-700 font-medium">{new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
-                                    {kpiConfig?.track_ca && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{entry.ca_journalier != null ? `${entry.ca_journalier.toFixed(0)}€` : '—'}</td>}
-                                    {kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-green-900">{entry.nb_ventes ?? '—'}</td>}
-                                    {kpiConfig?.track_articles && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
-                                    {kpiConfig?.track_prospects && <td className="text-right px-3 py-2 text-purple-900">{entry.nb_prospects ?? '—'}</td>}
-                                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
+                                    {(kpiConfig?.track_ca ?? true) && <td className="text-right px-3 py-2 text-blue-900 font-semibold">{entry.ca_journalier != null ? `${entry.ca_journalier.toFixed(0)}€` : '—'}</td>}
+                                    {(kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-green-900">{entry.nb_ventes ?? '—'}</td>}
+                                    {(kpiConfig?.track_articles ?? true) && <td className="text-right px-3 py-2 text-orange-900">{entry.nb_articles ?? '—'}</td>}
+                                    {(kpiConfig?.track_prospects ?? true) && <td className="text-right px-3 py-2 text-purple-900">{entry.nb_prospects ?? '—'}</td>}
+                                    {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && <td className="text-right px-3 py-2 text-indigo-900">{pm > 0 ? `${pm.toFixed(0)}€` : '—'}</td>}
                                   </tr>
                                 );
                               })}
