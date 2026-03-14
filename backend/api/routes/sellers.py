@@ -1451,7 +1451,7 @@ async def generate_bilan_individuel(
                 # 🛑 SELLER PROMPT V4 — Data-driven, specific, no generic advice
                 prompt = f"""Tu es un coach de vente retail expert. Génère un bilan DÉTAILLÉ et PERSONNALISÉ pour {seller_name}.
 {disc_block}
-📊 DONNÉES DE LA PÉRIODE ({eff_start} → {eff_end}) :
+📊 DONNÉES DE LA PÉRIODE ({_period_label}) :
 - CA total : {total_ca:.0f}€  |  Jours avec données : {nb_jours}
 - Ventes conclues : {total_ventes}  |  Panier moyen : {panier_moyen:.2f}€
 {optional_block}
@@ -1509,13 +1509,27 @@ Génère un bilan structuré au format JSON :
                         
             except Exception as e:
                 logger.error("AI bilan error: %s", e, exc_info=True)
+    # Build a human-readable period label for fallback messages
+    from datetime import date as _date2
+    _start = _date2.fromisoformat(eff_start)
+    _end = _date2.fromisoformat(eff_end)
+    _nb_days = (_end - _start).days + 1
+    if _nb_days == 1:
+        _period_label = f"le {_start.strftime('%d/%m/%Y')}"
+    elif _nb_days <= 7:
+        _period_label = f"la semaine du {_start.strftime('%d/%m')} au {_end.strftime('%d/%m/%Y')}"
+    elif _nb_days <= 31:
+        _period_label = f"le mois du {_start.strftime('%d/%m')} au {_end.strftime('%d/%m/%Y')}"
+    else:
+        _period_label = f"la période du {_start.strftime('%d/%m/%Y')} au {_end.strftime('%d/%m/%Y')}"
+
     # If no AI, generate basic bilan
     if not synthese:
         if nb_jours > 0:
-            synthese = f"Cette semaine, tu as réalisé {total_ventes} ventes pour un CA de {total_ca:.0f}€. Continue comme ça !"
-            points_forts = ["Assiduité dans la saisie des KPIs"]
-            points_attention = ["Continue à développer tes compétences"]
-            recommandations = ["Fixe-toi un objectif quotidien", "Analyse tes meilleures ventes"]
+            synthese = f"Sur {_period_label}, tu as réalisé {total_ventes} ventes pour un CA de {total_ca:.0f}€ (panier moyen : {panier_moyen:.0f}€)."
+            points_forts = [f"CA de {total_ca:.0f}€ sur la période"]
+            points_attention = ["Continue à développer tes compétences de closing"]
+            recommandations = ["Fixe-toi un objectif quotidien de ventes", "Analyse tes meilleures ventes pour reproduire les succès"]
         else:
             synthese = "Aucune donnée KPI pour cette période. Commence à saisir tes performances !"
             points_attention = ["Pense à saisir tes KPIs quotidiennement"]
