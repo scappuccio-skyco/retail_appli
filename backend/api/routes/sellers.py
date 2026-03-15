@@ -1681,13 +1681,12 @@ Réponds en JSON :
                 from services.ai_service import SELLER_STRICT_SYSTEM_PROMPT, DISC_ADAPTATION_INSTRUCTIONS
                 system_prompt = SELLER_STRICT_SYSTEM_PROMPT + "\n" + DISC_ADAPTATION_INSTRUCTIONS + "\nRéponds uniquement en JSON valide."
 
-                chat = ai_service._create_chat(
-                    session_id=f"bilan_{seller_id}_{start_date}",
+                response = await ai_service._send_message(
                     system_message=system_prompt,
-                    model="gpt-4o-mini"
+                    user_prompt=prompt,
+                    model="gpt-4o-mini",
+                    temperature=0.7,
                 )
-
-                response = await ai_service._send_message(chat, prompt)
                 
                 if response:
                     # Parse JSON
