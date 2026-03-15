@@ -1508,9 +1508,37 @@ async def generate_bilan_individuel(
                 if disc_style:
                     disc_block = f"\n🎭 PROFIL DISC : {disc_style} — adapte ton ton (D=direct/résultats, I=enthousiaste, S=rassurant, C=factuel/chiffres).\n"
 
-                # --- Scores de compétences ---
+                # --- Scores de compétences (avec fiabilité selon nb debriefs) ---
                 scores_block = ""
                 if diagnostic:
+                    # Fetch total debrief count + most recent debrief scores
+                    _total_debrief_count = 0
+                    _score_source = "questionnaire initial"
+                    try:
+                        _all_debriefs_scores = await seller_service.get_debriefs_by_seller(
+                            seller_id,
+                            projection={"_id": 0, "score_accueil": 1, "score_decouverte": 1,
+                                        "score_argumentation": 1, "score_closing": 1,
+                                        "score_fidelisation": 1, "date": 1},
+                            limit=200,
+                            sort=[("date", -1)],
+                        )
+                        _total_debrief_count = len(_all_debriefs_scores)
+                        if _total_debrief_count > 0:
+                            _latest = _all_debriefs_scores[0]
+                            # Use latest debrief scores if all keys are present and non-zero
+                            if _latest.get('score_accueil') or _latest.get('score_argumentation'):
+                                diagnostic = {**diagnostic,
+                                    'score_accueil': _latest.get('score_accueil', diagnostic.get('score_accueil', 6.0)),
+                                    'score_decouverte': _latest.get('score_decouverte', diagnostic.get('score_decouverte', 6.0)),
+                                    'score_argumentation': _latest.get('score_argumentation', diagnostic.get('score_argumentation', 6.0)),
+                                    'score_closing': _latest.get('score_closing', diagnostic.get('score_closing', 6.0)),
+                                    'score_fidelisation': _latest.get('score_fidelisation', diagnostic.get('score_fidelisation', 6.0)),
+                                }
+                                _score_source = f"{_total_debrief_count} debrief(s)"
+                    except Exception as _e:
+                        logger.warning("Could not fetch debrief scores for bilan: %s", _e)
+
                     scores = {
                         "Accueil": diagnostic.get('score_accueil', 6.0),
                         "Découverte": diagnostic.get('score_decouverte', 6.0),
@@ -1521,11 +1549,21 @@ async def generate_bilan_individuel(
                     sorted_scores = sorted(scores.items(), key=lambda x: x[1])
                     weakest = sorted_scores[:2]
                     strongest = sorted_scores[-2:]
+                    _score_reliability = (
+                        "⚠️ FIABILITÉ FAIBLE (scores basés sur questionnaire initial uniquement — 0 debrief soumis)"
+                        if _total_debrief_count == 0
+                        else f"📊 Fiabilité : {_total_debrief_count} debrief(s) soumis — scores progressivement affinés"
+                    )
                     scores_block = (
-                        "\n📈 COMPÉTENCES (sur 10) :\n"
+                        f"\n📈 COMPÉTENCES (sur 10) — source : {_score_source} :\n"
                         + "".join(f"- {k} : {v:.1f}/10\n" for k, v in scores.items())
                         + f"→ Forces : {', '.join(f'{k} ({v:.1f})' for k,v in strongest)}\n"
                         + f"→ À travailler : {', '.join(f'{k} ({v:.1f})' for k,v in weakest)}\n"
+                        + f"→ {_score_reliability}\n"
+                        + ("→ Ne signale PAS ces scores comme 'à améliorer' sauf si score < 5.0 ET au moins 3 debriefs soumis. "
+                           "Si fiabilité faible, INVITE le vendeur à soumettre des debriefs pour affiner son profil de compétences.\n"
+                           if _total_debrief_count < 3
+                           else "→ Ces scores sont fiables — souligne les axes de progression dans les recommandations.\n")
                         + "→ Lie chaque recommandation à une compétence précise.\n"
                     )
 
