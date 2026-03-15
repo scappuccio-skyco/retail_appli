@@ -553,6 +553,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             onOpenDiagnostic={handleOpenDiagnostic}
             onOpenKpi={handleOpenKpi}
             onOpenCoaching={() => setShowCoachingModal(true)}
+            onOpenDebrief={() => setShowDebriefModal(true)}
+            onOpenBilan={() => { setInitialTab('bilan'); setShowPerformanceModal(true); }}
+            onOpenObjectives={() => setShowObjectivesModal(true)}
             onSelectTask={handleSelectTask}
           />
         </div>

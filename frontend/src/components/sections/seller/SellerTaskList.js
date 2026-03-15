@@ -10,6 +10,9 @@ export default function SellerTaskList({
   onOpenDiagnostic,
   onOpenKpi,
   onOpenCoaching,
+  onOpenDebrief,
+  onOpenBilan,
+  onOpenObjectives,
   onSelectTask,
 }) {
   if (!tasks || tasks.length === 0) {
@@ -25,11 +28,17 @@ export default function SellerTaskList({
 
   const handleTaskClick = (task) => {
     if (task.type === 'diagnostic') {
-      diagnostic ? onOpenDiagnostic() : onOpenDiagnostic(true); // true = ouvrir le form
+      diagnostic ? onOpenDiagnostic() : onOpenDiagnostic(true);
     } else if (task.type === 'kpi') {
       onOpenKpi();
     } else if (task.type === 'challenge') {
       onOpenCoaching();
+    } else if (task.type === 'debrief') {
+      onOpenDebrief?.();
+    } else if (task.type === 'bilan') {
+      onOpenBilan?.();
+    } else if (task.type === 'objective') {
+      onOpenObjectives?.();
     } else {
       onSelectTask(task);
     }

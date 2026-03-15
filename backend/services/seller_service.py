@@ -692,15 +692,21 @@ class SellerService:
     
     async def get_seller_tasks(self, seller_id: str) -> List[Dict]:
         """
-        Get all pending tasks for a seller
-        - Check if diagnostic is completed
-        - Check for pending manager requests
+        Get all pending tasks for a seller:
+        - Diagnostic completion
+        - Pending manager requests
+        - Debrief submission (if none in last 7 days)
+        - Daily challenge not yet completed
+        - Active objective expiring in ≤3 days
+        - Weekly bilan missing for previous complete week
         """
+        from datetime import date, timedelta
         tasks = []
-        
-        # Check diagnostic
+        today = date.today()
+        today_str = today.isoformat()
+
+        # --- Diagnostic ---
         diagnostic = await self.diagnostic_repo.find_by_seller(seller_id)
-        
         if not diagnostic:
             tasks.append({
                 "id": "diagnostic",
@@ -710,17 +716,14 @@ class SellerService:
                 "priority": "high",
                 "icon": "📋"
             })
-        
-        # Check pending manager requests
+
+        # --- Pending manager requests ---
         requests_list = await self.manager_request_repo.find_by_seller(
             seller_id, status="pending", limit=100
         )
-        
         for req in requests_list:
-            # Ensure created_at is properly formatted
             if isinstance(req.get('created_at'), str):
                 req['created_at'] = datetime.fromisoformat(req['created_at'])
-            
             tasks.append({
                 "id": req['id'],
                 "type": "manager_request",
@@ -730,7 +733,116 @@ class SellerService:
                 "icon": "💬",
                 "data": req
             })
-        
+
+        # --- Debrief (none submitted in last 7 days) ---
+        try:
+            recent_debriefs = await self.debrief_repo.find_by_seller(
+                seller_id,
+                projection={"_id": 0, "created_at": 1},
+                limit=1,
+                sort=[("created_at", -1)],
+            )
+            if not recent_debriefs:
+                tasks.append({
+                    "id": "submit-debrief",
+                    "type": "debrief",
+                    "title": "Soumets ton premier débrief",
+                    "description": "Analyse une vente pour affiner ton profil de compétences",
+                    "priority": "important",
+                    "icon": "🗒️",
+                })
+            else:
+                last_created = recent_debriefs[0].get("created_at")
+                if last_created:
+                    if isinstance(last_created, str):
+                        last_dt = datetime.fromisoformat(last_created.replace("Z", "+00:00"))
+                    else:
+                        last_dt = last_created
+                    if last_dt.tzinfo is None:
+                        last_dt = last_dt.replace(tzinfo=timezone.utc)
+                    days_since = (datetime.now(timezone.utc) - last_dt).days
+                    if days_since > 7:
+                        tasks.append({
+                            "id": "submit-debrief",
+                            "type": "debrief",
+                            "title": "Soumets un débrief",
+                            "description": f"Dernier débrief il y a {days_since} jours — analyse une vente récente",
+                            "priority": "normal",
+                            "icon": "🗒️",
+                        })
+        except Exception:
+            pass
+
+        # --- Daily challenge not yet completed ---
+        try:
+            challenge = await self.daily_challenge_repo.find_by_seller_and_date(seller_id, today_str)
+            if challenge and not challenge.get("completed", False):
+                tasks.append({
+                    "id": "daily-challenge",
+                    "type": "challenge",
+                    "title": challenge.get("title", "Challenge du jour"),
+                    "description": challenge.get("description", "Relève ton défi du jour"),
+                    "priority": "normal",
+                    "icon": "⚡",
+                })
+        except Exception:
+            pass
+
+        # --- Active objective expiring in ≤3 days ---
+        try:
+            seller_profile = await self.user_repo.find_by_id(seller_id)
+            store_id = seller_profile.get("store_id") if seller_profile else None
+            if store_id:
+                deadline_str = (today + timedelta(days=3)).isoformat()
+                objectives = await self.objective_repo.find_by_seller(
+                    seller_id,
+                    store_id,
+                    projection={"_id": 0, "id": 1, "title": 1, "period_end": 1, "status": 1},
+                    limit=20,
+                )
+                expiring = [
+                    o for o in objectives
+                    if o.get("status") == "active"
+                    and today_str <= o.get("period_end", "") <= deadline_str
+                ]
+                for obj in expiring[:2]:
+                    days_left = (date.fromisoformat(obj["period_end"]) - today).days
+                    label = "demain" if days_left == 1 else ("aujourd'hui" if days_left == 0 else f"dans {days_left} jours")
+                    tasks.append({
+                        "id": f"objective-{obj.get('id', '')}",
+                        "type": "objective",
+                        "title": f"Objectif se termine {label}",
+                        "description": obj.get("title", "Vérifie ta progression"),
+                        "priority": "important" if days_left <= 1 else "normal",
+                        "icon": "🎯",
+                    })
+        except Exception:
+            pass
+
+        # --- Weekly bilan missing for previous complete week ---
+        try:
+            weekday = today.weekday()  # 0 = Monday
+            current_week_monday = today - timedelta(days=weekday)
+            prev_week_monday = current_week_monday - timedelta(days=7)
+            prev_week_sunday = current_week_monday - timedelta(days=1)
+            recent_bilans = await self.seller_bilan_repo.find_by_seller(seller_id, limit=5)
+            has_prev_week_bilan = any(
+                b.get("period_start", "") <= prev_week_sunday.isoformat()
+                and b.get("period_end", "") >= prev_week_monday.isoformat()
+                for b in recent_bilans
+            )
+            if not has_prev_week_bilan:
+                tasks.append({
+                    "id": "weekly-bilan",
+                    "type": "bilan",
+                    "title": "Bilan de la semaine passée",
+                    "description": f"Semaine du {prev_week_monday.strftime('%d/%m')} au {prev_week_sunday.strftime('%d/%m')} — génère ton analyse",
+                    "priority": "normal",
+                    "icon": "📊",
+                })
+        except Exception:
+            pass
+
         return tasks
     
     # ===== OBJECTIVES =====
