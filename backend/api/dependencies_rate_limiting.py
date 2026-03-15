@@ -28,21 +28,34 @@ def get_limiter_from_request(request: "Request") -> Optional[Limiter]:
     return getattr(request.app.state, "limiter", None) or get_rate_limiter()
 
 
+def _extract_user_id_from_request(request: "Request") -> str:
+    """Extract user_id from JWT Bearer token, fall back to IP address."""
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            from core.security import decode_token as decode_access_token
+            token = auth_header[7:]
+            payload = decode_access_token(token)
+            user_id = payload.get("user_id") or payload.get("sub") or payload.get("id")
+            if user_id:
+                return f"user:{user_id}"
+        except Exception:
+            pass
+    return get_remote_address(request)
+
+
 def rate_limit(limit_str: str):
     """Depends() that applies rate limit via request.app.state.limiter.
-    Uses key_func = IP + path so each endpoint has its own bucket (otherwise
-    all routes sharing this Depends would use the same slowapi bucket and
-    the first registered limit e.g. 10/minute could apply to all).
+    Key = user_id (from JWT) + path when authenticated, else IP + path.
+    This ensures each user has their own bucket even behind a shared proxy (Railway).
     """
     async def _check_limit(request: Request):
         limiter = get_limiter_from_request(request)
         if not limiter:
             return None
-        # Per-endpoint key so /api/manager/sellers gets 200/min, /api/auth/login 10/min, etc.
-        # IMPORTANT: slowapi appelle key_func() sans argument. _key_func ne doit pas prendre
-        # req/request en paramètre ; on utilise l'objet request du scope parent (_check_limit).
         def _key_func():
-            return f"{get_remote_address(request)}:{request.url.path}"
+            identity = _extract_user_id_from_request(request)
+            return f"{identity}:{request.url.path}"
         async def _noop(request: Request):
             return None
         wrapped = limiter.limit(limit_str, key_func=_key_func)(_noop)
