@@ -264,16 +264,23 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       }
 
       try {
-        const kpiRes = await api.get('/seller/kpi-entries');
+        const _now = new Date();
+        const today = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+
+        const [kpiRes, datesRes] = await Promise.all([
+          api.get('/seller/kpi-entries'),
+          api.get(`/seller/dates-with-data?year=${_now.getFullYear()}&month=${_now.getMonth() + 1}`),
+        ]);
         const rawKpi = kpiRes.data;
         const entries = Array.isArray(rawKpi) ? rawKpi : (rawKpi?.items ?? []);
         setKpiEntries(entries);
         setKpiEntriesPage(1);
         setKpiEntriesTotal(rawKpi?.total ?? entries.length);
 
-        const _now = new Date();
-        const today = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
-        const hasTodayKPI = entries.some(e => e.date === today);
+        // Use dates-with-data (same source as the calendar) so the task check
+        // stays in sync even when KPI data is pushed via external API after page load.
+        const kpiDates = datesRes.data?.dates ?? [];
+        const hasTodayKPI = kpiDates.includes(today);
 
         let newTasks = [...tasksRes.data];
         if (!hasTodayKPI && !tasksRes.data.find(t => t.id === 'daily-kpi')) {
