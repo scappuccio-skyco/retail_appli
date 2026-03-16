@@ -30,7 +30,7 @@ from models.pagination import PaginatedResponse, PaginationParams
 from services.manager_service import ManagerService
 from services.manager import ManagerKpiService
 from services.gerant_service import GerantService
-from services.ai_service import AIService
+from services.ai_service import AIService, TEAM_ANALYSIS_SYSTEM_PROMPT, DISC_ADAPTATION_INSTRUCTIONS
 
 router = APIRouter(prefix="")
 logger = logging.getLogger(__name__)
@@ -515,11 +515,36 @@ async def analyze_team(
                 }
     except Exception as _e:
         logger.warning("Could not fetch previous period data for team analysis: %s", _e)
+
+    # Fetch manager DISC profile for tone adaptation
+    manager_disc_profile = None
+    if manager_id:
+        try:
+            mgr_diag = await manager_service.manager_diagnostic_repo.find_latest_by_manager(manager_id)
+            if mgr_diag:
+                manager_disc_profile = mgr_diag.get("profile") or mgr_diag.get("disc_profile")
+        except Exception as _e:
+            logger.warning("Could not fetch manager DISC for team analysis: %s", _e)
+
+    # Fetch active team objectives for the period
+    team_objectives = []
+    if resolved_store_id and manager_id:
+        try:
+            all_objs = await manager_service.get_active_objectives(manager_id, resolved_store_id)
+            team_objectives = [
+                o for o in (all_objs or [])
+                if o.get("period_start", "") <= period_end and o.get("period_end", "") >= period_start
+            ][:5]
+        except Exception as _e:
+            logger.warning("Could not fetch team objectives for team analysis: %s", _e)
+
     analysis_text = await ai_service.generate_team_analysis(
         team_data=team_data,
         period_label=period_label,
         manager_id=manager_id,
+        manager_disc_profile=manager_disc_profile,
         prev_period_data=prev_period_data,
+        team_objectives=team_objectives,
     )
     analysis_record = {
         "id": str(uuid4()),
@@ -563,6 +588,7 @@ async def run_store_kpi_analysis(
     manager_service: ManagerService,
     kpi_service: ManagerKpiService,
     ai_service: AIService,
+    manager_id: str = None,
 ):
     """
     Shared logic: generate AI-powered analysis of store KPIs.
@@ -664,8 +690,52 @@ async def run_store_kpi_analysis(
         available_totals.append(f"Articles : {total_articles}")
     if total_prospects > 0:
         available_totals.append(f"Prospects : {total_prospects}")
-    prompt = f"""Tu es un expert en analyse de performance retail pour BOUTIQUES PHYSIQUES. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
 
+    # Previous period comparison
+    prev_period_block = ""
+    try:
+        _curr_start = datetime.strptime(start_date, "%Y-%m-%d")
+        _curr_end = datetime.strptime(end_date, "%Y-%m-%d")
+        _duration = (_curr_end - _curr_start).days + 1
+        _prev_end = (_curr_start - timedelta(days=1)).strftime("%Y-%m-%d")
+        _prev_start = (_curr_start - timedelta(days=_duration)).strftime("%Y-%m-%d")
+        prev_stats = await manager_service.get_store_kpi_stats(
+            store_id=resolved_store_id, start_date=_prev_start, end_date=_prev_end
+        )
+        if prev_stats:
+            prev_ca = prev_stats.get("ca_total") or prev_stats.get("total_ca") or 0
+            prev_ventes = prev_stats.get("ventes") or prev_stats.get("total_ventes") or 0
+            if prev_ca > 0:
+                def _pct(cur, prev):
+                    if prev == 0: return "N/A"
+                    d = ((cur - prev) / prev) * 100
+                    return f"+{d:.0f}%" if d >= 0 else f"{d:.0f}%"
+                prev_period_block = (
+                    f"\n📊 PÉRIODE PRÉCÉDENTE ({_prev_start} → {_prev_end}) :\n"
+                    f"- CA : {prev_ca:.0f}€  ({_pct(total_ca, prev_ca)} vs période actuelle)\n"
+                    f"- Ventes : {prev_ventes}  ({_pct(total_ventes, prev_ventes)})\n"
+                    "→ Commente OBLIGATOIREMENT les variations significatives (>10%) dans ton analyse.\n"
+                )
+    except Exception as _e:
+        logger.warning("Could not fetch prev period for store KPI analysis: %s", _e)
+
+    # Manager DISC for tone adaptation
+    disc_block = ""
+    if manager_id:
+        try:
+            mgr_diag = await manager_service.manager_diagnostic_repo.find_latest_by_manager(manager_id)
+            if mgr_diag:
+                disc_style = (mgr_diag.get("profile") or mgr_diag.get("disc_profile") or {}).get("style", "")
+                if disc_style:
+                    disc_block = (
+                        f"\n👤 TON INTERLOCUTEUR (MANAGER) EST DE PROFIL DISC : {disc_style}\n"
+                        f"{DISC_ADAPTATION_INSTRUCTIONS}\n"
+                    )
+        except Exception as _e:
+            logger.warning("Could not fetch manager DISC for store KPI analysis: %s", _e)
+
+    prompt = f"""Tu es un expert en analyse de performance retail pour BOUTIQUES PHYSIQUES. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
+{disc_block}
 CONTEXTE IMPORTANT : Il s'agit d'une boutique avec flux naturel de clients. Les "prospects" représentent les visiteurs entrés en boutique, PAS de prospection active à faire. Le travail consiste à transformer les visiteurs en acheteurs.
 
 Magasin : {store_name}
@@ -677,10 +747,12 @@ KPIs Disponibles :
 
 Totaux :
 {chr(10).join(['- ' + total for total in available_totals]) if available_totals else '(Aucune donnée)'}
-
+{prev_period_block}
 CONSIGNES STRICTES :
 - Analyse UNIQUEMENT les données présentes
 - Ne mentionne JAMAIS les données manquantes ou absentes
+- Cite TOUJOURS les chiffres exacts dans tes observations
+- Commente les variations vs période précédente si disponible (>10% = notable)
 - Sois concis et direct (2-3 points max par section)
 - Fournis des insights actionnables pour BOUTIQUE PHYSIQUE
 - Si c'est une période longue, identifie les tendances
@@ -723,7 +795,7 @@ Format : Markdown simple et concis."""
         }
     try:
         analysis_text = await ai_service._send_message(
-            system_message="Tu es un expert en analyse de performance retail avec 15 ans d'expérience.",
+            system_message=TEAM_ANALYSIS_SYSTEM_PROMPT,
             user_prompt=prompt,
             model="gpt-4o",
             temperature=0.7,
@@ -780,5 +852,6 @@ async def analyze_store_kpis(
     if not resolved_store_id:
         raise ValidationError("Le paramètre store_id est requis pour analyser les KPIs d'un magasin")
     return await run_store_kpi_analysis(
-        resolved_store_id, analysis_data, manager_service, kpi_service, ai_service
+        resolved_store_id, analysis_data, manager_service, kpi_service, ai_service,
+        manager_id=context.get("id"),
     )

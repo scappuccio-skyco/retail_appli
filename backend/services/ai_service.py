@@ -536,7 +536,8 @@ class AIService:
         period_label: str = "sur 30 jours",
         manager_id: str = None,
         manager_disc_profile: Optional[Dict] = None,
-        prev_period_data: Optional[Dict] = None
+        prev_period_data: Optional[Dict] = None,
+        team_objectives: Optional[list] = None,
     ) -> str:
         """
         Generate comprehensive team analysis using GPT-4o
@@ -556,14 +557,18 @@ class AIService:
         if not self.available:
             return self._fallback_team_analysis(team_data, period_label)
         
-        # Build sellers summary with anonymized names + DISC profile if available
+        # Build sellers summary sorted by CA descending (explicit ranking)
+        sellers_raw = team_data.get('sellers_details', [])
+        sellers_sorted = sorted(sellers_raw, key=lambda s: s.get('ca', 0), reverse=True)
         sellers_summary = []
-        for seller in team_data.get('sellers_details', []):
+        for rank, seller in enumerate(sellers_sorted, 1):
             anonymous_name = anonymize_name_for_ai(seller.get('name', 'Vendeur'))
-            disc_info = f", Profil: {seller.get('disc_style', 'N/A')}" if seller.get('disc_style') else ""
+            disc_info = f", DISC: {seller.get('disc_style')}" if seller.get('disc_style') else ""
+            rank_label = " 🥇" if rank == 1 else (" ⚠️" if rank == len(sellers_sorted) and len(sellers_sorted) > 1 else "")
             sellers_summary.append(
-                f"- {anonymous_name}: CA {seller.get('ca', 0):.0f}€, {seller.get('ventes', 0)} ventes, "
-                f"PM {seller.get('panier_moyen', 0):.2f}€, Compétences {seller.get('avg_competence', 5):.1f}/10 "
+                f"- #{rank}{rank_label} {anonymous_name}: CA {seller.get('ca', 0):.0f}€, "
+                f"{seller.get('ventes', 0)} ventes, PM {seller.get('panier_moyen', 0):.2f}€, "
+                f"Compétences {seller.get('avg_competence', 5):.1f}/10 "
                 f"(Fort: {seller.get('best_skill', 'N/A')}, Faible: {seller.get('worst_skill', 'N/A')}{disc_info})"
             )
         
@@ -594,6 +599,23 @@ Adapte ton résumé exécutif et ton ton à ce style de communication.
 → Intègre cette évolution dans ton analyse (est-ce une progression, régression ou stabilité ?).
 """
 
+        # Build team objectives block
+        team_objectives_block = ""
+        if team_objectives:
+            obj_lines = []
+            for o in team_objectives[:4]:
+                kpi_type = o.get("kpi_type", "").upper()
+                target = o.get("target_value", 0)
+                title = o.get("title", kpi_type)
+                period_end = o.get("period_end", "")
+                obj_lines.append(f"- {title} : objectif {target} {kpi_type} (échéance {period_end})")
+            if obj_lines:
+                team_objectives_block = (
+                    "\n🎯 OBJECTIFS ACTIFS DE L'ÉQUIPE :\n"
+                    + "\n".join(obj_lines)
+                    + "\n→ Indique si l'équipe est en bonne voie pour les atteindre (comparer avec les chiffres ci-dessus).\n"
+                )
+
         # 🎯 LEGACY PROMPT RESTORED + DISC INTEGRATION
         prompt = f"""Tu es un expert en management retail et coaching d'équipe. Analyse cette équipe de boutique physique et fournis des recommandations managériales pour MOTIVER et DÉVELOPPER l'équipe.
 
@@ -609,15 +631,17 @@ PÉRIODE D'ANALYSE : {period_label}
 VENDEURS :
 {chr(10).join(sellers_summary)}
 {prev_period_block}{disc_section}
+{team_objectives_block}
 CONSIGNES :
 - NE MENTIONNE PAS la complétion KPI (saisie des données) - c'est un sujet administratif, pas commercial
 - Concentre-toi sur les PERFORMANCES COMMERCIALES et la DYNAMIQUE D'ÉQUIPE
-- **IMPORTANT : Mentionne SYSTÉMATIQUEMENT les données chiffrées (CA, nombre de ventes, panier moyen) pour chaque vendeur dans ton analyse**
-- Fournis des recommandations MOTIVANTES et CONSTRUCTIVES basées sur les chiffres
+- **Cite TOUJOURS les chiffres exacts (CA, ventes, PM) pour chaque vendeur**
+- Utilise le classement (#1, #2…) pour situer chaque vendeur dans l'équipe
+- Fournis des recommandations MOTIVANTES et CONSTRUCTIVES
 - Identifie les leviers de motivation individuels et collectifs
-- Sois concis et actionnable (3 sections, 2-4 points par section)
+- 1 action_prioritaire = LA priorité managériale absolue pour la prochaine période
 
-Fournis l'analyse en 3 parties :
+Fournis l'analyse en 4 parties :
 
 ## ANALYSE D'ÉQUIPE
 - Commence par rappeler les chiffres clés de l'équipe sur la période (CA total, nombre de ventes, panier moyen)
@@ -636,6 +660,9 @@ Fournis l'analyse en 3 parties :
 - Actions pour renforcer la cohésion d'équipe
 - Techniques de motivation adaptées à chaque profil DISC si disponible
 - Rituels ou animations pour dynamiser les ventes
+
+## ACTION PRIORITAIRE
+Une seule phrase courte et percutante : la priorité absolue du manager pour la semaine à venir.
 
 Format : Markdown simple et structuré."""
 
