@@ -79,7 +79,7 @@ const PLANS = {
   }
 };
 
-export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: propSubscriptionInfo, userRole }) {
+export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: propSubscriptionInfo, userRole, onOpenBillingProfile }) {
   const [subscriptionInfo, setSubscriptionInfo] = useState(propSubscriptionInfo || null);
   const [loading, setLoading] = useState(true);
   const [processingPlan, setProcessingPlan] = useState(null);
@@ -482,17 +482,30 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
         responseStatus: error.response?.status,
         stack: error.stack
       });
-      
-      const errorMessage = error.response?.data?.detail || error.message || 'Erreur lors de la création de la session de paiement';
-      
-      // Afficher l'erreur détaillée dans un toast plus long
-      toast.error(`Erreur: ${errorMessage}`, { 
-        duration: 8000,
-        description: error.response?.status ? `Code HTTP: ${error.response.status}` : undefined
-      });
-      
-      // Ne pas recharger automatiquement pour permettre de voir l'erreur
-      // setTimeout(() => globalThis.location.reload(), 2000);
+
+      const detail = error.response?.data?.detail || '';
+      const isBillingProfileError = error.response?.status === 400 && (
+        detail.toLowerCase().includes('facturation') ||
+        detail.toLowerCase().includes('billing') ||
+        detail.toLowerCase().includes('profil') ||
+        detail.toLowerCase().includes('vat') ||
+        detail.toLowerCase().includes('tva')
+      );
+
+      if (isBillingProfileError && onOpenBillingProfile) {
+        toast.error('Profil de facturation incomplet', {
+          description: 'Veuillez compléter vos informations de facturation avant de souscrire.',
+          duration: 6000,
+          action: { label: 'Compléter', onClick: onOpenBillingProfile },
+        });
+        onOpenBillingProfile();
+      } else {
+        const errorMessage = detail || error.message || 'Erreur lors de la création de la session de paiement';
+        toast.error(`Erreur: ${errorMessage}`, {
+          duration: 8000,
+          description: error.response?.status ? `Code HTTP: ${error.response.status}` : undefined,
+        });
+      }
     }
   };
 

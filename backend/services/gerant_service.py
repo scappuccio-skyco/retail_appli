@@ -1060,13 +1060,13 @@ class GerantService:
                     status='active',
                     limit=10
                 )
-                
+
                 active_subscription = None
                 for sub in subscriptions.data:
                     if not sub.get('cancel_at_period_end', False):
                         active_subscription = sub
                         break
-                
+
                 if not active_subscription:
                     # Check for trialing subscriptions
                     trial_subs = stripe_lib.Subscription.list(
@@ -1076,6 +1076,16 @@ class GerantService:
                     )
                     if trial_subs.data:
                         active_subscription = trial_subs.data[0]
+
+                if not active_subscription:
+                    # Check for past_due subscriptions (payment failed, Stripe is retrying)
+                    past_due_subs = stripe_lib.Subscription.list(
+                        customer=stripe_customer_id,
+                        status='past_due',
+                        limit=1
+                    )
+                    if past_due_subs.data:
+                        active_subscription = past_due_subs.data[0]
                 
                 if active_subscription:
                     result = await self._format_stripe_subscription(active_subscription, gerant_id)
@@ -1088,7 +1098,7 @@ class GerantService:
         # PRIORITY 3: Check local database subscription
         # 🔍 Use find() instead of find_one() to detect multiple subscriptions
         db_subscriptions = await self.subscription_repo.find_many(
-            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            {"user_id": gerant_id, "status": {"$in": ["active", "trialing", "past_due"]}},
             {"_id": 0},
             limit=10
         )

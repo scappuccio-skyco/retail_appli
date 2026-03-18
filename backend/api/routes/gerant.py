@@ -1502,6 +1502,37 @@ class GerantCheckoutRequest(BaseModel):
     origin_url: str  # URL d'origine pour les redirections
 
 
+class BillingPortalRequest(BaseModel):
+    return_url: str  # URL to redirect back to after the portal session
+
+
+@router.post("/stripe/portal")
+async def create_billing_portal_session(
+    data: BillingPortalRequest,
+    current_user: dict = Depends(get_current_gerant),
+):
+    """
+    Create a Stripe Customer Portal session so the gérant can update their
+    payment method, view invoices, or manage their subscription directly on Stripe.
+    """
+    if not settings.STRIPE_API_KEY:
+        raise ValidationError("Stripe n'est pas configuré")
+
+    stripe_customer_id = current_user.get('stripe_customer_id')
+    if not stripe_customer_id:
+        raise ValidationError("Aucun compte de facturation Stripe associé à ce compte")
+
+    stripe.api_key = settings.STRIPE_API_KEY
+    try:
+        session = stripe.billing_portal.Session.create(
+            customer=stripe_customer_id,
+            return_url=data.return_url,
+        )
+        return {"portal_url": session.url}
+    except stripe.error.InvalidRequestError as e:
+        raise ValidationError(f"Impossible d'ouvrir le portail de facturation : {str(e)}")
+
+
 @router.post("/stripe/checkout")
 async def create_gerant_checkout_session(
     checkout_data: GerantCheckoutRequest,

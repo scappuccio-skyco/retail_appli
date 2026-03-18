@@ -157,6 +157,10 @@ export default function GerantModalsLayer({
         }}
         subscriptionInfo={subscriptionInfo}
         userRole={user?.role}
+        onOpenBillingProfile={() => {
+          setShowSubscriptionModal(false);
+          setShowBillingProfileModal(true);
+        }}
       />
 
       <SupportModal

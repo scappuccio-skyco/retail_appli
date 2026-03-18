@@ -1,7 +1,7 @@
 import React from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, AlertTriangle } from 'lucide-react';
 
-const MESSAGES = {
+const BLOCK_MESSAGES = {
   TRIAL_EXPIRED: {
     title: 'Période d\'essai terminée',
     body: 'Votre équipe n\'a plus accès à l\'application. Souscrivez maintenant pour rétablir l\'accès.',
@@ -15,13 +15,43 @@ const MESSAGES = {
 };
 
 /**
- * Bannière mode lecture seule du dashboard gérant.
- * Différencie la fin de trial (jamais souscrit) et l'abo non renouvelé.
+ * Bannière du dashboard gérant.
+ * - isPastDue : paiement échoué, accès non bloqué, avertissement urgent
+ * - isReadOnly : abonnement expiré ou trial terminé, accès bloqué
  */
-export default function GerantReadOnlyBanner({ isReadOnly, subscriptionBlockCode, onOpenSubscription }) {
+export default function GerantReadOnlyBanner({
+  isReadOnly,
+  subscriptionBlockCode,
+  onOpenSubscription,
+  isPastDue,
+  onOpenBillingPortal,
+}) {
+  if (isPastDue) {
+    return (
+      <div className="mb-4 sm:mb-6 bg-red-50 border-2 border-red-300 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
+          <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-red-800">Échec de paiement</h3>
+          <p className="text-red-700 text-sm">
+            Le renouvellement de votre abonnement a échoué. Votre accès reste actif pendant que Stripe retente le prélèvement.
+            Mettez à jour votre moyen de paiement pour éviter toute interruption de service.
+          </p>
+        </div>
+        <button
+          onClick={onOpenBillingPortal}
+          className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors whitespace-nowrap"
+        >
+          Mettre à jour ma CB
+        </button>
+      </div>
+    );
+  }
+
   if (!isReadOnly) return null;
 
-  const msg = MESSAGES[subscriptionBlockCode] || MESSAGES.SUBSCRIPTION_INACTIVE;
+  const msg = BLOCK_MESSAGES[subscriptionBlockCode] || BLOCK_MESSAGES.SUBSCRIPTION_INACTIVE;
 
   return (
     <div className="mb-4 sm:mb-6 bg-amber-50 border-2 border-amber-300 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">

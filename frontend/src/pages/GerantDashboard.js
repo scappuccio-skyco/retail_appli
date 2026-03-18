@@ -52,15 +52,16 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [selectedSeller, setSelectedSeller] = useState(null);
 
   // ── Derived: read-only + block reason based on subscription ──
-  const { isReadOnly, subscriptionBlockCode: gerantBlockCode } = (() => {
-    if (!subscriptionInfo) return { isReadOnly: false, subscriptionBlockCode: null };
+  const { isReadOnly, subscriptionBlockCode: gerantBlockCode, isPastDue } = (() => {
+    if (!subscriptionInfo) return { isReadOnly: false, subscriptionBlockCode: null, isPastDue: false };
     const { status, trial_end } = subscriptionInfo;
-    if (status === 'active') return { isReadOnly: false, subscriptionBlockCode: null };
+    if (status === 'active') return { isReadOnly: false, subscriptionBlockCode: null, isPastDue: false };
+    if (status === 'past_due') return { isReadOnly: false, subscriptionBlockCode: null, isPastDue: true };
     if (status === 'trialing') {
-      if (trial_end && new Date(trial_end) >= new Date()) return { isReadOnly: false, subscriptionBlockCode: null };
-      return { isReadOnly: true, subscriptionBlockCode: 'TRIAL_EXPIRED' };
+      if (trial_end && new Date(trial_end) >= new Date()) return { isReadOnly: false, subscriptionBlockCode: null, isPastDue: false };
+      return { isReadOnly: true, subscriptionBlockCode: 'TRIAL_EXPIRED', isPastDue: false };
     }
-    return { isReadOnly: true, subscriptionBlockCode: 'SUBSCRIPTION_INACTIVE' };
+    return { isReadOnly: true, subscriptionBlockCode: 'SUBSCRIPTION_INACTIVE', isPastDue: false };
   })();
 
   // ── Side effects ───────────────────────────────────────────
@@ -187,6 +188,22 @@ const GerantDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleOpenBillingPortal = async () => {
+    try {
+      const returnUrl = `${window.location.origin}/dashboard`;
+      const res = await api.post('/gerant/stripe/portal', { return_url: returnUrl });
+      const portalUrl = res.data?.portal_url;
+      if (portalUrl && isSafeUrl(portalUrl)) {
+        window.location.href = portalUrl;
+      } else {
+        toast.error('Impossible d\'ouvrir le portail de facturation.');
+      }
+    } catch (err) {
+      logger.error('Billing portal error:', err);
+      toast.error(err.response?.data?.detail || 'Impossible d\'ouvrir le portail de facturation.');
+    }
+  };
+
   const handleCreateStore = async (formData) => {
     try {
       await api.post('/gerant/stores', formData);
@@ -280,7 +297,9 @@ const GerantDashboard = ({ user, onLogout }) => {
         <GerantReadOnlyBanner
           isReadOnly={isReadOnly}
           subscriptionBlockCode={gerantBlockCode}
+          isPastDue={isPastDue}
           onOpenSubscription={() => setShowSubscriptionModal(true)}
+          onOpenBillingPortal={handleOpenBillingPortal}
         />
 
         {activeView === 'api' ? (
