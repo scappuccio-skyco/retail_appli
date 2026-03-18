@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
+import { useAuth } from '../contexts';
 import { toast } from 'sonner';
 import { Sparkles, TrendingUp, AlertTriangle, Target, MessageSquare, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 export default function TeamBilanIA() {
+  const { user } = useAuth();
   const [bilan, setBilan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -34,7 +37,7 @@ export default function TeamBilanIA() {
       toast.success('Bilan IA généré ! 🤖');
     } catch (err) {
       logger.error('Error generating bilan:', err);
-      toast.error('Erreur lors de la génération du bilan');
+      toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de la génération du bilan');
     } finally {
       setLoading(false);
     }

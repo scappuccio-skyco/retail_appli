@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
@@ -6,6 +6,7 @@ import { logger } from '../utils/logger';
 import { useSyncMode } from '../hooks/useSyncMode';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { getManagerSteps } from '../components/onboarding/managerSteps';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 // Section components
 import ManagerStatusBanner from '../components/sections/manager/ManagerStatusBanner';
@@ -13,6 +14,7 @@ import ManagerHeader from '../components/sections/manager/ManagerHeader';
 import ManagerPersonalizationBar from '../components/sections/manager/ManagerPersonalizationBar';
 import ManagerDashboardGrid from '../components/sections/manager/ManagerDashboardGrid';
 import ManagerModalsLayer from '../components/sections/manager/ManagerModalsLayer';
+import ManagerTaskList from '../components/ManagerTaskList';
 
 export default function ManagerDashboard({ user, onLogout }) {
   // ── URL params (gerant-as-manager mode) ────────────────────
@@ -39,6 +41,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [storeKPIStats, setStoreKPIStats] = useState(null);
   const [storeName, setStoreName] = useState('');
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
+  const [managerTasks, setManagerTasks] = useState([]);
 
   // ── UI state ───────────────────────────────────────────────
   const [loading, setLoading] = useState(true);
@@ -132,7 +135,38 @@ export default function ManagerDashboard({ user, onLogout }) {
     fetchActiveChallenges();
     fetchActiveObjectives();
     fetchStoreKPIStats();
+    fetchManagerTasks();
   };
+
+  const fetchManagerTasks = async () => {
+    try {
+      const res = await api.get(`/manager/tasks${apiStoreIdParam}`);
+      setManagerTasks(res.data || []);
+    } catch (err) {
+      logger.error('Error fetching manager tasks:', err);
+    }
+  };
+
+  // ── Light refresh (polling collaborateurs) ─────────────────
+  // Rafraîchit uniquement les données qui changent quand un vendeur agit :
+  // - Tâches   : vendeur partage une note, soumet un débrief
+  // - Sellers  : vendeur saisit ses KPI → stats de l'équipe se mettent à jour
+  const lightRefresh = useCallback(async () => {
+    if (loading) return;
+    try {
+      const [tasksRes, sellersRes] = await Promise.all([
+        api.get(`/manager/tasks${apiStoreIdParam}`),
+        api.get(`/manager/sellers${apiStoreIdParam}`),
+      ]);
+      setManagerTasks(tasksRes.data || []);
+      const sellersList = sellersRes.data?.sellers ?? sellersRes.data;
+      setSellers(Array.isArray(sellersList) ? sellersList : []);
+    } catch (err) {
+      logger.error('Light refresh error:', err);
+    }
+  }, [loading, apiStoreIdParam]);
+
+  useAutoRefresh(lightRefresh, 30_000, !loading);
 
   // ── Personalization helpers ────────────────────────────────
   const toggleFilter = (filterName) => {
@@ -344,6 +378,37 @@ export default function ManagerDashboard({ user, onLogout }) {
         moveSectionDown={moveSectionDown}
         onClose={() => setShowFilters(false)}
       />
+
+      <div className={`glass-morphism rounded-2xl ${managerTasks.length > 0 ? 'p-3 mb-6' : 'p-1 mb-2'} border border-[#1E40AF]`}>
+        {managerTasks.length > 0 && (
+          <p className="text-xs font-semibold text-[#1E40AF] mb-2 px-1">📋 Mes tâches à faire</p>
+        )}
+        <ManagerTaskList
+          tasks={managerTasks}
+          onViewSellerNotes={(sellerId, sellerName) => {
+            const seller = sellers.find(s => s.id === sellerId);
+            if (seller) {
+              setSelectedSeller({ ...seller, _openTab: 'notes' });
+              setShowDetailView(true);
+            }
+          }}
+          onViewSellerDetail={(sellerId) => {
+            const seller = sellers.find(s => s.id === sellerId);
+            if (seller) {
+              setSelectedSeller(seller);
+              setShowDetailView(true);
+            }
+          }}
+          onCreateGoal={() => { setSettingsModalType('objectives'); setShowSettingsModal(true); }}
+          onSendReminder={(sellerId, sellerName) => {
+            const seller = sellers.find(s => s.id === sellerId);
+            if (seller) {
+              setSelectedSeller({ ...seller, _openTab: 'reminder' });
+              setShowDetailView(true);
+            }
+          }}
+        />
+      </div>
 
       <ManagerDashboardGrid
         sectionOrder={sectionOrder}

@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
 import { useSyncMode } from '../hooks/useSyncMode';
 import { useOnboarding } from '../hooks/useOnboarding';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { getSellerSteps } from '../components/onboarding/sellerSteps';
 
 // Section components
@@ -331,6 +333,46 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     }
   };
 
+  // ── Light refresh (polling collaborateurs) ─────────────────
+  // Rafraîchit uniquement les données qui changent quand un collaborateur agit :
+  // - Tâches   : manager crée objectif/challenge/rappel
+  // - Objectifs: manager crée/modifie un objectif
+  // - KPI dates: manager saisit les KPI (mode manager_saisit)
+  const lightRefresh = useCallback(async () => {
+    if (loading) return;
+    try {
+      const [tasksRes, objectivesRes] = await Promise.all([
+        api.get('/seller/tasks'),
+        api.get('/seller/objectives/active'),
+      ]);
+      // Réutiliser la logique tâche KPI du jour
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        const datesRes = await api.get('/seller/kpi-dates-with-data');
+        const kpiDates = datesRes.data?.dates ?? [];
+        const hasTodayKPI = kpiDates.includes(today);
+        let newTasks = [...tasksRes.data];
+        if (!hasTodayKPI && !tasksRes.data.find(t => t.id === 'daily-kpi')) {
+          newTasks = [{
+            id: 'daily-kpi', type: 'kpi', icon: '📊',
+            title: 'Saisir mes chiffres du jour',
+            description: "Renseigne ton chiffre d'affaires, nombre de ventes et clients du jour",
+            priority: 'normal',
+          }, ...newTasks];
+        }
+        setTasks(newTasks);
+        setKpiEntries(prev => prev); // pas de rechargement lourd
+      } catch {
+        setTasks(tasksRes.data);
+      }
+      setActiveObjectives(objectivesRes.data);
+    } catch (err) {
+      logger.error('Light refresh error:', err);
+    }
+  }, [loading]);
+
+  useAutoRefresh(lightRefresh, 30_000, !loading);
+
   const fetchActiveObjectives = async () => {
     try {
       const res = await api.get('/seller/objectives/active');
@@ -443,7 +485,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       toast.success('✨ Bravo ! Bilan régénéré avec succès');
     } catch (err) {
       logger.error('Error regenerating bilan:', err);
-      toast.error('Erreur lors de la régénération du bilan');
+      toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de la régénération du bilan');
     } finally {
       setGeneratingBilan(false);
     }

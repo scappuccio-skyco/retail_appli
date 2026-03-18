@@ -7,6 +7,8 @@ import OpportuniteManqueeForm from './OpportuniteManqueeForm';
 import { api } from '../lib/apiClient';
 import { LABEL_DECOUVERTE } from '../lib/constants';
 import { logger } from '../utils/logger';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
+import { useAuth } from '../contexts';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
@@ -239,6 +241,7 @@ export default function CoachingModal({
   onCreateDebrief,
   activeTab: initialTab = 'coach'
 }) {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [analyseSubTab, setAnalyseSubTab] = useState('conclue'); // 'conclue', 'manquee', 'historique'
   const [showChallengeHistoryModal, setShowChallengeHistoryModal] = useState(false);
@@ -353,7 +356,7 @@ export default function CoachingModal({
       toast.success('✨ Nouveau défi généré !');
     } catch (err) {
       logger.error('Error refreshing challenge:', err);
-      toast.error('Erreur lors de la génération du défi');
+      toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de la génération du défi');
     } finally {
       setLoading(false);
     }

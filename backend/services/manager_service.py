@@ -27,6 +27,10 @@ from repositories.debrief_repository import DebriefRepository
 from repositories.team_analysis_repository import TeamAnalysisRepository
 from repositories.relationship_consultation_repository import RelationshipConsultationRepository
 from repositories.kpi_repository import KPIRepository, StoreKPIRepository
+from repositories.interview_note_repository import InterviewNoteRepository
+from repositories.objective_repository import ObjectiveRepository
+from repositories.challenge_repository import ChallengeRepository
+from repositories.manager_seller_metadata_repository import ManagerSellerMetadataRepository
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +55,10 @@ class ManagerService:
         debrief_repo: Optional[DebriefRepository] = None,
         team_analysis_repo: Optional[TeamAnalysisRepository] = None,
         relationship_consultation_repo: Optional[RelationshipConsultationRepository] = None,
+        interview_note_repo: Optional[InterviewNoteRepository] = None,
+        objective_repo: Optional[ObjectiveRepository] = None,
+        challenge_repo: Optional[ChallengeRepository] = None,
+        manager_seller_metadata_repo: Optional[ManagerSellerMetadataRepository] = None,
     ):
         self._store = store_svc
         self._sellers = seller_mgmt_svc
@@ -67,6 +75,10 @@ class ManagerService:
         self.debrief_repo = debrief_repo
         self.team_analysis_repo = team_analysis_repo
         self.relationship_consultation_repo = relationship_consultation_repo
+        self.interview_note_repo = interview_note_repo
+        self.objective_repo = objective_repo
+        self.challenge_repo = challenge_repo
+        self.manager_seller_metadata_repo = manager_seller_metadata_repo
 
     # ===== STORE (délégation) =====
     async def get_store_by_id(
@@ -595,6 +607,216 @@ class ManagerService:
     ) -> List[Dict]:
         return await self._achievement.get_active_challenges(
             manager_id, store_id
+        )
+
+    # ── Manager tasks ──────────────────────────────────────────
+
+    async def get_manager_tasks(self, manager_id: str, store_id: str) -> List[Dict]:
+        """
+        Calcule dynamiquement les tâches à faire pour un manager :
+        - Notes partagées non vues par ce manager
+        - Vendeurs sans diagnostic
+        - Vendeurs silencieux (pas de KPI depuis 3 jours)
+        - Objectifs expirant dans ≤ 3 jours
+        - Challenges terminés (period_end < aujourd'hui, status active)
+        - Aucun objectif ni challenge dans les 7 prochains jours
+        """
+        from datetime import date
+        tasks: List[Dict] = []
+        today = date.today()
+        today_str = today.isoformat()
+
+        # Liste des vendeurs du magasin
+        sellers: List[Dict] = []
+        try:
+            sellers = await self.user_repo.find_by_manager(manager_id, store_id) or []
+        except Exception:
+            pass
+
+        # ── Notes partagées non vues ──────────────────────────
+        if self.interview_note_repo and self.manager_seller_metadata_repo:
+            for seller in sellers:
+                seller_id = seller.get("id")
+                if not seller_id:
+                    continue
+                try:
+                    meta = await self.manager_seller_metadata_repo.find_by_manager_seller(
+                        manager_id, seller_id
+                    )
+                    last_seen = meta.get("notes_last_seen_at") if meta else None
+                    query = {"seller_id": seller_id, "shared_with_manager": True}
+                    if last_seen:
+                        query["updated_at"] = {"$gt": last_seen}
+                    notes = await self.interview_note_repo.find_many(
+                        query,
+                        projection={"_id": 0, "id": 1},
+                        limit=10,
+                    )
+                    count = len(notes)
+                    if count > 0:
+                        name = seller.get("name", "Un vendeur")
+                        label = "note" if count == 1 else "notes"
+                        tasks.append({
+                            "id": f"notes-{seller_id}",
+                            "type": "notes",
+                            "seller_id": seller_id,
+                            "seller_name": name,
+                            "title": f"{name} a partagé {count} {label}",
+                            "description": "Consultez les notes avant l'entretien",
+                            "priority": "important",
+                            "icon": "🗒️",
+                        })
+                except Exception:
+                    pass
+
+        # ── Vendeurs sans diagnostic ──────────────────────────
+        if self.diagnostic_repo:
+            for seller in sellers:
+                seller_id = seller.get("id")
+                if not seller_id:
+                    continue
+                try:
+                    diag = await self.diagnostic_repo.find_by_seller(seller_id)
+                    if not diag:
+                        name = seller.get("name", "Un vendeur")
+                        tasks.append({
+                            "id": f"diag-{seller_id}",
+                            "type": "missing_diagnostic",
+                            "seller_id": seller_id,
+                            "seller_name": name,
+                            "title": f"{name} n'a pas fait son diagnostic",
+                            "description": "Invitez-le à compléter son profil vendeur",
+                            "priority": "normal",
+                            "icon": "📋",
+                        })
+                except Exception:
+                    pass
+
+        # ── Vendeurs silencieux (pas de KPI depuis 3 jours) ───
+        if self.kpi_repo and sellers:
+            cutoff = (today - timedelta(days=3)).isoformat()
+            for seller in sellers:
+                seller_id = seller.get("id")
+                if not seller_id:
+                    continue
+                try:
+                    recent = await self.kpi_repo.find_many(
+                        {"seller_id": seller_id, "date": {"$gte": cutoff}},
+                        projection={"_id": 0, "id": 1},
+                        limit=1,
+                    )
+                    if not recent:
+                        # Vérifier qu'il a au moins un KPI historique (vendeur actif)
+                        any_kpi = await self.kpi_repo.find_many(
+                            {"seller_id": seller_id},
+                            projection={"_id": 0, "id": 1},
+                            limit=1,
+                        )
+                        if any_kpi:
+                            name = seller.get("name", "Un vendeur")
+                            tasks.append({
+                                "id": f"silent-{seller_id}",
+                                "type": "silent_seller",
+                                "seller_id": seller_id,
+                                "seller_name": name,
+                                "title": f"{name} n'a pas saisi de KPI depuis 3 jours",
+                                "description": "Envoyez-lui un rappel",
+                                "priority": "normal",
+                                "icon": "📊",
+                            })
+                except Exception:
+                    pass
+
+        # ── Objectifs expirant dans ≤ 3 jours ────────────────
+        if self.objective_repo:
+            try:
+                deadline_str = (today + timedelta(days=3)).isoformat()
+                objectives = await self.objective_repo.find_by_manager(
+                    manager_id,
+                    store_id,
+                    projection={"_id": 0, "id": 1, "title": 1, "period_end": 1, "status": 1},
+                    limit=20,
+                )
+                for obj in objectives:
+                    if obj.get("status") == "active" and today_str <= obj.get("period_end", "") <= deadline_str:
+                        days_left = (date.fromisoformat(obj["period_end"]) - today).days
+                        label = "aujourd'hui" if days_left == 0 else ("demain" if days_left == 1 else f"dans {days_left} jours")
+                        tasks.append({
+                            "id": f"obj-expiring-{obj.get('id', '')}",
+                            "type": "objective_expiring",
+                            "title": f"Objectif « {obj.get('title', '')} » se termine {label}",
+                            "description": "Vérifiez la progression de votre équipe",
+                            "priority": "important" if days_left <= 1 else "normal",
+                            "icon": "🎯",
+                        })
+            except Exception:
+                pass
+
+        # ── Challenges terminés (sans suivi) ──────────────────
+        if self.challenge_repo:
+            try:
+                yesterday_str = (today - timedelta(days=1)).isoformat()
+                week_ago_str = (today - timedelta(days=7)).isoformat()
+                challenges = await self.challenge_repo.find_by_manager(
+                    manager_id,
+                    store_id,
+                    projection={"_id": 0, "id": 1, "title": 1, "period_end": 1, "status": 1},
+                    limit=20,
+                )
+                for ch in challenges:
+                    end = ch.get("period_end", "")
+                    if ch.get("status") == "active" and week_ago_str <= end <= yesterday_str:
+                        tasks.append({
+                            "id": f"ch-ended-{ch.get('id', '')}",
+                            "type": "challenge_ended",
+                            "title": f"Challenge « {ch.get('title', '')} » est terminé",
+                            "description": "Faites un retour à votre équipe sur les résultats",
+                            "priority": "normal",
+                            "icon": "⚡",
+                        })
+            except Exception:
+                pass
+
+        # ── Aucun objectif/challenge à venir dans 7 jours ─────
+        if self.objective_repo and self.challenge_repo:
+            try:
+                horizon_str = (today + timedelta(days=7)).isoformat()
+                upcoming_obj = await self.objective_repo.find_by_manager(
+                    manager_id, store_id,
+                    projection={"_id": 0, "id": 1, "status": 1, "period_end": 1},
+                    limit=10,
+                )
+                upcoming_ch = await self.challenge_repo.find_by_manager(
+                    manager_id, store_id,
+                    projection={"_id": 0, "id": 1, "status": 1, "period_end": 1},
+                    limit=10,
+                )
+                has_upcoming = any(
+                    item.get("status") == "active" and item.get("period_end", "") >= today_str
+                    for item in (upcoming_obj + upcoming_ch)
+                )
+                if not has_upcoming:
+                    tasks.append({
+                        "id": "no-upcoming-goals",
+                        "type": "no_upcoming_goals",
+                        "title": "Aucun objectif ni challenge à venir",
+                        "description": "Motivez votre équipe en en créant un pour les 7 prochains jours",
+                        "priority": "normal",
+                        "icon": "💡",
+                    })
+            except Exception:
+                pass
+
+        return tasks
+
+    async def mark_notes_seen(
+        self, manager_id: str, seller_id: str, store_id: str
+    ) -> str:
+        """Met à jour notes_last_seen_at pour cette paire manager/vendeur. Retourne le timestamp ISO."""
+        if not self.manager_seller_metadata_repo:
+            raise ValueError("manager_seller_metadata_repo not configured")
+        return await self.manager_seller_metadata_repo.upsert_notes_last_seen(
+            manager_id, seller_id, store_id
         )
 
 

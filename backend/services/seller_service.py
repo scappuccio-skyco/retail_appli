@@ -790,34 +790,80 @@ class SellerService:
         except Exception:
             pass
 
-        # --- Active objective expiring in ≤3 days ---
+        # --- Active objectives: new (≤2 days old) OR expiring in ≤3 days ---
         try:
             seller_profile = await self.user_repo.find_by_id(seller_id)
             store_id = seller_profile.get("store_id") if seller_profile else None
             if store_id:
                 deadline_str = (today + timedelta(days=3)).isoformat()
+                new_since_str = (today - timedelta(days=2)).isoformat()
                 objectives = await self.objective_repo.find_by_seller(
                     seller_id,
                     store_id,
-                    projection={"_id": 0, "id": 1, "title": 1, "period_end": 1, "status": 1},
+                    projection={"_id": 0, "id": 1, "title": 1, "period_end": 1, "period_start": 1, "status": 1, "created_at": 1},
                     limit=20,
                 )
-                expiring = [
-                    o for o in objectives
-                    if o.get("status") == "active"
-                    and today_str <= o.get("period_end", "") <= deadline_str
-                ]
-                for obj in expiring[:2]:
-                    days_left = (date.fromisoformat(obj["period_end"]) - today).days
-                    label = "demain" if days_left == 1 else ("aujourd'hui" if days_left == 0 else f"dans {days_left} jours")
-                    tasks.append({
-                        "id": f"objective-{obj.get('id', '')}",
-                        "type": "objective",
-                        "title": f"Objectif se termine {label}",
-                        "description": obj.get("title", "Vérifie ta progression"),
-                        "priority": "important" if days_left <= 1 else "normal",
-                        "icon": "🎯",
-                    })
+                seen_ids = set()
+                for obj in objectives:
+                    if obj.get("status") != "active":
+                        continue
+                    obj_id = obj.get("id", "")
+                    period_end = obj.get("period_end", "")
+                    created_at = (obj.get("created_at") or "")[:10]  # date part only
+                    is_new = created_at >= new_since_str
+                    is_expiring = today_str <= period_end <= deadline_str
+                    if not (is_new or is_expiring) or obj_id in seen_ids:
+                        continue
+                    seen_ids.add(obj_id)
+                    if is_new and not is_expiring:
+                        tasks.append({
+                            "id": f"objective-{obj_id}",
+                            "type": "objective",
+                            "title": f"Nouvel objectif : {obj.get('title', '')}",
+                            "description": "Ton manager vient de créer un objectif pour toi",
+                            "priority": "important",
+                            "icon": "🎯",
+                        })
+                    else:
+                        days_left = (date.fromisoformat(period_end) - today).days
+                        label = "aujourd'hui" if days_left == 0 else ("demain" if days_left == 1 else f"dans {days_left} jours")
+                        tasks.append({
+                            "id": f"objective-{obj_id}",
+                            "type": "objective",
+                            "title": f"Objectif se termine {label}",
+                            "description": obj.get("title", "Vérifie ta progression"),
+                            "priority": "important" if days_left <= 1 else "normal",
+                            "icon": "🎯",
+                        })
+        except Exception:
+            pass
+
+        # --- Active challenges: new (≤2 days old) OR with pending daily challenge ---
+        try:
+            if store_id:
+                new_since_str = (today - timedelta(days=2)).isoformat()
+                challenges = await self.challenge_repo.find_by_seller(
+                    seller_id,
+                    store_id,
+                    projection={"_id": 0, "id": 1, "title": 1, "period_end": 1, "status": 1, "created_at": 1},
+                    limit=10,
+                )
+                for ch in challenges:
+                    if ch.get("status") != "active":
+                        continue
+                    created_at = (ch.get("created_at") or "")[:10]
+                    if created_at >= new_since_str:
+                        ch_id = ch.get("id", "")
+                        # Eviter doublon avec le daily challenge déjà ajouté
+                        if not any(t.get("id") == "daily-challenge" for t in tasks):
+                            tasks.append({
+                                "id": f"challenge-new-{ch_id}",
+                                "type": "challenge",
+                                "title": f"Nouveau challenge : {ch.get('title', '')}",
+                                "description": "Ton manager vient de lancer un challenge pour toi",
+                                "priority": "important",
+                                "icon": "⚡",
+                            })
         except Exception:
             pass
 

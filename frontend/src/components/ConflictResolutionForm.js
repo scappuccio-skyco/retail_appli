@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
+import { useAuth } from '../contexts';
 import { toast } from 'sonner';
 import { Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import AIRecommendations from './AIRecommendations';
@@ -126,7 +128,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     } catch (err) {
       logger.error('Error creating conflict resolution:', err);
       toast.dismiss(loadingToast);
-      toast.error('Erreur lors de la génération des recommandations');
+      toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de la génération des recommandations');
     } finally {
       setLoading(false);
     }

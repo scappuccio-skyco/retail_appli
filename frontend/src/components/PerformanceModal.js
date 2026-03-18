@@ -5,6 +5,7 @@ import { unstable_batchedUpdates } from 'react-dom';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
 import KPICalendar from './KPICalendar';
 
 // Fonction utilitaire pour formater les dates
@@ -435,7 +436,7 @@ export default function PerformanceModal({
       toast.success('✨ Bilan généré avec succès');
     } catch (err) {
       logger.error('Error generating period bilan:', err);
-      toast.error('Erreur lors de la génération du bilan');
+      toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de la génération du bilan');
     } finally {
       setPeriodGenerating(false);
     }

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
+import { useAuth } from '../contexts';
 import { toast } from 'sonner';
 import { X, Coffee, Sparkles, Copy, Check, RefreshCw, Calendar, Clock, Trash2, ChevronDown, Download, FileText } from 'lucide-react';
 
@@ -12,6 +14,7 @@ import { X, Coffee, Sparkles, Copy, Check, RefreshCw, Calendar, Clock, Trash2, C
  * Inclut l'historique des briefs générés.
  */
 const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId }) => {
+  const { user } = useAuth();
   const [comments, setComments] = useState('');
   const [objectiveDaily, setObjectiveDaily] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -445,7 +448,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
       }
     } catch (error) {
       logger.error('Erreur génération brief:', error);
-      toast.error(error.response?.data?.detail || 'Erreur lors de la génération du brief');
+      toast.error(getSubscriptionErrorMessage(error, user?.role) || error.response?.data?.detail || 'Erreur lors de la génération du brief');
     } finally {
       setIsLoading(false);
     }

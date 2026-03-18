@@ -391,3 +391,36 @@ async def get_seller_competences_history(
             "score_fidelisation": debrief.get("score_fidelisation", 6.0),
         })
     return history
+
+
+# ── Manager tasks ─────────────────────────────────────────────────────────────
+
+@router.get("/tasks")
+async def get_manager_tasks(
+    request: Request,
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context),
+    manager_service: ManagerService = Depends(get_manager_service),
+):
+    """Retourne la liste des tâches à faire pour le manager (calculées dynamiquement)."""
+    resolved_store_id = context.get("resolved_store_id")
+    manager_id = context.get("id")
+    tasks = await manager_service.get_manager_tasks(manager_id, resolved_store_id)
+    return tasks
+
+
+@router.patch("/sellers/{seller_id}/notes-seen")
+async def mark_seller_notes_seen(
+    seller_id: str,
+    request: Request,
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context),
+    manager_service: ManagerService = Depends(get_manager_service),
+):
+    """Marque les notes partagées d'un vendeur comme vues par ce manager."""
+    resolved_store_id = context.get("resolved_store_id")
+    manager_id = context.get("id")
+    from services.seller_service import SellerService
+    from api.dependencies import get_seller_service
+    now = await manager_service.mark_notes_seen(manager_id, seller_id, resolved_store_id)
+    return {"success": True, "notes_last_seen_at": now}

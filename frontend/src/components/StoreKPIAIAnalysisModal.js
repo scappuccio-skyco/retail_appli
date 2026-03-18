@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
+import { useAuth } from '../contexts';
 
 export default function StoreKPIAIAnalysisModal({
   kpiData,
@@ -12,6 +14,7 @@ export default function StoreKPIAIAnalysisModal({
   isManager = false, // true when called from manager context
   onClose
 }) {
+  const { user } = useAuth();
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -80,11 +83,7 @@ export default function StoreKPIAIAnalysisModal({
       toast.success('Analyse IA générée !');
     } catch (err) {
       logger.error('Error generating AI analysis:', err);
-      const status = err.response?.status;
-      const msg = status === 403
-        ? 'Accès refusé. Utilisez le modal depuis le bon tableau de bord (gérant ou manager).'
-        : 'Erreur lors de l\'analyse IA';
-      toast.error(msg);
+      toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de l\'analyse IA');
     } finally {
       setLoading(false);
     }

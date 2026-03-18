@@ -4,6 +4,7 @@ import { useAuth } from '../../../contexts';
 import { toast } from 'sonner';
 import { api } from '../../../lib/apiClient';
 import { logger } from '../../../utils/logger';
+import { getSubscriptionErrorMessage } from '../../../utils/apiHelpers';
 import KPIConfigModal from '../../KPIConfigModal';
 import ManagerDiagnosticForm from '../../ManagerDiagnosticForm';
 import ManagerProfileModal from '../../ManagerProfileModal';
@@ -166,7 +167,7 @@ export default function ManagerModalsLayer({
             } catch (error) {
               setGeneratingAIAdvice(false);
               logger.error('Error generating advice:', error);
-              toast.error('Erreur lors de la génération des recommandations');
+              toast.error(getSubscriptionErrorMessage(error, user?.role) || 'Erreur lors de la génération des recommandations');
             }
           }}
           sellers={sellers}

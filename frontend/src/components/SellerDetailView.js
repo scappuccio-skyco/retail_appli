@@ -3,10 +3,18 @@ import { api } from '../lib/apiClient';
 import { LABEL_DECOUVERTE } from '../lib/constants';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
-import { ArrowLeft, TrendingUp, Award, MessageSquare, BarChart3, Calendar } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Award, MessageSquare, BarChart3, Calendar, StickyNote } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import ConflictResolutionForm from './ConflictResolutionForm';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
+
+const MONTHS_FR = ['jan.', 'fév.', 'mar.', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sep.', 'oct.', 'nov.', 'déc.'];
+function formatNoteDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  return `${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
+}
 
 export default function SellerDetailView({ seller, onBack, storeIdParam = null }) {
   const [diagnostic, setDiagnostic] = useState(null);
@@ -18,7 +26,9 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
   const [kpiConfig, setKpiConfig] = useState(null); // NEW: Manager's KPI configuration
   const [loading, setLoading] = useState(true);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
-  const [activeTab, setActiveTab] = useState('competences'); // New state for tabs
+  const [activeTab, setActiveTab] = useState(seller?._openTab || 'competences');
+  const [sharedNotes, setSharedNotes] = useState([]);
+  const [notesLoading, setNotesLoading] = useState(false);
   const [showAllDebriefs, setShowAllDebriefs] = useState(false); // New state for debriefs display
   const [debriefFilter, setDebriefFilter] = useState('all'); // New state for debrief filter: 'all', 'success', 'missed'
   const [kpiFilter, setKpiFilter] = useState('7j'); // New state for KPI filter: '7j', '30j', 'tout'
@@ -47,6 +57,28 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
       fetchKPIData();
     }
   }, [kpiFilter, loading]);
+
+  // Charger les notes partagées quand l'onglet Notes est actif
+  useEffect(() => {
+    if (activeTab === 'notes' && seller?.id) {
+      fetchSharedNotes();
+    }
+  }, [activeTab, seller?.id]);
+
+  const fetchSharedNotes = async () => {
+    setNotesLoading(true);
+    try {
+      const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
+      const res = await api.get(`/manager/sellers/${seller.id}/interview-notes${storeParam}`);
+      setSharedNotes(res.data.notes || []);
+      // Marquer les notes comme vues
+      await api.patch(`/manager/sellers/${seller.id}/notes-seen${storeParam}`);
+    } catch (err) {
+      logger.error('Error loading shared notes:', err);
+    } finally {
+      setNotesLoading(false);
+    }
+  };
 
   const fetchKPIData = async () => {
     if (!seller?.id) return;
@@ -345,6 +377,16 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
             }`}
           >
             📝 Analyses
+          </button>
+          <button
+            onClick={() => setActiveTab('notes')}
+            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all text-xs sm:text-sm ${
+              activeTab === 'notes'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            🗒️ Notes
           </button>
         </div>
       </div>
@@ -1010,6 +1052,47 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
       {activeTab === 'conflit' && (
         <div>
           <ConflictResolutionForm sellerId={seller.id} sellerName={seller.name} />
+        </div>
+      )}
+
+      {/* Tab Content - Notes partagées */}
+      {activeTab === 'notes' && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-gray-800">
+              Notes partagées par {seller.name}
+            </h3>
+            {sharedNotes.length > 0 && (
+              <span className="text-xs text-gray-500">{sharedNotes.length} note{sharedNotes.length > 1 ? 's' : ''}</span>
+            )}
+          </div>
+
+          {notesLoading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+            </div>
+          ) : sharedNotes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+              <div className="p-4 bg-gray-100 rounded-full">
+                <StickyNote className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="font-semibold text-gray-700">Aucune note partagée</p>
+              <p className="text-gray-500 text-sm">{seller.name} n'a pas encore partagé de notes avec vous.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sharedNotes.map((note) => (
+                <div key={note.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                      {formatNoteDate(note.date || note.created_at)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{note.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

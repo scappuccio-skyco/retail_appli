@@ -40,6 +40,7 @@ from repositories.enterprise_repository import (
 )
 from repositories.system_log_repository import SystemLogRepository
 from repositories.billing_repository import BillingProfileRepository
+from repositories.manager_seller_metadata_repository import ManagerSellerMetadataRepository
 from repositories.payment_transaction_repository import PaymentTransactionRepository
 from repositories.stripe_event_repository import StripeEventRepository
 from repositories.ai_conversation_repository import AIConversationRepository
@@ -269,6 +270,10 @@ def get_manager_service(
         debrief_repo=DebriefRepository(db),
         team_analysis_repo=TeamAnalysisRepository(db),
         relationship_consultation_repo=RelationshipConsultationRepository(db),
+        interview_note_repo=InterviewNoteRepository(db),
+        objective_repo=ObjectiveRepository(db),
+        challenge_repo=ChallengeRepository(db),
+        manager_seller_metadata_repo=ManagerSellerMetadataRepository(db),
     )
 
 

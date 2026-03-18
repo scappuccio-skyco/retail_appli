@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
+import { useAuth } from '../contexts';
 import { X, Trash2, Calendar, Clock, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function TeamAIAnalysisModal({ teamData, periodFilter, customDateRange, onClose, storeIdParam = null }) {
+  const { user } = useAuth();
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [analysisMetadata, setAnalysisMetadata] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -105,7 +108,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
       loadHistory();
     } catch (err) {
       logger.error('Error generating AI analysis:', err);
-      toast.error('Erreur lors de l\'analyse IA');
+      toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de l\'analyse IA');
     } finally {
       setLoading(false);
     }
