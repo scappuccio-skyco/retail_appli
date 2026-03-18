@@ -402,6 +402,70 @@ async def get_dashboard_stats(
     return stats
 
 
+@router.get("/invoices")
+async def get_invoices(
+    current_user: dict = Depends(get_current_gerant),
+    limit: int = Query(24, ge=1, le=100),
+    starting_after: Optional[str] = None,
+):
+    """
+    Fetch the gérant's Stripe invoices (most recent first).
+    Returns a paginated list with download links and status.
+    """
+    if not settings.STRIPE_API_KEY:
+        raise ValidationError("Stripe n'est pas configuré")
+
+    stripe_customer_id = current_user.get('stripe_customer_id')
+    if not stripe_customer_id:
+        return {"invoices": [], "has_more": False}
+
+    stripe.api_key = settings.STRIPE_API_KEY
+    try:
+        params = {
+            "customer": stripe_customer_id,
+            "limit": limit,
+            "expand": ["data.subscription"],
+        }
+        if starting_after:
+            params["starting_after"] = starting_after
+
+        result = stripe.Invoice.list(**params)
+
+        invoices = []
+        for inv in result.data:
+            # Determine plan display name from subscription metadata
+            plan_key = None
+            sub = inv.get("subscription")
+            if sub and hasattr(sub, "metadata"):
+                plan_key = sub.metadata.get("plan")
+            if not plan_key and sub and hasattr(sub, "items") and sub.items.data:
+                qty = sub.items.data[0].get("quantity", 1)
+                plan_key = "enterprise" if qty >= 16 else ("professional" if qty >= 6 else "starter")
+            plan_names = {"starter": "Small Team", "professional": "Medium Team", "enterprise": "Large Team"}
+            plan_label = plan_names.get(plan_key, "") if plan_key else ""
+
+            invoices.append({
+                "id": inv.id,
+                "number": inv.number,
+                "status": inv.status,                          # draft, open, paid, void, uncollectible
+                "amount_paid": inv.amount_paid / 100,
+                "amount_due": inv.amount_due / 100,
+                "currency": inv.currency.upper(),
+                "created": inv.created,                        # Unix timestamp
+                "period_start": inv.period_start,
+                "period_end": inv.period_end,
+                "pdf_url": inv.invoice_pdf,
+                "hosted_url": inv.hosted_invoice_url,
+                "billing_reason": inv.billing_reason,          # subscription_create / subscription_cycle
+                "plan": plan_label,
+            })
+
+        return {"invoices": invoices, "has_more": result.has_more}
+
+    except stripe.error.InvalidRequestError as e:
+        raise ValidationError(f"Impossible de récupérer les factures : {str(e)}")
+
+
 @router.get("/subscription/status")
 async def get_subscription_status(
     current_user: dict = Depends(get_current_gerant),

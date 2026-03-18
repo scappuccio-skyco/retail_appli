@@ -79,7 +79,7 @@ const PLANS = {
   }
 };
 
-export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: propSubscriptionInfo, userRole, onOpenBillingProfile }) {
+export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: propSubscriptionInfo, userRole, onOpenBillingProfile, onOpenInvoices }) {
   const [subscriptionInfo, setSubscriptionInfo] = useState(propSubscriptionInfo || null);
   const [loading, setLoading] = useState(true);
   const [processingPlan, setProcessingPlan] = useState(null);
@@ -763,21 +763,31 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                       </div>
                     </div>
                   </div>
-                  {!subscriptionInfo.subscription?.cancel_at_period_end ? (
-                    <button
-                      onClick={handleCancelSubscription}
-                      className="mt-3 text-sm text-red-600 hover:text-red-700 underline"
-                    >
-                      Annuler l'abonnement
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleReactivateSubscription}
-                      className="mt-3 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
-                    >
-                      ✅ Réactiver l'abonnement
-                    </button>
-                  )}
+                  <div className="mt-3 flex items-center gap-4 flex-wrap">
+                    {onOpenInvoices && (
+                      <button
+                        onClick={onOpenInvoices}
+                        className="text-sm text-indigo-600 hover:text-indigo-700 font-medium underline"
+                      >
+                        📄 Mes factures
+                      </button>
+                    )}
+                    {!subscriptionInfo.subscription?.cancel_at_period_end ? (
+                      <button
+                        onClick={handleCancelSubscription}
+                        className="text-sm text-red-600 hover:text-red-700 underline"
+                      >
+                        Annuler l'abonnement
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleReactivateSubscription}
+                        className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
+                      >
+                        ✅ Réactiver l'abonnement
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
               {subscriptionInfo && subscriptionInfo.status === 'trial_expired' && (

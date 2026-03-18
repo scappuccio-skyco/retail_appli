@@ -46,6 +46,7 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showBillingProfileModal, setShowBillingProfileModal] = useState(false);
+  const [showInvoicesModal, setShowInvoicesModal] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
   const [selectedStoreColorIndex, setSelectedStoreColorIndex] = useState(0);
   const [selectedManager, setSelectedManager] = useState(null);
@@ -360,6 +361,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         showSubscriptionModal={showSubscriptionModal}
         showSupportModal={showSupportModal}
         showBillingProfileModal={showBillingProfileModal}
+        showInvoicesModal={showInvoicesModal}
         setShowCreateStoreModal={setShowCreateStoreModal}
         setShowStoreDetailModal={setShowStoreDetailModal}
         setShowManagerTransferModal={setShowManagerTransferModal}
@@ -369,6 +371,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         setShowSubscriptionModal={setShowSubscriptionModal}
         setShowSupportModal={setShowSupportModal}
         setShowBillingProfileModal={setShowBillingProfileModal}
+        setShowInvoicesModal={setShowInvoicesModal}
         setSelectedStore={setSelectedStore}
         setSelectedManager={setSelectedManager}
         setSelectedSeller={setSelectedSeller}

@@ -10,6 +10,7 @@ import InviteStaffModal from '../../gerant/InviteStaffModal';
 import SubscriptionModal from '../../SubscriptionModal';
 import SupportModal from '../../SupportModal';
 import BillingProfileModal from '../../gerant/BillingProfileModal';
+import InvoicesModal from '../../gerant/InvoicesModal';
 import OnboardingModal from '../../onboarding/OnboardingModal';
 import { gerantSteps } from '../../onboarding/gerantSteps';
 
@@ -36,6 +37,7 @@ export default function GerantModalsLayer({
   showSubscriptionModal,
   showSupportModal,
   showBillingProfileModal,
+  showInvoicesModal,
 
   // Modal setters
   setShowCreateStoreModal,
@@ -47,6 +49,7 @@ export default function GerantModalsLayer({
   setShowSubscriptionModal,
   setShowSupportModal,
   setShowBillingProfileModal,
+  setShowInvoicesModal,
 
   // Data setters
   setSelectedStore,
@@ -161,6 +164,10 @@ export default function GerantModalsLayer({
           setShowSubscriptionModal(false);
           setShowBillingProfileModal(true);
         }}
+        onOpenInvoices={() => {
+          setShowSubscriptionModal(false);
+          setShowInvoicesModal(true);
+        }}
       />
 
       <SupportModal
@@ -172,6 +179,15 @@ export default function GerantModalsLayer({
         isOpen={showBillingProfileModal}
         onClose={() => setShowBillingProfileModal(false)}
         onSuccess={() => toast.success('Profil de facturation enregistré avec succès !')}
+      />
+
+      <InvoicesModal
+        isOpen={showInvoicesModal}
+        onClose={() => setShowInvoicesModal(false)}
+        onOpenBillingPortal={() => {
+          setShowInvoicesModal(false);
+          // handleOpenBillingPortal is called from GerantDashboard
+        }}
       />
 
       <OnboardingModal
