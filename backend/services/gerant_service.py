@@ -295,7 +295,7 @@ class GerantService:
                 raise ForbiddenError("Espace de travail non trouvé")
 
             subscription_status = workspace.get('subscription_status', 'inactive')
-            if subscription_status == 'active':
+            if subscription_status in ('active', 'past_due'):
                 allowed = True
             elif subscription_status == 'trialing':
                 trial_end = workspace.get('trial_end')

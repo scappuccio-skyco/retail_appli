@@ -372,65 +372,91 @@ async def verify_manager_gerant_or_seller(
     return current_user
 
 
-async def require_active_space(
-    current_user: dict = Depends(get_current_user)
-) -> dict:
+async def _resolve_subscription_read_only(current_user: dict) -> tuple:
     """
-    Dependency to enforce active subscription for business routes.
-    Returns current_user if subscription is active or trialing (not expired).
+    Core subscription check. Returns (error_code, error_msg) if the space is
+    in a read-only state, or (None, None) if full access is granted.
+    Raises ForbiddenError immediately for hard-blocked spaces (deleted).
     """
     from core.database import get_db
     from repositories.store_repository import WorkspaceRepository
 
     space = current_user.get('space') or {}
-    space_status = space.get('status')
-    if space_status == 'deleted':
+    if space.get('status') == 'deleted':
         raise ForbiddenError("Espace supprimé", error_code="SUBSCRIPTION_INACTIVE")
 
     subscription_status = space.get('subscription_status') or 'inactive'
-    allowed = False
 
-    if subscription_status == 'active':
-        allowed = True
-    elif subscription_status == 'trialing':
+    if subscription_status in ('active', 'past_due'):
+        return (None, None)  # full access
+
+    if subscription_status == 'trialing':
         trial_end = space.get('trial_end')
         if trial_end:
             if isinstance(trial_end, str):
                 trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
             else:
                 trial_end_dt = trial_end
-
             now = datetime.now(timezone.utc)
             if trial_end_dt.tzinfo is None:
                 trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
-
             if now <= trial_end_dt:
-                allowed = True
-            else:
-                workspace_id = space.get('id')
-                if workspace_id:
-                    db = await get_db()
-                    workspace_repo = WorkspaceRepository(db)
-                    await workspace_repo.update_by_id(
-                        workspace_id,
-                        {"subscription_status": "trial_expired", "updated_at": datetime.now(timezone.utc).isoformat()}
-                    )
-                raise ForbiddenError(
-                    "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer.",
-                    error_code="TRIAL_EXPIRED",
+                return (None, None)  # trial still valid
+            # Trial just expired: persist the state change
+            workspace_id = space.get('id')
+            if workspace_id:
+                db = await get_db()
+                workspace_repo = WorkspaceRepository(db)
+                await workspace_repo.update_by_id(
+                    workspace_id,
+                    {"subscription_status": "trial_expired", "updated_at": datetime.now(timezone.utc).isoformat()}
                 )
-        else:
-            raise ForbiddenError(
-                "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer.",
-                error_code="TRIAL_EXPIRED",
-            )
+        return ("TRIAL_EXPIRED", "Période d'essai terminée. Vous pouvez consulter vos données mais les modifications sont désactivées.")
 
-    if not allowed:
-        raise ForbiddenError(
-            "Abonnement inactif ou paiement en échec : accès aux fonctionnalités bloqué",
-            error_code="SUBSCRIPTION_INACTIVE",
-        )
-    return current_user
+    if subscription_status == 'trial_expired':
+        return ("TRIAL_EXPIRED", "Période d'essai terminée. Vous pouvez consulter vos données mais les modifications sont désactivées.")
+
+    # canceled, inactive, or any unknown status
+    return ("SUBSCRIPTION_INACTIVE", "Abonnement inactif. Vous pouvez consulter vos données mais les modifications sont désactivées.")
+
+
+async def require_active_space(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+) -> dict:
+    """
+    Dependency to enforce subscription rules for business routes.
+
+    Access matrix:
+    - active / past_due → full access (read + write)
+    - trialing (valid)  → full access
+    - trialing (expired) / trial_expired / canceled / inactive
+                        → read-only: GET allowed, writes (POST/PUT/PATCH/DELETE) blocked
+    - deleted           → fully blocked
+
+    API sync (POST /integrations/kpi/sync) is blocked when read-only
+    because it is a write operation.
+    """
+    error_code, error_msg = await _resolve_subscription_read_only(current_user)
+    if error_code is None:
+        return current_user  # full access
+
+    if request.method == "GET":
+        current_user['_subscription_read_only'] = True
+        return current_user
+
+    raise ForbiddenError(error_msg, error_code=error_code)
+
+
+async def require_active_space_write(current_user: dict) -> dict:
+    """
+    Same subscription enforcement as require_active_space but always in write mode.
+    Use for explicit write checks outside of HTTP request context (e.g. onboarding).
+    """
+    error_code, error_msg = await _resolve_subscription_read_only(current_user)
+    if error_code is None:
+        return current_user
+    raise ForbiddenError(error_msg, error_code=error_code)
 
 
 # ===== STORE ACCESS HELPERS =====

@@ -69,9 +69,8 @@ async def mark_onboarding_complete(
     Returns:
         Success message
     """
-    from core.security import require_active_space
-    # ✅ Vérifier l'abonnement pour l'écriture
-    await require_active_space(current_user)
+    from core.security import require_active_space_write
+    await require_active_space_write(current_user)
     
     await onboarding_service.mark_complete(current_user['id'])
     return {"success": True, "message": "Onboarding marked as complete"}
