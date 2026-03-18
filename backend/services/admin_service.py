@@ -593,18 +593,46 @@ class AdminService:
                 "status_unchanged": True
             }
         
+        # Cancel Stripe subscription when deleting a workspace
+        stripe_canceled = False
+        if status == 'deleted':
+            subscription = await self.subscription_repo.find_by_workspace(workspace_id)
+            stripe_sub_id = subscription.get('stripe_subscription_id') if subscription else None
+            if stripe_sub_id:
+                try:
+                    stripe.Subscription.delete(stripe_sub_id)
+                    stripe_canceled = True
+                    await self.subscription_repo.update_by_workspace(
+                        workspace_id,
+                        {
+                            "status": "canceled",
+                            "subscription_status": "canceled",
+                            "updated_at": datetime.now(timezone.utc).isoformat(),
+                        }
+                    )
+                    logger.info("Stripe subscription %s canceled on workspace deletion %s", stripe_sub_id, workspace_id)
+                except stripe.error.InvalidRequestError as e:
+                    # Already canceled or not found — not a blocking error
+                    logger.warning("Stripe subscription %s could not be canceled (may already be canceled): %s", stripe_sub_id, e)
+                except Exception as e:
+                    logger.error("Unexpected error canceling Stripe subscription %s: %s", stripe_sub_id, e)
+
         # Update workspace
         updated = await self.workspace_repo.update_one(
             {"id": workspace_id},
-            {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+            {"$set": {
+                "status": status,
+                "subscription_status": "canceled" if status == 'deleted' else workspace.get('subscription_status'),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }}
         )
         if updated:
             from core.cache import invalidate_workspace_cache
             await invalidate_workspace_cache(workspace_id)
-        
+
         if not updated:
             raise ValueError("Workspace status update failed")
-        
+
         # Log admin action
         await self.log_admin_action(
             admin_id=current_admin.get('id'),
@@ -701,16 +729,48 @@ class AdminService:
         """
         if status not in ['active', 'deleted']:
             raise ValueError("Invalid status. Must be: active or deleted")
-        
+
         if not workspace_ids:
             raise ValueError("No workspace IDs provided")
-        
+
+        # Cancel Stripe subscriptions when bulk-deleting workspaces
+        if status == 'deleted':
+            for workspace_id in workspace_ids:
+                subscription = await self.subscription_repo.find_by_workspace(workspace_id)
+                stripe_sub_id = subscription.get('stripe_subscription_id') if subscription else None
+                if stripe_sub_id:
+                    try:
+                        stripe.Subscription.delete(stripe_sub_id)
+                        await self.subscription_repo.update_by_workspace(
+                            workspace_id,
+                            {
+                                "status": "canceled",
+                                "subscription_status": "canceled",
+                                "updated_at": datetime.now(timezone.utc).isoformat(),
+                            }
+                        )
+                        logger.info("Stripe subscription %s canceled on bulk workspace deletion %s", stripe_sub_id, workspace_id)
+                    except stripe.error.InvalidRequestError as e:
+                        logger.warning("Stripe subscription %s could not be canceled (may already be canceled): %s", stripe_sub_id, e)
+                    except Exception as e:
+                        logger.error("Unexpected error canceling Stripe subscription %s: %s", stripe_sub_id, e)
+
         # Update all workspaces
+        workspace_set = {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}
+        if status == 'deleted':
+            workspace_set["subscription_status"] = "canceled"
         updated_count = await self.workspace_repo.update_many(
             {"id": {"$in": workspace_ids}},
-            {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+            {"$set": workspace_set}
         )
-        
+
+        for workspace_id in workspace_ids:
+            try:
+                from core.cache import invalidate_workspace_cache
+                await invalidate_workspace_cache(workspace_id)
+            except Exception:
+                pass
+
         # Log admin action
         await self.log_admin_action(
             admin_id=current_admin.get('id'),
@@ -723,7 +783,7 @@ class AdminService:
                 "updated_count": updated_count
             }
         )
-        
+
         return {
             "success": True,
             "message": f"Updated {updated_count} workspace(s) to status {status}",
