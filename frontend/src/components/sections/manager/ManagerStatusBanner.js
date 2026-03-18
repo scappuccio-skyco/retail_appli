@@ -1,23 +1,62 @@
 import React from 'react';
 
-/**
- * Bannière abonnement suspendu du dashboard manager.
- */
-export default function ManagerStatusBanner({ isSubscriptionExpired }) {
-  if (!isSubscriptionExpired) return null;
+const MESSAGES = {
+  TRIAL_EXPIRED: {
+    title: 'Accès suspendu',
+    body: "La période d'essai de votre espace a expiré.",
+    hint: 'Contactez votre gérant pour souscrire à un abonnement.',
+  },
+  SUBSCRIPTION_INACTIVE: {
+    title: 'Accès suspendu',
+    body: "L'abonnement de votre espace a expiré.",
+    hint: 'Contactez votre gérant pour renouveler l\'abonnement.',
+  },
+};
 
-  return (
-    <div className="max-w-7xl mx-auto mb-4">
-      <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-center gap-3">
-        <div className="p-1.5 bg-amber-100 rounded-lg">
-          <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
+/**
+ * Bannière abonnement du dashboard manager.
+ * - Rouge (subscriptionBlockCode non null) : accès totalement bloqué
+ * - Ambre (isSubscriptionExpired sans code) : lecture seule (Enterprise / suspendu)
+ */
+export default function ManagerStatusBanner({ subscriptionBlockCode, isSubscriptionExpired }) {
+  // Blocage total avec cause connue
+  if (subscriptionBlockCode) {
+    const msg = MESSAGES[subscriptionBlockCode] || MESSAGES.SUBSCRIPTION_INACTIVE;
+    return (
+      <div className="max-w-7xl mx-auto mb-4">
+        <div className="bg-red-50 border border-red-300 rounded-xl p-4 flex items-start gap-3">
+          <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-red-800 font-semibold">{msg.title}</p>
+            <p className="text-red-700 text-sm mt-0.5">{msg.body}</p>
+            <p className="text-red-600 text-xs mt-2">{msg.hint}</p>
+          </div>
         </div>
-        <p className="text-amber-800 text-sm flex-1">
-          <strong>Abonnement magasin suspendu</strong> - La saisie des KPIs et les modifications d'équipe sont temporairement désactivées. Contactez votre gérant.
-        </p>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // Lecture seule partielle (Enterprise sync ou suspension légère)
+  if (isSubscriptionExpired) {
+    return (
+      <div className="max-w-7xl mx-auto mb-4">
+        <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-center gap-3">
+          <div className="p-1.5 bg-amber-100 rounded-lg">
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <p className="text-amber-800 text-sm flex-1">
+            <strong>Abonnement suspendu</strong> — La saisie et les modifications sont désactivées. Contactez votre gérant.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }

@@ -51,16 +51,16 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [selectedManager, setSelectedManager] = useState(null);
   const [selectedSeller, setSelectedSeller] = useState(null);
 
-  // ── Derived: read-only based on subscription ───────────────
-  const isReadOnly = (() => {
-    if (!subscriptionInfo) return false;
+  // ── Derived: read-only + block reason based on subscription ──
+  const { isReadOnly, subscriptionBlockCode: gerantBlockCode } = (() => {
+    if (!subscriptionInfo) return { isReadOnly: false, subscriptionBlockCode: null };
     const { status, trial_end } = subscriptionInfo;
-    if (status === 'active') return false;
+    if (status === 'active') return { isReadOnly: false, subscriptionBlockCode: null };
     if (status === 'trialing') {
-      if (trial_end && new Date(trial_end) >= new Date()) return false;
-      return true;
+      if (trial_end && new Date(trial_end) >= new Date()) return { isReadOnly: false, subscriptionBlockCode: null };
+      return { isReadOnly: true, subscriptionBlockCode: 'TRIAL_EXPIRED' };
     }
-    return true;
+    return { isReadOnly: true, subscriptionBlockCode: 'SUBSCRIPTION_INACTIVE' };
   })();
 
   // ── Side effects ───────────────────────────────────────────
@@ -279,6 +279,7 @@ const GerantDashboard = ({ user, onLogout }) => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
         <GerantReadOnlyBanner
           isReadOnly={isReadOnly}
+          subscriptionBlockCode={gerantBlockCode}
           onOpenSubscription={() => setShowSubscriptionModal(true)}
         />
 

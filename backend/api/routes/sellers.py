@@ -24,12 +24,14 @@ router = APIRouter(
     tags=["Seller"],
     dependencies=[Depends(require_active_space)]
 )
+# Public router: auth-only (no require_active_space) — accessible even when subscription is expired.
+status_router = APIRouter(prefix="/seller", tags=["Seller"])
 logger = logging.getLogger(__name__)
 
 
-# ===== SUBSCRIPTION ACCESS CHECK =====
+# ===== SUBSCRIPTION ACCESS CHECK (public) =====
 
-@router.get("/subscription-status")
+@status_router.get("/subscription-status")
 async def get_seller_subscription_status(
     current_user: Dict = Depends(get_current_seller),
     seller_service: SellerService = Depends(get_seller_service),
@@ -37,14 +39,15 @@ async def get_seller_subscription_status(
     """
     Check if the seller's gérant has an active subscription.
     Returns isReadOnly: true if trial expired.
+    Accessible even when subscription is expired (no require_active_space).
     """
     gerant_id = current_user.get("gerant_id")
     return await seller_service.get_seller_subscription_status(gerant_id or "")
 
 
-# ===== KPI ENABLED CHECK =====
+# ===== KPI ENABLED CHECK (public) =====
 
-@router.get("/kpi-enabled")
+@status_router.get("/kpi-enabled")
 async def check_kpi_enabled(
     store_id: str = Query(None),
     current_user: Dict = Depends(get_current_user),

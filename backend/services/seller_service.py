@@ -108,7 +108,9 @@ class SellerService:
                 if now < trial_end_dt:
                     days_left = (trial_end_dt - now).days
                     return {"isReadOnly": False, "status": "trialing", "message": f"Essai gratuit - {days_left} jours restants", "daysLeft": days_left}
-        return {"isReadOnly": True, "status": "trial_expired", "message": "Période d'essai terminée. Contactez votre administrateur."}
+            return {"isReadOnly": True, "status": "trial_expired", "blockCode": "TRIAL_EXPIRED"}
+        # Subscription canceled, past_due, inactive, or any other non-active status
+        return {"isReadOnly": True, "status": "subscription_expired", "blockCode": "SUBSCRIPTION_INACTIVE"}
 
     async def get_kpi_config_for_seller(self, store_id: Optional[str], manager_id: Optional[str]) -> Optional[Dict]:
         """Find KPI config by store_id or manager_id. Returns None if kpi_config_repo not set."""

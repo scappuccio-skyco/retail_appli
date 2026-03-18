@@ -25,6 +25,8 @@ from services.manager_service import ManagerService, APIKeyService
 from services.gerant_service import GerantService
 
 router = APIRouter(prefix="")
+# Public router: accessible even with expired subscription (status/config reads only)
+public_router = APIRouter(prefix="")
 logger = logging.getLogger(__name__)
 
 
@@ -34,9 +36,9 @@ async def test_endpoint(request: Request):
     return {"status": "ok", "message": "Manager router is working", "router_prefix": "/manager"}
 
 
-# ===== SUBSCRIPTION =====
+# ===== SUBSCRIPTION (public — no require_active_space) =====
 
-@router.get("/subscription-status")
+@public_router.get("/subscription-status")
 async def get_subscription_status(
     request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
@@ -100,12 +102,14 @@ async def get_subscription_status(
             if now < trial_end_dt:
                 days_left = (trial_end_dt - now).days
                 return {"isReadOnly": False, "status": "trialing", "message": f"Essai gratuit - {days_left} jours restants", "daysLeft": days_left}
-    return {"isReadOnly": True, "status": "trial_expired", "message": "Période d'essai terminée. Contactez votre administrateur."}
+        return {"isReadOnly": True, "status": "trial_expired", "blockCode": "TRIAL_EXPIRED"}
+    # Subscription canceled, past_due, inactive, or any other non-active status
+    return {"isReadOnly": True, "status": "subscription_expired", "blockCode": "SUBSCRIPTION_INACTIVE"}
 
 
-# ===== SYNC MODE =====
+# ===== SYNC MODE (public — no require_active_space) =====
 
-@router.get("/sync-mode")
+@public_router.get("/sync-mode")
 async def get_sync_mode(
     request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),

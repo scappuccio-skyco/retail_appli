@@ -16,7 +16,7 @@ from api.routes.manager.dependencies import (
     get_verified_seller,
     verify_manager_or_gerant,
 )
-from api.routes.manager.store import router as store_router
+from api.routes.manager.store import router as store_router, public_router as store_public_router
 from api.routes.manager.sellers import (
     router as sellers_router,
     get_seller_kpi_entries,
@@ -37,6 +37,15 @@ router = APIRouter(
     dependencies=[Depends(require_active_space), Depends(get_current_manager)],
 )
 
+# Public router: auth-only (no require_active_space) for status/config endpoints
+# Accessible even when subscription is expired so the frontend can display the right message.
+public_router = APIRouter(
+    prefix="/manager",
+    tags=["Manager"],
+    dependencies=[Depends(get_current_manager)],
+)
+public_router.include_router(store_public_router)
+
 router.include_router(store_router)
 router.include_router(sellers_router)
 router.include_router(analytics_router)
@@ -51,6 +60,7 @@ logger.info(
 
 __all__ = [
     "router",
+    "public_router",
     "get_store_context",
     "get_store_context_with_seller",
     "get_verified_seller",

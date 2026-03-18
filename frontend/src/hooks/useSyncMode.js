@@ -4,18 +4,18 @@ import { logger } from '../utils/logger';
 import { useAuth } from '../contexts';
 
 /**
- * Hook pour vérifier si l'utilisateur est en mode synchronisation automatique (Enterprise)
- * ET si l'abonnement du gérant parent est actif.
- * 
+ * Hook pour vérifier le mode sync (Enterprise) et l'état de l'abonnement.
+ *
  * @param {string} storeId - Optional store_id for gerant viewing as manager
- * 
+ *
  * Retourne:
  * - syncMode: "manual" | "api_sync" | "scim_sync"
  * - isEnterprise: boolean
  * - isReadOnly: boolean (true si sync_mode != "manual" OU abonnement expiré)
- * - canEditKPIConfig: boolean (false en mode entreprise)
- * - canEditObjectives: boolean (true même en mode entreprise)
- * - isSubscriptionExpired: boolean (true si l'abonnement du gérant parent est expiré)
+ * - canEditKPIConfig: boolean
+ * - canEditObjectives: boolean
+ * - isSubscriptionExpired: boolean (true si subscriptionBlockCode !== null)
+ * - subscriptionBlockCode: null | "TRIAL_EXPIRED" | "SUBSCRIPTION_INACTIVE"
  * - loading: boolean
  */
 export const useSyncMode = (storeId = null) => {
@@ -25,8 +25,7 @@ export const useSyncMode = (storeId = null) => {
   const [companyName, setCompanyName] = useState(null);
   const [canEditKPI, setCanEditKPI] = useState(true);
   const [canEditObjectives, setCanEditObjectives] = useState(true);
-  const [isSubscriptionExpired, setIsSubscriptionExpired] = useState(false);
-  const [parentSubscriptionStatus, setParentSubscriptionStatus] = useState(null);
+  const [subscriptionBlockCode, setSubscriptionBlockCode] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,13 +36,12 @@ export const useSyncMode = (storeId = null) => {
       }
 
       const userRole = user.role || null;
-      
-      // Get store_id from URL if not passed as prop (for gerant viewing as manager)
+
       const urlParams = new URLSearchParams(globalThis.location.search);
       const effectiveStoreId = storeId || urlParams.get('store_id');
       const storeIdParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';
 
-      // Récupérer le mode sync (manager/gerant uniquement ; les vendeurs n'ont pas accès à /manager/sync-mode → 403)
+      // Sync mode (manager/gerant only — sellers use manual by default)
       if (userRole === 'seller') {
         setSyncMode('manual');
         setIsEnterprise(false);
@@ -66,37 +64,43 @@ export const useSyncMode = (storeId = null) => {
         }
       }
 
-      // Vérifier le statut de l'abonnement du gérant parent (pour vendeurs/managers)
-      // Skip for gerant role viewing manager dashboard
+      // Subscription status (seller + manager — gérant handles it independently)
       if (userRole === 'seller' || userRole === 'manager') {
         try {
-          const endpoint = userRole === 'seller' 
-            ? `/seller/subscription-status`
+          const endpoint = userRole === 'seller'
+            ? '/seller/subscription-status'
             : `/manager/subscription-status${storeIdParam}`;
-          
+
           const subResponse = await api.get(endpoint);
-          
-          setParentSubscriptionStatus(subResponse.data.status);
-          setIsSubscriptionExpired(subResponse.data.isReadOnly === true);
+          const data = subResponse.data;
+
+          if (data.isReadOnly) {
+            // Use explicit blockCode when available (new API), fall back to status field
+            const code = data.blockCode
+              || (data.status === 'trial_expired' ? 'TRIAL_EXPIRED' : 'SUBSCRIPTION_INACTIVE');
+            setSubscriptionBlockCode(code);
+          } else {
+            setSubscriptionBlockCode(null);
+          }
         } catch (error) {
           logger.error('Error fetching subscription status:', error);
-          // En cas d'erreur, on reste permissif (pas de blocage)
+          // Fallback: infer from 403 error_code if endpoint itself is blocked
+          const code = error.response?.data?.error_code;
+          if (code === 'TRIAL_EXPIRED' || code === 'SUBSCRIPTION_INACTIVE') {
+            setSubscriptionBlockCode(code);
+          }
         }
       } else if (userRole === 'gerant' || userRole === 'gérant') {
-        // Gérant viewing as manager - check their own subscription but don't block
-        setIsSubscriptionExpired(false);
-        setParentSubscriptionStatus('active');
+        setSubscriptionBlockCode(null);
       }
-      
+
       setLoading(false);
     };
 
     fetchSyncMode();
   }, [storeId, user]);
 
-  // isReadOnly est true si :
-  // 1. Mode sync != manual (Enterprise)
-  // 2. OU l'abonnement du gérant parent est expiré
+  const isSubscriptionExpired = subscriptionBlockCode !== null;
   const isReadOnly = syncMode !== 'manual' || isSubscriptionExpired;
 
   return {
@@ -108,7 +112,7 @@ export const useSyncMode = (storeId = null) => {
     canEditKPIConfig: canEditKPI,
     canEditObjectives,
     isSubscriptionExpired,
-    parentSubscriptionStatus,
-    loading
+    subscriptionBlockCode,
+    loading,
   };
 };

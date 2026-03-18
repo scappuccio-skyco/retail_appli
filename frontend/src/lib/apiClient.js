@@ -101,16 +101,16 @@ apiClient.interceptors.response.use(
       const detail = typeof data.detail === 'string' ? data.detail : 'Accès refusé';
       const code = data.error_code;
       const now = Date.now();
-      const isSubscriptionInactive = code === 'SUBSCRIPTION_INACTIVE';
+      const isSubscriptionIssue = code === 'SUBSCRIPTION_INACTIVE' || code === 'TRIAL_EXPIRED';
       const alreadyShownSubscription = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(SUBSCRIPTION_INACTIVE_SHOWN_KEY) === '1';
 
-      if (isSubscriptionInactive && !alreadyShownSubscription) {
+      if (isSubscriptionIssue && !alreadyShownSubscription) {
         if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(SUBSCRIPTION_INACTIVE_SHOWN_KEY, '1');
-        toast.error(detail, {
-          description: 'Le gérant peut réactiver l\'abonnement depuis son tableau de bord.',
-          duration: 8000,
-        });
-      } else if (!isSubscriptionInactive && now - last403ToastAt > 3000) {
+        const description = code === 'TRIAL_EXPIRED'
+          ? 'La période d\'essai est terminée. Le gérant peut souscrire depuis son tableau de bord.'
+          : 'L\'abonnement a expiré. Le gérant peut le renouveler depuis son tableau de bord.';
+        toast.error(detail, { description, duration: 8000 });
+      } else if (!isSubscriptionIssue && now - last403ToastAt > 3000) {
         last403ToastAt = now;
         toast.error(detail, { duration: 5000 });
       }

@@ -17,7 +17,7 @@ import SellerModalsLayer from '../components/sections/seller/SellerModalsLayer';
 
 export default function SellerDashboard({ user, diagnostic: initialDiagnostic, onLogout }) {
   const navigate = useNavigate();
-  const { isReadOnly, isSubscriptionExpired } = useSyncMode();
+  const { isReadOnly, isSubscriptionExpired, subscriptionBlockCode } = useSyncMode();
 
   // ── Data state ─────────────────────────────────────────────
   const [evaluations, setEvaluations] = useState([]);
@@ -40,7 +40,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   // ── UI state ───────────────────────────────────────────────
   const [loading, setLoading] = useState(true);
   const [accessDenied403, setAccessDenied403] = useState(false);
-  const [accessDeniedMessage, setAccessDeniedMessage] = useState('');
+  const [accessDeniedBlockCode, setAccessDeniedBlockCode] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
   const [generatingBilan, setGeneratingBilan] = useState(false);
@@ -302,8 +302,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       logger.error('Error loading data:', err);
       if (err.response?.status === 403) {
         setAccessDenied403(true);
-        const detail = err.response?.data?.detail;
-        setAccessDeniedMessage(typeof detail === 'string' ? detail : "Accès refusé. Contactez votre gérant pour réactiver l'abonnement.");
+        const code = err.response?.data?.error_code;
+        setAccessDeniedBlockCode(code || 'SUBSCRIPTION_INACTIVE');
       } else {
         toast.error('Erreur de chargement des données');
       }
@@ -512,7 +512,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     <div data-testid="seller-dashboard" className="min-h-screen p-4 md:p-8">
       <SellerStatusBanners
         accessDenied403={accessDenied403}
-        accessDeniedMessage={accessDeniedMessage}
+        subscriptionBlockCode={subscriptionBlockCode || accessDeniedBlockCode}
         isSubscriptionExpired={isSubscriptionExpired}
       />
 

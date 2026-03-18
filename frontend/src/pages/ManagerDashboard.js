@@ -21,7 +21,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const effectiveStoreId = urlStoreId || user?.store_id;
   const apiStoreIdParam = urlStoreId ? `?store_id=${urlStoreId}` : '';
 
-  const { canEditKPIConfig, isReadOnly, isSubscriptionExpired } = useSyncMode(urlStoreId);
+  const { canEditKPIConfig, isReadOnly, isSubscriptionExpired, subscriptionBlockCode } = useSyncMode(urlStoreId);
 
   // ── Onboarding ─────────────────────────────────────────────
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
@@ -318,7 +318,7 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   return (
     <div data-testid="manager-dashboard" className="min-h-screen p-4 md:p-8">
-      <ManagerStatusBanner isSubscriptionExpired={isSubscriptionExpired} />
+      <ManagerStatusBanner subscriptionBlockCode={subscriptionBlockCode} />
 
       <ManagerHeader
         user={user}

@@ -417,12 +417,12 @@ async def require_active_space(
                     )
                 raise ForbiddenError(
                     "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer.",
-                    error_code="SUBSCRIPTION_INACTIVE",
+                    error_code="TRIAL_EXPIRED",
                 )
         else:
             raise ForbiddenError(
                 "Période d'essai terminée. Veuillez souscrire à un abonnement pour continuer.",
-                error_code="SUBSCRIPTION_INACTIVE",
+                error_code="TRIAL_EXPIRED",
             )
 
     if not allowed:
