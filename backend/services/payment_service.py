@@ -11,6 +11,12 @@ from typing import Dict, Optional
 from repositories.user_repository import UserRepository
 from repositories.subscription_repository import SubscriptionRepository
 from repositories.store_repository import WorkspaceRepository
+from email_service import (
+    send_payment_confirmation_email,
+    send_payment_failed_email,
+    send_subscription_canceled_email,
+    send_trial_ending_email,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +64,7 @@ class PaymentService:
             'customer.subscription.created': self._handle_subscription_created,
             'customer.subscription.updated': self._handle_subscription_updated,
             'customer.subscription.deleted': self._handle_subscription_deleted,
+            'customer.subscription.trial_will_end': self._handle_trial_will_end,
             'checkout.session.completed': self._handle_checkout_completed,
         }
         
@@ -116,6 +123,30 @@ class PaymentService:
                 {"subscription_status": "active", "stripe_subscription_id": subscription_id},
             )
         logger.info(f"✅ Payment succeeded for {gerant['email']} - subscription active until {period_end}")
+
+        # Send payment confirmation email
+        try:
+            # Fetch plan from subscription record
+            plan_key = 'starter'
+            if subscription_id:
+                sub_record = await self.subscription_repo.find_by_stripe_subscription(subscription_id)
+                if sub_record:
+                    plan_key = sub_record.get('plan', 'starter')
+            amount_eur = invoice.get('amount_paid', invoice.get('amount_due', 0)) / 100
+            billing_reason = invoice.get('billing_reason', 'subscription_cycle')
+            invoice_url = invoice.get('hosted_invoice_url')
+            send_payment_confirmation_email(
+                recipient_email=gerant['email'],
+                recipient_name=gerant.get('name', gerant['email']),
+                amount_eur=amount_eur,
+                period_end_date=period_end.isoformat(),
+                plan_key=plan_key,
+                billing_reason=billing_reason,
+                invoice_url=invoice_url,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send payment confirmation email to {gerant['email']}: {e}")
+
         return {"status": "success", "user_id": gerant['id'], "period_end": period_end.isoformat()}
     
     async def _handle_payment_failed(self, invoice: Dict) -> Dict:
@@ -180,10 +211,25 @@ class PaymentService:
             f"Amount: {amount_due}€, Attempt #{attempt_count}, "
             f"Subscription: {subscription_id}, Status: past_due"
         )
-        
+
+        # Send payment failed email
+        try:
+            next_retry_iso = None
+            if next_payment_attempt:
+                next_retry_iso = datetime.fromtimestamp(next_payment_attempt, tz=timezone.utc).isoformat()
+            send_payment_failed_email(
+                recipient_email=gerant['email'],
+                recipient_name=gerant.get('name', gerant['email']),
+                amount_eur=amount_due,
+                attempt_count=attempt_count,
+                next_retry_date=next_retry_iso,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send payment failed email to {gerant['email']}: {e}")
+
         return {
-            "status": "success", 
-            "user_id": gerant['id'], 
+            "status": "success",
+            "user_id": gerant['id'],
             "new_status": "past_due",
             "amount_due": amount_due,
             "attempt_count": attempt_count
@@ -512,12 +558,53 @@ class PaymentService:
                 {"subscription_status": "canceled", "access_end_date": access_end_date.isoformat()},
             )
         logger.warning(f"⚠️ Subscription DELETED for {gerant.get('email', gerant['id'])} - access ends at {access_end_date.isoformat()}")
+
+        # Send cancellation email
+        try:
+            send_subscription_canceled_email(
+                recipient_email=gerant['email'],
+                recipient_name=gerant.get('name', gerant['email']),
+                access_end_date=access_end_date.isoformat(),
+            )
+        except Exception as e:
+            logger.error(f"Failed to send subscription canceled email to {gerant.get('email')}: {e}")
+
         return {
-            "status": "success", 
+            "status": "success",
             "new_status": "canceled",
             "access_end_date": access_end_date.isoformat()
         }
     
+    async def _handle_trial_will_end(self, subscription: Dict) -> Dict:
+        """
+        Handle upcoming trial expiry (fires ~3 days before trial_end).
+        Sends a reminder email to the gérant to subscribe before access is cut off.
+        """
+        customer_id = subscription.get('customer')
+        gerant = await self.user_repo.find_by_stripe_customer_id(customer_id)
+        if not gerant:
+            return {"status": "skipped", "reason": "customer_not_found"}
+
+        trial_end_ts = subscription.get('trial_end')
+        if not trial_end_ts:
+            return {"status": "skipped", "reason": "no_trial_end"}
+
+        trial_end_dt = datetime.fromtimestamp(trial_end_ts, tz=timezone.utc)
+        days_left = max(0, (trial_end_dt - datetime.now(timezone.utc)).days)
+
+        try:
+            send_trial_ending_email(
+                recipient_email=gerant['email'],
+                recipient_name=gerant.get('name', gerant['email']),
+                days_left=days_left,
+                trial_end_date=trial_end_dt.isoformat(),
+            )
+        except Exception as e:
+            logger.error(f"Failed to send trial ending email to {gerant['email']}: {e}")
+
+        logger.info(f"⏳ Trial ending in {days_left}d for {gerant['email']} — reminder sent")
+        return {"status": "success", "days_left": days_left}
+
     async def _handle_checkout_completed(self, session: Dict) -> Dict:
         """
         Handle successful checkout session completion.

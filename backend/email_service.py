@@ -2,6 +2,7 @@ import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 import os
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -892,5 +893,357 @@ def send_staff_email_update_alert(
         return True
     except ApiException as e:
         logger.error(f"Error sending staff email update alert to {recipient_email}: {e}")
+        return False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SUBSCRIPTION / PAYMENT EMAILS
+# ─────────────────────────────────────────────────────────────────────────────
+
+_PLAN_DISPLAY_NAMES = {
+    'starter': 'Small Team',
+    'professional': 'Medium Team',
+    'enterprise': 'Large Team',
+}
+
+
+def _plan_display(plan_key: str) -> str:
+    return _PLAN_DISPLAY_NAMES.get(plan_key, plan_key.title() if plan_key else 'Standard')
+
+
+def _date_fr(iso_str: str) -> str:
+    """Format an ISO date string to a French readable date (e.g. '18 mars 2026')."""
+    try:
+        dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+        months = [
+            'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+            'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+        ]
+        return f"{dt.day} {months[dt.month - 1]} {dt.year}"
+    except Exception:
+        return iso_str
+
+
+def send_payment_confirmation_email(
+    recipient_email: str,
+    recipient_name: str,
+    amount_eur: float,
+    period_end_date: str,
+    plan_key: str = 'starter',
+    billing_reason: str = 'subscription_cycle',
+    invoice_url: str = None,
+) -> bool:
+    """
+    Email sent after a successful payment (invoice.payment_succeeded).
+    billing_reason='subscription_create' → new subscription
+    billing_reason='subscription_cycle'  → renewal
+    """
+    frontend_url = get_frontend_url().rstrip('/')
+    plan_name = _plan_display(plan_key)
+    period_end_str = _date_fr(period_end_date)
+    amount_str = f"{amount_eur:.2f} €".replace('.', ',')
+
+    is_new = billing_reason == 'subscription_create'
+    subject = (
+        f"🎉 Votre abonnement Retail Performer AI est activé — {plan_name}"
+        if is_new else
+        f"✅ Renouvellement confirmé — {plan_name}"
+    )
+    header_title = "Abonnement activé 🎉" if is_new else "Renouvellement confirmé ✅"
+    intro = (
+        f"Votre abonnement <strong>{plan_name}</strong> est maintenant actif. "
+        f"Votre équipe a accès à toutes les fonctionnalités de Retail Performer AI."
+        if is_new else
+        f"Votre abonnement <strong>{plan_name}</strong> a été renouvelé avec succès."
+    )
+
+    invoice_button = ""
+    if invoice_url:
+        invoice_button = f"""
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="{invoice_url}"
+               style="background: #6366f1; color: white; padding: 12px 28px; border-radius: 8px;
+                      text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block;">
+                📄 Voir la facture
+            </a>
+        </div>"""
+
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">{header_title}</h1>
+    </div>
+    <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">Bonjour {recipient_name},</p>
+        <p style="font-size: 16px;">{intro}</p>
+        <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #10B981;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Plan</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;">{plan_name}</td>
+                </tr>
+                <tr style="border-top: 1px solid #eee;">
+                    <td style="padding: 8px 0; color: #666;">Montant prélevé</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;">{amount_str}</td>
+                </tr>
+                <tr style="border-top: 1px solid #eee;">
+                    <td style="padding: 8px 0; color: #666;">Prochain renouvellement</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;">{period_end_str}</td>
+                </tr>
+            </table>
+        </div>
+        {invoice_button}
+        <div style="text-align: center; margin: 24px 0;">
+            <a href="{frontend_url}/dashboard"
+               style="background: #F97316; color: white; padding: 12px 28px; border-radius: 8px;
+                      text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block;">
+                Accéder à mon dashboard
+            </a>
+        </div>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            Retail Performer AI · <a href="mailto:hello@retailperformerai.com" style="color: #999;">hello@retailperformerai.com</a><br>
+            © 2025 Tous droits réservés
+        </p>
+    </div>
+</body>
+</html>"""
+
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject=subject,
+            html_content=html_content,
+        )
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Payment confirmation email sent to {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending payment confirmation email to {recipient_email}: {e}")
+        return False
+
+
+def send_payment_failed_email(
+    recipient_email: str,
+    recipient_name: str,
+    amount_eur: float,
+    attempt_count: int,
+    next_retry_date: str = None,
+) -> bool:
+    """
+    Email sent when a payment attempt fails (invoice.payment_failed).
+    """
+    frontend_url = get_frontend_url().rstrip('/')
+    amount_str = f"{amount_eur:.2f} €".replace('.', ',')
+
+    retry_row = ""
+    if next_retry_date:
+        retry_row = f"""
+                <tr style="border-top: 1px solid #eee;">
+                    <td style="padding: 8px 0; color: #666;">Prochain essai automatique</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;">{_date_fr(next_retry_date)}</td>
+                </tr>"""
+
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ Échec de paiement</h1>
+    </div>
+    <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">Bonjour {recipient_name},</p>
+        <p style="font-size: 16px;">
+            Le prélèvement de votre abonnement <strong>Retail Performer AI</strong> a échoué.
+            Votre accès reste actif pendant que Stripe retente automatiquement le paiement.
+        </p>
+        <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #EF4444;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Montant dû</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;">{amount_str}</td>
+                </tr>
+                <tr style="border-top: 1px solid #eee;">
+                    <td style="padding: 8px 0; color: #666;">Tentative n°</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;">{attempt_count}</td>
+                </tr>
+                {retry_row}
+            </table>
+        </div>
+        <div style="background: #FEF3C7; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+            <p style="margin: 0; font-size: 14px; color: #92400E;">
+                💡 <strong>Action requise :</strong> Mettez à jour votre moyen de paiement pour éviter
+                toute interruption de service.
+            </p>
+        </div>
+        <div style="text-align: center; margin: 28px 0;">
+            <a href="{frontend_url}/dashboard"
+               style="background: #EF4444; color: white; padding: 14px 32px; border-radius: 8px;
+                      text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
+                Mettre à jour ma carte bancaire
+            </a>
+        </div>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            Retail Performer AI · <a href="mailto:hello@retailperformerai.com" style="color: #999;">hello@retailperformerai.com</a><br>
+            © 2025 Tous droits réservés
+        </p>
+    </div>
+</body>
+</html>"""
+
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject="⚠️ Échec de paiement — Retail Performer AI",
+            html_content=html_content,
+        )
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Payment failed email sent to {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending payment failed email to {recipient_email}: {e}")
+        return False
+
+
+def send_subscription_canceled_email(
+    recipient_email: str,
+    recipient_name: str,
+    access_end_date: str,
+) -> bool:
+    """
+    Email sent when subscription is definitively canceled (customer.subscription.deleted).
+    """
+    frontend_url = get_frontend_url().rstrip('/')
+    access_end_str = _date_fr(access_end_date)
+
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Abonnement annulé</h1>
+    </div>
+    <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">Bonjour {recipient_name},</p>
+        <p style="font-size: 16px;">
+            Votre abonnement <strong>Retail Performer AI</strong> a été annulé.
+            L'accès de votre équipe sera désactivé à la date ci-dessous.
+        </p>
+        <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #F97316; text-align: center;">
+            <p style="margin: 0; color: #666; font-size: 14px;">Fin d'accès</p>
+            <p style="margin: 8px 0 0; font-size: 22px; font-weight: bold; color: #EA580C;">{access_end_str}</p>
+        </div>
+        <p style="font-size: 15px;">
+            Vous souhaitez revenir ? Votre espace et les données de votre équipe sont conservés.
+            Il vous suffit de souscrire à nouveau depuis votre dashboard.
+        </p>
+        <div style="text-align: center; margin: 28px 0;">
+            <a href="{frontend_url}/dashboard"
+               style="background: #F97316; color: white; padding: 14px 32px; border-radius: 8px;
+                      text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
+                Réactiver mon abonnement
+            </a>
+        </div>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            Une question ? <a href="mailto:hello@retailperformerai.com" style="color: #F97316;">hello@retailperformerai.com</a><br>
+            Retail Performer AI · © 2025 Tous droits réservés
+        </p>
+    </div>
+</body>
+</html>"""
+
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject="Votre abonnement Retail Performer AI a été annulé",
+            html_content=html_content,
+        )
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Subscription canceled email sent to {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending subscription canceled email to {recipient_email}: {e}")
+        return False
+
+
+def send_trial_ending_email(
+    recipient_email: str,
+    recipient_name: str,
+    days_left: int,
+    trial_end_date: str,
+) -> bool:
+    """
+    Email sent ~3 days before trial ends (customer.subscription.trial_will_end).
+    """
+    frontend_url = get_frontend_url().rstrip('/')
+    trial_end_str = _date_fr(trial_end_date)
+    days_label = f"{days_left} jour{'s' if days_left > 1 else ''}"
+
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #F97316 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">⏳ Votre essai se termine bientôt</h1>
+    </div>
+    <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">Bonjour {recipient_name},</p>
+        <p style="font-size: 16px;">
+            Votre période d'essai <strong>Retail Performer AI</strong> se termine dans
+            <strong>{days_label}</strong>, le <strong>{trial_end_str}</strong>.
+        </p>
+        <p style="font-size: 15px;">
+            Après cette date, votre équipe n'aura plus accès à l'application.
+            Souscrivez maintenant pour continuer sans interruption.
+        </p>
+        <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #667eea;">
+            <h3 style="margin-top: 0; color: #667eea;">Ce que vous gardez avec un abonnement :</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="padding: 6px 0;">✅ Dashboard Gérant, Manager &amp; Vendeur</li>
+                <li style="padding: 6px 0;">✅ Coaching IA &amp; Briefs Matinaux</li>
+                <li style="padding: 6px 0;">✅ Suivi KPI, Objectifs &amp; Challenges</li>
+                <li style="padding: 6px 0;">✅ Diagnostics &amp; Analyses IA illimitées</li>
+                <li style="padding: 6px 0;">✅ Toutes vos données conservées</li>
+            </ul>
+        </div>
+        <div style="text-align: center; margin: 28px 0;">
+            <a href="{frontend_url}/dashboard"
+               style="background: #F97316; color: white; padding: 14px 32px; border-radius: 8px;
+                      text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
+                Souscrire maintenant
+            </a>
+        </div>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            Une question ? <a href="mailto:hello@retailperformerai.com" style="color: #F97316;">hello@retailperformerai.com</a><br>
+            Retail Performer AI · © 2025 Tous droits réservés
+        </p>
+    </div>
+</body>
+</html>"""
+
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject=f"⏳ Plus que {days_label} d'essai — Retail Performer AI",
+            html_content=html_content,
+        )
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Trial ending email sent to {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending trial ending email to {recipient_email}: {e}")
         return False
 

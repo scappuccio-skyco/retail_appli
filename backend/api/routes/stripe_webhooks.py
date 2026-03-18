@@ -39,6 +39,8 @@ async def stripe_webhook(
     RC6: Returns 200 immediately, processes event in background to avoid Stripe timeout.
     Security: Validates webhook signature using STRIPE_WEBHOOK_SECRET.
     Handles: invoice.payment_*, customer.subscription.*, checkout.session.completed.
+    Emails: payment_succeeded → confirmation, payment_failed → alert,
+            subscription.deleted → cancellation, subscription.trial_will_end → reminder.
     """
     payload = await request.body()
     sig_header = request.headers.get('stripe-signature')
