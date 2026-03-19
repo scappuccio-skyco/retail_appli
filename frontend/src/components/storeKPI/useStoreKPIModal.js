@@ -385,7 +385,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   }, [storeId]);
 
   useEffect(() => {
-    if (activeTab === 'daily') fetchOverviewData();
+    if (activeTab === 'daily') { fetchOverviewData(); fetchHistoricalData(); }
     else if (activeTab === 'overview') fetchHistoricalData();
   }, [activeTab, overviewDate, viewMode, selectedWeek, selectedMonth, selectedYear]);
 
