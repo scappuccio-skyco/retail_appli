@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import KPICalendar from '../KPICalendar';
 
 function DailyKPICards({ overviewData }) {
   const totals = overviewData?.totals ?? {};
@@ -142,24 +141,10 @@ function SellerEntriesTable({ seller_entries }) {
 }
 SellerEntriesTable.propTypes = { seller_entries: PropTypes.arrayOf(PropTypes.object).isRequired };
 
-export default function StoreKPIModalDailyTab({
-  overviewData,
-  overviewDate,
-  onOverviewDateChange,
-  datesWithData,
-  lockedDates,
-  partiallyLockedDates,
-  onShowAIModal,
-  storeId
-}) {
+export default function StoreKPIModalDailyTab({ overviewData, storeId }) {
   const managerData = overviewData?.manager_data || overviewData?.managers_data || {};
   const hasManagerData = managerData && Object.keys(managerData).length > 0;
   const hasOverviewData = Boolean(overviewData);
-  const hasDataForDate = hasOverviewData && !(overviewData?.totals?.ca === 0 && overviewData?.totals?.ventes === 0);
-  const aiButtonTitleWhenNoOverview = 'Sélectionnez une date';
-  const aiButtonTitleWhenNoData = 'Aucune donnée disponible pour cette date';
-  const aiTitleWhenHasOverview = hasDataForDate ? '' : aiButtonTitleWhenNoData;
-  const aiButtonTitle = hasOverviewData ? aiTitleWhenHasOverview : aiButtonTitleWhenNoOverview;
   const managerCA = hasManagerData ? (managerData.ca_journalier || 0) : 0;
   const managerVentes = hasManagerData ? (managerData.nb_ventes || 0) : 0;
   const managerArticles = hasManagerData ? (managerData.nb_articles || 0) : 0;
@@ -172,30 +157,9 @@ export default function StoreKPIModalDailyTab({
 
   const showValidatedSection = !storeId;
   const hasSellerEntries = overviewData?.seller_entries?.length > 0;
-  const canLaunchAI = hasOverviewData && hasDataForDate;
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <KPICalendar
-            selectedDate={overviewDate}
-            onDateChange={onOverviewDateChange}
-            datesWithData={datesWithData}
-            lockedDates={lockedDates}
-            partiallyLockedDates={partiallyLockedDates}
-          />
-        </div>
-        <button
-          onClick={() => onShowAIModal(true)}
-          disabled={!canLaunchAI}
-          className="px-4 py-1.5 text-sm bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          title={aiButtonTitle}
-        >
-          <span>🤖</span> Lancer l'Analyse IA
-        </button>
-      </div>
-
       {hasOverviewData ? (
         <div className="space-y-4">
           <DailyKPICards overviewData={overviewData} />
@@ -225,11 +189,5 @@ export default function StoreKPIModalDailyTab({
 }
 StoreKPIModalDailyTab.propTypes = {
   overviewData: PropTypes.object,
-  overviewDate: PropTypes.string.isRequired,
-  onOverviewDateChange: PropTypes.func.isRequired,
-  datesWithData: PropTypes.arrayOf(PropTypes.string),
-  lockedDates: PropTypes.arrayOf(PropTypes.string),
-  partiallyLockedDates: PropTypes.arrayOf(PropTypes.string),
-  onShowAIModal: PropTypes.func.isRequired,
   storeId: PropTypes.string
 };

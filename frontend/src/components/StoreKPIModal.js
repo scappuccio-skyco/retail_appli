@@ -3,9 +3,10 @@ import { X, TrendingUp } from 'lucide-react';
 import StoreKPIAIAnalysisModal from './StoreKPIAIAnalysisModal';
 import { useStoreKPIModal } from './storeKPI/useStoreKPIModal';
 import StoreKPIModalDailyTab from './storeKPI/StoreKPIModalDailyTab';
-import StoreKPIModalOverviewTab from './storeKPI/StoreKPIModalOverviewTab';
+import StoreKPIModalOverviewTab, { WeekPicker } from './storeKPI/StoreKPIModalOverviewTab';
 import StoreKPIModalConfigTab from './storeKPI/StoreKPIModalConfigTab';
 import StoreKPIModalProspectsTab from './storeKPI/StoreKPIModalProspectsTab';
+import KPICalendar from './KPICalendar';
 
 const TABS = [
   { id: 'daily', label: '📊 Performance' },
@@ -29,6 +30,15 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100';
 
   const overviewPeriodLabel = getOverviewPeriodLabel(state.viewMode, state);
+
+  const hasDataForDate = state.overviewData && !(state.overviewData?.totals?.ca === 0 && state.overviewData?.totals?.ventes === 0);
+  const canLaunchDailyAI = Boolean(state.overviewData) && hasDataForDate;
+  const hasHistData = state.historicalData.length > 0;
+  const allHistZero = hasHistData && state.historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0);
+  const canLaunchOverviewAI = hasHistData && !allHistZero;
+
+  const currentYear = new Date().getFullYear();
+  const yearOptions = state.availableYears.length > 0 ? state.availableYears : [currentYear, currentYear - 1];
 
   return (
     <div
@@ -65,29 +75,94 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
         <div className="p-6 overflow-y-auto overflow-x-visible flex-1 min-h-0">
           {state.activeTab === 'daily' && (
-            <>
-              <StoreKPIModalDailyTab
-                overviewData={state.overviewData}
-                overviewDate={state.overviewDate}
-                onOverviewDateChange={state.setOverviewDate}
-                datesWithData={state.datesWithData}
-                lockedDates={state.lockedDates}
-                partiallyLockedDates={state.partiallyLockedDates}
-                onShowAIModal={state.setShowDailyAIModal}
-                storeId={storeId}
-              />
-              <div className="mt-8 pt-6 border-t-2 border-orange-100">
+            <div>
+              {/* Barre d'action : sélecteur de période + bouton IA */}
+              <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl mb-4 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex gap-1.5">
+                    {[
+                      { id: 'day', label: '📅 Jour' },
+                      { id: 'week', label: '📅 Semaine' },
+                      { id: 'month', label: '🗓️ Mois' },
+                      { id: 'year', label: '📆 Année' },
+                    ].map(({ id, label }) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => state.setViewMode(id)}
+                        className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all border-2 ${
+                          state.viewMode === id
+                            ? 'border-orange-500 bg-orange-500 text-white shadow-md'
+                            : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {state.viewMode === 'day' ? (
+                    <button
+                      onClick={() => state.setShowDailyAIModal(true)}
+                      disabled={!canLaunchDailyAI}
+                      className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                    >
+                      🤖 Analyse IA
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => state.setShowOverviewAIModal(true)}
+                      disabled={!canLaunchOverviewAI}
+                      className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                    >
+                      🤖 Analyse IA
+                    </button>
+                  )}
+                </div>
+                {/* Navigation */}
+                <div>
+                  {state.viewMode === 'day' && (
+                    <KPICalendar
+                      selectedDate={state.overviewDate}
+                      onDateChange={state.setOverviewDate}
+                      datesWithData={state.datesWithData}
+                      lockedDates={state.lockedDates}
+                      partiallyLockedDates={state.partiallyLockedDates}
+                    />
+                  )}
+                  {state.viewMode === 'week' && (
+                    <WeekPicker
+                      value={state.selectedWeek}
+                      onChange={state.setSelectedWeek}
+                      datesWithData={state.datesWithData}
+                    />
+                  )}
+                  {state.viewMode === 'month' && (
+                    <input
+                      type="month"
+                      value={state.selectedMonth}
+                      onChange={(e) => state.setSelectedMonth(e.target.value)}
+                      onClick={(e) => { try { if (typeof e.target.showPicker === 'function') e.target.showPicker(); } catch (_) {} }}
+                      className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none cursor-pointer bg-white"
+                    />
+                  )}
+                  {state.viewMode === 'year' && (
+                    <select
+                      value={state.selectedYear}
+                      onChange={(e) => state.setSelectedYear(parseInt(e.target.value, 10))}
+                      className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none bg-white cursor-pointer"
+                    >
+                      {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {/* Contenu */}
+              {state.viewMode === 'day' ? (
+                <StoreKPIModalDailyTab overviewData={state.overviewData} storeId={storeId} />
+              ) : (
                 <StoreKPIModalOverviewTab
                   viewMode={state.viewMode}
-                  setViewMode={state.setViewMode}
-                  selectedWeek={state.selectedWeek}
-                  setSelectedWeek={state.setSelectedWeek}
-                  selectedMonth={state.selectedMonth}
-                  setSelectedMonth={state.setSelectedMonth}
-                  selectedYear={state.selectedYear}
-                  setSelectedYear={state.setSelectedYear}
-                  availableYears={state.availableYears}
-                  getCurrentWeek={state.getCurrentWeek}
                   displayMode={state.displayMode}
                   setDisplayMode={state.setDisplayMode}
                   displayedListItems={state.displayedListItems}
@@ -97,11 +172,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   setVisibleCharts={state.setVisibleCharts}
                   historicalData={state.historicalData}
                   loadingHistorical={state.loadingHistorical}
-                  onShowOverviewAIModal={state.setShowOverviewAIModal}
-                  datesWithData={state.datesWithData}
                 />
-              </div>
-            </>
+              )}
+            </div>
           )}
 
           {state.activeTab === 'config' && (

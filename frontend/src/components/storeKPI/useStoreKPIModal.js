@@ -73,7 +73,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   const [showDailyAIModal, setShowDailyAIModal] = useState(false);
   const [showOverviewAIModal, setShowOverviewAIModal] = useState(false);
 
-  const [viewMode, setViewMode] = useState('week');
+  const [viewMode, setViewMode] = useState('day');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedWeek, setSelectedWeek] = useState(getCurrentWeek());
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
@@ -385,8 +385,10 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   }, [storeId]);
 
   useEffect(() => {
-    if (activeTab === 'daily') { fetchOverviewData(); fetchHistoricalData(); }
-    else if (activeTab === 'overview') fetchHistoricalData();
+    if (activeTab === 'daily') {
+      fetchOverviewData();
+      if (viewMode !== 'day') fetchHistoricalData();
+    } else if (activeTab === 'overview') fetchHistoricalData();
   }, [activeTab, overviewDate, viewMode, selectedWeek, selectedMonth, selectedYear]);
 
   useEffect(() => {

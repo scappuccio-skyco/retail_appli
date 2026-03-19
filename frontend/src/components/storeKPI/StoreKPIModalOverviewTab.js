@@ -39,7 +39,7 @@ function weekLabel(isoWeek) {
 const MONTH_NAMES = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const DAY_NAMES = ['lu','ma','me','je','ve','sa','di'];
 
-function WeekPicker({ value, onChange, datesWithData }) {
+export function WeekPicker({ value, onChange, datesWithData }) {
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef(null);
 
@@ -269,84 +269,9 @@ DualLineChart.propTypes = {
   formatDate: PropTypes.func.isRequired
 };
 
-function DateSelectionSection({
-  viewMode, setViewMode, selectedWeek, setSelectedWeek, selectedMonth, setSelectedMonth,
-  selectedYear, setSelectedYear, availableYears, getCurrentWeek, hasData, allZero,
-  weekIATitle, onShowOverviewAIModal, onShowPicker, datesWithData
-}) {
-  const viewModeTabs = [
-    { id: 'week', label: '📅 Semaine', onClick: () => { setViewMode('week'); if (!selectedWeek) setSelectedWeek(getCurrentWeek()); } },
-    { id: 'month', label: '🗓️ Mois', onClick: () => { setViewMode('month'); setSelectedMonth(new Date().toISOString().slice(0, 7)); } },
-    { id: 'year', label: '📆 Année', onClick: () => setViewMode('year') }
-  ];
-  const yearIATitle = allZero ? 'Aucune donnée disponible pour cette période' : '';
-  const currentYear = new Date().getFullYear();
-  const yearOptions = availableYears.length > 0 ? availableYears : [currentYear, currentYear - 1];
-  return (
-    <div className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden mb-4">
-      {/* Ligne 1 : sélecteur de période + bouton IA */}
-      <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200">
-        <div className="flex gap-1.5">
-          {viewModeTabs.map(({ id, label, onClick }) => (
-            <button key={id} onClick={onClick} className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all border-2 ${viewMode === id ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'}`}>{label}</button>
-          ))}
-        </div>
-        <button
-          onClick={() => onShowOverviewAIModal(true)}
-          disabled={!hasData || allZero}
-          className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
-          title={weekIATitle || yearIATitle}
-        >
-          🤖 Analyse IA
-        </button>
-      </div>
-      {/* Ligne 2 : navigation */}
-      <div className="px-4 py-3">
-        {viewMode === 'week' && (
-          <WeekPicker value={selectedWeek} onChange={setSelectedWeek} datesWithData={datesWithData} />
-        )}
-        {viewMode === 'month' && (
-          <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} onClick={onShowPicker} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none cursor-pointer bg-white" />
-        )}
-        {viewMode === 'year' && (
-          <select value={selectedYear} onChange={(e) => setSelectedYear(Number.parseInt(e.target.value, 10))} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none bg-white cursor-pointer">
-            {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        )}
-      </div>
-    </div>
-  );
-}
-DateSelectionSection.propTypes = {
-  viewMode: PropTypes.string.isRequired,
-  setViewMode: PropTypes.func.isRequired,
-  selectedWeek: PropTypes.string.isRequired,
-  setSelectedWeek: PropTypes.func.isRequired,
-  selectedMonth: PropTypes.string.isRequired,
-  setSelectedMonth: PropTypes.func.isRequired,
-  selectedYear: PropTypes.number.isRequired,
-  setSelectedYear: PropTypes.func.isRequired,
-  availableYears: PropTypes.arrayOf(PropTypes.number).isRequired,
-  getCurrentWeek: PropTypes.func.isRequired,
-  hasData: PropTypes.bool.isRequired,
-  allZero: PropTypes.bool.isRequired,
-  weekIATitle: PropTypes.string.isRequired,
-  onShowOverviewAIModal: PropTypes.func.isRequired,
-  onShowPicker: PropTypes.func.isRequired,
-  datesWithData: PropTypes.arrayOf(PropTypes.string)
-};
 
 export default function StoreKPIModalOverviewTab({
   viewMode,
-  setViewMode,
-  selectedWeek,
-  setSelectedWeek,
-  selectedMonth,
-  setSelectedMonth,
-  selectedYear,
-  setSelectedYear,
-  availableYears,
-  getCurrentWeek,
   displayMode,
   setDisplayMode,
   displayedListItems,
@@ -356,17 +281,11 @@ export default function StoreKPIModalOverviewTab({
   setVisibleCharts,
   historicalData,
   loadingHistorical,
-  onShowOverviewAIModal,
-  datesWithData
 }) {
   const hasData = historicalData.length > 0;
   const allZero = historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0);
   const hasProspectsData = historicalData.some(d => d.total_prospects > 0);
   const defaultVisibleCharts = { ca: true, ventes: true, panierMoyen: true, tauxTransformation: true, indiceVente: true, articles: true };
-  const weekIATitleWhenNoWeek = 'Sélectionnez une semaine';
-  const weekIATitleWhenNoData = 'Aucune donnée disponible pour cette période';
-  const weekIATitleWhenSelected = allZero ? weekIATitleWhenNoData : '';
-  const weekIATitle = selectedWeek ? weekIATitleWhenSelected : weekIATitleWhenNoWeek;
   const chartEmptyMessageLoading = '⏳ Chargement des données...';
   const chartEmptyMessageNoData = '📭 Aucune donnée disponible pour cette période';
   const chartEmptyMessage = loadingHistorical ? chartEmptyMessageLoading : chartEmptyMessageNoData;
@@ -438,35 +357,8 @@ export default function StoreKPIModalOverviewTab({
     </div>
   ) : chartPlaceholderBlock;
 
-  const handleShowPicker = (e) => {
-    try {
-      if (typeof e.target.showPicker === 'function') e.target.showPicker();
-    } catch (err) {
-      logger.error('[StoreKPIModalOverviewTab] showPicker failed:', err);
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <DateSelectionSection
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        selectedWeek={selectedWeek}
-        setSelectedWeek={setSelectedWeek}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
-        selectedYear={selectedYear}
-        setSelectedYear={setSelectedYear}
-        availableYears={availableYears}
-        getCurrentWeek={getCurrentWeek}
-        hasData={hasData}
-        allZero={allZero}
-        weekIATitle={weekIATitle}
-        onShowOverviewAIModal={onShowOverviewAIModal}
-        onShowPicker={handleShowPicker}
-        datesWithData={datesWithData}
-      />
-
       <div className="flex gap-2 mb-4">
         <button onClick={() => { setDisplayMode('list'); setDisplayedListItems(10); }} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${displayMode === 'list' ? 'border-purple-500 bg-purple-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'}`}>📊 Vue Chiffrée</button>
         <button onClick={() => { setDisplayMode('chart'); setDisplayedListItems(10); }} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${displayMode === 'chart' ? 'border-purple-500 bg-purple-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'}`}>📈 Vue Graphique</button>
@@ -495,15 +387,6 @@ export default function StoreKPIModalOverviewTab({
 }
 StoreKPIModalOverviewTab.propTypes = {
   viewMode: PropTypes.string.isRequired,
-  setViewMode: PropTypes.func.isRequired,
-  selectedWeek: PropTypes.string.isRequired,
-  setSelectedWeek: PropTypes.func.isRequired,
-  selectedMonth: PropTypes.string.isRequired,
-  setSelectedMonth: PropTypes.func.isRequired,
-  selectedYear: PropTypes.number.isRequired,
-  setSelectedYear: PropTypes.func.isRequired,
-  availableYears: PropTypes.arrayOf(PropTypes.number).isRequired,
-  getCurrentWeek: PropTypes.func.isRequired,
   displayMode: PropTypes.string.isRequired,
   setDisplayMode: PropTypes.func.isRequired,
   displayedListItems: PropTypes.number.isRequired,
@@ -513,8 +396,6 @@ StoreKPIModalOverviewTab.propTypes = {
   setVisibleCharts: PropTypes.func.isRequired,
   historicalData: PropTypes.array.isRequired,
   loadingHistorical: PropTypes.bool.isRequired,
-  onShowOverviewAIModal: PropTypes.func.isRequired,
-  datesWithData: PropTypes.arrayOf(PropTypes.string)
 };
 
 function OverviewListTotals({ historicalData, computePeriodTotals }) {
