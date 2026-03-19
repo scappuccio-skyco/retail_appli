@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatChartDate, computePeriodTotals, formatListDateLabel } from './storeKPIUtils';
 
 /** Convert a YYYY-MM-DD date string to its ISO week string (YYYY-Www). */
@@ -229,7 +229,7 @@ function SingleLineChart({ data, dataKey, name, viewMode, formatDate }) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatDate} />
         <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip formatter={(value) => [value, name]} />
+        <Tooltip formatter={(value) => [value, name]} labelFormatter={formatDate} />
         <Line type="monotone" dataKey={dataKey} name={name} stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>
     </ResponsiveContainer>
@@ -243,30 +243,6 @@ SingleLineChart.propTypes = {
   formatDate: PropTypes.func.isRequired
 };
 
-function DualLineChart({ data, primaryKey, primaryName, secondaryKey, secondaryName, viewMode, formatDate }) {
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatDate} />
-        <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip />
-        <Legend verticalAlign="top" height={28} />
-        <Line type="monotone" dataKey={primaryKey} name={primaryName} stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-        <Line type="monotone" dataKey={secondaryKey} name={secondaryName} stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
-      </LineChart>
-    </ResponsiveContainer>
-  );
-}
-DualLineChart.propTypes = {
-  data: PropTypes.array.isRequired,
-  primaryKey: PropTypes.string.isRequired,
-  primaryName: PropTypes.string.isRequired,
-  secondaryKey: PropTypes.string.isRequired,
-  secondaryName: PropTypes.string.isRequired,
-  viewMode: PropTypes.string.isRequired,
-  formatDate: PropTypes.func.isRequired
-};
 
 
 export default function StoreKPIModalOverviewTab({
@@ -302,13 +278,13 @@ export default function StoreKPIModalOverviewTab({
       {visibleCharts.ca && (
         <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
           <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">💰 Chiffre d'Affaires</h4>
-          <DualLineChart data={historicalData} primaryKey="total_ca" primaryName="CA Total" secondaryKey="seller_ca" secondaryName="CA Vendeurs" viewMode={viewMode} formatDate={formatChartDate} />
+          <SingleLineChart data={historicalData} dataKey="total_ca" name="CA (€)" viewMode={viewMode} formatDate={formatChartDate} />
         </div>
       )}
       {visibleCharts.ventes && (
         <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
           <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">🛒 Nombre de Ventes</h4>
-          <DualLineChart data={historicalData} primaryKey="total_ventes" primaryName="Ventes Totales" secondaryKey="seller_ventes" secondaryName="Ventes Vendeurs" viewMode={viewMode} formatDate={formatChartDate} />
+          <SingleLineChart data={historicalData} dataKey="total_ventes" name="Ventes" viewMode={viewMode} formatDate={formatChartDate} />
         </div>
       )}
       {visibleCharts.panierMoyen && (
@@ -346,7 +322,7 @@ export default function StoreKPIModalOverviewTab({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={60} tickFormatter={formatChartDate} />
               <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip formatter={(value) => [value, 'Articles']} />
+              <Tooltip formatter={(value) => [value, 'Articles']} labelFormatter={formatChartDate} />
               <Line type="monotone" dataKey="total_articles" name="Articles" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 2 }} />
             </LineChart>
           </ResponsiveContainer>

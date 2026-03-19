@@ -23,7 +23,7 @@ export function formatChartDate(dateStr) {
   if (dateStr.includes('-S') || dateStr.includes('-B')) return dateStr;
   try {
     const [year, month, day] = dateStr.split('-');
-    return `${day}/${month}/${year}`;
+    return `${day}/${month}/${String(year).slice(-2)}`;
   } catch {
     return dateStr;
   }
