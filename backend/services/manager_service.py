@@ -1165,14 +1165,18 @@ class APIKeyService:
             if not last_data_date:
                 last_data_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
             stats["data_date"] = last_data_date
+            logger.info("[BRIEF] store_id=%s last_data_date=%s", store_id, last_data_date)
 
             kpis_yesterday = await store_kpi_repo.find_many_for_store(
                 store_id, date=last_data_date, limit=50
             )
+            logger.info("[BRIEF] kpis_yesterday (legacy kpis collection): %d entries", len(kpis_yesterday))
             if not kpis_yesterday:
                 kpi_entries = await kpi_repo.find_by_store(store_id, last_data_date)
+                logger.info("[BRIEF] kpi_entries count: %d, first entry sample: %s", len(kpi_entries), kpi_entries[0] if kpi_entries else "EMPTY")
                 if kpi_entries:
                     total_ca = sum(k.get("ca_journalier", 0) or 0 for k in kpi_entries)
+                    logger.info("[BRIEF] total_ca computed from kpi_entries: %s", total_ca)
                     total_ventes = sum(k.get("nb_ventes", 0) or 0 for k in kpi_entries)
                     total_articles = sum(
                         k.get("nb_articles", k.get("nb_ventes", 0)) or 0 for k in kpi_entries
