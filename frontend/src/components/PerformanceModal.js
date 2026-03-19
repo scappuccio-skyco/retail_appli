@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { X, TrendingUp, BarChart3, ChevronLeft, ChevronRight, Download, Sparkles, AlertTriangle, Target, Edit3, Lock } from 'lucide-react';
+import { X, TrendingUp, BarChart3, Download, Sparkles, AlertTriangle, Target, Edit3, Lock } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { unstable_batchedUpdates } from 'react-dom';
 import { toast } from 'sonner';
@@ -7,6 +7,8 @@ import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
 import KPICalendar from './KPICalendar';
+import { WeekPicker } from './storeKPI/StoreKPIModalOverviewTab';
+import { getCurrentWeek, getWeekStartEnd, getMonthStartEnd, getYearStartEnd } from './storeKPI/storeKPIUtils';
 
 // Fonction utilitaire pour formater les dates
 const formatDate = (dateString) => {
@@ -48,8 +50,9 @@ export default function PerformanceModal({
   const [pendingKPIData, setPendingKPIData] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
   const [viewMode, setViewMode] = useState('semaine'); // 'jour' | 'semaine' | 'mois' | 'annee'
-  const [monthOffset, setMonthOffset] = useState(0);
-  const [yearOffset, setYearOffset] = useState(0);
+  const [selectedWeek, setSelectedWeek] = useState(getCurrentWeek);
+  const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
   const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
   const [periodEntries, setPeriodEntries] = useState([]);
   const [periodLoading, setPeriodLoading] = useState(false);
@@ -299,39 +302,38 @@ export default function PerformanceModal({
       };
     }
     if (viewMode === 'semaine') {
-      const offsetDays = (currentWeekOffset || 0) * 7;
-      const dow = now.getDay() || 7; // 1=Lun … 7=Dim
-      const monday = new Date(now);
-      monday.setDate(now.getDate() - dow + 1 + offsetDays);
-      monday.setHours(0, 0, 0, 0);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
+      const { startDate: monday, endDate: sunday } = getWeekStartEnd(selectedWeek);
       return {
         start_date: toDateStr(monday),
         end_date: toDateStr(sunday),
-        label: bilanData?.periode || (currentWeekOffset === 0 ? 'Semaine actuelle' : toDateStr(monday)),
+        label: bilanData?.periode || selectedWeek,
       };
     }
     if (viewMode === 'mois') {
-      const d = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
-      const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-      const raw = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+      const { startDate, endDate } = getMonthStartEnd(selectedMonth);
+      const raw = startDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
       return {
-        start_date: toDateStr(new Date(d.getFullYear(), d.getMonth(), 1)),
-        end_date: toDateStr(end),
+        start_date: toDateStr(startDate),
+        end_date: toDateStr(endDate),
         label: raw.charAt(0).toUpperCase() + raw.slice(1),
       };
     }
     if (viewMode === 'annee') {
-      const year = now.getFullYear() + yearOffset;
       return {
-        start_date: `${year}-01-01`,
-        end_date: `${year}-12-31`,
-        label: `Année ${year}`,
+        start_date: `${selectedYear}-01-01`,
+        end_date: `${selectedYear}-12-31`,
+        label: `Année ${selectedYear}`,
       };
     }
     return null;
-  }, [viewMode, monthOffset, selectedDay, yearOffset, currentWeekOffset, bilanData?.periode]);
+  }, [viewMode, selectedWeek, selectedMonth, selectedYear, selectedDay, bilanData?.periode]);
+
+  const sellerAvailableYears = useMemo(() => {
+    const cur = new Date().getFullYear();
+    if (!kpiEntries || kpiEntries.length === 0) return [cur, cur - 1];
+    const years = [...new Set(kpiEntries.map(e => parseInt(e.date?.split('-')[0])).filter(Boolean))].sort((a, b) => b - a);
+    return years.length > 0 ? years : [cur, cur - 1];
+  }, [kpiEntries]);
 
   // Fetch KPI entries + métriques + bilan selon la vue active
   const [periodAggregates, setPeriodAggregates] = useState(null);
@@ -729,71 +731,42 @@ export default function PerformanceModal({
                     />
                   </div>
                 )}
-                {viewMode === 'semaine' && onWeekChange && (
-                  <div className="flex items-center gap-1 bg-gray-200 rounded-lg px-2 py-2 w-full md:w-auto justify-center">
-                    <button
-                      onClick={() => onWeekChange(currentWeekOffset - 1)}
-                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition flex-shrink-0"
-                      title="Semaine précédente"
-                    >
-                      <ChevronLeft className="w-4 h-4 text-white" />
-                    </button>
-                    <span className="text-xs font-semibold text-gray-700 px-1 min-w-0 text-center flex-1 truncate">
-                      {bilanData?.periode || (currentWeekOffset === 0 ? 'Sem. actuelle' : 'Semaines')}
-                    </span>
-                    <button
-                      onClick={() => onWeekChange(currentWeekOffset + 1)}
-                      disabled={currentWeekOffset === 0}
-                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-                      title="Semaine suivante"
-                    >
-                      <ChevronRight className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
+                {viewMode === 'semaine' && (
+                  <WeekPicker
+                    value={selectedWeek}
+                    onChange={(newWeek) => {
+                      setSelectedWeek(newWeek);
+                      if (onWeekChange) {
+                        const { startDate: targetMonday } = getWeekStartEnd(newWeek);
+                        const now = new Date();
+                        const dow = now.getDay() || 7;
+                        const currentMonday = new Date(now);
+                        currentMonday.setDate(now.getDate() - dow + 1);
+                        currentMonday.setHours(0, 0, 0, 0);
+                        const diffWeeks = Math.round((targetMonday - currentMonday) / (7 * 24 * 3600 * 1000));
+                        onWeekChange(diffWeeks);
+                      }
+                    }}
+                    datesWithData={datesWithData}
+                  />
                 )}
                 {viewMode === 'mois' && (
-                  <div className="flex items-center gap-1 bg-gray-200 rounded-lg px-2 py-2 w-full md:w-auto justify-center">
-                    <button
-                      onClick={() => setMonthOffset(o => o - 1)}
-                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition flex-shrink-0"
-                      title="Mois précédent"
-                    >
-                      <ChevronLeft className="w-4 h-4 text-white" />
-                    </button>
-                    <span className="text-xs font-semibold text-gray-700 px-2 text-center min-w-[120px]">
-                      {periodRange?.label}
-                    </span>
-                    <button
-                      onClick={() => setMonthOffset(o => o + 1)}
-                      disabled={monthOffset === 0}
-                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-                      title="Mois suivant"
-                    >
-                      <ChevronRight className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    onClick={(e) => { try { if (typeof e.target.showPicker === 'function') e.target.showPicker(); } catch (_) {} }}
+                    className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none cursor-pointer bg-white"
+                  />
                 )}
                 {viewMode === 'annee' && (
-                  <div className="flex items-center gap-1 bg-gray-200 rounded-lg px-2 py-2 w-full md:w-auto justify-center">
-                    <button
-                      onClick={() => setYearOffset(o => o - 1)}
-                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition flex-shrink-0"
-                      title="Année précédente"
-                    >
-                      <ChevronLeft className="w-4 h-4 text-white" />
-                    </button>
-                    <span className="text-xs font-semibold text-gray-700 px-2 text-center min-w-[80px]">
-                      {periodRange?.label}
-                    </span>
-                    <button
-                      onClick={() => setYearOffset(o => o + 1)}
-                      disabled={yearOffset === 0}
-                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-                      title="Année suivante"
-                    >
-                      <ChevronRight className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
+                    className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none bg-white cursor-pointer"
+                  >
+                    {sellerAvailableYears.map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
                 )}
               </div>
 
