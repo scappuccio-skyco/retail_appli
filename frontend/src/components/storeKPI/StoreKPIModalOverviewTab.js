@@ -275,9 +275,9 @@ function DateSelectionSection({
   weekIATitle, onShowOverviewAIModal, onShowPicker, datesWithData
 }) {
   const viewModeTabs = [
-    { id: 'week', label: '📅 Vue Hebdomadaire', onClick: () => { setViewMode('week'); if (!selectedWeek) setSelectedWeek(getCurrentWeek()); } },
-    { id: 'month', label: '📆 Vue Mensuelle', onClick: () => { setViewMode('month'); setSelectedMonth(new Date().toISOString().slice(0, 7)); } },
-    { id: 'year', label: '📅 Vue Annuelle', onClick: () => setViewMode('year') }
+    { id: 'week', label: 'Semaine', onClick: () => { setViewMode('week'); if (!selectedWeek) setSelectedWeek(getCurrentWeek()); } },
+    { id: 'month', label: 'Mois', onClick: () => { setViewMode('month'); setSelectedMonth(new Date().toISOString().slice(0, 7)); } },
+    { id: 'year', label: 'Année', onClick: () => setViewMode('year') }
   ];
   const yearIATitle = allZero ? 'Aucune donnée disponible pour cette période' : '';
   const currentYear = new Date().getFullYear();
