@@ -1,21 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-/**
- * Liste des tâches du jour du vendeur.
- * Affiche un badge coloré par priorité et gère les actions selon le type de tâche.
- */
+const SNOOZE_KEY = 'seller_snoozed_tasks';
+const SNOOZE_DAYS = 7;
+
+function getSnoozed() {
+  try { return JSON.parse(localStorage.getItem(SNOOZE_KEY) || '{}'); } catch { return {}; }
+}
+function snoozeTask(taskId) {
+  const s = getSnoozed();
+  s[taskId] = Date.now() + SNOOZE_DAYS * 24 * 60 * 60 * 1000;
+  localStorage.setItem(SNOOZE_KEY, JSON.stringify(s));
+}
+
 export default function SellerTaskList({
-  tasks,
-  diagnostic,
-  onOpenDiagnostic,
-  onOpenKpi,
-  onOpenCoaching,
-  onOpenDebrief,
-  onOpenBilan,
-  onOpenObjectives,
-  onSelectTask,
+  tasks, diagnostic, onOpenDiagnostic, onOpenKpi, onOpenCoaching,
+  onOpenDebrief, onOpenBilan, onOpenObjectives, onSelectTask,
 }) {
-  if (!tasks || tasks.length === 0) {
+  const [snoozedIds, setSnoozedIds] = useState(() => {
+    const s = getSnoozed();
+    return new Set(Object.keys(s).filter(id => s[id] > Date.now()));
+  });
+
+  const handleSnooze = (e, taskId) => {
+    e.stopPropagation();
+    snoozeTask(taskId);
+    setSnoozedIds(prev => new Set([...prev, taskId]));
+  };
+
+  const handleClick = (task) => {
+    if (task.type === 'diagnostic') {
+      diagnostic ? onOpenDiagnostic() : onOpenDiagnostic(true);
+    } else if (task.type === 'kpi') {
+      onOpenKpi?.();
+    } else if (task.type === 'challenge') {
+      onOpenCoaching?.();
+    } else if (task.type === 'debrief') {
+      onOpenDebrief?.();
+    } else if (task.type === 'bilan') {
+      onOpenBilan?.();
+    } else if (task.type === 'objective') {
+      onOpenObjectives?.(task.objective_id);
+    } else {
+      onSelectTask?.(task);
+    }
+  };
+
+  const visibleTasks = (tasks || []).filter(t => !snoozedIds.has(t.id));
+  const actionTasks = visibleTasks.filter(t => t.category !== 'info');
+  const infoTasks = visibleTasks.filter(t => t.category === 'info');
+
+  if (visibleTasks.length === 0) {
     return (
       <div className="bg-green-50/70 rounded px-2 py-0.5 text-center">
         <span className="text-[11px] text-green-800 font-medium whitespace-nowrap inline-flex items-center gap-1">
@@ -26,51 +60,45 @@ export default function SellerTaskList({
     );
   }
 
-  const handleTaskClick = (task) => {
-    if (task.type === 'diagnostic') {
-      diagnostic ? onOpenDiagnostic() : onOpenDiagnostic(true);
-    } else if (task.type === 'kpi') {
-      onOpenKpi();
-    } else if (task.type === 'challenge') {
-      onOpenCoaching();
-    } else if (task.type === 'debrief') {
-      onOpenDebrief?.();
-    } else if (task.type === 'bilan') {
-      onOpenBilan?.();
-    } else if (task.type === 'objective') {
-      onOpenObjectives?.();
-    } else {
-      onSelectTask(task);
-    }
-  };
-
-  const priorityBadge = {
-    high:      { label: 'Urgent',    className: 'bg-red-100 text-red-700' },
-    important: { label: 'Important', className: 'bg-orange-100 text-orange-700' },
-  };
+  const renderTask = (task, zoneStyle) => (
+    <div
+      key={task.id}
+      className={`rounded-lg p-2 border transition-all cursor-pointer group ${zoneStyle}`}
+      onClick={() => handleClick(task)}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start gap-2 flex-1 min-w-0">
+          <span className="text-xl flex-shrink-0 mt-0.5">{task.icon}</span>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-gray-800 leading-tight">{task.title}</h3>
+            {task.description && (
+              <p className="text-xs text-gray-500 mt-0.5">{task.description}</p>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={(e) => handleSnooze(e, task.id)}
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs px-1"
+          title="Masquer 7 jours"
+        >✕</button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col gap-1.5">
-      {tasks.map((task) => {
-        const badge = priorityBadge[task.priority] ?? { label: 'Normal', className: 'bg-yellow-100 text-yellow-700' };
-        return (
-          <div
-            key={task.id}
-            className="bg-white rounded-lg p-2 border border-gray-200 hover:shadow-md transition-all cursor-pointer"
-            onClick={() => handleTaskClick(task)}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 flex-1">
-                <span className="text-xl">{task.icon}</span>
-                <h3 className="text-sm font-semibold text-gray-800">{task.title}</h3>
-              </div>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
-                {badge.label}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+    <div className="flex flex-col gap-2">
+      {actionTasks.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide px-1">⚡ À faire</p>
+          {actionTasks.map(t => renderTask(t, 'bg-white border-orange-200 hover:border-orange-400 hover:shadow-md'))}
+        </div>
+      )}
+      {infoTasks.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide px-1">ℹ️ À surveiller</p>
+          {infoTasks.map(t => renderTask(t, 'bg-blue-50/60 border-blue-100 hover:border-blue-300 hover:shadow-sm'))}
+        </div>
+      )}
     </div>
   );
 }

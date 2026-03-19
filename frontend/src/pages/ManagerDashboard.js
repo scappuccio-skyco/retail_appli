@@ -58,6 +58,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [settingsModalType, setSettingsModalType] = useState('objectives');
+  const [initialObjectiveId, setInitialObjectiveId] = useState(null);
   const [showStoreKPIModal, setShowStoreKPIModal] = useState(false);
   const [showRelationshipModal, setShowRelationshipModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
@@ -388,7 +389,11 @@ export default function ManagerDashboard({ user, onLogout }) {
               setShowDetailView(true);
             }
           }}
-          onCreateGoal={() => { setSettingsModalType('objectives'); setShowSettingsModal(true); }}
+          onCreateGoal={(objectiveId) => {
+            setSettingsModalType('objectives');
+            setInitialObjectiveId(objectiveId || null);
+            setShowSettingsModal(true);
+          }}
           onSendReminder={(sellerId, sellerName) => {
             const seller = sellers.find(s => s.id === sellerId);
             if (seller) {
@@ -422,6 +427,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         managerDiagnostic={managerDiagnostic}
         selectedSeller={selectedSeller}
         settingsModalType={settingsModalType}
+        initialObjectiveId={initialObjectiveId}
         autoShowRelationshipResult={autoShowRelationshipResult}
         generatingAIAdvice={generatingAIAdvice}
         // Modal visibility
@@ -450,6 +456,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         setShowMorningBriefModal={setShowMorningBriefModal}
         // Data setters
         setSelectedSeller={setSelectedSeller}
+        setInitialObjectiveId={setInitialObjectiveId}
         setAutoShowRelationshipResult={setAutoShowRelationshipResult}
         setGeneratingAIAdvice={setGeneratingAIAdvice}
         // Actions

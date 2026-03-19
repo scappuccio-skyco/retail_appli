@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Settings, Target, Trophy, Edit2, Trash2, Plus } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import AchievementModal from './AchievementModal';
@@ -6,8 +6,21 @@ import { useManagerSettings } from './managerSettings/useManagerSettings';
 import ObjectivesCompletedTab from './managerSettings/ObjectivesCompletedTab';
 import ChallengesCompletedTab from './managerSettings/ChallengesCompletedTab';
 
-export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives', storeIdParam = null }) {
+export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives', storeIdParam = null, initialObjectiveId = null }) {
   const state = useManagerSettings({ isOpen, onClose, onUpdate, modalType, storeIdParam });
+
+  useEffect(() => {
+    if (initialObjectiveId && isOpen) {
+      setTimeout(() => {
+        const el = document.getElementById(`obj-${initialObjectiveId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('ring-2', 'ring-orange-400');
+          setTimeout(() => el.classList.remove('ring-2', 'ring-orange-400'), 3000);
+        }
+      }, 300);
+    }
+  }, [initialObjectiveId, isOpen]);
   const {
     storeParam,
     activeTab,
@@ -547,21 +560,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                             </div>
                           )}
 
-                          {newObjective.objective_type === 'custom' && (
-                            <div className="mb-4 bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Description de l'objectif *</label>
-                              <textarea
-                                required
-                                rows="3"
-                                value={newObjective.custom_description}
-                                onChange={(e) => setNewObjective({ ...newObjective, custom_description: e.target.value })}
-                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                                placeholder="Ex: Améliorer la satisfaction client, Augmenter les ventes croisées..."
-                              />
-                              <p className="text-xs text-gray-600 mt-2">✨ Décrivez votre objectif personnalisé</p>
-                            </div>
-                          )}
-
                           {/* Target Value */}
                           <div className="grid grid-cols-2 gap-3 mb-4">
                             <div>
@@ -690,6 +688,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                             {activeObjectives.map((objective) => (
                           <div
                             key={objective.id}
+                            id={`obj-${objective.id}`}
                             className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200 hover:border-purple-400 transition-all"
                           >
                             <div>

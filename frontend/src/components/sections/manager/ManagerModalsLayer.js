@@ -33,6 +33,7 @@ export default function ManagerModalsLayer({
   managerDiagnostic,
   selectedSeller,
   settingsModalType,
+  initialObjectiveId,
   autoShowRelationshipResult,
   generatingAIAdvice,
 
@@ -64,6 +65,7 @@ export default function ManagerModalsLayer({
 
   // Data setters
   setSelectedSeller,
+  setInitialObjectiveId,
   setAutoShowRelationshipResult,
   setGeneratingAIAdvice,
 
@@ -125,9 +127,10 @@ export default function ManagerModalsLayer({
       {showSettingsModal && (
         <ManagerSettingsModal
           isOpen={showSettingsModal}
-          onClose={() => setShowSettingsModal(false)}
+          onClose={() => { setShowSettingsModal(false); setInitialObjectiveId?.(null); }}
           modalType={settingsModalType}
           storeIdParam={urlStoreId}
+          initialObjectiveId={initialObjectiveId}
           onUpdate={() => {
             fetchActiveObjectives();
             fetchKpiConfig();

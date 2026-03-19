@@ -10,7 +10,8 @@ export default function ObjectivesModal({
   isOpen,
   onClose,
   activeObjectives: initialObjectives = [],
-  onUpdate
+  onUpdate,
+  initialObjectiveId = null,
 }) {
   const isMountedRef = useRef(true);
   useEffect(() => () => { isMountedRef.current = false; }, []);
@@ -27,6 +28,20 @@ export default function ObjectivesModal({
   useEffect(() => {
     if (isOpen) refreshActiveData();
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (initialObjectiveId) {
+      setTimeout(() => {
+        const el = document.getElementById(`seller-obj-${initialObjectiveId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('ring-2', 'ring-orange-400');
+          setTimeout(() => el.classList.remove('ring-2', 'ring-orange-400'), 3000);
+        }
+      }, 400);
+    }
+  }, [initialObjectiveId]);
+
   const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs' or 'historique'
   const [updatingObjectiveId, setUpdatingObjectiveId] = useState(null);
   const [objectiveProgressValue, setObjectiveProgressValue] = useState('');
@@ -270,10 +285,11 @@ export default function ObjectivesModal({
                     {activeObjectives.map((objective, index) => {
                       const isAchieved = objective.status === 'achieved' || (objective.current_value >= objective.target_value && objective.target_value > 0);
                       const isCompleted = objective.status === 'completed' || new Date(objective.period_end) < new Date();
-                      
+
                       return (
-                        <div 
+                        <div
                         key={`${objective.id}-${index}`}
+                        id={`seller-obj-${objective.id}`}
                         className={`rounded-xl p-4 border-2 transition-all relative overflow-hidden ${
                           isAchieved 
                             ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-400 hover:border-green-500 shadow-lg' 

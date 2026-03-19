@@ -728,6 +728,7 @@ class SellerService:
             tasks.append({
                 "id": "diagnostic",
                 "type": "diagnostic",
+                "category": "action",
                 "title": "Complète ton diagnostic vendeur",
                 "description": "Découvre ton profil unique en 10 minutes",
                 "priority": "high",
@@ -744,6 +745,7 @@ class SellerService:
             tasks.append({
                 "id": req['id'],
                 "type": "manager_request",
+                "category": "action",
                 "title": req['title'],
                 "description": req['message'],
                 "priority": "medium",
@@ -763,6 +765,7 @@ class SellerService:
                 tasks.append({
                     "id": "submit-debrief",
                     "type": "debrief",
+                    "category": "action",
                     "title": "Soumets ton premier débrief",
                     "description": "Analyse une vente pour affiner ton profil de compétences",
                     "priority": "important",
@@ -782,6 +785,7 @@ class SellerService:
                         tasks.append({
                             "id": "submit-debrief",
                             "type": "debrief",
+                            "category": "action",
                             "title": "Soumets un débrief",
                             "description": f"Dernier débrief il y a {days_since} jours — analyse une vente récente",
                             "priority": "normal",
@@ -797,6 +801,7 @@ class SellerService:
                 tasks.append({
                     "id": "daily-challenge",
                     "type": "challenge",
+                    "category": "action",
                     "title": challenge.get("title", "Challenge du jour"),
                     "description": challenge.get("description", "Relève ton défi du jour"),
                     "priority": "normal",
@@ -834,8 +839,10 @@ class SellerService:
                         tasks.append({
                             "id": f"objective-{obj_id}",
                             "type": "objective",
+                            "category": "action",
+                            "objective_id": obj_id,
                             "title": f"Nouvel objectif : {obj.get('title', '')}",
-                            "description": "Ton manager vient de créer un objectif pour toi",
+                            "description": "Consulte tes objectifs pour voir les détails",
                             "priority": "important",
                             "icon": "🎯",
                         })
@@ -845,40 +852,13 @@ class SellerService:
                         tasks.append({
                             "id": f"objective-{obj_id}",
                             "type": "objective",
+                            "category": "action",
+                            "objective_id": obj_id,
                             "title": f"Objectif se termine {label}",
                             "description": obj.get("title", "Vérifie ta progression"),
                             "priority": "important" if days_left <= 1 else "normal",
                             "icon": "🎯",
                         })
-        except Exception:
-            pass
-
-        # --- Active challenges: new (≤2 days old) OR with pending daily challenge ---
-        try:
-            if store_id:
-                new_since_str = (today - timedelta(days=2)).isoformat()
-                challenges = await self.challenge_repo.find_by_seller(
-                    seller_id,
-                    store_id,
-                    projection={"_id": 0, "id": 1, "title": 1, "period_end": 1, "status": 1, "created_at": 1},
-                    limit=10,
-                )
-                for ch in challenges:
-                    if ch.get("status") != "active":
-                        continue
-                    created_at = (ch.get("created_at") or "")[:10]
-                    if created_at >= new_since_str:
-                        ch_id = ch.get("id", "")
-                        # Eviter doublon avec le daily challenge déjà ajouté
-                        if not any(t.get("id") == "daily-challenge" for t in tasks):
-                            tasks.append({
-                                "id": f"challenge-new-{ch_id}",
-                                "type": "challenge",
-                                "title": f"Nouveau challenge : {ch.get('title', '')}",
-                                "description": "Ton manager vient de lancer un challenge pour toi",
-                                "priority": "important",
-                                "icon": "⚡",
-                            })
         except Exception:
             pass
 
@@ -898,6 +878,7 @@ class SellerService:
                 tasks.append({
                     "id": "weekly-bilan",
                     "type": "bilan",
+                    "category": "action",
                     "title": "Bilan de la semaine passée",
                     "description": f"Semaine du {prev_week_monday.strftime('%d/%m')} au {prev_week_sunday.strftime('%d/%m')} — génère ton analyse",
                     "priority": "normal",

@@ -358,7 +358,7 @@ export function useManagerSettings({ isOpen, onClose, onUpdate, modalType, store
     cleanedData.visible_to_sellers = objectiveVisibleToSellers;
     if (newObjective.objective_type === 'kpi_standard') cleanedData.kpi_name = newObjective.kpi_name;
     else if (newObjective.objective_type === 'product_focus') cleanedData.product_name = newObjective.product_name;
-    else if (newObjective.objective_type === 'custom') cleanedData.custom_description = newObjective.custom_description;
+    else if (newObjective.objective_type === 'custom') cleanedData.custom_description = newObjective.description;
     return cleanedData;
   };
 

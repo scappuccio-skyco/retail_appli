@@ -509,9 +509,16 @@ async def analyze_team(
                 end_date=_prev_end,
             )
             if prev_kpi_stats:
+                prev_total_ca = prev_kpi_stats.get("ca_total") or prev_kpi_stats.get("total_ca") or 0
+                prev_total_ventes = prev_kpi_stats.get("ventes") or prev_kpi_stats.get("total_ventes") or 0
+                prev_total_articles = prev_kpi_stats.get("articles") or prev_kpi_stats.get("total_articles") or 0
+                prev_pm = (prev_total_ca / prev_total_ventes) if prev_total_ventes > 0 else 0
+                prev_iv = (prev_total_articles / prev_total_ventes) if prev_total_ventes > 0 else 0
                 prev_period_data = {
-                    "team_total_ca": prev_kpi_stats.get("ca_total") or prev_kpi_stats.get("total_ca") or 0,
-                    "team_total_ventes": prev_kpi_stats.get("ventes") or prev_kpi_stats.get("total_ventes") or 0,
+                    "team_total_ca": prev_total_ca,
+                    "team_total_ventes": prev_total_ventes,
+                    "team_panier_moyen": round(prev_pm, 2),
+                    "team_indice_vente": round(prev_iv, 2),
                 }
     except Exception as _e:
         logger.warning("Could not fetch previous period data for team analysis: %s", _e)
@@ -538,13 +545,68 @@ async def analyze_team(
         except Exception as _e:
             logger.warning("Could not fetch team objectives for team analysis: %s", _e)
 
-    analysis_text = await ai_service.generate_team_analysis(
+    # Compute realized values for objectives
+    if team_objectives and resolved_store_id:
+        try:
+            kpi_stats = await manager_service.get_store_kpi_stats(
+                store_id=resolved_store_id, start_date=period_start, end_date=period_end
+            )
+            if kpi_stats:
+                curr_ca = (kpi_stats.get("ca_total") or kpi_stats.get("total_ca") or 0)
+                curr_ventes = (kpi_stats.get("ventes") or kpi_stats.get("total_ventes") or 0)
+                curr_articles = (kpi_stats.get("articles") or kpi_stats.get("total_articles") or 0)
+                curr_prospects = (kpi_stats.get("prospects") or kpi_stats.get("total_prospects") or 0)
+                curr_pm = curr_ca / curr_ventes if curr_ventes > 0 else 0
+                curr_iv = curr_articles / curr_ventes if curr_ventes > 0 else 0
+                curr_tv = (curr_ventes / curr_prospects * 100) if curr_prospects > 0 else 0
+                kpi_map = {
+                    "ca": curr_ca, "ventes": curr_ventes, "panier_moyen": curr_pm,
+                    "indice_vente": curr_iv, "taux_transformation": curr_tv,
+                }
+                for obj in team_objectives:
+                    kpi_key = obj.get("kpi_type", "").lower()
+                    if kpi_key in kpi_map:
+                        obj["realized_value"] = round(kpi_map[kpi_key], 2)
+        except Exception as _e:
+            logger.warning("Could not compute realized values for objectives: %s", _e)
+
+    # Enrich team_data with computed aggregate metrics if not already present
+    if resolved_store_id and not team_data.get("team_panier_moyen"):
+        try:
+            kpi_stats = await manager_service.get_store_kpi_stats(
+                store_id=resolved_store_id, start_date=period_start, end_date=period_end
+            )
+            if kpi_stats:
+                total_ca = kpi_stats.get("ca_total") or kpi_stats.get("total_ca") or 0
+                total_ventes = kpi_stats.get("ventes") or kpi_stats.get("total_ventes") or 0
+                total_articles = kpi_stats.get("articles") or kpi_stats.get("total_articles") or 0
+                if total_ventes > 0:
+                    team_data["team_panier_moyen"] = round(total_ca / total_ventes, 2)
+                    team_data["team_indice_vente"] = round(total_articles / total_ventes, 2)
+        except Exception as _e:
+            logger.warning("Could not enrich team_data with aggregate metrics: %s", _e)
+
+    # Fetch previous recommendations from last saved analysis
+    previous_recommendations = []
+    if resolved_store_id:
+        try:
+            history = await manager_service.get_team_analyses_paginated(store_id=resolved_store_id, page=1, size=1)
+            if history and history.items:
+                last = history.items[0]
+                last_analysis = last.get("analysis")
+                if isinstance(last_analysis, dict):
+                    previous_recommendations = last_analysis.get("recommandations", [])
+        except Exception as _e:
+            logger.warning("Could not fetch previous recommendations for team analysis: %s", _e)
+
+    analysis_result = await ai_service.generate_team_analysis(
         team_data=team_data,
         period_label=period_label,
         manager_id=manager_id,
         manager_disc_profile=manager_disc_profile,
         prev_period_data=prev_period_data,
         team_objectives=team_objectives,
+        previous_recommendations=previous_recommendations,
     )
     analysis_record = {
         "id": str(uuid4()),
@@ -552,12 +614,12 @@ async def analyze_team(
         "manager_id": manager_id,
         "period_start": period_start,
         "period_end": period_end,
-        "analysis": analysis_text,
+        "analysis": analysis_result,
         "team_stats": {"total_sellers": team_data.get("total_sellers", 0), "team_total_ca": team_data.get("team_total_ca", 0), "team_total_ventes": team_data.get("team_total_ventes", 0)},
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
     await manager_service.create_team_analysis(analysis_record)
-    return {"analysis": analysis_text, "period_start": period_start, "period_end": period_end, "generated_at": analysis_record["generated_at"]}
+    return {"analysis": analysis_result, "period_start": period_start, "period_end": period_end, "generated_at": analysis_record["generated_at"]}
 
 
 @router.delete("/team-analysis/{analysis_id}")
@@ -714,8 +776,20 @@ async def run_store_kpi_analysis(
                     f"\n📊 PÉRIODE PRÉCÉDENTE ({_prev_start} → {_prev_end}) :\n"
                     f"- CA : {prev_ca:.0f}€  ({_pct(total_ca, prev_ca)} vs période actuelle)\n"
                     f"- Ventes : {prev_ventes}  ({_pct(total_ventes, prev_ventes)})\n"
-                    "→ Commente OBLIGATOIREMENT les variations significatives (>10%) dans ton analyse.\n"
                 )
+                # Also compute PM and IV for previous period if available
+                prev_articles = prev_stats.get("articles") or prev_stats.get("total_articles") or 0
+                prev_pm = (prev_ca / prev_ventes) if prev_ventes > 0 else 0
+                prev_iv = (prev_articles / prev_ventes) if prev_ventes > 0 else 0
+                if prev_pm > 0 and panier_moyen > 0:
+                    pm_delta = ((panier_moyen - prev_pm) / prev_pm) * 100
+                    pm_arrow = "↗" if pm_delta > 1 else ("↘" if pm_delta < -1 else "→")
+                    prev_period_block += f"- PM : {panier_moyen:.2f}€ vs {prev_pm:.2f}€ ({_pct(panier_moyen, prev_pm)}) {pm_arrow}\n"
+                if prev_iv > 0 and indice_vente > 0:
+                    iv_delta = ((indice_vente - prev_iv) / prev_iv) * 100
+                    iv_arrow = "↗" if iv_delta > 1 else ("↘" if iv_delta < -1 else "→")
+                    prev_period_block += f"- IV : {indice_vente:.2f} vs {prev_iv:.2f} ({_pct(indice_vente, prev_iv)}) {iv_arrow}\n"
+                prev_period_block += "→ Commente OBLIGATOIREMENT les variations significatives (>10%) dans ton analyse.\n"
     except Exception as _e:
         logger.warning("Could not fetch prev period for store KPI analysis: %s", _e)
 
@@ -734,12 +808,134 @@ async def run_store_kpi_analysis(
         except Exception as _e:
             logger.warning("Could not fetch manager DISC for store KPI analysis: %s", _e)
 
+    # Top sellers breakdown for store KPI analysis
+    top_sellers_block = ""
+    try:
+        sellers_kpi = await kpi_service.aggregate_kpi([
+            {
+                "$match": {
+                    "store_id": resolved_store_id,
+                    "date": {"$gte": start_date, "$lte": end_date},
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$seller_id",
+                    "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
+                    "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                    "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
+                }
+            },
+            {"$sort": {"total_ca": -1}},
+            {"$limit": 3},
+        ], max_results=3)
+        if sellers_kpi:
+            seller_lines = []
+            for i, s in enumerate(sellers_kpi, 1):
+                s_ca = s.get("total_ca", 0)
+                s_ventes = s.get("total_ventes", 0)
+                s_articles = s.get("total_articles", 0)
+                s_pm = s_ca / s_ventes if s_ventes > 0 else 0
+                s_iv = s_articles / s_ventes if s_ventes > 0 else 0
+                try:
+                    s_id = s.get("_id", "")
+                    seller_profile = await manager_service.user_repo.find_by_id(s_id)
+                    s_name = seller_profile.get("name", f"Vendeur {i}").split()[0] if seller_profile else f"Vendeur {i}"
+                except Exception:
+                    s_name = f"Vendeur {i}"
+                medal = "🥇" if i == 1 else ("🥈" if i == 2 else "🥉")
+                line = f"- {medal} {s_name}: CA {s_ca:.0f}€, {s_ventes} ventes, PM {s_pm:.2f}€"
+                if s_iv > 0:
+                    line += f", IV {s_iv:.2f}"
+                seller_lines.append(line)
+            top_sellers_block = "\n🏆 TOP VENDEURS SUR LA PÉRIODE :\n" + "\n".join(seller_lines) + "\n→ Identifie les écarts entre vendeurs et explique ce qu'ils révèlent sur la dynamique du magasin.\n"
+    except Exception as _e:
+        logger.warning("Could not fetch top sellers for store KPI analysis: %s", _e)
+
+    # Intra-period trend: last 5 days vs full period average
+    trend_block = ""
+    try:
+        if days_count >= 7:  # Only meaningful for longer periods
+            last5_pipeline = [
+                {
+                    "$match": {
+                        "store_id": resolved_store_id,
+                        "date": {"$gte": start_date, "$lte": end_date},
+                    }
+                },
+                {"$sort": {"date": -1}},
+                {"$limit": 5},
+                {
+                    "$group": {
+                        "_id": None,
+                        "ca_last5": {"$sum": {"$ifNull": ["$ca_journalier", {"$ifNull": ["$seller_ca", 0]}]}},
+                        "ventes_last5": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                    }
+                }
+            ]
+            last5_result = await kpi_service.aggregate_kpi(last5_pipeline, max_results=1)
+            if last5_result:
+                ca_last5 = last5_result[0].get("ca_last5", 0)
+                ca_avg_per_day = total_ca / days_count if days_count > 0 else 0
+                ca_last5_per_day = ca_last5 / 5 if ca_last5 > 0 else 0
+                if ca_avg_per_day > 0 and ca_last5_per_day > 0:
+                    trend_pct = ((ca_last5_per_day - ca_avg_per_day) / ca_avg_per_day) * 100
+                    trend_dir = "en hausse" if trend_pct > 5 else ("en baisse" if trend_pct < -5 else "stable")
+                    trend_block = (
+                        f"\n📈 TENDANCE (5 derniers jours vs moyenne de la période) :\n"
+                        f"- CA moyen/jour sur la période : {ca_avg_per_day:.0f}€\n"
+                        f"- CA moyen/jour sur les 5 derniers jours : {ca_last5_per_day:.0f}€ ({trend_pct:+.0f}%)\n"
+                        f"→ Tendance {trend_dir} — {'Momentum positif à entretenir.' if trend_pct > 5 else ('Alerte : le rythme ralentit.' if trend_pct < -5 else 'Rythme constant.')}\n"
+                    )
+    except Exception as _e:
+        logger.warning("Could not compute trend for store KPI analysis: %s", _e)
+
+    # Active store objectives with realized progress
+    objectives_block = ""
+    if manager_id and resolved_store_id:
+        try:
+            all_objs = await manager_service.get_active_objectives(manager_id, resolved_store_id)
+            period_objs = [
+                o for o in (all_objs or [])
+                if o.get("period_start", "") <= end_date and o.get("period_end", "") >= start_date
+            ][:4]
+            if period_objs:
+                kpi_map = {
+                    "ca": total_ca, "ventes": total_ventes,
+                    "panier_moyen": panier_moyen, "indice_vente": indice_vente,
+                    "taux_transformation": taux_transformation,
+                }
+                obj_lines = []
+                for o in period_objs:
+                    kpi_key = o.get("kpi_type", "").lower()
+                    target = o.get("target_value", 0)
+                    title = o.get("title", kpi_key.upper())
+                    period_end_obj = o.get("period_end", "")
+                    realized = kpi_map.get(kpi_key)
+                    if realized is not None and target and target > 0:
+                        pct = (realized / target) * 100
+                        status = "✅" if pct >= 100 else ("⚠️" if pct >= 70 else "❌")
+                        obj_lines.append(
+                            f"- {title} : objectif {target} → réalisé {realized:.0f} ({pct:.0f}%) {status} (échéance {period_end_obj})"
+                        )
+                    else:
+                        obj_lines.append(f"- {title} : objectif {target} (échéance {period_end_obj})")
+                if obj_lines:
+                    objectives_block = (
+                        "\n🎯 OBJECTIFS DU MAGASIN :\n"
+                        + "\n".join(obj_lines)
+                        + "\n→ Indique clairement si les objectifs sont atteints, en bonne voie, ou en retard.\n"
+                    )
+        except Exception as _e:
+            logger.warning("Could not fetch objectives for store KPI analysis: %s", _e)
+
     prompt = f"""Tu es un expert en analyse de performance retail pour BOUTIQUES PHYSIQUES. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
 {disc_block}
 CONTEXTE IMPORTANT : Il s'agit d'une boutique avec flux naturel de clients. Les "prospects" représentent les visiteurs entrés en boutique, PAS de prospection active à faire. Le travail consiste à transformer les visiteurs en acheteurs.
 
 Magasin : {store_name}
 Période analysée : {period_text}
+DATE DU JOUR : {datetime.now().strftime('%d/%m/%Y')}
 Points de données : {days_count} jours, {sellers_count} vendeurs
 
 KPIs Disponibles :
@@ -747,43 +943,42 @@ KPIs Disponibles :
 
 Totaux :
 {chr(10).join(['- ' + total for total in available_totals]) if available_totals else '(Aucune donnée)'}
-{prev_period_block}
+{prev_period_block}{top_sellers_block}{objectives_block}{trend_block}
 CONSIGNES STRICTES :
 - Analyse UNIQUEMENT les données présentes
-- Ne mentionne JAMAIS les données manquantes ou absentes
 - Cite TOUJOURS les chiffres exacts dans tes observations
 - Commente les variations vs période précédente si disponible (>10% = notable)
+- Si des objectifs sont fournis, indique explicitement s'ils sont atteints ou non
 - Sois concis et direct (2-3 points max par section)
 - Fournis des insights actionnables pour BOUTIQUE PHYSIQUE
-- Si c'est une période longue, identifie les tendances
-- NE RECOMMANDE PAS de prospection active (c'est une boutique, pas de la vente externe)
 - Focus sur : accueil, découverte besoins, argumentation, closing, fidélisation
+- NE RECOMMANDE PAS de prospection active (boutique = flux entrant)
+- NE COMMENCE PAS par "Bien sûr !" ou une formule introductive
 
-Fournis une analyse en 2 parties courtes :
-
-## ANALYSE
-- Observation clé sur les performances globales
-- Point d'attention ou tendance notable
-- Comparaison ou contexte si pertinent
-
-## RECOMMANDATIONS
-- Actions concrètes et prioritaires pour améliorer la vente en boutique (2-3 max)
-- Focus sur l'amélioration des KPIs faibles (taux de transformation, panier moyen, indice de vente)
-
-Format : Markdown simple et concis."""
+IMPORTANT: Réponds UNIQUEMENT avec un JSON valide, sans markdown, sans balises de code.
+Format exact :
+{{
+  "synthese": "Synthèse de 2-3 phrases avec les KPIs clés, les variations notables vs période précédente, et le statut des objectifs si disponibles",
+  "action_prioritaire": "LA priorité absolue et concrète pour améliorer les KPIs du magasin cette semaine",
+  "points_forts": ["KPI fort 1 avec chiffre exact et comparaison si possible", "KPI fort 2"],
+  "points_attention": ["KPI à améliorer 1 avec chiffre et impact", "Point d'attention 2"],
+  "recommandations": ["Action concrète 1 pour boutique physique (qui fait quoi, quand)", "Action 2", "Action 3"]
+}}"""
     if not ai_service.available:
+        fallback_kpis_text = chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '- Aucun KPI calculé'
+        fallback_totals_text = chr(10).join(['- ' + total for total in available_totals]) if available_totals else '- Aucune donnée'
+        fallback_analysis = {
+            "synthese": f"Magasin {store_name} — {period_text}. {fallback_totals_text.replace(chr(10), ', ')}. Service IA indisponible.",
+            "action_prioritaire": "Configurer le service IA pour obtenir des recommandations personnalisées.",
+            "points_forts": [kpi for kpi in available_kpis[:2]] if available_kpis else [],
+            "points_attention": [],
+            "recommandations": [
+                "Analyser le taux de transformation pour identifier les opportunités d'amélioration.",
+                "Suivre l'évolution du panier moyen sur les prochaines semaines.",
+            ],
+        }
         return {
-            "analysis": f"""## Analyse des KPIs du magasin {store_name}
-
-📊 **Période** : {period_text}
-
-**KPIs Disponibles :**
-{chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '- Aucun KPI calculé'}
-
-**Totaux :**
-{chr(10).join(['- ' + total for total in available_totals]) if available_totals else '- Aucune donnée'}
-
-💡 Pour une analyse IA détaillée, veuillez configurer le service IA.""",
+            "analysis": fallback_analysis,
             "store_name": store_name,
             "period": {"start": start_date, "end": end_date},
             "kpis": {
@@ -794,30 +989,38 @@ Format : Markdown simple et concis."""
             },
         }
     try:
-        analysis_text = await ai_service._send_message(
+        raw_response = await ai_service._send_message(
             system_message=TEAM_ANALYSIS_SYSTEM_PROMPT,
             user_prompt=prompt,
             model="gpt-4o",
-            temperature=0.7,
+            temperature=0.5,
         )
-        if not analysis_text:
+        if not raw_response:
             raise Exception("No response from AI")
+        import json as _json
+        clean = raw_response.strip()
+        if clean.startswith("```"):
+            parts = clean.split("```")
+            clean = parts[1] if len(parts) > 1 else clean
+            if clean.startswith("json"):
+                clean = clean[4:]
+        analysis_dict = _json.loads(clean.strip())
     except Exception as ai_error:
         logger.error("Store KPI AI error: %s", ai_error)
-        analysis_text = f"""## Résumé automatique des KPIs
-
-📊 **Magasin** : {store_name}
-**Période** : {period_text}
-
-**KPIs :**
-{chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '- Aucun KPI'}
-
-**Totaux :**
-{chr(10).join(['- ' + total for total in available_totals]) if available_totals else '- Aucune donnée'}
-
-⚠️ Analyse IA temporairement indisponible."""
+        kpis_text = chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '- Aucun KPI'
+        totals_text = chr(10).join(['- ' + total for total in available_totals]) if available_totals else '- Aucune donnée'
+        analysis_dict = {
+            "synthese": f"Magasin {store_name} — {period_text}. {totals_text.replace(chr(10), ', ')}.",
+            "action_prioritaire": "Analyse IA temporairement indisponible — vérifier la configuration.",
+            "points_forts": [kpi for kpi in available_kpis[:2]] if available_kpis else [],
+            "points_attention": ["Service IA temporairement indisponible"],
+            "recommandations": [
+                "Réessayer l'analyse IA dans quelques instants.",
+                "Consulter les KPIs manuellement en attendant.",
+            ],
+        }
     return {
-        "analysis": analysis_text,
+        "analysis": analysis_dict,
         "store_name": store_name,
         "period": {"start": start_date, "end": end_date},
         "kpis": {

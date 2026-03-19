@@ -89,17 +89,23 @@ Tu dois ABSOLUMENT adapter ton ton et ta structure au profil DISC de l'utilisate
 # Expert Retail Management (Team Analysis)
 TEAM_ANALYSIS_SYSTEM_PROMPT = f"""{LEGAL_DISCLAIMER_BLOCK}
 Tu es un Directeur de Réseau Retail expérimenté (15 ans d'expérience).
-Tu analyses les performances globales d'une équipe de vente pour le Gérant.
+Tu analyses les performances d'une équipe de vente pour son Manager/Gérant.
 
-RÈGLES IMPÉRATIVES D'ANALYSE (BLACKLIST) :
-1. ⛔ INTERDIT de proposer des actions Marketing, Publicité, Réseaux Sociaux, Vitrine ou Changement de Prix. Le Manager doit animer son équipe, pas le marketing.
-2. ⛔ SI LE TRAFIC EST FAIBLE OU NUL : Ne l'utilise jamais comme excuse. Si le trafic est bas, tu dois exiger un Taux de Transformation irréprochable et un Panier Moyen élevé.
-3. ✅ TON FOCUS : Management humain, Animation commerciale, Formation, Ritualisation (Briefs), Coaching terrain.
+RÈGLES IMPÉRATIVES (BLACKLIST) :
+1. ⛔ INTERDIT : Marketing, Publicité, Réseaux Sociaux, Vitrine, Changement de Prix. Le Manager anime son équipe, pas le marketing.
+2. ⛔ INTERDIT : Utiliser le trafic faible comme excuse. Si trafic bas → exiger Taux de Transformation irréprochable et Panier Moyen élevé.
+3. ⛔ INTERDIT : Commencer par "Bien sûr !", "Voici l'analyse", ou toute formule introductive creuse.
+
+RÈGLES DE QUALITÉ (WHITELIST) :
+4. ✅ Chaque point doit être ACTIONNABLE et SPÉCIFIQUE : cite le chiffre exact + explique l'impact + propose le geste managérial concret.
+5. ✅ Compare TOUJOURS avec la période précédente si les données sont fournies : valorise les progressions, explique les baisses.
+6. ✅ Pour chaque vendeur mentionné : cite son CA, ses ventes, son PM (et IV/TV si disponibles).
+7. ✅ FOCUS : Management humain, Animation commerciale, Formation terrain, Briefs, Coaching individuel.
 
 TON ET STYLE :
-- Direct, Synthétique, "Business Oriented".
-- Ne dis pas "Il faut...", dis "L'action prioritaire est...".
-- Utilise du Markdown pour structurer (Titres, Gras, Listes).
+- Direct, synthétique, orienté résultats.
+- Ne dis pas "Il faut..." → dis "L'action prioritaire est..." ou "Organise un point avec [Prénom] sur...".
+- Tutoiement avec les vendeurs dans les recommandations individuelles.
 """
 
 # Coach for Team Bilan (JSON output)
@@ -538,21 +544,23 @@ class AIService:
         manager_disc_profile: Optional[Dict] = None,
         prev_period_data: Optional[Dict] = None,
         team_objectives: Optional[list] = None,
-    ) -> str:
+        previous_recommendations: Optional[list] = None,
+    ) -> Dict:
         """
         Generate comprehensive team analysis using GPT-4o
-        
+
         This is the flagship analysis feature - uses the most powerful model
         for detailed managerial insights.
-        
+
         Args:
             team_data: Team performance data with sellers_details
             period_label: Human-readable period description
             manager_id: Manager ID for session tracking
             manager_disc_profile: DISC profile of the manager (for tone adaptation)
-            
+            previous_recommendations: List of previous recommendations to avoid repeating
+
         Returns:
-            Formatted markdown analysis
+            Dict with synthese, action_prioritaire, points_forts, points_attention, recommandations
         """
         if not self.available:
             return self._fallback_team_analysis(team_data, period_label)
@@ -563,14 +571,54 @@ class AIService:
         sellers_summary = []
         for rank, seller in enumerate(sellers_sorted, 1):
             anonymous_name = anonymize_name_for_ai(seller.get('name', 'Vendeur'))
-            disc_info = f", DISC: {seller.get('disc_style')}" if seller.get('disc_style') else ""
             rank_label = " 🥇" if rank == 1 else (" ⚠️" if rank == len(sellers_sorted) and len(sellers_sorted) > 1 else "")
-            sellers_summary.append(
-                f"- #{rank}{rank_label} {anonymous_name}: CA {seller.get('ca', 0):.0f}€, "
-                f"{seller.get('ventes', 0)} ventes, PM {seller.get('panier_moyen', 0):.2f}€, "
-                f"Compétences {seller.get('avg_competence', 5):.1f}/10 "
-                f"(Fort: {seller.get('best_skill', 'N/A')}, Faible: {seller.get('worst_skill', 'N/A')}{disc_info})"
+
+            # Core metrics
+            ca = seller.get('ca', 0)
+            ventes = seller.get('ventes', 0)
+            pm = seller.get('panier_moyen', 0)
+            iv = seller.get('indice_vente', 0)
+            tv = seller.get('taux_transformation', 0)
+            jours = seller.get('nb_jours_actifs', 0)
+            disc_info = f", DISC: {seller.get('disc_style')}" if seller.get('disc_style') else ""
+            competence = seller.get('avg_competence', 0)
+            best_skill = seller.get('best_skill', '')
+            worst_skill = seller.get('worst_skill', '')
+
+            # Evolution vs previous period
+            ca_prev = seller.get('ca_prev', 0)
+            evolution_str = ""
+            if ca_prev and ca_prev > 0:
+                delta = ((ca - ca_prev) / ca_prev) * 100
+                arrow = "↗" if delta > 1 else ("↘" if delta < -1 else "→")
+                evolution_str = f", évolution CA: {delta:+.0f}% {arrow}"
+
+            # Normalization: CA per working day
+            ca_per_day_str = ""
+            if jours and jours > 0:
+                ca_per_day_str = f", CA/jour: {ca/jours:.0f}€ ({jours}j)"
+
+            line = (
+                f"- #{rank}{rank_label} {anonymous_name}: CA {ca:.0f}€, {ventes} ventes, PM {pm:.2f}€"
             )
+            if iv > 0:
+                line += f", IV: {iv:.2f}"
+            if tv > 0:
+                line += f", TV: {tv:.1f}%"
+            if ca_per_day_str:
+                line += ca_per_day_str
+            if evolution_str:
+                line += evolution_str
+            if competence > 0:
+                skill_detail = ""
+                if best_skill and worst_skill:
+                    skill_detail = f" (Fort: {best_skill}, Faible: {worst_skill})"
+                elif best_skill:
+                    skill_detail = f" (Fort: {best_skill})"
+                line += f", Compétences: {competence:.1f}/10{skill_detail}"
+            if disc_info:
+                line += disc_info
+            sellers_summary.append(line)
         
         # Build DISC adaptation section for the Manager
         manager_disc_style = manager_disc_profile.get('style', 'Non défini') if manager_disc_profile else 'Non défini'
@@ -585,43 +633,70 @@ Adapte ton résumé exécutif et ton ton à ce style de communication.
         if prev_period_data:
             prev_ca = prev_period_data.get("team_total_ca") or prev_period_data.get("ca_total") or 0
             prev_ventes = prev_period_data.get("team_total_ventes") or prev_period_data.get("ventes") or 0
+            prev_pm = prev_period_data.get("team_panier_moyen") or 0
+            prev_iv = prev_period_data.get("team_indice_vente") or 0
             curr_ca = team_data.get("team_total_ca", 0) or 0
             curr_ventes = team_data.get("team_total_ventes", 0) or 0
+            curr_pm = team_data.get("team_panier_moyen", 0) or 0
+            curr_iv = team_data.get("team_indice_vente", 0) or 0
             if prev_ca > 0:
                 ca_delta = ((curr_ca - prev_ca) / prev_ca) * 100
                 ventes_delta = ((curr_ventes - prev_ventes) / prev_ventes) * 100 if prev_ventes > 0 else 0
                 ca_arrow = "↗" if ca_delta > 1 else ("↘" if ca_delta < -1 else "→")
                 v_arrow = "↗" if ventes_delta > 1 else ("↘" if ventes_delta < -1 else "→")
-                prev_period_block = f"""
-📊 ÉVOLUTION VS PÉRIODE PRÉCÉDENTE :
-- CA : {curr_ca:.0f}€ vs {prev_ca:.0f}€ ({ca_delta:+.1f}%) {ca_arrow}
-- Ventes : {curr_ventes} vs {prev_ventes} ({ventes_delta:+.1f}%) {v_arrow}
-→ Intègre cette évolution dans ton analyse (est-ce une progression, régression ou stabilité ?).
-"""
+                prev_period_block = (
+                    f"\n📊 ÉVOLUTION VS PÉRIODE PRÉCÉDENTE :\n"
+                    f"- CA : {curr_ca:.0f}€ vs {prev_ca:.0f}€ ({ca_delta:+.1f}%) {ca_arrow}\n"
+                    f"- Ventes : {curr_ventes} vs {prev_ventes} ({ventes_delta:+.1f}%) {v_arrow}\n"
+                )
+                if prev_pm > 0 and curr_pm > 0:
+                    pm_delta = ((curr_pm - prev_pm) / prev_pm) * 100
+                    pm_arrow = "↗" if pm_delta > 1 else ("↘" if pm_delta < -1 else "→")
+                    prev_period_block += f"- PM : {curr_pm:.2f}€ vs {prev_pm:.2f}€ ({pm_delta:+.1f}%) {pm_arrow}\n"
+                if prev_iv > 0 and curr_iv > 0:
+                    iv_delta = ((curr_iv - prev_iv) / prev_iv) * 100
+                    iv_arrow = "↗" if iv_delta > 1 else ("↘" if iv_delta < -1 else "→")
+                    prev_period_block += f"- IV : {curr_iv:.2f} vs {prev_iv:.2f} ({iv_delta:+.1f}%) {iv_arrow}\n"
+                prev_period_block += "→ Commente OBLIGATOIREMENT les variations >10% dans ta synthèse.\n"
 
         # Build team objectives block
         team_objectives_block = ""
         if team_objectives:
             obj_lines = []
-            for o in team_objectives[:4]:
+            for o in team_objectives[:5]:
                 kpi_type = o.get("kpi_type", "").upper()
                 target = o.get("target_value", 0)
+                realized = o.get("realized_value")
                 title = o.get("title", kpi_type)
                 period_end = o.get("period_end", "")
-                obj_lines.append(f"- {title} : objectif {target} {kpi_type} (échéance {period_end})")
+                if realized is not None and target and target > 0:
+                    pct = (realized / target) * 100
+                    status = "✅" if pct >= 100 else ("⚠️" if pct >= 70 else "❌")
+                    obj_lines.append(
+                        f"- {title} : objectif {target} {kpi_type} → réalisé {realized:.0f} ({pct:.0f}%) {status} (échéance {period_end})"
+                    )
+                else:
+                    obj_lines.append(f"- {title} : objectif {target} {kpi_type} (échéance {period_end})")
             if obj_lines:
                 team_objectives_block = (
                     "\n🎯 OBJECTIFS ACTIFS DE L'ÉQUIPE :\n"
                     + "\n".join(obj_lines)
-                    + "\n→ Indique si l'équipe est en bonne voie pour les atteindre (comparer avec les chiffres ci-dessus).\n"
+                    + "\n→ Indique clairement si l'équipe est en bonne voie, en retard, ou a atteint ses objectifs.\n"
                 )
 
-        # 🎯 LEGACY PROMPT RESTORED + DISC INTEGRATION
+        # Build previous recommendations block
+        prev_reco_block = ""
+        if previous_recommendations:
+            reco_text = "\n".join(f"- {r}" for r in previous_recommendations[:3])
+            prev_reco_block = f"\n📋 RECOMMANDATIONS PRÉCÉDENTES (à NE PAS répéter, mais à faire évoluer) :\n{reco_text}\n"
+
+        # 🎯 UPDATED PROMPT — JSON output
         prompt = f"""Tu es un expert en management retail et coaching d'équipe. Analyse cette équipe de boutique physique et fournis des recommandations managériales pour MOTIVER et DÉVELOPPER l'équipe.
 
 CONTEXTE : Boutique physique avec flux naturel de clients. Focus sur performance commerciale ET dynamique d'équipe.
 
 PÉRIODE D'ANALYSE : {period_label}
+DATE DU JOUR : {datetime.now().strftime('%d/%m/%Y')} (permet de situer la période en cours)
 
 ÉQUIPE :
 - Taille : {team_data.get('total_sellers', 0)} vendeurs
@@ -631,81 +706,87 @@ PÉRIODE D'ANALYSE : {period_label}
 VENDEURS :
 {chr(10).join(sellers_summary)}
 {prev_period_block}{disc_section}
-{team_objectives_block}
+{team_objectives_block}{prev_reco_block}
 CONSIGNES :
 - NE MENTIONNE PAS la complétion KPI (saisie des données) - c'est un sujet administratif, pas commercial
 - Concentre-toi sur les PERFORMANCES COMMERCIALES et la DYNAMIQUE D'ÉQUIPE
-- **Cite TOUJOURS les chiffres exacts (CA, ventes, PM) pour chaque vendeur**
+- Cite TOUJOURS les chiffres exacts (CA, ventes, PM) pour chaque vendeur dans les points forts/attention
 - Utilise le classement (#1, #2…) pour situer chaque vendeur dans l'équipe
 - Fournis des recommandations MOTIVANTES et CONSTRUCTIVES
 - Identifie les leviers de motivation individuels et collectifs
 - 1 action_prioritaire = LA priorité managériale absolue pour la prochaine période
+- Les points_forts et points_attention doivent inclure les chiffres des vendeurs concernés
+- Les recommandations doivent être actionnables et concrètes (max 5 éléments par tableau)
 
-Fournis l'analyse en 4 parties :
-
-## ANALYSE D'ÉQUIPE
-- Commence par rappeler les chiffres clés de l'équipe sur la période (CA total, nombre de ventes, panier moyen)
-- Forces collectives et dynamique positive (avec données chiffrées à l'appui)
-- Points d'amélioration ou déséquilibres à corriger (écarts de performance chiffrés)
-- Opportunités de développement
-
-## ACTIONS PAR VENDEUR
-- Pour CHAQUE vendeur, mentionne ses résultats chiffrés (CA, ventes, PM) puis donne des recommandations personnalisées
-- Format : "**[Nom]** (CA: XXX€, XX ventes, PM: XXX€) : [analyse et recommandations]"
-- Focus sur développement des compétences et motivation
-- Actions concrètes et bienveillantes
-- Si le profil DISC du vendeur est connu, adapte tes recommandations à son style
-
-## RECOMMANDATIONS MANAGÉRIALES
-- Actions pour renforcer la cohésion d'équipe
-- Techniques de motivation adaptées à chaque profil DISC si disponible
-- Rituels ou animations pour dynamiser les ventes
-
-## ACTION PRIORITAIRE
-Une seule phrase courte et percutante : la priorité absolue du manager pour la semaine à venir.
-
-Format : Markdown simple et structuré."""
+IMPORTANT: Réponds UNIQUEMENT avec un JSON valide, sans markdown, sans balises de code.
+Format exact :
+{{
+  "synthese": "Texte de synthèse de 2-3 phrases résumant la situation de l'équipe avec les chiffres clés (CA total, nombre de vendeurs, panier moyen)",
+  "action_prioritaire": "Une seule phrase courte et percutante : LA priorité managériale absolue",
+  "points_forts": ["Point fort 1 avec chiffres du vendeur concerné", "Point fort 2", "Point fort 3"],
+  "points_attention": ["Point d'attention 1 avec chiffres", "Point d'attention 2"],
+  "recommandations": ["Recommandation concrète 1 incluant action par vendeur si pertinent", "Recommandation 2", "Recommandation 3"]
+}}"""
 
         # Use GPT-4o for complex analysis
         response = await self._send_message(
             system_message=TEAM_ANALYSIS_SYSTEM_PROMPT,
             user_prompt=prompt,
             model="gpt-4o",
-            temperature=0.7
+            temperature=0.5
         )
-        
+
         if response:
-            return response
+            try:
+                import json as _json
+                clean = response.strip()
+                if clean.startswith("```"):
+                    parts = clean.split("```")
+                    clean = parts[1] if len(parts) > 1 else clean
+                    if clean.startswith("json"):
+                        clean = clean[4:]
+                return _json.loads(clean.strip())
+            except Exception:
+                return {
+                    "synthese": response,
+                    "action_prioritaire": "",
+                    "points_forts": [],
+                    "points_attention": [],
+                    "recommandations": [],
+                }
         else:
             return self._fallback_team_analysis(team_data, period_label)
     
-    def _fallback_team_analysis(self, team_data: Dict, period_label: str) -> str:
-        """Fallback when AI is unavailable"""
+    def _fallback_team_analysis(self, team_data: Dict, period_label: str) -> Dict:
+        """Fallback when AI is unavailable — returns structured dict"""
         total_ca = team_data.get('team_total_ca', 0)
         total_ventes = team_data.get('team_total_ventes', 0)
         total_sellers = team_data.get('total_sellers', 0)
         panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
-        
-        sellers_text = ""
+
+        points_forts = []
+        points_attention = []
         for seller in team_data.get('sellers_details', []):
             name = anonymize_name_for_ai(seller.get('name', 'Vendeur'))
-            sellers_text += f"- {name}: CA {seller.get('ca', 0):.0f}€, {seller.get('ventes', 0)} ventes\n"
-        
-        return f"""## ANALYSE D'ÉQUIPE
+            ca = seller.get('ca', 0)
+            ventes = seller.get('ventes', 0)
+            if ca > 0:
+                points_forts.append(f"{name} : CA {ca:.0f}€, {ventes} ventes")
 
-📊 **Résumé {period_label}**
-- Équipe : {total_sellers} vendeurs
-- CA Total : {total_ca:.2f}€
-- Ventes : {total_ventes}
-- Panier moyen : {panier_moyen:.2f}€
-
-## ACTIONS PAR VENDEUR
-
-{sellers_text}
-
-## RECOMMANDATIONS MANAGÉRIALES
-
-💡 Pour une analyse IA détaillée avec des recommandations personnalisées, veuillez vérifier la configuration du service IA."""
+        return {
+            "synthese": (
+                f"Équipe de {total_sellers} vendeurs sur {period_label}. "
+                f"CA total : {total_ca:.0f}€, {total_ventes} ventes, panier moyen : {panier_moyen:.0f}€. "
+                "Analyse IA indisponible — données statistiques uniquement."
+            ),
+            "action_prioritaire": "Vérifier la configuration du service IA pour obtenir des recommandations personnalisées.",
+            "points_forts": points_forts[:3] if points_forts else ["Données insuffisantes pour identifier les points forts"],
+            "points_attention": points_attention[:2] if points_attention else [],
+            "recommandations": [
+                "Analyser les performances individuelles pour identifier les axes d'amélioration.",
+                "Organiser un point d'équipe pour partager les bonnes pratiques.",
+            ],
+        }
 
     # ==========================================================================
     # 📋 TEAM BILAN (JSON Output)

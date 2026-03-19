@@ -65,6 +65,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
   const [showObjectivesModal, setShowObjectivesModal] = useState(false);
+  const [initialObjectiveId, setInitialObjectiveId] = useState(null);
   const [showBilanModal, setShowBilanModal] = useState(false);
   const [showDiagnosticFormModal, setShowDiagnosticFormModal] = useState(false);
   const [showCompetencesModal, setShowCompetencesModal] = useState(false);
@@ -586,7 +587,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             onOpenCoaching={() => setShowCoachingModal(true)}
             onOpenDebrief={() => setShowDebriefModal(true)}
             onOpenBilan={() => { setInitialTab('bilan'); setShowPerformanceModal(true); }}
-            onOpenObjectives={() => setShowObjectivesModal(true)}
+            onOpenObjectives={(objectiveId) => {
+              setInitialObjectiveId(objectiveId || null);
+              setShowObjectivesModal(true);
+            }}
             onSelectTask={handleSelectTask}
           />
         </div>
@@ -627,6 +631,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         showProfileModal={showProfileModal}
         showPerformanceModal={showPerformanceModal}
         showObjectivesModal={showObjectivesModal}
+        initialObjectiveId={initialObjectiveId}
         showBilanModal={showBilanModal}
         showDiagnosticFormModal={showDiagnosticFormModal}
         showCompetencesModal={showCompetencesModal}
@@ -648,6 +653,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         setShowProfileModal={setShowProfileModal}
         setShowPerformanceModal={setShowPerformanceModal}
         setShowObjectivesModal={setShowObjectivesModal}
+        setInitialObjectiveId={setInitialObjectiveId}
         setShowBilanModal={setShowBilanModal}
         setShowDiagnosticFormModal={setShowDiagnosticFormModal}
         setShowCompetencesModal={setShowCompetencesModal}

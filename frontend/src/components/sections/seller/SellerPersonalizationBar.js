@@ -18,7 +18,7 @@ export default function SellerPersonalizationBar({
 
   const FILTER_CARDS = [
     { key: 'showPerformances', label: 'Mes Performances', emoji: '📈' },
-    { key: 'showObjectives',   label: 'Objectifs & Challenges', emoji: '🎯' },
+    { key: 'showObjectives',   label: 'Mes Objectifs', emoji: '🎯' },
     { key: 'showCoaching',     label: 'Mon coach IA', emoji: '🤖' },
     { key: 'showPreparation',  label: 'Préparer mon Entretien', emoji: '📝' },
   ];

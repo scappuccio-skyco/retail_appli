@@ -54,6 +54,7 @@ export default function SellerModalsLayer({
   showProfileModal,
   showPerformanceModal,
   showObjectivesModal,
+  initialObjectiveId,
   showBilanModal,
   showDiagnosticFormModal,
   showCompetencesModal,
@@ -76,6 +77,7 @@ export default function SellerModalsLayer({
   setShowProfileModal,
   setShowPerformanceModal,
   setShowObjectivesModal,
+  setInitialObjectiveId,
   setShowBilanModal,
   setShowDiagnosticFormModal,
   setShowCompetencesModal,
@@ -338,8 +340,9 @@ export default function SellerModalsLayer({
       {showObjectivesModal && (
         <ObjectivesModal
           isOpen={showObjectivesModal}
-          onClose={() => setShowObjectivesModal(false)}
+          onClose={() => { setShowObjectivesModal(false); setInitialObjectiveId?.(null); }}
           activeObjectives={activeObjectives}
+          initialObjectiveId={initialObjectiveId}
           onUpdate={async () => {
             await fetchActiveObjectives();
           }}

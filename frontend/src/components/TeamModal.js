@@ -1,10 +1,12 @@
-import React, { useState, useEffect, startTransition } from 'react';
+import React, { useState, useEffect, useRef, startTransition } from 'react';
 import { api } from '../lib/apiClient';
 import { LABEL_DECOUVERTE } from '../lib/constants';
 import { logger } from '../utils/logger';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
+import { useAuth } from '../contexts';
 import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, Archive, RefreshCw, FileText, Coffee } from 'lucide-react';
 import { toast } from 'sonner';
-import TeamAIAnalysisModal from './TeamAIAnalysisModal';
+import ManagerAIAnalysisDisplay from './ManagerAIAnalysisDisplay';
 import EvaluationGenerator from './EvaluationGenerator';
 import MorningBriefModal from './MorningBriefModal';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -33,10 +35,13 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function TeamModal({ sellers, storeIdParam, onClose, onViewSellerDetail, onDataUpdate, storeName, managerName, userRole }) {
+  const { user } = useAuth();
   const [teamData, setTeamData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
   const [showMorningBriefModal, setShowMorningBriefModal] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const aiSectionRef = useRef(null);
   const [periodFilter, setPeriodFilter] = useState('30'); // '7', '30', '90', 'all', 'custom'
   const [showNiveauTooltip, setShowNiveauTooltip] = useState(false);
   const [customDateRange, setCustomDateRange] = useState({ start: '', end: '' });
@@ -514,6 +519,77 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   const teamTotalVentes = teamData.reduce((sum, s) => sum + (s.monthlyVentes || 0), 0);
   const sellersWithKPI = teamData.filter(s => s.hasKpiToday).length;
 
+  // Build localStorage key for AI analysis persistence
+  const teamAnalysisLsKey = `mgr_team_analysis_${storeIdParam || 'default'}_${periodFilter}_${
+    periodFilter === 'custom' ? `${customDateRange.start}_${customDateRange.end}` : ''
+  }`;
+
+  // Load persisted AI analysis when period changes
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(teamAnalysisLsKey);
+      if (saved) {
+        setAiAnalysis(JSON.parse(saved));
+      } else {
+        setAiAnalysis(null);
+      }
+    } catch {
+      setAiAnalysis(null);
+    }
+  }, [teamAnalysisLsKey]);
+
+  // Auto-scroll to analysis section when it appears
+  useEffect(() => {
+    if (aiAnalysis && aiSectionRef.current) {
+      aiSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [aiAnalysis]);
+
+  const generateTeamAnalysis = async () => {
+    setAiGenerating(true);
+    try {
+      const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
+      const teamContext = {
+        total_sellers: teamData.length,
+        sellers_with_kpi: teamData.filter(s => s.hasKpiToday).length,
+        team_total_ca: teamTotalCA,
+        team_total_ventes: teamTotalVentes,
+        sellers_details: teamData.map(s => ({
+          name: s.name,
+          ca: s.monthlyCA,
+          ventes: s.monthlyVentes,
+          panier_moyen: s.panierMoyen,
+          avg_competence: s.avgCompetence,
+          best_skill: s.bestCompetence?.name,
+          worst_skill: s.worstCompetence?.name,
+          disc_style: s.disc_style || null,
+        })),
+      };
+      const requestBody = {
+        team_data: teamContext,
+        period_filter: periodFilter || '30',
+      };
+      if (periodFilter === 'custom' && customDateRange?.start && customDateRange?.end) {
+        requestBody.start_date = customDateRange.start;
+        requestBody.end_date = customDateRange.end;
+      }
+      const res = await api.post(`/manager/analyze-team${storeParam}`, requestBody);
+      const analysis = res.data.analysis;
+      setAiAnalysis(analysis);
+      try {
+        localStorage.setItem(teamAnalysisLsKey, JSON.stringify(analysis));
+      } catch {
+        // localStorage might be full
+      }
+      toast.success('Analyse IA générée !');
+    } catch (err) {
+      logger.error('Error generating team AI analysis:', err);
+      toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de l\'analyse IA');
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
@@ -728,10 +804,11 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                       ☕ Brief du Matin
                     </button>
                     <button
-                      onClick={() => setShowAIAnalysisModal(true)}
-                      className="px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                      onClick={generateTeamAnalysis}
+                      disabled={aiGenerating || teamData.length === 0}
+                      className="px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      🤖 Analyse IA de l'équipe
+                      {aiGenerating ? '⏳ Analyse en cours...' : '🤖 Analyse IA de l\'équipe'}
                     </button>
                   </div>
                 </div>
@@ -1326,21 +1403,45 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                 </div>
                 )}
               </div>
+
+              {/* IA Analysis Section */}
+              <div ref={aiSectionRef} className="mt-6">
+                {!aiAnalysis && !aiGenerating && (
+                  <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                    <span className="text-4xl mb-3 block">🤖</span>
+                    <p className="text-gray-600 mb-4">Aucune analyse IA pour cette période</p>
+                    <button
+                      onClick={generateTeamAnalysis}
+                      disabled={teamData.length === 0}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      ✨ Générer l'analyse IA
+                    </button>
+                  </div>
+                )}
+                {aiGenerating && (
+                  <div className="bg-white rounded-2xl p-8 text-center shadow border-2 border-blue-200">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse">
+                      <span className="text-2xl">✨</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">Analyse en cours...</h3>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-4">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 animate-pulse rounded-full" style={{ width: '60%' }} />
+                    </div>
+                  </div>
+                )}
+                {aiAnalysis && !aiGenerating && (
+                  <ManagerAIAnalysisDisplay
+                    analysis={aiAnalysis}
+                    onRegenerate={generateTeamAnalysis}
+                    title="Analyse IA — Équipe"
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>
       </div>
-
-      {/* AI Analysis Modal */}
-      {showAIAnalysisModal && (
-        <TeamAIAnalysisModal
-          teamData={teamData}
-          periodFilter={periodFilter}
-          customDateRange={customDateRange}
-          storeIdParam={storeIdParam}
-          onClose={() => setShowAIAnalysisModal(false)}
-        />
-      )}
 
       {/* Evaluation Generator Modal (Entretien Annuel Manager) */}
       {showEvaluationModal && selectedSellerForEval && (

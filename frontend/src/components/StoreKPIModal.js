@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, TrendingUp } from 'lucide-react';
-import StoreKPIAIAnalysisModal from './StoreKPIAIAnalysisModal';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
+import { toast } from 'sonner';
+import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
+import { useAuth } from '../contexts';
 import { useStoreKPIModal } from './storeKPI/useStoreKPIModal';
+import { getWeekStartEnd, getMonthStartEnd, getYearStartEnd } from './storeKPI/storeKPIUtils';
 import StoreKPIModalDailyTab from './storeKPI/StoreKPIModalDailyTab';
 import StoreKPIModalOverviewTab, { WeekPicker } from './storeKPI/StoreKPIModalOverviewTab';
 import StoreKPIModalConfigTab from './storeKPI/StoreKPIModalConfigTab';
 import StoreKPIModalProspectsTab from './storeKPI/StoreKPIModalProspectsTab';
 import KPICalendar from './KPICalendar';
+import ManagerAIAnalysisDisplay from './ManagerAIAnalysisDisplay';
 
 const TABS = [
   { id: 'daily', label: '📊 Performance' },
@@ -21,8 +27,43 @@ function getOverviewPeriodLabel(viewMode, state) {
   return 'Période inconnue';
 }
 
+/**
+ * Compute start_date/end_date strings for the current view mode.
+ */
+function getStartEndForView(viewMode, state) {
+  if (viewMode === 'day') {
+    return { start: state.overviewDate, end: state.overviewDate };
+  }
+  if (viewMode === 'week' && state.selectedWeek) {
+    const r = getWeekStartEnd(state.selectedWeek);
+    const fmt = (d) => (d instanceof Date ? d.toISOString().split('T')[0] : String(d));
+    return { start: fmt(r.startDate), end: fmt(r.endDate) };
+  }
+  if (viewMode === 'month' && state.selectedMonth) {
+    const r = getMonthStartEnd(state.selectedMonth);
+    const fmt = (d) => (d instanceof Date ? d.toISOString().split('T')[0] : String(d));
+    return { start: fmt(r.startDate), end: fmt(r.endDate) };
+  }
+  if (viewMode === 'year' && state.selectedYear) {
+    const r = getYearStartEnd(state.selectedYear);
+    const fmt = (d) => (d instanceof Date ? d.toISOString().split('T')[0] : String(d));
+    return { start: fmt(r.startDate), end: fmt(r.endDate) };
+  }
+  // fallback: last 30 days
+  const end = new Date().toISOString().split('T')[0];
+  const startDt = new Date();
+  startDt.setDate(startDt.getDate() - 30);
+  return { start: startDt.toISOString().split('T')[0], end };
+}
+
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null, isManager = false }) {
+  const { user } = useAuth();
   const state = useStoreKPIModal({ onClose, onSuccess, initialDate, storeId, isManager });
+
+  // AI Analysis state
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const aiSectionRef = useRef(null);
 
   const tabClass = (id) =>
     state.activeTab === id
@@ -39,6 +80,70 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
   const currentYear = new Date().getFullYear();
   const yearOptions = state.availableYears.length > 0 ? state.availableYears : [currentYear, currentYear - 1];
+
+  // Build a localStorage key for the current period
+  const currentPeriodKey = `${state.viewMode}_${
+    state.viewMode === 'day' ? state.overviewDate :
+    state.viewMode === 'week' ? state.selectedWeek :
+    state.viewMode === 'month' ? state.selectedMonth :
+    state.selectedYear
+  }`;
+  const lsKey = `mgr_kpi_analysis_${storeId || 'default'}_${currentPeriodKey}`;
+
+  // Load persisted analysis when period changes
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(lsKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setAiAnalysis(parsed);
+      } else {
+        setAiAnalysis(null);
+      }
+    } catch {
+      setAiAnalysis(null);
+    }
+  }, [lsKey]);
+
+  // Auto-scroll when analysis becomes available
+  useEffect(() => {
+    if (aiAnalysis && aiSectionRef.current) {
+      aiSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [aiAnalysis]);
+
+  const canLaunchAI = state.viewMode === 'day' ? canLaunchDailyAI : canLaunchOverviewAI;
+
+  const generateAnalysis = async () => {
+    if (!canLaunchAI && !aiAnalysis) return;
+    setAiGenerating(true);
+
+    try {
+      const { start, end } = getStartEndForView(state.viewMode, state);
+      const isGerantContext = !isManager && Boolean(storeId);
+      const storeParam = storeId ? `?store_id=${storeId}` : '';
+      const endpoint = isGerantContext
+        ? `/gerant/stores/${storeId}/analyze-store-kpis`
+        : `/manager/analyze-store-kpis${storeParam}`;
+
+      const payload = { start_date: start, end_date: end };
+
+      const res = await api.post(endpoint, payload);
+      const analysis = res.data.analysis;
+      setAiAnalysis(analysis);
+      try {
+        localStorage.setItem(lsKey, JSON.stringify(analysis));
+      } catch {
+        // localStorage might be full
+      }
+      toast.success('Analyse IA générée !');
+    } catch (err) {
+      logger.error('Error generating store KPI AI analysis:', err);
+      toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de l\'analyse IA');
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   return (
     <div
@@ -76,7 +181,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         <div className="p-6 overflow-y-auto overflow-x-visible flex-1 min-h-0">
           {state.activeTab === 'daily' && (
             <div>
-              {/* Barre d'action : sélecteur de période + bouton IA */}
+              {/* Barre d'action : sélecteur de période */}
               <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl mb-4 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex gap-1.5">
@@ -100,23 +205,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       </button>
                     ))}
                   </div>
-                  {state.viewMode === 'day' ? (
-                    <button
-                      onClick={() => state.setShowDailyAIModal(true)}
-                      disabled={!canLaunchDailyAI}
-                      className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
-                    >
-                      🤖 Analyse IA
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => state.setShowOverviewAIModal(true)}
-                      disabled={!canLaunchOverviewAI}
-                      className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
-                    >
-                      🤖 Analyse IA
-                    </button>
-                  )}
                 </div>
                 {/* Navigation */}
                 <div>
@@ -174,6 +262,44 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   loadingHistorical={state.loadingHistorical}
                 />
               )}
+
+              {/* IA Analysis Section */}
+              <div ref={aiSectionRef} className="mt-6">
+                {!aiAnalysis && !aiGenerating && (
+                  <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                    <span className="text-4xl mb-3 block">🤖</span>
+                    <p className="text-gray-600 mb-4">Aucune analyse IA pour cette période</p>
+                    <button
+                      onClick={generateAnalysis}
+                      disabled={!canLaunchAI}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      ✨ Générer l'analyse IA
+                    </button>
+                    {!canLaunchAI && (
+                      <p className="text-xs text-gray-400 mt-2">Aucune donnée disponible pour cette période</p>
+                    )}
+                  </div>
+                )}
+                {aiGenerating && (
+                  <div className="bg-white rounded-2xl p-8 text-center shadow border-2 border-blue-200">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse">
+                      <span className="text-2xl">✨</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">Analyse en cours...</h3>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-4">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 animate-pulse rounded-full" style={{ width: '60%' }} />
+                    </div>
+                  </div>
+                )}
+                {aiAnalysis && !aiGenerating && (
+                  <ManagerAIAnalysisDisplay
+                    analysis={aiAnalysis}
+                    onRegenerate={generateAnalysis}
+                    title="Analyse IA — KPIs Magasin"
+                  />
+                )}
+              </div>
             </div>
           )}
 
@@ -200,30 +326,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
           )}
         </div>
       </div>
-
-      {state.showDailyAIModal && state.overviewData && (
-        <StoreKPIAIAnalysisModal
-          kpiData={state.overviewData}
-          analysisType="daily"
-          storeId={storeId}
-          isManager={isManager}
-          onClose={() => state.setShowDailyAIModal(false)}
-        />
-      )}
-
-      {state.showOverviewAIModal && state.historicalData.length > 0 && (
-        <StoreKPIAIAnalysisModal
-          analysisType="overview"
-          storeId={storeId}
-          isManager={isManager}
-          viewContext={{
-            viewMode: state.viewMode,
-            period: overviewPeriodLabel,
-            historicalData: state.historicalData
-          }}
-          onClose={() => state.setShowOverviewAIModal(false)}
-        />
-      )}
     </div>
   );
 }

@@ -57,7 +57,7 @@ export default function SellerDashboardGrid({
         <div className="relative h-48 overflow-hidden">
           <img
             src="https://images.unsplash.com/photo-1753161617988-c5f43e441621?w=800&h=400&fit=crop"
-            alt="Objectifs et Challenges"
+            alt="Mes Objectifs"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 via-teal-800/70 to-green-800/70 group-hover:from-blue-900/60 group-hover:via-teal-800/60 group-hover:to-green-800/60 transition-all" />

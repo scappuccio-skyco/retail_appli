@@ -659,6 +659,7 @@ class ManagerService:
                         tasks.append({
                             "id": f"notes-{seller_id}",
                             "type": "notes",
+                            "category": "action",
                             "seller_id": seller_id,
                             "seller_name": name,
                             "title": f"{name} a partagé {count} {label}",
@@ -671,6 +672,7 @@ class ManagerService:
 
         # ── Vendeurs sans diagnostic ──────────────────────────
         if self.diagnostic_repo:
+            missing_sellers = []
             for seller in sellers:
                 seller_id = seller.get("id")
                 if not seller_id:
@@ -678,19 +680,31 @@ class ManagerService:
                 try:
                     diag = await self.diagnostic_repo.find_by_seller(seller_id)
                     if not diag:
-                        name = seller.get("name", "Un vendeur")
-                        tasks.append({
-                            "id": f"diag-{seller_id}",
-                            "type": "missing_diagnostic",
-                            "seller_id": seller_id,
-                            "seller_name": name,
-                            "title": f"{name} n'a pas fait son diagnostic",
-                            "description": "Invitez-le à compléter son profil vendeur",
-                            "priority": "normal",
-                            "icon": "📋",
-                        })
+                        missing_sellers.append({"id": seller_id, "name": seller.get("name", "Un vendeur")})
                 except Exception:
                     pass
+            if missing_sellers:
+                count = len(missing_sellers)
+                names = [s["name"] for s in missing_sellers]
+                if count == 1:
+                    title = f"{names[0]} n'a pas encore fait son diagnostic"
+                    description = "Un rappel est affiché sur son tableau de bord"
+                else:
+                    title = f"{count} vendeurs n'ont pas encore fait leur diagnostic"
+                    names_str = ", ".join(names[:3])
+                    if count > 3:
+                        names_str += f" et {count - 3} autre(s)"
+                    description = f"{names_str} — un rappel est affiché sur leur tableau de bord"
+                tasks.append({
+                    "id": "missing-diagnostics",
+                    "type": "missing_diagnostic",
+                    "category": "info",
+                    "title": title,
+                    "description": description,
+                    "priority": "normal",
+                    "icon": "📋",
+                    "seller_ids": [s["id"] for s in missing_sellers],
+                })
 
         # ── Vendeurs silencieux (pas de KPI depuis 3 jours) ───
         if self.kpi_repo and sellers:
@@ -717,10 +731,11 @@ class ManagerService:
                             tasks.append({
                                 "id": f"silent-{seller_id}",
                                 "type": "silent_seller",
+                                "category": "action",
                                 "seller_id": seller_id,
                                 "seller_name": name,
                                 "title": f"{name} n'a pas saisi de KPI depuis 3 jours",
-                                "description": "Envoyez-lui un rappel",
+                                "description": "Vous pouvez lui envoyer un rappel depuis sa fiche",
                                 "priority": "normal",
                                 "icon": "📊",
                             })
@@ -744,6 +759,8 @@ class ManagerService:
                         tasks.append({
                             "id": f"obj-expiring-{obj.get('id', '')}",
                             "type": "objective_expiring",
+                            "category": "action",
+                            "objective_id": obj.get('id', ''),
                             "title": f"Objectif « {obj.get('title', '')} » se termine {label}",
                             "description": "Vérifiez la progression de votre équipe",
                             "priority": "important" if days_left <= 1 else "normal",
@@ -752,55 +769,25 @@ class ManagerService:
             except Exception:
                 pass
 
-        # ── Challenges terminés (sans suivi) ──────────────────
-        if self.challenge_repo:
+        # ── Aucun objectif à venir dans 7 jours ───────────────
+        if self.objective_repo:
             try:
-                yesterday_str = (today - timedelta(days=1)).isoformat()
-                week_ago_str = (today - timedelta(days=7)).isoformat()
-                challenges = await self.challenge_repo.find_by_manager(
-                    manager_id,
-                    store_id,
-                    projection={"_id": 0, "id": 1, "title": 1, "period_end": 1, "status": 1},
-                    limit=20,
-                )
-                for ch in challenges:
-                    end = ch.get("period_end", "")
-                    if ch.get("status") == "active" and week_ago_str <= end <= yesterday_str:
-                        tasks.append({
-                            "id": f"ch-ended-{ch.get('id', '')}",
-                            "type": "challenge_ended",
-                            "title": f"Challenge « {ch.get('title', '')} » est terminé",
-                            "description": "Faites un retour à votre équipe sur les résultats",
-                            "priority": "normal",
-                            "icon": "⚡",
-                        })
-            except Exception:
-                pass
-
-        # ── Aucun objectif/challenge à venir dans 7 jours ─────
-        if self.objective_repo and self.challenge_repo:
-            try:
-                horizon_str = (today + timedelta(days=7)).isoformat()
                 upcoming_obj = await self.objective_repo.find_by_manager(
-                    manager_id, store_id,
-                    projection={"_id": 0, "id": 1, "status": 1, "period_end": 1},
-                    limit=10,
-                )
-                upcoming_ch = await self.challenge_repo.find_by_manager(
                     manager_id, store_id,
                     projection={"_id": 0, "id": 1, "status": 1, "period_end": 1},
                     limit=10,
                 )
                 has_upcoming = any(
                     item.get("status") == "active" and item.get("period_end", "") >= today_str
-                    for item in (upcoming_obj + upcoming_ch)
+                    for item in upcoming_obj
                 )
                 if not has_upcoming:
                     tasks.append({
                         "id": "no-upcoming-goals",
                         "type": "no_upcoming_goals",
-                        "title": "Aucun objectif ni challenge à venir",
-                        "description": "Motivez votre équipe en en créant un pour les 7 prochains jours",
+                        "category": "action",
+                        "title": "Aucun objectif à venir dans les 7 prochains jours",
+                        "description": "Motivez votre équipe en créant un nouvel objectif",
                         "priority": "normal",
                         "icon": "💡",
                     })
