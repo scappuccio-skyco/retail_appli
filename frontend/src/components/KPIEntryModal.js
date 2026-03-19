@@ -260,18 +260,18 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col">
-        <div className="border-b border-gray-200 p-6 flex justify-between items-center flex-shrink-0">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 flex justify-between items-center rounded-t-3xl flex-shrink-0">
           <div className="flex items-center gap-3">
-            <Calendar className="w-6 h-6 text-[#ffd871]" />
-            <h2 className="text-2xl font-bold text-gray-800">
+            <Calendar className="w-6 h-6 text-white" />
+            <h2 className="text-2xl font-bold text-white">
               {editEntry ? 'Modifier mes chiffres' : 'Mes chiffres du jour'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-white/20 rounded-full transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
@@ -286,7 +286,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
               value={date}
               onChange={(e) => setDate(e.target.value)}
               max={new Date().toISOString().split('T')[0]}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent"
             />
           </div>
 
