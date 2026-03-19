@@ -345,9 +345,16 @@ async def get_seller_shared_interview_notes(
     store_id: str = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     seller_service: SellerService = Depends(get_seller_service),
+    manager_service: ManagerService = Depends(get_manager_service),
 ):
     """Récupère les notes d'entretien partagées par un vendeur avec son manager."""
     resolved_store_id = context.get("resolved_store_id")
-    await get_verified_seller(seller_id, resolved_store_id, seller_service)
+    await verify_seller_store_access(
+        seller_id=seller_id,
+        user_store_id=resolved_store_id,
+        user_role=context.get("role", ""),
+        user_id=context.get("id", ""),
+        manager_service=manager_service,
+    )
     notes = await seller_service.get_shared_interview_notes_by_seller(seller_id)
     return {"notes": notes}
