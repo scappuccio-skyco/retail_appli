@@ -664,7 +664,7 @@ export default function PerformanceModal({
                 {/* Ligne 1 : sélecteur de vue + boutons */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   {/* Sélecteur de période */}
-                  <div className="flex gap-1 bg-gray-200 rounded-lg p-1">
+                  <div className="flex gap-1.5">
                     {[
                       { id: 'jour', label: '📅 Jour' },
                       { id: 'semaine', label: '📅 Semaine' },
@@ -675,10 +675,10 @@ export default function PerformanceModal({
                         key={id}
                         type="button"
                         onClick={() => setViewMode(id)}
-                        className={`px-3 py-1.5 text-sm font-semibold rounded-md transition-all ${
+                        className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all border-2 ${
                           viewMode === id
-                            ? 'bg-white text-gray-800 shadow'
-                            : 'text-gray-600 hover:text-gray-800'
+                            ? 'border-orange-500 bg-orange-500 text-white shadow-md'
+                            : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'
                         }`}
                       >
                         {label}
