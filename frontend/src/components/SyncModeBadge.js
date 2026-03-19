@@ -1,43 +1,43 @@
-import React from 'react';
-import { Lock, Cloud } from 'lucide-react';
+import React, { useState } from 'react';
+import { Cloud } from 'lucide-react';
 import { useSyncMode } from '../hooks/useSyncMode';
 
 /**
- * Badge informatif affiché quand l'utilisateur est en mode synchronisation automatique.
- * Indique que les KPI sont synchronisés depuis un ERP et ne peuvent pas être modifiés manuellement.
+ * Pill discret affiché uniquement quand les KPI sont synchronisés via API (sync_mode != "manual").
+ * N'apparaît PAS si l'abonnement est simplement expiré en mode manuel.
  */
 export default function SyncModeBadge() {
-  const { isReadOnly, isEnterprise, companyName, loading } = useSyncMode();
+  const { syncMode, companyName, loading } = useSyncMode();
+  const [showTooltip, setShowTooltip] = useState(false);
 
-  if (loading || !isReadOnly) {
+  if (loading || syncMode === 'manual') {
     return null;
   }
 
+  const tooltipText = companyName
+    ? `KPI synchronisés depuis le système ERP de ${companyName}. Les modifications se font via votre système externe.`
+    : `KPI synchronisés automatiquement depuis votre système ERP. Les modifications se font via votre système externe.`;
+
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
-      <div className="flex-shrink-0 mt-0.5">
-        <div className="bg-blue-100 p-2 rounded-full">
-          <Cloud className="w-5 h-5 text-blue-600" />
+    <div className="relative inline-flex mb-4">
+      <button
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        onFocus={() => setShowTooltip(true)}
+        onBlur={() => setShowTooltip(false)}
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full text-xs font-medium transition-colors cursor-default"
+      >
+        <Cloud className="w-3.5 h-3.5 text-slate-400" />
+        <span>KPI synchronisés</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+      </button>
+
+      {showTooltip && (
+        <div className="absolute left-0 top-full mt-1.5 z-50 w-72 bg-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 shadow-lg leading-relaxed pointer-events-none">
+          {tooltipText}
+          <div className="absolute -top-1.5 left-4 w-3 h-3 bg-slate-800 rotate-45" />
         </div>
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <Lock className="w-4 h-4 text-blue-600" />
-          <h3 className="font-semibold text-blue-900">
-            Données synchronisées automatiquement
-          </h3>
-        </div>
-        <p className="text-blue-700 text-sm">
-          {isEnterprise && companyName ? (
-            <>Vos données KPI sont synchronisées depuis le système ERP de <strong>{companyName}</strong>. Les modifications se font via votre système ERP.</>
-          ) : (
-            <>Vos données KPI sont synchronisées automatiquement depuis votre système ERP. Les modifications se font via votre système externe.</>
-          )}
-        </p>
-        <p className="text-blue-600 text-sm mt-2 font-medium">
-          ✅ Les Objectifs et Challenges peuvent toujours être créés et modifiés ici.
-        </p>
-      </div>
+      )}
     </div>
   );
 }
