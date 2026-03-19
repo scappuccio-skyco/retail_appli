@@ -229,8 +229,7 @@ function SingleLineChart({ data, dataKey, name, viewMode, formatDate }) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatDate} />
         <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip />
-        <Legend />
+        <Tooltip formatter={(value) => [value, name]} />
         <Line type="monotone" dataKey={dataKey} name={name} stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>
     </ResponsiveContainer>
@@ -252,7 +251,7 @@ function DualLineChart({ data, primaryKey, primaryName, secondaryKey, secondaryN
         <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatDate} />
         <YAxis tick={{ fontSize: 12 }} />
         <Tooltip />
-        <Legend />
+        <Legend verticalAlign="top" height={28} />
         <Line type="monotone" dataKey={primaryKey} name={primaryName} stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
         <Line type="monotone" dataKey={secondaryKey} name={secondaryName} stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>
@@ -347,8 +346,7 @@ export default function StoreKPIModalOverviewTab({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={60} tickFormatter={formatChartDate} />
               <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip />
-              <Legend />
+              <Tooltip formatter={(value) => [value, 'Articles']} />
               <Line type="monotone" dataKey="total_articles" name="Articles" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 2 }} />
             </LineChart>
           </ResponsiveContainer>
