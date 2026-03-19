@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 
 from core.constants import QUERY_STORE_ID_REQUIS_GERANT
-from core.exceptions import AppException, NotFoundError, ValidationError
+from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
 from api.routes.manager.dependencies import get_store_context, get_store_context_required, get_verified_seller
 from api.routes.manager.response_utils import pagination_dict
 from api.dependencies import get_manager_service, get_relationship_service, get_conflict_service, get_seller_service
@@ -38,6 +38,10 @@ class ConflictResolutionRequest(BaseModel):
     impact: str
     tentatives_precedentes: str
     description_libre: str
+
+
+class ManagerNoteReplyRequest(BaseModel):
+    reply: str
 
 
 # ----- Seller diagnostic (manager view) -----
@@ -358,3 +362,37 @@ async def get_seller_shared_interview_notes(
     )
     notes = await seller_service.get_shared_interview_notes_by_seller(seller_id)
     return {"notes": notes}
+
+
+@router.patch("/sellers/{seller_id}/interview-notes/{note_id}/reply")
+async def reply_to_seller_interview_note(
+    request: Request,
+    seller_id: str,
+    note_id: str,
+    body: ManagerNoteReplyRequest,
+    store_id: str = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context),
+    seller_service: SellerService = Depends(get_seller_service),
+    manager_service: ManagerService = Depends(get_manager_service),
+):
+    """Manager poste ou modifie une réponse à une note d'entretien du vendeur."""
+    resolved_store_id = context.get("resolved_store_id")
+    await verify_seller_store_access(
+        seller_id=seller_id,
+        user_store_id=resolved_store_id,
+        user_role=context.get("role", ""),
+        user_id=context.get("id", ""),
+        manager_service=manager_service,
+    )
+    note = await seller_service.get_interview_note_by_id_and_seller(note_id, seller_id)
+    if not note:
+        raise NotFoundError("Note non trouvée")
+    if not note.get("shared_with_manager"):
+        raise ForbiddenError("Cette note n'est pas partagée avec le manager")
+    reply_text = body.reply.strip()
+    if not reply_text:
+        raise ValidationError("La réponse ne peut pas être vide")
+    updated = await seller_service.set_manager_reply_on_note(note_id, seller_id, reply_text)
+    if not updated:
+        raise NotFoundError("Impossible de mettre à jour la note")
+    return {"success": True}

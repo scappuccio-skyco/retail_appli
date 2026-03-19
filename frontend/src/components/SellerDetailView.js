@@ -29,6 +29,9 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
   const [activeTab, setActiveTab] = useState(seller?._openTab || 'competences');
   const [sharedNotes, setSharedNotes] = useState([]);
   const [notesLoading, setNotesLoading] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
   const [showAllDebriefs, setShowAllDebriefs] = useState(false); // New state for debriefs display
   const [debriefFilter, setDebriefFilter] = useState('all'); // New state for debrief filter: 'all', 'success', 'missed'
   const [kpiFilter, setKpiFilter] = useState('7j'); // New state for KPI filter: '7j', '30j', 'tout'
@@ -64,6 +67,27 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
       fetchSharedNotes();
     }
   }, [activeTab, seller?.id]);
+
+  const handleSendReply = async (noteId) => {
+    if (!replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
+      await api.patch(
+        `/manager/sellers/${seller.id}/interview-notes/${noteId}/reply${storeParam}`,
+        { reply: replyText.trim() }
+      );
+      toast.success('Réponse envoyée');
+      setReplyingTo(null);
+      setReplyText('');
+      await fetchSharedNotes();
+    } catch (err) {
+      logger.error('Error sending reply:', err);
+      toast.error('Erreur lors de l\'envoi de la réponse');
+    } finally {
+      setSendingReply(false);
+    }
+  };
 
   const fetchSharedNotes = async () => {
     setNotesLoading(true);
@@ -960,6 +984,50 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                       {formatNoteDate(note.date || note.created_at)}
                     </span>
                     <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap leading-relaxed">{note.content}</p>
+
+                    {/* Réponse existante du manager */}
+                    {note.manager_reply && replyingTo !== note.id && (
+                      <div className="mt-3 pt-3 border-t border-amber-200">
+                        <p className="text-[11px] font-semibold text-blue-600 mb-1">Votre réponse :</p>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{note.manager_reply}</p>
+                      </div>
+                    )}
+
+                    {/* Formulaire de réponse inline */}
+                    {replyingTo === note.id ? (
+                      <div className="mt-3 pt-3 border-t border-amber-200 flex flex-col gap-2">
+                        <textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Votre réponse au vendeur…"
+                          rows={3}
+                          className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none"
+                          autoFocus
+                        />
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={() => { setReplyingTo(null); setReplyText(''); }}
+                            className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg"
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            onClick={() => handleSendReply(note.id)}
+                            disabled={sendingReply || !replyText.trim()}
+                            className="text-xs bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-3 py-1.5 disabled:opacity-50 transition-colors"
+                          >
+                            {sendingReply ? 'Envoi…' : 'Envoyer'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { setReplyingTo(note.id); setReplyText(note.manager_reply || ''); }}
+                        className="mt-2.5 text-[11px] text-blue-500 hover:text-blue-700 font-medium"
+                      >
+                        {note.manager_reply ? '✏️ Modifier la réponse' : '💬 Répondre'}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

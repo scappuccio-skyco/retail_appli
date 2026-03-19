@@ -230,6 +230,9 @@ export default function EvaluationNotesNotebook({ isOpen, onClose, sellerId, sel
                           <p className="text-sm text-gray-700 line-clamp-2">
                             {note.content}
                           </p>
+                          {note.manager_reply && (
+                            <p className="text-[10px] text-blue-500 font-semibold mt-1">💬 Réponse du manager</p>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 ml-2">
                           <button
@@ -315,6 +318,14 @@ export default function EvaluationNotesNotebook({ isOpen, onClose, sellerId, sel
                 placeholder="Écris tes notes ici… Réussites, défis, souhaits, questions pour l'entretien…"
                 className="flex-1 min-h-[180px] w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-400 resize-none text-gray-800 placeholder-gray-400 bg-white shadow-sm"
               />
+
+              {/* Réponse du manager (lecture seule pour le vendeur) */}
+              {currentNote?.manager_reply && (
+                <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                  <p className="text-[11px] font-semibold text-blue-600 mb-1">💬 Réponse de votre manager :</p>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{currentNote.manager_reply}</p>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div className="text-xs text-gray-500">

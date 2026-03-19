@@ -554,6 +554,21 @@ class SellerService:
             {"id": note_id, "seller_id": seller_id}, {"$set": update_data}
         )
 
+    async def set_manager_reply_on_note(
+        self, note_id: str, seller_id: str, reply: str
+    ) -> bool:
+        """Write or update manager reply on a shared interview note."""
+        if not self.interview_note_repo:
+            return False
+        return await self.interview_note_repo.update_one(
+            {"id": note_id, "seller_id": seller_id},
+            {"$set": {
+                "manager_reply": reply,
+                "manager_reply_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }}
+        )
+
     async def delete_interview_note_by_id(self, note_id: str, seller_id: str) -> bool:
         """Delete interview note by id (with seller_id for security)."""
         if not self.interview_note_repo:
