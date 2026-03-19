@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
-import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
+import { getSubscriptionErrorMessage, getApiPrefixByRole, normalizeHistoryResponse } from '../utils/apiHelpers';
 import { useAuth } from '../contexts';
 import { toast } from 'sonner';
 import { Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import AIRecommendations from './AIRecommendations';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
-import { getApiPrefixByRole, normalizeHistoryResponse } from '../utils/apiHelpers';
-import { useAuth } from '../contexts';
 
 export default function ConflictResolutionForm({ sellerId, sellerName }) {
   const { user } = useAuth();

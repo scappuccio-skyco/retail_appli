@@ -944,7 +944,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                 )}
               </div>
               </>
-              )}
 
               {/* Charts Section */}
               <div className="mt-8 space-y-6">
@@ -1327,12 +1326,11 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                 </div>
                 )}
               </div>
-              )}
             </div>
           )}
         </div>
       </div>
-      
+
       {/* AI Analysis Modal */}
       {showAIAnalysisModal && (
         <TeamAIAnalysisModal
