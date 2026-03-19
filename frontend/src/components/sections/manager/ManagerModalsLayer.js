@@ -195,7 +195,15 @@ export default function ManagerModalsLayer({
 
       {/* Seller Detail Modal */}
       {showDetailView && selectedSeller && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowDetailView(false);
+              setSelectedSeller(null);
+            }
+          }}
+        >
           <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[95vh] shadow-2xl flex flex-col my-4">
             <SellerDetailView
               seller={selectedSeller}
@@ -204,6 +212,10 @@ export default function ManagerModalsLayer({
                 setShowDetailView(false);
                 setSelectedSeller(null);
                 setShowTeamModal(true);
+              }}
+              onClose={() => {
+                setShowDetailView(false);
+                setSelectedSeller(null);
               }}
             />
           </div>

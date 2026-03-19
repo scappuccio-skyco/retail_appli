@@ -3,7 +3,7 @@ import { api } from '../lib/apiClient';
 import { LABEL_DECOUVERTE } from '../lib/constants';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
-import { ArrowLeft, TrendingUp, Award, MessageSquare, BarChart3, Calendar, StickyNote } from 'lucide-react';
+import { ArrowLeft, X, TrendingUp, Award, MessageSquare, BarChart3, Calendar, StickyNote } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import ConflictResolutionForm from './ConflictResolutionForm';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
@@ -16,7 +16,7 @@ function formatNoteDate(dateStr) {
   return `${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-export default function SellerDetailView({ seller, onBack, storeIdParam = null }) {
+export default function SellerDetailView({ seller, onBack, onClose, storeIdParam = null }) {
   const [diagnostic, setDiagnostic] = useState(null);
   const [debriefs, setDebriefs] = useState([]);
   const [competencesHistory, setCompetencesHistory] = useState([]);
@@ -307,6 +307,15 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                diagnostic.profile === 'equilibre' ? 'Équilibré' :
                diagnostic.style || '—'}
             </span>
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-red-500/40 text-white rounded-lg transition-colors ml-1"
+              title="Fermer"
+            >
+              <X className="w-4 h-4" />
+            </button>
           )}
         </div>
 
