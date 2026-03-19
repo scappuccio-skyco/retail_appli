@@ -107,7 +107,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
       const teamMetricsUrl = `/manager/team/kpi-metrics${storeIdParam ? `?store_id=${storeIdParam}` : ''}`;
       const teamMetricsMap = await api.post(teamMetricsUrl, teamMetricsPayload)
         .then(r => r.data)
-        .catch(() => ({}));
+        .catch(err => { logger.error('team/kpi-metrics failed:', err?.response?.data || err.message); return {}; });
 
       // Fetch data for each seller
       const sellersDataPromises = sellersToUse.map(async (seller) => {
@@ -151,8 +151,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           }, 0);
           const monthlyVentes = metricsData?.ventes ?? kpiEntries.reduce((sum, entry) => sum + (entry.nb_ventes || 0), 0);
           const panierMoyen = metricsData?.panier_moyen ?? (monthlyVentes > 0 ? monthlyCA / monthlyVentes : 0);
-          const articles = metricsData?.articles ?? 0;
-          const indice_vente = metricsData?.indice_vente ?? 0;
+          const articles = metricsData?.articles ?? kpiEntries.reduce((sum, e) => sum + (e.nb_articles || 0), 0);
+          const indice_vente = metricsData?.indice_vente ?? (monthlyVentes > 0 ? articles / monthlyVentes : 0);
 
           // Get competences scores
           const competences = stats.avg_radar_scores || {};
