@@ -8,8 +8,7 @@ import StoreKPIModalConfigTab from './storeKPI/StoreKPIModalConfigTab';
 import StoreKPIModalProspectsTab from './storeKPI/StoreKPIModalProspectsTab';
 
 const TABS = [
-  { id: 'daily', label: '📅 Quotidien' },
-  { id: 'overview', label: '📊 Historique' },
+  { id: 'daily', label: '📊 Performance' },
   { id: 'config', label: '⚙️ Config des données' },
   { id: 'prospects', label: '👨‍💼 Saisie des données' }
 ];
@@ -66,42 +65,46 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
         <div className="p-6 overflow-y-auto overflow-x-visible flex-1 min-h-0">
           {state.activeTab === 'daily' && (
-            <StoreKPIModalDailyTab
-              overviewData={state.overviewData}
-              overviewDate={state.overviewDate}
-              onOverviewDateChange={state.setOverviewDate}
-              datesWithData={state.datesWithData}
-              lockedDates={state.lockedDates}
-              partiallyLockedDates={state.partiallyLockedDates}
-              onShowAIModal={state.setShowDailyAIModal}
-              storeId={storeId}
-            />
-          )}
-
-          {state.activeTab === 'overview' && (
-            <StoreKPIModalOverviewTab
-              viewMode={state.viewMode}
-              setViewMode={state.setViewMode}
-              selectedWeek={state.selectedWeek}
-              setSelectedWeek={state.setSelectedWeek}
-              selectedMonth={state.selectedMonth}
-              setSelectedMonth={state.setSelectedMonth}
-              selectedYear={state.selectedYear}
-              setSelectedYear={state.setSelectedYear}
-              availableYears={state.availableYears}
-              getCurrentWeek={state.getCurrentWeek}
-              displayMode={state.displayMode}
-              setDisplayMode={state.setDisplayMode}
-              displayedListItems={state.displayedListItems}
-              setDisplayedListItems={state.setDisplayedListItems}
-              visibleCharts={state.visibleCharts}
-              toggleChart={state.toggleChart}
-              setVisibleCharts={state.setVisibleCharts}
-              historicalData={state.historicalData}
-              loadingHistorical={state.loadingHistorical}
-              onShowOverviewAIModal={state.setShowOverviewAIModal}
-              datesWithData={state.datesWithData}
-            />
+            <>
+              <StoreKPIModalDailyTab
+                overviewData={state.overviewData}
+                overviewDate={state.overviewDate}
+                onOverviewDateChange={state.setOverviewDate}
+                datesWithData={state.datesWithData}
+                lockedDates={state.lockedDates}
+                partiallyLockedDates={state.partiallyLockedDates}
+                onShowAIModal={state.setShowDailyAIModal}
+                storeId={storeId}
+              />
+              <div className="mt-8 pt-6 border-t-2 border-orange-100">
+                <h3 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                  <span>📈</span> Historique & Tendances
+                </h3>
+                <StoreKPIModalOverviewTab
+                  viewMode={state.viewMode}
+                  setViewMode={state.setViewMode}
+                  selectedWeek={state.selectedWeek}
+                  setSelectedWeek={state.setSelectedWeek}
+                  selectedMonth={state.selectedMonth}
+                  setSelectedMonth={state.setSelectedMonth}
+                  selectedYear={state.selectedYear}
+                  setSelectedYear={state.setSelectedYear}
+                  availableYears={state.availableYears}
+                  getCurrentWeek={state.getCurrentWeek}
+                  displayMode={state.displayMode}
+                  setDisplayMode={state.setDisplayMode}
+                  displayedListItems={state.displayedListItems}
+                  setDisplayedListItems={state.setDisplayedListItems}
+                  visibleCharts={state.visibleCharts}
+                  toggleChart={state.toggleChart}
+                  setVisibleCharts={state.setVisibleCharts}
+                  historicalData={state.historicalData}
+                  loadingHistorical={state.loadingHistorical}
+                  onShowOverviewAIModal={state.setShowOverviewAIModal}
+                  datesWithData={state.datesWithData}
+                />
+              </div>
+            </>
           )}
 
           {state.activeTab === 'config' && (
