@@ -392,7 +392,5 @@ async def reply_to_seller_interview_note(
     reply_text = body.reply.strip()
     if not reply_text:
         raise ValidationError("La réponse ne peut pas être vide")
-    updated = await seller_service.set_manager_reply_on_note(note_id, seller_id, reply_text)
-    if not updated:
-        raise NotFoundError("Impossible de mettre à jour la note")
+    await seller_service.set_manager_reply_on_note(note_id, seller_id, reply_text)
     return {"success": True}
