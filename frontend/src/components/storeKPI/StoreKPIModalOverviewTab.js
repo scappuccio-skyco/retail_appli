@@ -275,18 +275,18 @@ function DateSelectionSection({
   weekIATitle, onShowOverviewAIModal, onShowPicker, datesWithData
 }) {
   const viewModeTabs = [
-    { id: 'week', label: 'Semaine', onClick: () => { setViewMode('week'); if (!selectedWeek) setSelectedWeek(getCurrentWeek()); } },
-    { id: 'month', label: 'Mois', onClick: () => { setViewMode('month'); setSelectedMonth(new Date().toISOString().slice(0, 7)); } },
-    { id: 'year', label: 'Année', onClick: () => setViewMode('year') }
+    { id: 'week', label: '📅 Semaine', onClick: () => { setViewMode('week'); if (!selectedWeek) setSelectedWeek(getCurrentWeek()); } },
+    { id: 'month', label: '🗓️ Mois', onClick: () => { setViewMode('month'); setSelectedMonth(new Date().toISOString().slice(0, 7)); } },
+    { id: 'year', label: '📆 Année', onClick: () => setViewMode('year') }
   ];
   const yearIATitle = allZero ? 'Aucune donnée disponible pour cette période' : '';
   const currentYear = new Date().getFullYear();
   const yearOptions = availableYears.length > 0 ? availableYears : [currentYear, currentYear - 1];
   return (
     <>
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-1.5 mb-4">
         {viewModeTabs.map(({ id, label, onClick }) => (
-          <button key={id} onClick={onClick} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${viewMode === id ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'}`}>{label}</button>
+          <button key={id} onClick={onClick} className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all border-2 ${viewMode === id ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'}`}>{label}</button>
         ))}
       </div>
       {viewMode === 'week' && (
