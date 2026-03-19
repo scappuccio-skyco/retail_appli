@@ -200,6 +200,34 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                     
                     <form onSubmit={editingObjective ? handleUpdateObjective : handleCreateObjective} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        {/* Type d'objectif — en premier */}
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Type d'objectif *</label>
+                          <div className="flex gap-3">
+                            {[
+                              { value: 'collective', label: "👥 Objectif d'Équipe", desc: 'Pour toute l\'équipe' },
+                              { value: 'individual', label: '👤 Objectif Individuel', desc: 'Pour un vendeur spécifique' },
+                            ].map(({ value, label, desc }) => (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => setNewObjective({ ...newObjective, type: value, seller_id: value === 'collective' ? '' : newObjective.seller_id })}
+                                className={`flex-1 p-4 rounded-xl border-2 text-left transition-all ${
+                                  newObjective.type === value
+                                    ? 'border-purple-500 bg-purple-50 shadow-md'
+                                    : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50'
+                                }`}
+                              >
+                                <div className="font-semibold text-gray-800 text-sm">{label}</div>
+                                <div className="text-xs text-gray-500 mt-0.5">{desc}</div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Reste du formulaire — visible uniquement après sélection du type */}
+                        {newObjective.type && (<>
                         <div className="md:col-span-2">
                           <div className="flex items-center gap-2 mb-2">
                             <label className="block text-sm font-semibold text-gray-700">Nom de l'objectif *</label>
@@ -223,7 +251,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           />
                         </div>
 
-
                         {/* Description de l'objectif */}
                         <div className="md:col-span-2">
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Description (optionnel)</label>
@@ -234,23 +261,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none resize-none"
                             placeholder="Décrivez brièvement cet objectif..."
                           />
-                        </div>
-
-
-                        {/* Type d'objectif */}
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Type d'objectif *</label>
-                          <select
-                            value={newObjective.type}
-                            onChange={(e) => {
-                              const newType = e.target.value;
-                              setNewObjective({ ...newObjective, type: newType, seller_id: newType === 'collective' ? '' : newObjective.seller_id });
-                            }}
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                          >
-                            <option value="collective">👥 Objectif d'Équipe</option>
-                            <option value="individual">👤 Objectif Individuel</option>
-                          </select>
                         </div>
 
                         {/* Seller selection for individual objectives */}
@@ -689,8 +699,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                             </p>
                           </div>
                         </div>
+                        </>)}
                       </div>
 
+                      {newObjective.type && (
                       <div className="flex gap-3">
                         <button
                           type="submit"
@@ -708,6 +720,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           </button>
                         )}
                       </div>
+                      )}
                     </form>
                   </div>
                 </div>

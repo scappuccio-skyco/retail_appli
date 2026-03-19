@@ -30,7 +30,7 @@ function useClickOutside(ref, isOpen, setOpen) {
 const DEFAULT_OBJECTIVE = {
   title: '',
   description: '',
-  type: 'collective',
+  type: '',
   seller_id: '',
   visible: true,
   visible_to_sellers: [],
