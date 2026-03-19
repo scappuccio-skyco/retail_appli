@@ -35,7 +35,7 @@ NOT_SPECIFIED = "Non renseigné"
 
 # Stats vides pour brief (évite duplication de littéraux)
 def _default_brief_stats():
-    return {"ca_yesterday": 0, "data_date": None, "team_present": NOT_SPECIFIED}
+    return {"ca_yesterday": 0, "data_date": None, "team_active_last_day": NOT_SPECIFIED}
 
 
 async def _resolve_store_fallback(

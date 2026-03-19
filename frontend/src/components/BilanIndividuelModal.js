@@ -512,8 +512,18 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
 
           {/* Synthèse */}
           <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-xl p-4 mb-4">
-            <p className="text-gray-800 font-medium">{renderMarkdownBold(bilan.synthese)}</p>
+            <p className="text-white font-medium">{renderMarkdownBold(bilan.synthese)}</p>
           </div>
+
+          {/* Action prioritaire */}
+          {bilan.action_prioritaire && (
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-4 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-white font-bold text-sm">⚡ Action prioritaire</span>
+              </div>
+              <p className="text-white font-semibold">{renderMarkdownBold(bilan.action_prioritaire)}</p>
+            </div>
+          )}
 
           {/* Points forts */}
           <div className="bg-green-50 rounded-xl p-4 mb-4">

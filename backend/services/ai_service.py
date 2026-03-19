@@ -134,11 +134,20 @@ Réponds UNIQUEMENT avec cet objet JSON valide (pas de markdown, pas de texte av
 """
 
 # Coach for Debrief (JSON output)
-DEBRIEF_SYSTEM_PROMPT = """Tu es un Coach de Vente Terrain expérimenté (pas un marketeur).
+DEBRIEF_SYSTEM_PROMPT = f"""{LEGAL_DISCLAIMER_BLOCK}
+Tu es un Coach de Vente Terrain expérimenté (10+ ans retail, pas un marketeur).
+Tu analyses un debrief de vente pour aider le vendeur à progresser immédiatement.
 
-RÈGLES STRICTES :
-⛔ INTERDIT de parler de : Promotions, Réseaux Sociaux, Publicité, Génération de trafic, Marketing.
-✅ Focus sur : Accueil, découverte des besoins, argumentation, vente additionnelle, closing.
+RÈGLES STRICTES (BLACKLIST) :
+⛔ INTERDIT : Promotions, Réseaux Sociaux, Publicité, Génération de trafic, Marketing, Vitrine.
+⛔ NE JAMAIS commencer par "Bien sûr !", "Voici mon analyse", ou toute formule introductive.
+⛔ NE JAMAIS mentionner le comptage clients ou les entrées magasin.
+
+✅ FOCUS UNIQUEMENT SUR : Accueil, découverte des besoins, argumentation produit, vente additionnelle, closing, fidélisation.
+✅ Chaque conseil = 1 geste précis + 1 phrase exemple applicable dès aujourd'hui.
+✅ Tutoiement pour le vendeur. Vouvoiement dans les exemples de dialogue client.
+
+{DISC_ADAPTATION_INSTRUCTIONS}
 
 Tu réponds UNIQUEMENT en JSON valide."""
 
@@ -931,119 +940,81 @@ Consignes :
                     + "\nNe répète pas ces recommandations. Construis sur elles ou adresse un angle différent.\n"
                 )
 
-        if is_success:
-            # 🎯 PROMPT FOR SUCCESSFUL SALE (Legacy Restored)
-            prompt = f"""Tu es un coach expert en vente retail.
-Analyse la vente décrite pour identifier les facteurs de réussite et renforcer les compétences mobilisées.
+        scores_block = (
+            f"COMPÉTENCES ACTUELLES (sur 10) :\n"
+            f"- Accueil : {current_scores.get('accueil', 6.0)}\n"
+            f"- Découverte : {current_scores.get('decouverte', 6.0)}\n"
+            f"- Argumentation : {current_scores.get('argumentation', 6.0)}\n"
+            f"- Closing : {current_scores.get('closing', 6.0)}\n"
+            f"- Fidélisation : {current_scores.get('fidelisation', 6.0)}"
+        )
 
-### CONTEXTE
-Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détails :
-
-🎯 Produit vendu : {debrief_data.get('produit', 'Non spécifié')}
-👥 Type de client : {debrief_data.get('type_client', 'Non spécifié')}
-💼 Situation : {debrief_data.get('situation_vente', 'Non spécifié')}
-💬 Description du déroulé : {debrief_data.get('description_vente', 'Non spécifié')}
-✨ Moment clé du succès : {debrief_data.get('moment_perte_client', 'Non spécifié')}
-🎉 Facteurs de réussite : {debrief_data.get('raisons_echec', 'Non spécifié')}
-💪 Ce qui a le mieux fonctionné : {debrief_data.get('amelioration_pensee', 'Non spécifié')}
-{kpi_context}
-
-### SCORES ACTUELS DES COMPÉTENCES (sur 10, une décimale)
-- Accueil : {current_scores.get('accueil', 6.0)}
-- Découverte : {current_scores.get('decouverte', 6.0)}
-- Argumentation : {current_scores.get('argumentation', 6.0)}
-- Closing : {current_scores.get('closing', 6.0)}
-- Fidélisation : {current_scores.get('fidelisation', 6.0)}
-{disc_block}
-### OBJECTIF
-1. FÉLICITER le vendeur pour cette réussite avec enthousiasme !
-2. Identifier 2 points forts qui ont contribué au succès
-3. Donner 1 recommandation pour reproduire ou dépasser ce succès
-4. Donner 1 exemple concret et actionnable
-5. **IMPORTANT** : Propose un ajustement (delta) pour chaque compétence.
-   - Les compétences qui ont contribué au succès : delta entre +0.3 et +0.8
-   - Les autres compétences (non impliquées) : delta entre 0.0 et +0.2
-   - JAMAIS de delta négatif sur une vente réussie
-   - Sois précis et proportionnel à la qualité décrite
-{coaching_block}
-### FORMAT DE SORTIE (JSON uniquement)
-{{
-  "analyse": "[2–3 phrases de FÉLICITATIONS enthousiastes]",
-  "points_travailler": "[Point fort 1]\\n[Point fort 2]",
-  "recommandation": "[Une phrase courte et motivante]",
-  "exemple_concret": "[Action concrète pour reproduire ce succès]",
-  "delta_accueil": 0.5,
-  "delta_decouverte": 0.3,
-  "delta_argumentation": 0.0,
-  "delta_closing": 0.6,
-  "delta_fidelisation": 0.2
-}}
-
-### STYLE ATTENDU
-- Ton ENTHOUSIASTE et FÉLICITANT
-- TUTOIEMENT pour le vendeur
-- VOUVOIEMENT pour les exemples de dialogue client
-- Maximum 12 lignes"""
-        else:
-            # 🎯 PROMPT FOR MISSED OPPORTUNITY (Legacy Restored)
-            prompt = f"""Tu es un coach expert en vente retail.
-Analyse la vente décrite pour identifier les causes probables de l'échec et proposer des leviers d'amélioration.
-
-### CONTEXTE
-Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
-
-🎯 Produit : {debrief_data.get('produit', 'Non spécifié')}
-👥 Type de client : {debrief_data.get('type_client', 'Non spécifié')}
-💼 Situation : {debrief_data.get('situation_vente', 'Non spécifié')}
-💬 Description : {debrief_data.get('description_vente', 'Non spécifié')}
-📍 Moment clé du blocage : {debrief_data.get('moment_perte_client', 'Non spécifié')}
-❌ Raisons évoquées : {debrief_data.get('raisons_echec', 'Non spécifié')}
-🔄 Ce que tu penses pouvoir faire différemment : {debrief_data.get('amelioration_pensee', 'Non spécifié')}
-{kpi_context}
-
-### SCORES ACTUELS DES COMPÉTENCES (sur 10, une décimale)
-- Accueil : {current_scores.get('accueil', 6.0)}
-- Découverte : {current_scores.get('decouverte', 6.0)}
-- Argumentation : {current_scores.get('argumentation', 6.0)}
-- Closing : {current_scores.get('closing', 6.0)}
-- Fidélisation : {current_scores.get('fidelisation', 6.0)}
-{disc_block}
-### OBJECTIF
-1. Fournir une analyse commerciale réaliste et empathique
-2. Identifier 2 axes d'amélioration concrets
-3. Donner 1 recommandation claire et motivante
-4. Ajouter 1 exemple concret de phrase ou comportement à adopter
-5. **IMPORTANT** : Propose un ajustement (delta) pour chaque compétence.
-   - La compétence principale en cause : delta entre -0.4 et -0.1
-   - Les compétences secondaires liées : delta entre -0.2 et 0.0
-   - Les compétences non impliquées : delta 0.0
-   - Si le vendeur a bien géré un aspect malgré l'échec : delta entre 0.0 et +0.2
-   - Sois mesuré : un seul débrief ne doit pas tout changer
-{coaching_block}
-### FORMAT DE SORTIE (JSON uniquement)
-{{
-  "analyse": "[2–3 phrases d'analyse réaliste, orientée performance]",
-  "points_travailler": "[Axe 1]\\n[Axe 2]",
-  "recommandation": "[Une phrase courte, claire et motivante]",
-  "exemple_concret": "[Une phrase illustrant ce que tu aurais pu dire ou faire]",
+        json_format = """{
+  "analyse": "2-3 phrases percutantes (félicitations si succès / analyse empathique si échec). Cite les faits décrits.",
+  "points_travailler": "Point 1\\nPoint 2",
+  "recommandation": "1 phrase courte, motivante, avec un levier précis.",
+  "exemple_concret": "Phrase ou comportement exact à appliquer dès la prochaine opportunité.",
+  "action_immediate": "1 geste à faire AUJOURD'HUI avant la prochaine vente (ex: relire une fiche produit, préparer une phrase d'accroche).",
   "delta_accueil": 0.0,
-  "delta_decouverte": -0.2,
+  "delta_decouverte": 0.0,
   "delta_argumentation": 0.0,
-  "delta_closing": -0.3,
+  "delta_closing": 0.0,
   "delta_fidelisation": 0.0
-}}
+}"""
 
-### STYLE ATTENDU
-- Ton professionnel, positif et constructif
-- TUTOIEMENT pour le vendeur
-- VOUVOIEMENT pour les exemples de dialogue client
-- Maximum 12 lignes"""
+        if is_success:
+            prompt = f"""VENTE CONCLUE AVEC SUCCÈS — Analyse et renforce les compétences mobilisées.
+
+DÉTAILS DE LA VENTE :
+- Produit : {debrief_data.get('produit', 'Non spécifié')}
+- Type de client : {debrief_data.get('type_client', 'Non spécifié')}
+- Situation : {debrief_data.get('situation_vente', 'Non spécifié')}
+- Déroulé : {debrief_data.get('description_vente', 'Non spécifié')}
+- Moment clé du succès : {debrief_data.get('moment_perte_client', 'Non spécifié')}
+- Facteurs de réussite : {debrief_data.get('raisons_echec', 'Non spécifié')}
+- Ce qui a le mieux fonctionné : {debrief_data.get('amelioration_pensee', 'Non spécifié')}
+{kpi_context}
+
+{scores_block}
+{disc_block}
+RÈGLES DELTA (vente réussie) :
+- Compétences qui ont contribué au succès → delta +0.3 à +0.8
+- Autres compétences non impliquées → delta 0.0 à +0.2
+- JAMAIS de delta négatif sur une vente réussie
+- Proportionnel à la qualité décrite
+{coaching_block}
+FORMAT JSON UNIQUEMENT :
+{json_format}"""
+        else:
+            prompt = f"""OPPORTUNITÉ MANQUÉE — Analyse les causes et propose des leviers d'amélioration concrets.
+
+DÉTAILS DE L'ÉCHEC :
+- Produit : {debrief_data.get('produit', 'Non spécifié')}
+- Type de client : {debrief_data.get('type_client', 'Non spécifié')}
+- Situation : {debrief_data.get('situation_vente', 'Non spécifié')}
+- Déroulé : {debrief_data.get('description_vente', 'Non spécifié')}
+- Moment du blocage : {debrief_data.get('moment_perte_client', 'Non spécifié')}
+- Raisons évoquées : {debrief_data.get('raisons_echec', 'Non spécifié')}
+- Ce que le vendeur pense faire différemment : {debrief_data.get('amelioration_pensee', 'Non spécifié')}
+{kpi_context}
+
+{scores_block}
+{disc_block}
+RÈGLES DELTA (opportunité manquée) :
+- Compétence principale en cause → delta -0.4 à -0.1
+- Compétences secondaires liées → delta -0.2 à 0.0
+- Compétences non impliquées → delta 0.0
+- Si une compétence a bien fonctionné malgré l'échec → delta 0.0 à +0.2
+- Sois mesuré : un seul débrief ne doit pas tout changer
+{coaching_block}
+FORMAT JSON UNIQUEMENT :
+{json_format}"""
 
         response = await self._send_message(
             system_message=DEBRIEF_SYSTEM_PROMPT,
             user_prompt=prompt,
             model="gpt-4o",
-            temperature=0.7
+            temperature=0.4,
         )
         
         if response:
@@ -1143,18 +1114,22 @@ Résume les points forts et les points à améliorer de manière positive et coa
             response_lines.append(f"Q{question_id}: {question_text}{newline}R: {r['answer']}")
         responses_text = newline.join(response_lines)
         
-        prompt = f"""Analyse les réponses de {seller_name} pour identifier son profil DISC et ses axes de développement.
+        prompt = f"""Analyse les réponses de {seller_name} et détermine son profil DISC + ses axes de développement commercial.
 
+RÉPONSES AU QUESTIONNAIRE :
 {responses_text}
 
-Rappel : Tu dois aider ce vendeur à GRANDIR, pas le juger.
-Réponds en JSON avec le format attendu (style, level, strengths, axes_de_developpement)."""
+RAPPELS CRITIQUES :
+- Questions 1-15 → compétences de vente terrain (forces/axes) UNIQUEMENT, PAS pour le DISC
+- Questions 16+ → UNIQUEMENT ces réponses déterminent le style D/I/S/C
+- Utilise un vocabulaire de développement, jamais de jugement négatif
+- Réponds UNIQUEMENT avec le JSON attendu (style, level, strengths, axes_de_developpement)"""
 
         response = await self._send_message(
             system_message=DIAGNOSTIC_SYSTEM_PROMPT,
             user_prompt=prompt,
             model="gpt-4o",
-            temperature=0.7
+            temperature=0.3,
         )
         
         if response:
@@ -1268,58 +1243,142 @@ Réponds UNIQUEMENT avec ce JSON :
     async def generate_seller_bilan(
         self,
         seller_data: Dict,
-        kpis: List[Dict]
-    ) -> str:
+        kpis: List[Dict],
+        prev_kpis: Optional[List[Dict]] = None,
+        objectives: Optional[List[Dict]] = None,
+    ) -> Dict:
         """
-        Generate performance report for seller using V2 TERRAIN FOCUS prompt
-        
-        BUSINESS RULES (CTO Validated):
-        - Never mention traffic/visitor counting issues (Manager's responsibility)
+        Generate structured performance report for seller.
+
+        BUSINESS RULES:
+        - Never mention traffic/visitor counting (Manager's responsibility)
         - Focus only on what seller controls: CA, PM, IV, sales count
-        - If traffic data is 0 or inconsistent, ignore it completely
+        - Returns JSON dict with sections for rich frontend rendering
         """
-        if not self.available:
-            return f"Bilan pour {seller_data.get('name', 'Vendeur')}: Performance en cours d'analyse."
-        
-        # Calculate seller-controlled metrics ONLY
-        total_ca = sum(k.get('ca_journalier', 0) for k in kpis)
-        total_ventes = sum(k.get('nb_ventes', 0) for k in kpis)
-        days_count = len(kpis)
-        
-        # Calculate Panier Moyen (PM) - seller-controlled metric
-        panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
-        
-        # Calculate average Indice de Vente (IV) if available - seller-controlled
-        total_articles = sum(k.get('nb_articles', k.get('nb_ventes', 0)) for k in kpis)
-        indice_vente = total_articles / total_ventes if total_ventes > 0 else 1.0
-        
-        # Intentionally NOT including traffic/entrées data per business rules
-        # If traffic is 0 or inconsistent, we simply ignore it
-        
         seller_name = anonymize_name_for_ai(seller_data.get('name', 'Vendeur'))
-        
-        prompt = f"""Analyse les performances de {seller_name} sur les {days_count} derniers jours :
 
-📊 DONNÉES (ce que {seller_name} maîtrise) :
-- Chiffre d'Affaires (CA) : {total_ca:.0f}€
+        if not self.available:
+            return {
+                "synthese": f"Bilan pour {seller_name}: Performance en cours d'analyse.",
+                "points_forts": [],
+                "axes_progres": [],
+                "objectif_demain": "",
+                "disc_note": "",
+            }
+
+        # ── Période courante ────────────────────────────────────────────────────
+        kpis_sorted = sorted(kpis, key=lambda x: x.get("date", ""))
+        total_ca = sum(k.get("ca_journalier", 0) or 0 for k in kpis)
+        total_ventes = sum(k.get("nb_ventes", 0) or 0 for k in kpis)
+        total_articles = sum(k.get("nb_articles", 0) or 0 for k in kpis)
+        jours_actifs = len([k for k in kpis if (k.get("ca_journalier") or 0) > 0])
+        days_count = len(kpis)
+        pm = total_ca / total_ventes if total_ventes > 0 else 0
+        iv = total_articles / total_ventes if total_ventes > 0 else 0
+
+        # Tendance : compare 1ère moitié vs 2ème moitié de la période
+        tendance_text = ""
+        if len(kpis_sorted) >= 6:
+            mid = len(kpis_sorted) // 2
+            ca_first = sum(k.get("ca_journalier", 0) or 0 for k in kpis_sorted[:mid])
+            ca_second = sum(k.get("ca_journalier", 0) or 0 for k in kpis_sorted[mid:])
+            if ca_first > 0:
+                delta = ((ca_second / ca_first) - 1) * 100
+                tendance_text = f"Tendance sur la période : {delta:+.1f}% (2ème moitié vs 1ère moitié)"
+
+        # ── Période précédente ──────────────────────────────────────────────────
+        prev_block = ""
+        if prev_kpis:
+            prev_ca = sum(k.get("ca_journalier", 0) or 0 for k in prev_kpis)
+            prev_ventes = sum(k.get("nb_ventes", 0) or 0 for k in prev_kpis)
+            prev_articles = sum(k.get("nb_articles", 0) or 0 for k in prev_kpis)
+            prev_pm = prev_ca / prev_ventes if prev_ventes > 0 else 0
+            prev_iv = prev_articles / prev_ventes if prev_ventes > 0 else 0
+            evol_ca = f"{((total_ca / prev_ca) - 1) * 100:+.1f}%" if prev_ca > 0 else "N/A"
+            evol_pm = f"{((pm / prev_pm) - 1) * 100:+.1f}%" if prev_pm > 0 else "N/A"
+            evol_iv = f"{((iv / prev_iv) - 1) * 100:+.1f}%" if prev_iv > 0 else "N/A"
+            prev_block = f"""
+PÉRIODE PRÉCÉDENTE (comparaison) :
+- CA : {prev_ca:.0f}€  → évolution : {evol_ca}
+- PM : {prev_pm:.2f}€  → évolution : {evol_pm}
+- IV : {prev_iv:.1f}   → évolution : {evol_iv}"""
+
+        # ── Objectifs actifs ────────────────────────────────────────────────────
+        obj_block = ""
+        if objectives:
+            active_objs = [o for o in objectives if o.get("status") in ("active", "en_cours", None)][:3]
+            if active_objs:
+                lines = []
+                for o in active_objs:
+                    label = o.get("label") or o.get("objective_type", "Objectif")
+                    target = o.get("target_value") or o.get("value")
+                    realized = o.get("realized") or o.get("current_value")
+                    if target and realized is not None:
+                        pct = (realized / target) * 100
+                        lines.append(f"- {label} : {realized:.0f} / {target:.0f} ({pct:.0f}%)")
+                    elif target:
+                        lines.append(f"- {label} : objectif {target:.0f}")
+                if lines:
+                    obj_block = "OBJECTIFS ACTIFS :\n" + "\n".join(lines)
+
+        # ── Profil DISC ─────────────────────────────────────────────────────────
+        disc_style = seller_data.get("disc_style") or seller_data.get("disc_profile")
+        disc_block = ""
+        if disc_style and disc_style != "?":
+            disc_map = {
+                "D": "Direct, orienté résultats → message court, chiffres + défi",
+                "I": "Enthousiaste, sociable → message positif, reconnaissance, élan collectif",
+                "S": "Stable, loyal → message rassurant, progression pas à pas, encouragement",
+                "C": "Analytique, rigoureux → données précises, logique, explication des causes",
+            }
+            hint = disc_map.get(disc_style.upper(), "")
+            if hint:
+                disc_block = f"\nPROFIL DISC : {disc_style} — {hint}"
+
+        system_prompt = f"""{SELLER_STRICT_SYSTEM_PROMPT}
+
+FORMAT DE RÉPONSE OBLIGATOIRE (JSON ONLY) :
+Réponds UNIQUEMENT avec cet objet JSON (sans markdown, sans texte avant/après) :
+{{
+  "synthese": "Résumé percutant de la performance (2-3 phrases). Cite les chiffres clés. Valorise la progression si présente.",
+  "points_forts": ["Point fort 1 (chiffré)", "Point fort 2 (comportemental/technique)"],
+  "axes_progres": ["Axe 1 : levier précis avec chiffre cible", "Axe 2 : geste concret en boutique"],
+  "objectif_demain": "Un seul objectif pour demain, mesurable, basé sur le KPI le plus perfectible.",
+  "disc_note": "Phrase d'encouragement adaptée au profil DISC (vide si profil inconnu)."
+}}"""
+
+        user_prompt = f"""Génère le bilan de performance de {seller_name} sur les {days_count} derniers jours ({jours_actifs} jours actifs).
+
+MÉTRIQUES ACTUELLES :
+- CA total : {total_ca:.0f}€
 - Nombre de ventes : {total_ventes}
-- Panier Moyen (PM) : {panier_moyen:.2f}€
-- Indice de Vente (IV) : {indice_vente:.1f} articles/vente
+- Panier Moyen (PM) : {pm:.2f}€
+- Indice de Vente (IV) : {iv:.1f} articles/vente
+{tendance_text}
+{prev_block}
+{obj_block}
+{disc_block}
 
-⚠️ RAPPEL : Ne mentionne PAS le trafic ou les entrées magasin. Focus uniquement sur les métriques ci-dessus.
-
-Génère un bilan terrain motivant avec :
-1. Une phrase de félicitation sincère basée sur les chiffres
-2. 3 conseils courts et actionnables pour améliorer PM ou IV
-3. Un objectif simple pour demain"""
+⚠️ Ne mentionne jamais le trafic ou les entrées magasin."""
 
         response = await self._send_message(
-            system_message=SELLER_BILAN_SYSTEM_PROMPT,
-            user_prompt=prompt,
-            model="gpt-4o-mini",
-            temperature=0.4  # factual KPI report — lower variance
+            system_message=system_prompt,
+            user_prompt=user_prompt,
+            model="gpt-4o",
+            temperature=0.4,
         )
-        return response or f"Bilan pour {seller_name}: Performance en cours d'analyse."
+
+        if not response:
+            return {"synthese": f"Bilan pour {seller_name}: Performance en cours d'analyse.", "points_forts": [], "axes_progres": [], "objectif_demain": "", "disc_note": ""}
+
+        try:
+            cleaned = response.strip()
+            if cleaned.startswith("```"):
+                cleaned = re.sub(r"^```[a-z]*\n?", "", cleaned)
+                cleaned = re.sub(r"\n?```$", "", cleaned)
+            return json.loads(cleaned)
+        except Exception:
+            return {"synthese": response, "points_forts": [], "axes_progres": [], "objectif_demain": "", "disc_note": ""}
 
     # ==============================================================================
     # ☕ BRIEF DU MATIN - Générateur de script pour le brief matinal
@@ -1392,49 +1451,54 @@ Génère un bilan terrain motivant avec :
             
             # Prompt système pour le brief
             system_prompt = f"""Tu es le bras droit d'un Manager Retail.
-Tu rédiges le script du BRIEF MATINAL (3 minutes max à lire) pour l'équipe.
-
-TON & STYLE :
-- Énergique, Positif, Mobilisateur
-- Utilise des émojis pour rendre le brief vivant
-- Structure claire : Intro → Chiffres → Focus → Motivation
-- Phrases courtes, percutantes, faciles à dire à voix haute
+Tu rédiges le script du BRIEF MATINAL (3 minutes max à lire à voix haute) pour l'équipe.
 
 {LEGAL_DISCLAIMER_BLOCK}
 
-CONSIGNE SPÉCIALE DU MANAGER :
+RÈGLES IMPÉRATIVES :
+1. ⛔ Pas de citations génériques ("ensemble on va plus loin", "croyez en vous", etc.)
+2. ⛔ Pas de challenge "café" ou récompense alimentaire — pas adapté à tous les contextes
+3. ⛔ Ne commence pas par "Bien sûr !", "Voici votre brief" ou toute formule introductive
+4. ✅ Chaque phrase doit pouvoir être lue à voix haute naturellement
+5. ✅ Cite toujours les chiffres exacts (CA, PM, IV) — jamais de "bons résultats" vague
+6. ✅ Le défi du jour doit être basé sur un KPI réel (PM, IV, TV) fourni dans les données
+
+CONSIGNE DU MANAGER :
 {context_instruction}
 
-STRUCTURE ATTENDUE (Markdown) :
+STRUCTURE ATTENDUE (6 sections, Markdown) :
 
-# ☕ Brief du Matin - {today}
+# 📋 Brief du Matin — {today}
 ## {store_name}
 
-### 1. 🌤️ L'Humeur du Jour
-(Une phrase d'accroche chaleureuse pour lancer la journée. Si le manager a donné une consigne, intègre-la naturellement ici.)
+### 1. ⚡ Accroche
+(1 phrase percutante qui lance la journée. Intègre la consigne du manager si fournie.)
 
-### 2. 📊 Flash-Back ({data_date_french})
-⚠️ IMPORTANT : Le Flash-Back doit UNIQUEMENT afficher le CA réalisé du dernier jour travaillé.
-Format : "{data_date_french} : X€"
-- **CA réalisé** : X€ (UNIQUEMENT le montant, SANS comparaison ni pourcentage)
-- **Top Performance** : (Mets en avant LE chiffre positif le plus marquant)
-- **Point de vigilance** : (Si un KPI est faible, mentionne-le brièvement)
-❌ NE PAS mentionner d'objectif ou de pourcentage dans le Flash-Back.
+### 2. 📊 Hier en chiffres — {data_date_french}
+- CA réalisé : X€ (chiffre exact)
+- Le point fort : (LE KPI le plus positif avec son chiffre)
+- Le point de vigilance : (si un KPI est faible, cite-le avec son chiffre)
+❌ PAS de comparaison, PAS de pourcentage dans cette section.
 
-### 3. 💰 Objectif du Jour
-{progression_text if progression_text else "(Si un objectif CA du jour est fourni, affiche-le ici avec la progression nécessaire par rapport à hier. Sinon, cette section peut être omise ou intégrée dans la Mission du Jour.)"}
+### 3. 🌟 Coup de projecteur
+(Cite le top vendeur par son prénom et son CA exact. 1-2 phrases max — reconnaître sans créer de compétition négative. Si pas de top vendeur connu, transforme cette section en reconnaissance collective de l'équipe.)
 
-### 4. 🎯 La Mission du Jour
-(UN objectif clair et mesurable pour l'équipe. Basé sur les chiffres OU sur la consigne du manager.)
+### 4. 🎯 La priorité du jour
+{progression_text if progression_text else "(Objectif du jour si fourni, sinon : une action concrète basée sur le point de vigilance identifié ci-dessus. Format : qui fait quoi, comment.)"}
 
-### 5. 🎲 Le Challenge "Café" ☕
-(Une idée de mini-défi fun et rapide - premier à X gagne un café, qui fait le plus de Y, etc.)
+### 5. 💥 Le défi
+(Un défi mesurable basé sur un KPI réel des données fournies.
+Exemples selon les données :
+- Si PM faible : "Aujourd'hui, chaque transaction doit dépasser X€ de PM — proposez systématiquement un produit complémentaire."
+- Si IV faible : "Objectif : X articles par vente minimum — pensez aux associations produits."
+- Si TV faible : "Transformez chaque contact client — l'objectif est X% de transformation."
+Choisissez LE défi le plus pertinent selon les chiffres fournis.)
 
-### 6. 🚀 Le Mot de la Fin
-(Une citation motivante OU une phrase boost personnalisée pour l'équipe.)
+### 6. 🚀 On y va !
+(1 phrase d'élan final, courte et directe. Énergique, concrète, jamais générique. Peut reprendre le défi ou la priorité du jour en une formule mémorable.)
 
 ---
-*Brief généré par Retail Performer AI*
+*Brief généré par Retail Performer IA*
 """
             
             # Formater les stats pour le prompt utilisateur (sans objectif dans le flashback)
@@ -1465,8 +1529,8 @@ Format : "{data_date_french} : X€"
 DONNÉES DU {data_date_french.upper()} (dernier jour travaillé) :
 {stats_text}
 
-ÉQUIPE PRÉSENTE AUJOURD'HUI :
-{stats.get('team_present', 'Non renseigné')}
+ÉQUIPE ACTIVE LE {data_date_french.upper()} :
+{stats.get('team_active_last_day', 'Non renseigné')}
 {disc_team_block}
 {progression_text if progression_text else ""}
 
@@ -1478,7 +1542,7 @@ Génère un brief motivant et concret basé sur ces données.
                 system_message=system_prompt,
                 user_prompt=user_prompt,
                 model="gpt-4o",
-                temperature=0.8  # creative daily script — varies each morning
+                temperature=0.6  # daily script — varied but consistent
             )
 
             if response:
@@ -1514,56 +1578,38 @@ Génère un brief motivant et concret basé sur ces données.
         """
         try:
             structured = {
-                "humeur": "",  # ⭐ Ajout du champ pour l'humeur du jour
+                "humeur": "",
                 "flashback": "",
+                "spotlight": "",
                 "focus": "",
                 "examples": [],
                 "team_question": "",
                 "booster": ""
             }
-            
+
             # Découper par sections (### ou ##)
             sections = re.split(r'###?\s+', markdown_brief)
-            
+
             for section in sections:
                 section_lower = section.lower()
                 lines = section.strip().split('\n')
-                title = lines[0] if lines else ""
                 content = '\n'.join(lines[1:]).strip() if len(lines) > 1 else ""
-                
+
                 # Identifier la section par son titre
-                # ⭐ PRIORITÉ : Vérifier l'humeur en premier (avant les autres sections)
-                if any(kw in section_lower for kw in ['humeur', 'bonjour', 'matin', '🌤️']):
-                    # ⭐ Stocker le contenu de l'humeur du jour
+                if any(kw in section_lower for kw in ['accroche', 'humeur', 'bonjour', 'matin', '⚡', '🌤️']):
                     structured["humeur"] = content
-                    # L'intro peut aussi contenir une question d'équipe (si pas déjà définie)
-                    if not structured["team_question"] and '?' in content:
-                        structured["team_question"] = content
-                        
-                elif any(kw in section_lower for kw in ['flash', 'bilan', 'hier', 'performance', '📊']):
-                    # Extraire les points clés du flashback
+                elif any(kw in section_lower for kw in ['hier', 'flash', 'chiffres', '📊']):
                     structured["flashback"] = content
-                    
-                elif any(kw in section_lower for kw in ['objectif du jour', '💰 objectif']):
-                    # ⭐ Section "Objectif du Jour" - prioritaire sur "Mission"
-                    # Peut être stockée dans focus ou team_question selon le contexte
-                    if not structured["focus"]:
-                        structured["focus"] = content
-                    elif not structured["team_question"]:
-                        structured["team_question"] = content
-                    
-                elif any(kw in section_lower for kw in ['mission', 'focus', '🎯']):
+                elif any(kw in section_lower for kw in ['projecteur', 'spotlight', 'top vendeur', '🌟']):
+                    structured["spotlight"] = content
+                elif any(kw in section_lower for kw in ['priorité', 'mission', 'objectif', 'focus', '🎯', '💰']):
                     structured["focus"] = content
-                    # Extraire les exemples/méthodes (lignes avec - ou •)
                     examples = re.findall(r'^[-•]\s*(.+)$', content, re.MULTILINE)
                     if examples:
                         structured["examples"] = examples
-                    
-                elif any(kw in section_lower for kw in ['challenge', 'défi', 'café', '🎲', '☕']):
-                    # Le challenge peut servir de team_question
+                elif any(kw in section_lower for kw in ['défi', 'challenge', 'déf', '💥', '🎲']):
                     structured["team_question"] = content
-                    
-                elif any(kw in section_lower for kw in ['mot', 'fin', 'conclusion', 'boost', '🚀']):
+                elif any(kw in section_lower for kw in ['on y va', 'mot', 'fin', 'booster', 'boost', '🚀']):
                     structured["booster"] = content
             
             # Vérifier qu'on a au moins le focus et le booster
@@ -1763,14 +1809,47 @@ class AIDataService:
         )
     
     async def generate_seller_bilan_with_data(
-        self, 
+        self,
         seller_id: str,
         seller_data: Dict,
-        days: int = 30
-    ) -> str:
-        """Generate seller bilan with KPI data"""
-        kpis = await self.kpi_repo.find_by_seller(seller_id, limit=days)
-        return await self.ai_service.generate_seller_bilan(seller_data, kpis)
+        days: int = 30,
+    ) -> Dict:
+        """Generate seller bilan with enriched data: current period, previous period, objectives."""
+        from datetime import datetime, timedelta, timezone
+        from repositories.objective_repository import ObjectiveRepository
+
+        today = datetime.now(timezone.utc)
+        end_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+        start_date = (today - timedelta(days=days)).strftime("%Y-%m-%d")
+        prev_end = (today - timedelta(days=days + 1)).strftime("%Y-%m-%d")
+        prev_start = (today - timedelta(days=days * 2)).strftime("%Y-%m-%d")
+
+        # Période courante
+        kpis = await self.kpi_repo.find_by_date_range(seller_id, start_date, end_date)
+
+        # Période précédente (même durée, pour comparaison)
+        prev_kpis = await self.kpi_repo.find_by_date_range(seller_id, prev_start, prev_end)
+
+        # Objectifs actifs du vendeur
+        objectives = []
+        store_id = seller_data.get("store_id")
+        if store_id:
+            try:
+                obj_repo = ObjectiveRepository(self.kpi_repo.db)
+                objectives = await obj_repo.find_by_seller(
+                    seller_id=seller_id,
+                    store_id=store_id,
+                    limit=10,
+                )
+            except Exception:
+                objectives = []
+
+        return await self.ai_service.generate_seller_bilan(
+            seller_data=seller_data,
+            kpis=kpis,
+            prev_kpis=prev_kpis,
+            objectives=objectives,
+        )
 
 
 # ==============================================================================

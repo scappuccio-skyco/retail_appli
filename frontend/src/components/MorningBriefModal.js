@@ -316,6 +316,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
 
         // Add each section with colors
         addSection('📊', 'Flash-Back', structured.flashback, [224, 231, 255], [67, 56, 202]); // Indigo
+        addSection('🌟', 'Coup de Projecteur', structured.spotlight, [254, 243, 199], [146, 64, 14]); // Amber
         addSection('🎯', 'Mission du Jour', structured.focus, [220, 252, 231], [22, 101, 52]); // Green
         
         // Examples as bullet points
@@ -349,8 +350,8 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
           yPosition += 8;
         }
         
-        addSection('', 'Question Equipe', structured.team_question, [243, 232, 255], [107, 33, 168]); // Purple
-        addSection('', 'Le Mot de la Fin', structured.booster, [252, 231, 243], [157, 23, 77]); // Pink
+        addSection('', 'Le Defi', structured.team_question, [243, 232, 255], [107, 33, 168]); // Purple
+        addSection('', 'On y va !', structured.booster, [252, 231, 243], [157, 23, 77]); // Pink
 
       } else {
         // Fallback: Parse markdown content
@@ -608,6 +609,18 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
           </div>
         )}
 
+        {/* 🌟 Coup de projecteur */}
+        {structured.spotlight && (
+          <div className="rounded-xl p-5 shadow-sm border-2 border-amber-200 bg-amber-50">
+            <div className="mb-3">
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm bg-amber-100 text-amber-800 border border-amber-300">
+                🌟 Coup de Projecteur
+              </span>
+            </div>
+            {renderContentWithMarkdown(structured.spotlight)}
+          </div>
+        )}
+
         {/* 🎯 Focus/Mission */}
         {structured.focus && (
           <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[2].card}`}>
@@ -641,24 +654,24 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
           </div>
         )}
 
-        {/* 🗣️ Question Équipe */}
+        {/* 💥 Le Défi */}
         {structured.team_question && (
           <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[3].card}`}>
             <div className="mb-3">
               <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${colorPalette[3].badge}`}>
-                🗣️ Question Équipe
+                💥 Le Défi
               </span>
             </div>
             {renderContentWithMarkdown(structured.team_question)}
           </div>
         )}
 
-        {/* 🚀 Booster */}
+        {/* 🚀 On y va ! */}
         {structured.booster && (
           <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[4].card}`}>
             <div className="mb-3">
               <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${colorPalette[4].badge}`}>
-                🚀 Le Mot de la Fin
+                🚀 On y va !
               </span>
             </div>
             {renderContentWithMarkdown(structured.booster)}

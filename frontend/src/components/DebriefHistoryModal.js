@@ -979,11 +979,19 @@ export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebr
                               {/* Exemple concret */}
                               <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4 border-l-4 border-purple-500">
                                 <p className="text-sm font-bold text-purple-900 mb-2 flex items-center gap-2">
-                                  <span className="text-lg">{isConclue ? '✨' : '💡'}</span> 
+                                  <span className="text-lg">{isConclue ? '✨' : '💡'}</span>
                                   {isConclue ? 'Ce qui a fait la différence' : 'Exemple concret'}
                                 </p>
                                 <p className="text-sm text-purple-800 italic whitespace-pre-line leading-relaxed">{renderMarkdownBold(debrief.ai_exemple_concret)}</p>
                               </div>
+                              {debrief.ai_action_immediate && (
+                                <div className="bg-yellow-50 rounded-xl p-4 border-l-4 border-yellow-400">
+                                  <p className="text-sm font-bold text-yellow-900 mb-2 flex items-center gap-2">
+                                    <span className="text-lg">⚡</span> À faire maintenant
+                                  </p>
+                                  <p className="text-sm text-yellow-800 font-semibold whitespace-pre-line leading-relaxed">{renderMarkdownBold(debrief.ai_action_immediate)}</p>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

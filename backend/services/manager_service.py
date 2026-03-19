@@ -1109,8 +1109,8 @@ class APIKeyService:
     ) -> Dict[str, Any]:
         """
         Récupère les statistiques du dernier jour avec des données de vente pour le brief matinal.
+        Source unique : collection kpi_entries (via kpi_repo).
         Cherche dans les 30 derniers jours pour trouver le dernier jour travaillé.
-        Utilise store_kpi_repo, kpi_repo, user_repo, store_repo (injectés).
         """
         today = datetime.now(timezone.utc)
         start_of_week = today - timedelta(days=today.weekday())
@@ -1124,162 +1124,133 @@ class APIKeyService:
             "top_seller_yesterday": None,
             "ca_week": 0,
             "objectif_week": 0,
-            "team_present": "Non renseigné",
+            "team_active_last_day": "Non renseigné",
             "data_date": None,
         }
-        if not store_id or not self.store_kpi_repo:
+        if not store_id or not self.kpi_repo:
             return stats
+
         try:
-            store_kpi_repo = self.store_kpi_repo
-            kpi_repo = self.kpi_repo
-            # Pre-fetch seller IDs for store as fallback when store_id doesn't match kpi_entries
-            seller_ids_for_store = []
-            if self.user_repo:
-                sellers_in_store = await self.user_repo.find_by_store(
-                    store_id, role="seller", status="active",
-                    projection={"_id": 0, "id": 1}, limit=200
-                )
-                seller_ids_for_store = [s["id"] for s in sellers_in_store if s.get("id")]
+            # ── 1. Trouver le dernier jour avec des données dans kpi_entries ──────
             last_data_date = None
             for days_back in range(1, 31):
-                check_date = today - timedelta(days=days_back)
-                check_date_str = check_date.strftime("%Y-%m-%d")
-                kpi_check = await store_kpi_repo.find_one_with_ca(store_id, check_date_str)
-                if not kpi_check:
-                    kpi_check = await kpi_repo.find_one(
-                        {
-                            "store_id": store_id,
-                            "date": check_date_str,
-                            "ca_journalier": {"$gt": 0},
-                        },
-                        {"_id": 0, "date": 1},
+                check_date_str = (today - timedelta(days=days_back)).strftime("%Y-%m-%d")
+                entry = await self.kpi_repo.find_one(
+                    {"store_id": store_id, "date": check_date_str, "ca_journalier": {"$gt": 0}},
+                    {"_id": 0, "date": 1},
+                )
+                if not entry and self.user_repo:
+                    # Fallback: chercher par seller_ids si store_id n'est pas indexé sur les entrées
+                    sellers_in_store = await self.user_repo.find_by_store(
+                        store_id, role="seller", status="active",
+                        projection={"_id": 0, "id": 1}, limit=200
                     )
-                # Fallback: search by seller_ids in case store_id doesn't match kpi_entries
-                if not kpi_check and seller_ids_for_store:
-                    kpi_check = await kpi_repo.find_one(
-                        {"seller_id": {"$in": seller_ids_for_store}, "date": check_date_str, "ca_journalier": {"$gt": 0}},
-                        {"_id": 0, "date": 1},
-                    )
-                if kpi_check:
+                    seller_ids = [s["id"] for s in sellers_in_store if s.get("id")]
+                    if seller_ids:
+                        entry = await self.kpi_repo.find_one(
+                            {"seller_id": {"$in": seller_ids}, "date": check_date_str, "ca_journalier": {"$gt": 0}},
+                            {"_id": 0, "date": 1},
+                        )
+                if entry:
                     last_data_date = check_date_str
                     break
+
             if not last_data_date:
                 last_data_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
             stats["data_date"] = last_data_date
             logger.info("[BRIEF] store_id=%s last_data_date=%s", store_id, last_data_date)
 
-            kpis_yesterday = await store_kpi_repo.find_many_for_store(
-                store_id, date=last_data_date, limit=50
-            )
-            logger.info("[BRIEF] kpis_yesterday (legacy kpis collection): %d entries", len(kpis_yesterday))
-            if not kpis_yesterday:
-                kpi_entries = await kpi_repo.find_by_store(store_id, last_data_date)
-                logger.info("[BRIEF] kpi_entries by store_id count: %d", len(kpi_entries))
-                # Fallback: query by seller_ids if store_id didn't match (API sync may use different store_id)
-                if not kpi_entries and seller_ids_for_store:
-                    kpi_entries = await kpi_repo.find_many(
-                        {"seller_id": {"$in": seller_ids_for_store}, "date": last_data_date},
+            # ── 2. KPIs du dernier jour (kpi_entries) ────────────────────────────
+            kpi_entries = await self.kpi_repo.find_by_store(store_id, last_data_date)
+            if not kpi_entries and self.user_repo:
+                sellers_in_store = await self.user_repo.find_by_store(
+                    store_id, role="seller", status="active",
+                    projection={"_id": 0, "id": 1}, limit=200
+                )
+                seller_ids = [s["id"] for s in sellers_in_store if s.get("id")]
+                if seller_ids:
+                    kpi_entries = await self.kpi_repo.find_many(
+                        {"seller_id": {"$in": seller_ids}, "date": last_data_date},
                         projection={"_id": 0},
                         limit=200,
                     )
-                    logger.info("[BRIEF] kpi_entries by seller_ids fallback count: %d", len(kpi_entries))
-                if kpi_entries:
-                    total_ca = sum(k.get("ca_journalier", 0) or 0 for k in kpi_entries)
-                    logger.info("[BRIEF] total_ca computed from kpi_entries: %s", total_ca)
-                    total_ventes = sum(k.get("nb_ventes", 0) or 0 for k in kpi_entries)
-                    total_articles = sum(
-                        k.get("nb_articles", k.get("nb_ventes", 0)) or 0 for k in kpi_entries
-                    )
-                    total_visiteurs = sum(
-                        k.get("nb_visiteurs", k.get("nb_prospects", 0)) or 0 for k in kpi_entries
-                    )
-                    stats["ca_yesterday"] = total_ca
-                    stats["ventes_yesterday"] = total_ventes
-                    if total_ventes > 0:
-                        stats["panier_moyen_yesterday"] = total_ca / total_ventes
-                        stats["indice_vente_yesterday"] = total_articles / total_ventes
-                    if total_visiteurs > 0:
-                        stats["taux_transfo_yesterday"] = (total_ventes / total_visiteurs) * 100
-                    if kpi_entries:
-                        sorted_sellers = sorted(
-                            kpi_entries, key=lambda x: x.get("ca_journalier", 0) or 0, reverse=True
-                        )
-                        if sorted_sellers:
-                            top_kpi = sorted_sellers[0]
-                            top_seller = await self.user_repo.find_one(
-                                {"id": top_kpi.get("seller_id")},
-                                {"_id": 0, "name": 1},
-                            )
-                            if top_seller:
-                                stats["top_seller_yesterday"] = (
-                                    f"{top_seller.get('name')} ({top_kpi.get('ca_journalier', 0):,.0f}€)"
-                                )
-            if kpis_yesterday:
-                total_ca = sum(k.get("ca", 0) or 0 for k in kpis_yesterday)
-                total_ventes = sum(k.get("nb_ventes", 0) or 0 for k in kpis_yesterday)
-                total_articles = sum(k.get("nb_articles", 0) or 0 for k in kpis_yesterday)
-                total_visiteurs = sum(k.get("nb_visiteurs", 0) or 0 for k in kpis_yesterday)
+            logger.info("[BRIEF] kpi_entries for %s: %d entries", last_data_date, len(kpi_entries))
+
+            if kpi_entries:
+                total_ca = sum(k.get("ca_journalier", 0) or 0 for k in kpi_entries)
+                total_ventes = sum(k.get("nb_ventes", 0) or 0 for k in kpi_entries)
+                total_articles = sum(k.get("nb_articles", 0) or 0 for k in kpi_entries)
+                total_prospects = sum(k.get("nb_prospects", 0) or 0 for k in kpi_entries)
                 stats["ca_yesterday"] = total_ca
                 stats["ventes_yesterday"] = total_ventes
                 if total_ventes > 0:
-                    stats["panier_moyen_yesterday"] = total_ca / total_ventes
-                    stats["indice_vente_yesterday"] = total_articles / total_ventes
-                if total_visiteurs > 0:
-                    stats["taux_transfo_yesterday"] = (total_ventes / total_visiteurs) * 100
-                sorted_sellers = sorted(
-                    kpis_yesterday, key=lambda x: x.get("ca", 0) or 0, reverse=True
-                )
-                if sorted_sellers:
-                    top_kpi = sorted_sellers[0]
+                    stats["panier_moyen_yesterday"] = round(total_ca / total_ventes, 2)
+                    stats["indice_vente_yesterday"] = round(total_articles / total_ventes, 2)
+                if total_prospects > 0:
+                    stats["taux_transfo_yesterday"] = round((total_ventes / total_prospects) * 100, 1)
+
+                # Top vendeur du jour
+                top_entry = max(kpi_entries, key=lambda x: x.get("ca_journalier", 0) or 0)
+                if top_entry.get("ca_journalier", 0) > 0 and self.user_repo:
                     top_seller = await self.user_repo.find_one(
-                        {"id": top_kpi.get("seller_id")},
+                        {"id": top_entry.get("seller_id")},
                         {"_id": 0, "name": 1},
                     )
                     if top_seller:
                         stats["top_seller_yesterday"] = (
-                            f"{top_seller.get('name')} ({top_kpi.get('ca', 0):,.0f}€)"
+                            f"{top_seller.get('name', '').split()[0]} ({top_entry.get('ca_journalier', 0):,.0f}€)"
                         )
 
-            store_obj = await self.store_repo.find_by_id(
-                store_id, None, {"_id": 0, "objective_daily": 1, "objective_weekly": 1}
-            )
-            if store_obj:
-                stats["objectif_yesterday"] = store_obj.get("objective_daily", 0) or 0
-                stats["objectif_week"] = store_obj.get("objective_weekly", 0) or 0
+                # Vendeurs ayant saisi des KPIs ce jour-là
+                seller_ids_active = list({k.get("seller_id") for k in kpi_entries if k.get("seller_id")})
+                if seller_ids_active and self.user_repo:
+                    active_sellers = await self.user_repo.find_many(
+                        {"id": {"$in": seller_ids_active}},
+                        projection={"_id": 0, "name": 1},
+                        limit=50,
+                    )
+                    if active_sellers:
+                        names = [s.get("name", "").split()[0] for s in active_sellers[:6]]
+                        stats["team_active_last_day"] = ", ".join(names)
+                        if len(active_sellers) > 6:
+                            stats["team_active_last_day"] += f" et {len(active_sellers) - 6} autres"
 
-            week_start_str = start_of_week.strftime("%Y-%m-%d")
-            kpi_week_aggregate = [
+            # ── 3. CA de la semaine en cours (kpi_entries) ───────────────────────
+            # La semaine commence le lundi. Si last_data_date est avant ce lundi,
+            # on utilise la semaine du last_data_date (pas la semaine courante).
+            last_data_dt = datetime.strptime(last_data_date, "%Y-%m-%d")
+            last_data_monday = last_data_dt - timedelta(days=last_data_dt.weekday())
+            week_start_str = last_data_monday.strftime("%Y-%m-%d")
+
+            week_pipeline = [
                 {
                     "$match": {
                         "store_id": store_id,
                         "date": {"$gte": week_start_str, "$lte": last_data_date},
                     }
                 },
-                {"$group": {"_id": None, "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}}}},
+                {
+                    "$group": {
+                        "_id": None,
+                        "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
+                    }
+                },
             ]
-            kpi_week_result = await kpi_repo.aggregate(kpi_week_aggregate, max_results=1)
-            if kpi_week_result:
-                stats["ca_week"] = kpi_week_result[0].get("total_ca", 0) or 0
-            else:
-                kpis_week = await store_kpi_repo.find_many_for_store(
-                    store_id,
-                    date_range={"$gte": week_start_str, "$lte": last_data_date},
-                    limit=500,
-                    projection={"_id": 0, "ca": 1},
-                )
-                if kpis_week:
-                    stats["ca_week"] = sum(k.get("ca", 0) or 0 for k in kpis_week)
+            week_result = await self.kpi_repo.aggregate(week_pipeline, max_results=1)
+            if week_result:
+                stats["ca_week"] = week_result[0].get("total_ca", 0) or 0
 
-            sellers = await self.user_repo.find_by_store(
-                store_id, role="seller", status="active",
-                projection={"_id": 0, "name": 1}, limit=50
-            )
-            if sellers:
-                names = [s.get("name", "").split()[0] for s in sellers[:5]]
-                stats["team_present"] = ", ".join(names)
-                if len(sellers) > 5:
-                    stats["team_present"] += f" et {len(sellers) - 5} autres"
+            # ── 4. Objectifs du magasin ───────────────────────────────────────────
+            if self.store_repo:
+                store_obj = await self.store_repo.find_by_id(
+                    store_id, None, {"_id": 0, "objective_daily": 1, "objective_weekly": 1}
+                )
+                if store_obj:
+                    stats["objectif_yesterday"] = store_obj.get("objective_daily", 0) or 0
+                    stats["objectif_week"] = store_obj.get("objective_weekly", 0) or 0
+
         except Exception as e:
             logger.error("Erreur récupération stats brief: %s", e)
+
         return stats
 

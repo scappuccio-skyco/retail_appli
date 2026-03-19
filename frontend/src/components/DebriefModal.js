@@ -169,6 +169,19 @@ export default function DebriefModal({ onClose, onSuccess }) {
               </div>
             </div>
 
+            {/* Action immédiate */}
+            {aiAnalysis.ai_action_immediate && (
+              <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">⚡</span>
+                  <div>
+                    <h3 className="font-bold text-yellow-900 mb-2">À faire maintenant</h3>
+                    <p className="text-yellow-800 font-semibold whitespace-pre-line">{renderMarkdownBold(aiAnalysis.ai_action_immediate)}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleClose}
               className="w-full py-3 bg-[#ffd871] text-gray-800 rounded-full font-semibold hover:shadow-lg transition-all"

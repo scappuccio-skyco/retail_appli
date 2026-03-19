@@ -100,18 +100,21 @@ async def create_debrief(
     ai_points_travailler = ""
     ai_recommandation = ""
     ai_exemple_concret = ""
+    ai_action_immediate = ""
     previous_coaching = []
     try:
         prev_debriefs = await seller_service.get_debriefs_by_seller(
             seller_id,
-            projection={"_id": 0, "ai_recommandation": 1, "vente_conclue": 1, "date": 1},
-            limit=2,
+            projection={"_id": 0, "ai_recommandation": 1, "ai_action_immediate": 1, "vente_conclue": 1, "date": 1, "moment_perte_client": 1},
+            limit=3,
             sort=[("created_at", -1)],
         )
         previous_coaching = [
             {
                 "date": d.get("date", ""),
                 "recommendation": d.get("ai_recommandation", ""),
+                "action_immediate": d.get("ai_action_immediate", ""),
+                "moment_blocage": d.get("moment_perte_client", ""),
                 "was_success": d.get("vente_conclue", False),
             }
             for d in prev_debriefs
@@ -135,6 +138,7 @@ async def create_debrief(
                 ai_points_travailler = feedback_result.get('points_travailler', '')
                 ai_recommandation = feedback_result.get('recommandation', '')
                 ai_exemple_concret = feedback_result.get('exemple_concret', '')
+                ai_action_immediate = feedback_result.get('action_immediate', '')
                 is_success = debrief_data.vente_conclue
                 new_scores = {
                     k: _apply_delta(
@@ -161,6 +165,7 @@ async def create_debrief(
         "ai_points_travailler": ai_points_travailler,
         "ai_recommandation": ai_recommandation,
         "ai_exemple_concret": ai_exemple_concret,
+        "ai_action_immediate": ai_action_immediate,
         "score_accueil": new_scores.get('accueil', current_scores['accueil']),
         "score_decouverte": new_scores.get('decouverte', current_scores['decouverte']),
         "score_argumentation": new_scores.get('argumentation', current_scores['argumentation']),
