@@ -226,8 +226,41 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           </div>
                         </div>
 
-                        {/* Reste du formulaire — visible uniquement après sélection du type */}
-                        {newObjective.type && (<>
+                        {/* Étape 2 — Catégorie d'objectif (visible après sélection du type) */}
+                        {newObjective.type && (
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Catégorie d'objectif *</label>
+                          <div className="flex flex-wrap gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setNewObjective({ ...newObjective, objective_type: 'kpi_standard', unit: newObjective.kpi_name === 'ca' ? '€' : newObjective.kpi_name === 'ventes' ? 'ventes' : newObjective.kpi_name === 'articles' ? 'articles' : '' })}
+                              className={`flex-1 min-w-[120px] p-4 rounded-xl border-2 text-left transition-all ${newObjective.objective_type === 'kpi_standard' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 bg-white hover:border-blue-200 hover:bg-blue-50'}`}
+                            >
+                              <div className="font-semibold text-gray-800 text-sm">📊 KPI Standard</div>
+                              <div className="text-xs text-gray-500 mt-0.5">CA, ventes, articles</div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewObjective({ ...newObjective, objective_type: 'product_focus', unit: '' })}
+                              className={`flex-1 min-w-[120px] p-4 rounded-xl border-2 text-left transition-all ${newObjective.objective_type === 'product_focus' ? 'border-green-500 bg-green-50 shadow-md' : 'border-gray-200 bg-white hover:border-green-200 hover:bg-green-50'}`}
+                            >
+                              <div className="font-semibold text-gray-800 text-sm">📦 Focus Produit</div>
+                              <div className="text-xs text-gray-500 mt-0.5">Mettre en avant un produit</div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewObjective({ ...newObjective, objective_type: 'custom', unit: '' })}
+                              className={`flex-1 min-w-[120px] p-4 rounded-xl border-2 text-left transition-all ${newObjective.objective_type === 'custom' ? 'border-purple-500 bg-purple-50 shadow-md' : 'border-gray-200 bg-white hover:border-purple-200 hover:bg-purple-50'}`}
+                            >
+                              <div className="font-semibold text-gray-800 text-sm">✨ Autre</div>
+                              <div className="text-xs text-gray-500 mt-0.5">Objectif personnalisé</div>
+                            </button>
+                          </div>
+                        </div>
+                        )}
+
+                        {/* Étape 3 — Reste du formulaire (visible après les deux premières sélections) */}
+                        {newObjective.type && newObjective.objective_type && (<>
                         <div className="md:col-span-2">
                           <div className="flex items-center gap-2 mb-2">
                             <label className="block text-sm font-semibold text-gray-700">Nom de l'objectif *</label>
@@ -474,100 +507,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           />
                         </div>
 
-                        {/* NEW FLEXIBLE OBJECTIVE SYSTEM */}
+                        {/* Détails selon la catégorie choisie */}
                         <div className="md:col-span-2">
-                          <div className="mb-3">
-                            <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                              <span className="text-lg">🎯</span>
-                              Type d'objectif
-                            </h4>
-                          </div>
-                          
-                          {/* Objective Type Selection - Horizontal Radio Buttons */}
-                          <div className="mb-4 flex flex-wrap gap-3">
-                            <label className={`flex items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                              newObjective.objective_type === 'kpi_standard'
-                                ? 'bg-blue-50 border-blue-500 shadow-md'
-                                : 'bg-white border-gray-300 hover:border-blue-300'
-                            }`}>
-                              <input
-                                type="radio"
-                                name="objective_type"
-                                value="kpi_standard"
-                                checked={newObjective.objective_type === 'kpi_standard'}
-                                onChange={(e) => {
-                                  const newType = e.target.value;
-                                  setNewObjective({ 
-                                    ...newObjective, 
-                                    objective_type: newType,
-                                    unit: newObjective.kpi_name === 'ca' ? '€' : 
-                                          newObjective.kpi_name === 'ventes' ? 'ventes' :
-                                          newObjective.kpi_name === 'articles' ? 'articles' : ''
-                                  });
-                                }}
-                                className="w-4 h-4 text-blue-600"
-                              />
-                              <span className={`font-semibold ${
-                                newObjective.objective_type === 'kpi_standard' ? 'text-blue-700' : 'text-gray-700'
-                              }`}>
-                                📊 KPI Standard
-                              </span>
-                            </label>
-
-                            <label className={`flex items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                              newObjective.objective_type === 'product_focus'
-                                ? 'bg-green-50 border-green-500 shadow-md'
-                                : 'bg-white border-gray-300 hover:border-green-300'
-                            }`}>
-                              <input
-                                type="radio"
-                                name="objective_type"
-                                value="product_focus"
-                                checked={newObjective.objective_type === 'product_focus'}
-                                onChange={(e) => {
-                                  setNewObjective({ 
-                                    ...newObjective, 
-                                    objective_type: e.target.value,
-                                    unit: ''
-                                  });
-                                }}
-                                className="w-4 h-4 text-green-600"
-                              />
-                              <span className={`font-semibold ${
-                                newObjective.objective_type === 'product_focus' ? 'text-green-700' : 'text-gray-700'
-                              }`}>
-                                📦 Focus Produit
-                              </span>
-                            </label>
-
-                            <label className={`flex items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                              newObjective.objective_type === 'custom'
-                                ? 'bg-purple-50 border-purple-500 shadow-md'
-                                : 'bg-white border-gray-300 hover:border-purple-300'
-                            }`}>
-                              <input
-                                type="radio"
-                                name="objective_type"
-                                value="custom"
-                                checked={newObjective.objective_type === 'custom'}
-                                onChange={(e) => {
-                                  setNewObjective({ 
-                                    ...newObjective, 
-                                    objective_type: e.target.value,
-                                    unit: ''
-                                  });
-                                }}
-                                className="w-4 h-4 text-purple-600"
-                              />
-                              <span className={`font-semibold ${
-                                newObjective.objective_type === 'custom' ? 'text-purple-700' : 'text-gray-700'
-                              }`}>
-                                ✨ Autre (personnalisé)
-                              </span>
-                            </label>
-                          </div>
-
-                          {/* Conditional Fields Based on Objective Type */}
                           {newObjective.objective_type === 'kpi_standard' && (
                             <div className="mb-4 bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
                               <label className="block text-sm font-semibold text-gray-700 mb-2">KPI à cibler *</label>
@@ -702,7 +643,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                         </>)}
                       </div>
 
-                      {newObjective.type && (
+                      {newObjective.type && newObjective.objective_type && (
                       <div className="flex gap-3">
                         <button
                           type="submit"
