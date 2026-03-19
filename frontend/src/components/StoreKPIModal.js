@@ -77,9 +77,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 storeId={storeId}
               />
               <div className="mt-8 pt-6 border-t-2 border-orange-100">
-                <h3 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
-                  <span>📈</span> Historique & Tendances
-                </h3>
                 <StoreKPIModalOverviewTab
                   viewMode={state.viewMode}
                   setViewMode={state.setViewMode}

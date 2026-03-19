@@ -283,42 +283,38 @@ function DateSelectionSection({
   const currentYear = new Date().getFullYear();
   const yearOptions = availableYears.length > 0 ? availableYears : [currentYear, currentYear - 1];
   return (
-    <>
-      <div className="flex gap-1.5 mb-4">
-        {viewModeTabs.map(({ id, label, onClick }) => (
-          <button key={id} onClick={onClick} className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all border-2 ${viewMode === id ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'}`}>{label}</button>
-        ))}
+    <div className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden mb-4">
+      {/* Ligne 1 : sélecteur de période + bouton IA */}
+      <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200">
+        <div className="flex gap-1.5">
+          {viewModeTabs.map(({ id, label, onClick }) => (
+            <button key={id} onClick={onClick} className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all border-2 ${viewMode === id ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'}`}>{label}</button>
+          ))}
+        </div>
+        <button
+          onClick={() => onShowOverviewAIModal(true)}
+          disabled={!hasData || allZero}
+          className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+          title={weekIATitle || yearIATitle}
+        >
+          🤖 Analyse IA
+        </button>
       </div>
-      {viewMode === 'week' && (
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
-          <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une semaine</h3>
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            <WeekPicker value={selectedWeek} onChange={setSelectedWeek} datesWithData={datesWithData} />
-            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || !selectedWeek || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={weekIATitle}>🤖 Analyse IA</button>
-          </div>
-        </div>
-      )}
-      {viewMode === 'month' && (
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
-          <h3 className="text-lg font-bold text-orange-900 mb-3">📆 Sélectionner un mois</h3>
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} onClick={onShowPicker} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer" />
-            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || !selectedMonth || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap">🤖 Analyse IA</button>
-          </div>
-        </div>
-      )}
-      {viewMode === 'year' && (
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
-          <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une année</h3>
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            <select value={selectedYear} onChange={(e) => setSelectedYear(Number.parseInt(e.target.value, 10))} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none bg-white cursor-pointer">
-              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-            <button onClick={() => onShowOverviewAIModal(true)} disabled={!hasData || allZero} className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap" title={yearIATitle}>🤖 Analyse IA</button>
-          </div>
-        </div>
-      )}
-    </>
+      {/* Ligne 2 : navigation */}
+      <div className="px-4 py-3">
+        {viewMode === 'week' && (
+          <WeekPicker value={selectedWeek} onChange={setSelectedWeek} datesWithData={datesWithData} />
+        )}
+        {viewMode === 'month' && (
+          <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} onClick={onShowPicker} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none cursor-pointer bg-white" />
+        )}
+        {viewMode === 'year' && (
+          <select value={selectedYear} onChange={(e) => setSelectedYear(Number.parseInt(e.target.value, 10))} className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none bg-white cursor-pointer">
+            {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        )}
+      </div>
+    </div>
   );
 }
 DateSelectionSection.propTypes = {
