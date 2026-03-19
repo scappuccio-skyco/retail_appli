@@ -7,6 +7,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, Request
 
+from config.limits import KPI_RECENT_DAYS, DEBRIEFS_HISTORY_CAP
 from core.constants import (
     ERR_VENDEUR_NON_TROUVE_OU_APPARTIENT_PAS,
     MONGO_GROUP,
@@ -242,9 +243,9 @@ async def get_seller_profile(
         )
         diagnostic = await manager_service.get_diagnostic_by_seller(seller_id)
         end_dt = datetime.now(timezone.utc)
-        start_dt = end_dt - timedelta(days=7)
+        start_dt = end_dt - timedelta(days=KPI_RECENT_DAYS)
         recent_kpis_result = await manager_service.get_kpi_entries_paginated(
-            {"seller_id": seller_id, "date": {"$gte": start_dt.strftime("%Y-%m-%d")}}, page=1, size=7
+            {"seller_id": seller_id, "date": {"$gte": start_dt.strftime("%Y-%m-%d")}}, page=1, size=KPI_RECENT_DAYS
         )
         recent_kpis = recent_kpis_result.items
         return {**seller, "diagnostic": diagnostic, "recent_kpis": recent_kpis}
@@ -348,7 +349,7 @@ async def get_seller_debriefs(
 
 
 # Cap pour éviter de charger des milliers de debriefs en mémoire (préférer pagination côté client).
-_COMPETENCES_HISTORY_DEBRIEFS_CAP = 200
+_COMPETENCES_HISTORY_DEBRIEFS_CAP = DEBRIEFS_HISTORY_CAP
 
 
 @router.get("/competences-history/{seller_id}")

@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Query, Request
 
+from config.limits import SELLERS_LIST_LIMIT
 from core.constants import (
     ERR_STORE_ID_REQUIS,
     MONGO_GROUP,
@@ -60,7 +61,6 @@ async def get_store_kpi_overview(
         "store_id": resolved_store_id,
         "totals": {
             "ca": totals.get("ca", 0),
-            "ca_journalier": totals.get("ca", 0),
             "nb_ventes": totals.get("ventes", 0),
             "nb_clients": totals.get("clients", 0),
             "nb_articles": totals.get("articles", 0),
@@ -155,8 +155,8 @@ async def get_manager_kpis(
         )
         return result
     except Exception as e:
-        logger.error("Error fetching manager KPIs: %s", e)
-        return PaginatedResponse(items=[], total=0, page=1, size=pagination.size, pages=0)
+        logger.error("Error fetching manager KPIs: %s", e, exc_info=True)
+        raise
 
 
 @router.post("/manager-kpi")
@@ -192,7 +192,7 @@ async def save_manager_kpi(
         seller_ids = [s.get("seller_id") for s in sellers_data if s.get("seller_id")]
         if not seller_ids:
             raise ValidationError("Au moins un 'seller_id' valide requis dans sellers_data.")
-        sellers = await manager_service.get_users_by_ids_and_store(seller_ids, resolved_store_id, role="seller", limit=50, projection={"_id": 0, "id": 1, "name": 1})
+        sellers = await manager_service.get_users_by_ids_and_store(seller_ids, resolved_store_id, role="seller", limit=SELLERS_LIST_LIMIT, projection={"_id": 0, "id": 1, "name": 1})
         valid_ids = {s["id"] for s in sellers}
         invalid = set(seller_ids) - valid_ids
         if invalid:

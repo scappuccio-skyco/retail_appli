@@ -73,7 +73,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebr
     raisons_echec: [], // Sélection multiple
     raisons_echec_autre: '',
     amelioration_pensee: '',
-    visible_to_manager: false
+    shared_with_manager: false
   });
   
   // Form opportunité manquée
@@ -86,7 +86,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebr
     raisons_echec: [], // Sélection multiple
     raisons_echec_autre: '',
     amelioration_pensee: '',
-    visible_to_manager: false
+    shared_with_manager: false
   });
 
   const toggleDebrief = (debriefId) => {
@@ -164,7 +164,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebr
         '/debriefs',
         {
           vente_conclue: true,
-          visible_to_manager: formConclue.visible_to_manager,
+          shared_with_manager: formConclue.shared_with_manager,
           produit: formConclue.produit,
           type_client: formConclue.type_client,
           situation_vente: 'En magasin',
@@ -242,7 +242,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebr
         '/debriefs',
         {
           vente_conclue: false,
-          visible_to_manager: formManquee.visible_to_manager,
+          shared_with_manager: formManquee.shared_with_manager,
           produit: formManquee.produit,
           type_client: formManquee.type_client,
           situation_vente: 'En magasin',
@@ -277,7 +277,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebr
       // Mettre à jour localement sans fermer le modal
       setDebriefs(prev => prev.map(d => 
         d.id === debriefId 
-          ? { ...d, visible_to_manager: newVisibility, shared_with_manager: newVisibility }
+          ? { ...d, shared_with_manager: newVisibility }
           : d
       ));
       
@@ -502,14 +502,14 @@ export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebr
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formConclue.visible_to_manager}
-                      onChange={(e) => setFormConclue({...formConclue, visible_to_manager: e.target.checked})}
+                      checked={formConclue.shared_with_manager}
+                      onChange={(e) => setFormConclue({...formConclue, shared_with_manager: e.target.checked})}
                       className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
                     />
                     <div>
                       <p className="font-medium text-gray-900">Partager avec mon manager</p>
                       <p className="text-sm text-gray-600">
-                        {formConclue.visible_to_manager ? (
+                        {formConclue.shared_with_manager ? (
                           <span className="flex items-center gap-1 text-green-600">
                             <Eye className="w-4 h-4" /> Visible
                           </span>
@@ -716,14 +716,14 @@ export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebr
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formManquee.visible_to_manager}
-                      onChange={(e) => setFormManquee({...formManquee, visible_to_manager: e.target.checked})}
+                      checked={formManquee.shared_with_manager}
+                      onChange={(e) => setFormManquee({...formManquee, shared_with_manager: e.target.checked})}
                       className="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
                     />
                     <div>
                       <p className="font-medium text-gray-900">Partager avec mon manager</p>
                       <p className="text-sm text-gray-600">
-                        {formManquee.visible_to_manager ? (
+                        {formManquee.shared_with_manager ? (
                           <span className="flex items-center gap-1 text-orange-600">
                             <Eye className="w-4 h-4" /> Visible
                           </span>
@@ -883,23 +883,23 @@ export default function DebriefHistoryModal({ onClose, onSuccess, autoExpandDebr
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleToggleVisibility(debrief.id, debrief.visible_to_manager);
+                                      handleToggleVisibility(debrief.id, debrief.shared_with_manager);
                                     }}
                                     className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all ${
-                                      debrief.visible_to_manager
+                                      debrief.shared_with_manager
                                         ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
-                                    title={debrief.visible_to_manager ? "Masquer cette analyse au manager" : "Partager cette analyse avec le manager"}
+                                    title={debrief.shared_with_manager ? "Masquer cette analyse au manager" : "Partager cette analyse avec le manager"}
                                   >
-                                    {debrief.visible_to_manager ? (
+                                    {debrief.shared_with_manager ? (
                                       <><Eye className="w-3.5 h-3.5" /> Visible par le Manager</>
                                     ) : (
                                       <><EyeOff className="w-3.5 h-3.5" /> Privé</>
                                     )}
                                   </button>
                                   <span className="text-xs text-gray-500">
-                                    {debrief.visible_to_manager ? 'Le manager peut voir cette analyse' : 'Seul vous pouvez voir cette analyse'}
+                                    {debrief.shared_with_manager ? 'Le manager peut voir cette analyse' : 'Seul vous pouvez voir cette analyse'}
                                   </span>
                                 </div>
                                 <div className="space-y-2">

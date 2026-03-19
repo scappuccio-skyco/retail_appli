@@ -31,6 +31,12 @@ DEBRIEFS_LIMIT: Final[int] = 5
 """Default limit for debriefs queries"""
 MAX_QUERY_RESULTS: Final[int] = 1000
 """Maximum results for non-paginated queries (⚠️ À remplacer par pagination)"""
+SELLERS_LIST_LIMIT: Final[int] = 50
+"""Limit for seller listing queries within a store (IDOR-safe bound)"""
+KPI_RECENT_DAYS: Final[int] = 7
+"""Lookback window in days for recent KPI entries (seller detail view)"""
+DEBRIEFS_HISTORY_CAP: Final[int] = 200
+"""Hard cap for competence-history debriefs (pagination preferred client-side)"""
 
 # ===== JWT =====
 JWT_EXPIRATION_HOURS: Final[int] = 24

@@ -19,7 +19,6 @@ ERR_ACCES_REFUSE_MAGASIN_AUTRE_GERANT = (
     "Accès refusé: ce magasin appartient à un autre gérant (store_id: {store_id}, your_id: {user_id}, store_gerant_id: {store_gerant_id})"
 )
 ERR_UTILISATEUR_NON_TROUVE = "Utilisateur non trouvé"
-ERR_AUCUN_ABONNEMENT_TROUVE = "Aucun abonnement trouvé"
 ERR_CONFIG_STRIPE_MANQUANTE = "Configuration Stripe manquante"
 ERR_VENDEUR_SANS_MAGASIN = "Vendeur sans magasin assigné"
 ERR_VENDEUR_NON_TROUVE = "Vendeur non trouvé"

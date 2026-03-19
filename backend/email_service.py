@@ -15,11 +15,16 @@ def get_frontend_url():
     return os.environ.get('FRONTEND_URL', 'https://retailperformerai.com')
 
 
+_brevo_instance = None
+
 def get_brevo_api_instance():
-    """Initialize Brevo API instance with fresh configuration"""
-    configuration = sib_api_v3_sdk.Configuration()
-    configuration.api_key['api-key'] = os.environ.get('BREVO_API_KEY')
-    return sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+    """Get or create Brevo API singleton instance (avoids re-initializing on every call)."""
+    global _brevo_instance
+    if _brevo_instance is None:
+        configuration = sib_api_v3_sdk.Configuration()
+        configuration.api_key['api-key'] = os.environ.get('BREVO_API_KEY')
+        _brevo_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+    return _brevo_instance
 
 
 def send_gerant_invitation_email(recipient_email: str, recipient_name: str, invitation_token: str):

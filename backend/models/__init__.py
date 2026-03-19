@@ -28,7 +28,6 @@ from models.kpis import (
     KPIEntry, KPIEntryCreate,
     KPIConfiguration, KPIConfigUpdate,
     ManagerKPI, ManagerKPICreate,
-    StoreKPI, StoreKPICreate
 )
 from models.kpi_config import DEFAULT_KPI_CONFIG, get_default_kpi_config, KPIConfig
 
@@ -101,7 +100,6 @@ __all__ = [
     'KPIEntry', 'KPIEntryCreate',
     'KPIConfiguration', 'KPIConfigUpdate',
     'ManagerKPI', 'ManagerKPICreate',
-    'StoreKPI', 'StoreKPICreate',
     'DEFAULT_KPI_CONFIG', 'get_default_kpi_config', 'KPIConfig',
     
     # Subscriptions

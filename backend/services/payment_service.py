@@ -2,6 +2,7 @@
 Business logic for Stripe payment processing and webhook handling.
 Phase 12: repositories only (no direct db in services).
 """
+import asyncio
 import stripe
 import os
 import logging
@@ -135,15 +136,18 @@ class PaymentService:
             amount_eur = invoice.get('amount_paid', invoice.get('amount_due', 0)) / 100
             billing_reason = invoice.get('billing_reason', 'subscription_cycle')
             invoice_url = invoice.get('hosted_invoice_url')
-            send_payment_confirmation_email(
-                recipient_email=gerant['email'],
-                recipient_name=gerant.get('name', gerant['email']),
-                amount_eur=amount_eur,
-                period_end_date=period_end.isoformat(),
-                plan_key=plan_key,
-                billing_reason=billing_reason,
-                invoice_url=invoice_url,
+            # Fire-and-forget: email envoyé en background pour ne pas bloquer le webhook
+            _email, _name, _eur, _period, _plan, _reason, _url = (
+                gerant['email'], gerant.get('name', gerant['email']),
+                amount_eur, period_end.isoformat(), plan_key, billing_reason, invoice_url,
             )
+            asyncio.create_task(asyncio.to_thread(
+                lambda: send_payment_confirmation_email(
+                    recipient_email=_email, recipient_name=_name,
+                    amount_eur=_eur, period_end_date=_period,
+                    plan_key=_plan, billing_reason=_reason, invoice_url=_url,
+                )
+            ))
         except Exception as e:
             logger.error(f"Failed to send payment confirmation email to {gerant['email']}: {e}")
 
@@ -217,13 +221,16 @@ class PaymentService:
             next_retry_iso = None
             if next_payment_attempt:
                 next_retry_iso = datetime.fromtimestamp(next_payment_attempt, tz=timezone.utc).isoformat()
-            send_payment_failed_email(
-                recipient_email=gerant['email'],
-                recipient_name=gerant.get('name', gerant['email']),
-                amount_eur=amount_due,
-                attempt_count=attempt_count,
-                next_retry_date=next_retry_iso,
+            _email, _name, _eur, _attempts, _retry = (
+                gerant['email'], gerant.get('name', gerant['email']),
+                amount_due, attempt_count, next_retry_iso,
             )
+            asyncio.create_task(asyncio.to_thread(
+                lambda: send_payment_failed_email(
+                    recipient_email=_email, recipient_name=_name,
+                    amount_eur=_eur, attempt_count=_attempts, next_retry_date=_retry,
+                )
+            ))
         except Exception as e:
             logger.error(f"Failed to send payment failed email to {gerant['email']}: {e}")
 
@@ -561,11 +568,14 @@ class PaymentService:
 
         # Send cancellation email
         try:
-            send_subscription_canceled_email(
-                recipient_email=gerant['email'],
-                recipient_name=gerant.get('name', gerant['email']),
-                access_end_date=access_end_date.isoformat(),
+            _email, _name, _end = (
+                gerant['email'], gerant.get('name', gerant['email']), access_end_date.isoformat(),
             )
+            asyncio.create_task(asyncio.to_thread(
+                lambda: send_subscription_canceled_email(
+                    recipient_email=_email, recipient_name=_name, access_end_date=_end,
+                )
+            ))
         except Exception as e:
             logger.error(f"Failed to send subscription canceled email to {gerant.get('email')}: {e}")
 
@@ -593,12 +603,16 @@ class PaymentService:
         days_left = max(0, (trial_end_dt - datetime.now(timezone.utc)).days)
 
         try:
-            send_trial_ending_email(
-                recipient_email=gerant['email'],
-                recipient_name=gerant.get('name', gerant['email']),
-                days_left=days_left,
-                trial_end_date=trial_end_dt.isoformat(),
+            _email, _name, _days, _end = (
+                gerant['email'], gerant.get('name', gerant['email']),
+                days_left, trial_end_dt.isoformat(),
             )
+            asyncio.create_task(asyncio.to_thread(
+                lambda: send_trial_ending_email(
+                    recipient_email=_email, recipient_name=_name,
+                    days_left=_days, trial_end_date=_end,
+                )
+            ))
         except Exception as e:
             logger.error(f"Failed to send trial ending email to {gerant['email']}: {e}")
 

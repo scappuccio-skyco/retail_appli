@@ -6,9 +6,9 @@ from fastapi import APIRouter, Depends, Query
 from typing import Dict, List, Optional
 from datetime import datetime, timezone
 from uuid import uuid4
-from pydantic import BaseModel
 
 from core.exceptions import ForbiddenError, BusinessLogicError, NotFoundError
+from models.sales import DebriefCreate
 
 # Dampening factor: the AI's suggested delta is multiplied by this value before
 # being applied to the running score. Keeps individual debriefs from causing
@@ -38,19 +38,6 @@ router = APIRouter(
     tags=["Debriefs"],
     dependencies=[Depends(require_active_space)]
 )
-
-
-# ===== PYDANTIC MODELS =====
-
-class DebriefCreate(BaseModel):
-    vente_conclue: bool = True
-    produit: Optional[str] = ""
-    type_client: Optional[str] = ""
-    situation_vente: Optional[str] = ""
-    description_vente: Optional[str] = ""
-    moment_perte_client: Optional[str] = ""
-    raisons_echec: Optional[str] = ""
-    amelioration_pensee: Optional[str] = ""
 
 
 # ===== DEBRIEFS ROUTES =====
@@ -171,7 +158,7 @@ async def create_debrief(
         "score_argumentation": new_scores.get('argumentation', current_scores['argumentation']),
         "score_closing": new_scores.get('closing', current_scores['closing']),
         "score_fidelisation": new_scores.get('fidelisation', current_scores['fidelisation']),
-        "shared_with_manager": False,
+        "shared_with_manager": debrief_data.shared_with_manager,
         "date": today,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -183,8 +170,6 @@ async def create_debrief(
         await seller_service.update_diagnostic_scores_by_seller(seller_id, new_scores)
     if '_id' in debrief:
         del debrief['_id']
-    if 'shared_with_manager' in debrief:
-        debrief['visible_to_manager'] = debrief['shared_with_manager']
     return debrief
 
 
@@ -222,11 +207,6 @@ async def get_debriefs(
         else:
             debriefs = []
     
-    # Add visible_to_manager alias for frontend compatibility
-    for debrief in debriefs:
-        if 'shared_with_manager' in debrief:
-            debrief['visible_to_manager'] = debrief['shared_with_manager']
-    
     return debriefs
 
 
@@ -246,7 +226,7 @@ async def toggle_debrief_visibility(
     )
     if not result:
         raise NotFoundError("Debrief not found")
-    return {"success": True, "shared_with_manager": shared, "visible_to_manager": shared}
+    return {"success": True, "shared_with_manager": shared}
 
 
 @router.delete("/debriefs/{debrief_id}")

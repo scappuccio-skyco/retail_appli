@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Query, Request
 
+from config.limits import SELLERS_LIST_LIMIT
 from core.constants import ERR_ACCES_REFUSE_MAGASIN_NON_ASSIGNE, QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
 from core.security import verify_manager_or_gerant
@@ -28,12 +29,6 @@ router = APIRouter(prefix="")
 # Public router: accessible even with expired subscription (status/config reads only)
 public_router = APIRouter(prefix="")
 logger = logging.getLogger(__name__)
-
-
-@router.get("/test")
-async def test_endpoint(request: Request):
-    """Test endpoint to verify manager router is registered."""
-    return {"status": "ok", "message": "Manager router is working", "router_prefix": "/manager"}
 
 
 # ===== SUBSCRIPTION (public — no require_active_space) =====
@@ -153,28 +148,10 @@ async def get_store_kpi_overview(
         )
     except ValueError as e:
         raise NotFoundError(str(e))
-    except Exception as e:
-        logger.exception("store-kpi-overview unexpected error: %s", e)
-        return _empty_overview_response(target_date, resolved_store_id)
     # Retourner la même structure que la route gérant / le frontend attend (totals.ventes, calculated_kpis, sellers_reported, total_sellers, seller_entries, etc.)
     overview["date"] = target_date
     overview["store_id"] = resolved_store_id
     return overview
-
-
-def _empty_overview_response(target_date: str, resolved_store_id: str):
-    """Réponse vide pour erreur, format attendu par le frontend (DailyKPICards, StoreKPIModalDailyTab)."""
-    return {
-        "date": target_date,
-        "store_id": resolved_store_id,
-        "totals": {"ca": 0, "ventes": 0, "clients": 0, "articles": 0, "prospects": 0},
-        "calculated_kpis": {"panier_moyen": None, "taux_transformation": None, "indice_vente": None},
-        "sellers_reported": 0,
-        "total_sellers": 0,
-        "seller_entries": [],
-        "managers_data": {},
-        "sellers_data": {},
-    }
 
 
 @router.get("/dates-with-data")
@@ -243,9 +220,6 @@ async def get_kpi_config(
     except AppException as e:
         logger.error("[KPI-CONFIG] AppException: %s - %s", e.status_code, e.detail)
         raise
-    except Exception as e:
-        logger.error("[KPI-CONFIG] Error: %s", e, exc_info=True)
-        return get_default_kpi_config()
 
 
 @router.put("/kpi-config")
@@ -338,7 +312,7 @@ async def save_manager_kpi(
         if not seller_ids:
             raise ValidationError("sellers_data doit contenir au moins un seller_id valide.")
         sellers = await manager_service.get_users_by_ids_and_store(
-            seller_ids, resolved_store_id, role="seller", limit=50, projection={"_id": 0, "id": 1, "name": 1}
+            seller_ids, resolved_store_id, role="seller", limit=SELLERS_LIST_LIMIT, projection={"_id": 0, "id": 1, "name": 1}
         )
         valid_ids = {s["id"] for s in sellers}
         invalid = set(seller_ids) - valid_ids

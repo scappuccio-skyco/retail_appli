@@ -7,6 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 
+from config.limits import MAX_PAGE_SIZE
 from core.constants import QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError
 from api.routes.manager.dependencies import get_store_context, get_store_context_required, get_verified_seller
@@ -315,7 +316,7 @@ async def get_conflict_history(
         manager_id=manager_id,
         seller_id=seller_id,
         store_id=resolved_store_id,
-        limit=100,
+        limit=MAX_PAGE_SIZE,
     )
     return {"consultations": conflicts, "total": len(conflicts)}
 

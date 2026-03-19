@@ -23,12 +23,6 @@ class SellerTransferRequest(BaseModel):
     new_manager_id: str
 
 
-@router.get("/ping")
-async def gerant_ping():
-    """GET /api/gerant/ping - vérifie que le préfixe gerant répond."""
-    return {"ok": True, "message": "gerant router loaded"}
-
-
 @router.post("/managers/{manager_id}/transfer")
 async def transfer_manager_to_store(
     manager_id: str,

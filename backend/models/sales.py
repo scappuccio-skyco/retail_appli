@@ -67,7 +67,7 @@ class Debrief(BaseModel):
     seller_id: str
     # Type de vente
     vente_conclue: bool = False  # True = vente conclue, False = opportunité manquée
-    visible_to_manager: bool = False  # Visibilité pour le manager
+    shared_with_manager: bool = False  # Visibilité pour le manager
     # Section 1 - Contexte rapide
     produit: str
     type_client: str
@@ -93,15 +93,15 @@ class Debrief(BaseModel):
 
 
 class DebriefCreate(BaseModel):
-    vente_conclue: bool = False
-    visible_to_manager: bool = False
-    produit: str
-    type_client: str
-    situation_vente: str
-    description_vente: str
-    moment_perte_client: str
-    raisons_echec: str
-    amelioration_pensee: str
+    vente_conclue: bool = True
+    shared_with_manager: bool = False
+    produit: Optional[str] = ""
+    type_client: Optional[str] = ""
+    situation_vente: Optional[str] = ""
+    description_vente: Optional[str] = ""
+    moment_perte_client: Optional[str] = ""
+    raisons_echec: Optional[str] = ""
+    amelioration_pensee: Optional[str] = ""
 
 # ===== INTERVIEW NOTES MODELS =====
 

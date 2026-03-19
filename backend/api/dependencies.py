@@ -15,7 +15,7 @@ from repositories.gerant_invitation_repository import GerantInvitationRepository
 from repositories.invitation_repository import InvitationRepository
 from repositories.password_reset_repository import PasswordResetRepository
 from repositories.onboarding_progress_repository import OnboardingProgressRepository
-from repositories.kpi_repository import KPIRepository, ManagerKPIRepository, StoreKPIRepository
+from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.diagnostic_repository import DiagnosticRepository
 from repositories.manager_diagnostic_repository import ManagerDiagnosticRepository
 from repositories.manager_diagnostic_results_repository import ManagerDiagnosticResultsRepository
@@ -263,7 +263,6 @@ def get_manager_service(
         api_key_repo=APIKeyRepository(db),
         store_repo=StoreRepository(db),
         user_repo=UserRepository(db),
-        store_kpi_repo=StoreKPIRepository(db),
         kpi_repo=KPIRepository(db),
         morning_brief_repo=MorningBriefRepository(db),
         diagnostic_repo=DiagnosticRepository(db),

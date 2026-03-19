@@ -129,19 +129,4 @@ class ManagerKPICreate(BaseModel):
 # ===== DAILY CHALLENGE MODELS =====
 
 
-class StoreKPI(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    manager_id: str
-    date: str  # Format: YYYY-MM-DD
-    nb_prospects: int  # Nombre de prospects entrés dans le magasin
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-
-
-class StoreKPICreate(BaseModel):
-    date: str
-    nb_prospects: int
-
 # ===== MANAGER KPI MODELS =====

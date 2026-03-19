@@ -71,11 +71,7 @@ class DebriefRepository(BaseRepository):
         
         # Additional filter for manager visibility
         if visible_to_manager is not None:
-            # Support both field names for compatibility
-            filters["$or"] = [
-                {"visible_to_manager": visible_to_manager},
-                {"shared_with_manager": visible_to_manager}
-            ]
+            filters["shared_with_manager"] = visible_to_manager
         
         sort = sort or [("created_at", -1)]
         return await self.find_many(filters, projection, limit, skip, sort)

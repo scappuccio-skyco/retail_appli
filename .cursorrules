@@ -1,8 +1,11 @@
-# 📋 CURSOR RULES - RETAIL PERFORMER AI
+# 📋 RÈGLES PROJET - RETAIL PERFORMER AI
 ## Source de Vérité pour le Développement
 
+> Ce fichier sert de référence pour **Cursor** et **Claude Code** (CLI Anthropic).
+> Il documente l'architecture, les conventions, et l'historique des modifications.
+
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 11 Février 2026
+**Dernière mise à jour**: 19 Mars 2026
 
 ---
 
@@ -139,6 +142,14 @@ backend/
 | `challenges` | Défis managers | `store_id`, `manager_id` |
 | `subscriptions` | Abonnements Stripe | `user_id`, `stripe_subscription_id` (unique) |
 | `api_keys` | Clés API entreprise | `key_hash` (unique) |
+
+### ⚠️ Conventions de Nommage des Champs (NE PAS DUPLIQUER)
+
+| Champ | Collection | Nom canonique | Note |
+|-------|-----------|---------------|------|
+| Visibilité débrief | `debriefs` | `shared_with_manager` | Anciennement `visible_to_manager` (corrigé Mars 2026) |
+| CA journalier (brut) | `kpi_entries` | `ca_journalier` | Champ brut du document KPI vendeur |
+| CA agrégé (calculs) | résultats service | `ca` | Clé utilisée dans les résultats agrégés (`get_seller_kpi_metrics`) |
 
 ### ⚠️ Indexes MongoDB (Vérifiés – cf. core/indexes.py, Audit 3.2)
 
@@ -424,13 +435,13 @@ docs/
 4. **Pagination**: Étendre à toutes les routes (76 occurrences restantes)
 5. **Pool MongoDB**: `maxPoolSize=10` → `50-100`
 
-### Phase 2 (Majeur) - Cette Semaine
+### Phase 2 (Majeur)
 
 7. **Cache Redis**: User lookups, diagnostics, stats
 8. **Rate Limiting**: Étendre à tous les endpoints
 9. ✅ **Indexes MongoDB**: Script `ensure_indexes.py` créé (à exécuter lors du déploiement)
 
-### Phase 3 (Amélioration) - Mois Prochain
+### Phase 3 (Amélioration)
 
 8. **Background Tasks**: Celery pour webhooks Stripe
 9. **Monitoring**: Prometheus + structured logging
@@ -607,6 +618,62 @@ Avant chaque commit, vérifier:
 
 ### [11 Février 2026] - Rate limiting par endpoint
 - ✅ Modifié: `api/dependencies_rate_limiting.py` - `rate_limit(limit_str)` utilise désormais une clé `key_func = IP + path` pour que chaque endpoint ait son propre bucket (évite 429 sur dashboard Manager lorsque plusieurs routes partageaient le même bucket avec la limite la plus stricte).
+
+### [19 Mars 2026] - Amélioration des prompts IA + corrections frontend
+
+**Brief du matin**
+- ✅ Modifié: `services/manager_service.py` - `team_present` → `team_active_last_day` (les KPIs étant saisis en fin de journée, on ne peut pas connaître la présence en matinée ; ce champ reflète les vendeurs actifs sur le dernier jour de données)
+- ✅ Modifié: `api/routes/briefs.py` - clé par défaut mise à jour
+- ✅ Modifié: `services/ai_service.py` - brief passé de 4 à 6 sections : ⚡ Accroche, 📊 Hier en chiffres, 🌟 Coup de Projecteur (top vendeur), 🎯 Priorité du jour, 💥 Le Défi, 🚀 On y va!
+- ✅ Modifié: `frontend/src/components/MorningBriefModal.js` - affichage section `spotlight` (carte amber), renommage sections, export PDF mis à jour
+
+**Bilan individuel vendeur**
+- ✅ Modifié: `services/ai_service.py` - `generate_seller_bilan` retourne désormais un JSON structuré (`synthese`, `points_forts`, `axes_progres`, `objectif_demain`, `disc_note`) avec contexte enrichi (période précédente, objectifs actifs, profil DISC, tendance intra-période), modèle gpt-4o, température 0.4
+- ✅ Modifié: `api/routes/sellers.py` - endpoint `/seller/bilan-individuel` : gpt-4o-mini → gpt-4o, température 0.7 → 0.4
+- ✅ Modifié: `frontend/src/components/BilanIndividuelModal.js` - affichage `action_prioritaire` (carte orange/rouge), correction couleur texte synthese (illisible sur fond sombre)
+
+**Débrief post-vente**
+- ✅ Modifié: `services/ai_service.py` - `generate_debrief` : prompts success/failure renforcés, nouveau champ `action_immediate` en sortie JSON, température 0.4, historique coaching étendu à 3 debriefs avec contexte `moment_perte_client`
+- ✅ Modifié: `api/routes/debriefs.py` - extraction et stockage de `ai_action_immediate`
+- ✅ Modifié: `frontend/src/components/DebriefModal.js` - section "⚡ À faire maintenant" affichant `ai_action_immediate`
+- ✅ Modifié: `frontend/src/components/DebriefHistoryModal.js` - même section dans les cartes d'historique
+
+**Diagnostic DISC**
+- ✅ Modifié: `services/ai_service.py` - `generate_diagnostic` : température 0.7 → 0.3 (plus déterministe), prompt renforcé avec règles de séparation Q1-15 (compétences) / Q16+ (DISC)
+
+### Dette technique frontend connue (documentée, non corrigée)
+
+Les problèmes suivants sont connus et documentés. Aucun ne casse l'application en production.
+À traiter lors d'une phase de refactoring dédiée — risque de régression élevé si fait à la volée.
+
+- **29 composants >500 lignes** : `CoachingModal.js` (~876L, 4 sous-composants inline), `BilanIndividuelModal.js` (~580L, logique PDF mêlée au rendu), `DebriefModal.js` (~543L), `TeamPerformanceModal.js`, `ObjectivesModal.js`
+- **Appels API dupliqués** : `/api/debriefs` et `/api/objectives` appelés sans cache partagé dans plusieurs composants. Solution recommandée : React Query ou SWR.
+- **Strings hardcodées** : labels de formulaires et messages d'erreur inline (pas de fichier i18n)
+- **Pas d'AbortController** sur les fetches longues (pas de timeout côté client)
+
+Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx), logger avec gate NODE_ENV, PropTypes cohérent.
+
+---
+
+### [19 Mars 2026] - Correction de dette technique
+
+**Standardisation `shared_with_manager`**
+- Problème: le champ de visibilité d'un débrief était stocké en base sous `shared_with_manager` mais les modèles Pydantic utilisaient `visible_to_manager`, forçant des copies manuelles dans chaque route et une requête `$or` dans le repository.
+- ✅ Modifié: `models/sales.py` - `Debrief` et `DebriefCreate` utilisent désormais `shared_with_manager`
+- ✅ Modifié: `repositories/debrief_repository.py` - suppression du hack `$or`, requête directe sur `shared_with_manager`
+- ✅ Modifié: `api/routes/debriefs.py` - suppression de toutes les copies manuelles `visible_to_manager = shared_with_manager`
+- ✅ Modifié: `frontend/src/components/DebriefHistoryModal.js` - tous les `visible_to_manager` → `shared_with_manager`
+- ✅ Modifié: `frontend/src/components/DebriefModal.js` - idem
+
+**Suppression doublon `ca` / `ca_journalier`**
+- Problème: l'endpoint analytics retournait la même valeur sous deux noms dans `totals`.
+- ✅ Modifié: `api/routes/manager/analytics.py` - suppression de la clé `ca_journalier` dupliquée (conservé uniquement `ca`)
+- Note: `ca_journalier` reste le nom correct pour les documents bruts KPI dans la collection `kpi_entries` (utilisé par le frontend dans KPIEntryModal, PerformanceModal, etc.)
+
+**Déduplication `DebriefCreate`**
+- Problème: deux classes `DebriefCreate` coexistaient — une dans `models/sales.py` (non utilisée) et une inline dans `api/routes/debriefs.py`.
+- ✅ Modifié: `models/sales.py` - `DebriefCreate` harmonisé : `vente_conclue: bool = True`, champs texte `Optional[str] = ""`, `shared_with_manager: bool = False`
+- ✅ Modifié: `api/routes/debriefs.py` - classe inline supprimée, import depuis `models.sales`, `shared_with_manager` lu depuis `debrief_data` (plus hardcodé à `False`)
 
 ---
 

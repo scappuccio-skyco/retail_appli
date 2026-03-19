@@ -108,31 +108,6 @@ TON ET STYLE :
 - Tutoiement avec les vendeurs dans les recommandations individuelles.
 """
 
-# Coach for Team Bilan (JSON output)
-TEAM_BILAN_SYSTEM_PROMPT = f"""{LEGAL_DISCLAIMER_BLOCK}
-Tu es un Coach en Performance Retail de haut niveau.
-Tu génères un bilan structuré de l'équipe pour alimenter le tableau de bord.
-
-RÈGLES STRICTES (SÉCURITÉ) :
-1. ⛔ Pas de conseils Marketing/Pub/Promo.
-2. ⛔ Ignore le Trafic s'il est à 0 (considère que c'est un bug technique, pas une réalité commerciale).
-
-FORMAT DE RÉPONSE OBLIGATOIRE (JSON STRICT) :
-Réponds UNIQUEMENT avec cet objet JSON valide (pas de markdown, pas de texte avant/après) :
-{{
-  "synthese": "Analyse globale de la dynamique d'équipe (Forces/Faiblesses).",
-  "points_forts": ["Point fort collectif 1", "Point fort collectif 2"],
-  "points_attention": ["Risque identifié 1", "Risque identifié 2"],
-  "recommandations": ["Action managériale 1", "Action managériale 2"],
-  "analyses_vendeurs": [
-      {{
-          "nom": "Prénom du vendeur",
-          "analyse": "Phrase courte sur sa contribution (Top performer ? En difficulté ?)"
-      }}
-  ]
-}}
-"""
-
 # Coach for Debrief (JSON output)
 DEBRIEF_SYSTEM_PROMPT = f"""{LEGAL_DISCLAIMER_BLOCK}
 Tu es un Coach de Vente Terrain expérimenté (10+ ans retail, pas un marketeur).
@@ -150,16 +125,6 @@ RÈGLES STRICTES (BLACKLIST) :
 {DISC_ADAPTATION_INSTRUCTIONS}
 
 Tu réponds UNIQUEMENT en JSON valide."""
-
-# Feedback Coach
-FEEDBACK_SYSTEM_PROMPT = """Tu es un Coach de Vente Terrain expérimenté (pas un marketeur).
-
-RÈGLES STRICTES :
-⛔ INTERDIT de parler de : Promotions, Réseaux Sociaux, Publicité, Génération de trafic, Marketing, Vitrine.
-⛔ SI le trafic est à 0, IGNORE-LE. Ne mentionne pas le comptage clients.
-✅ Focus sur : Accueil client, sourire, découverte des besoins, vente additionnelle, closing.
-
-Ton direct et encourageant. Tutoiement professionnel."""
 
 # DISC Diagnostic - SÉCURISÉ
 DIAGNOSTIC_SYSTEM_PROMPT = """Tu es un Expert en Développement des Talents Retail (Certifié DISC).
@@ -798,94 +763,6 @@ Format exact :
         }
 
     # ==========================================================================
-    # 📋 TEAM BILAN (JSON Output)
-    # ==========================================================================
-    
-    async def generate_team_bilan(
-        self,
-        manager_id: str,
-        periode: str,
-        team_data: List[Dict],
-        kpi_summary: Dict
-    ) -> Dict:
-        """
-        Generate structured team bilan (JSON format)
-        
-        Args:
-            manager_id: Manager ID
-            periode: Period string (e.g., "01/12 - 07/12")
-            team_data: List of seller performance data
-            kpi_summary: Aggregated KPI data
-            
-        Returns:
-            Dict with synthese, points_forts, points_attention, recommandations, analyses_vendeurs
-        """
-        if not self.available:
-            return self._fallback_team_bilan(periode)
-        
-        # Build context
-        team_context = "Détails par vendeur :\n"
-        for seller_data in team_data:
-            team_context += f"- {seller_data.get('seller_name', 'Vendeur')} : CA {seller_data.get('ca', 0):.0f}€, {seller_data.get('ventes', 0)} ventes\n"
-        
-        prompt = f"""Tu es un coach en management retail. Analyse les performances de cette équipe et génère un bilan structuré.
-
-PÉRIODE : {periode}
-ÉQUIPE : {len(team_data)} vendeurs
-
-KPIs de l'équipe :
-- CA Total : {kpi_summary.get('ca_total', 0):.2f}€
-- Nombre de ventes : {kpi_summary.get('ventes', 0)}
-- Panier moyen : {kpi_summary.get('panier_moyen', 0):.2f}€
-
-{team_context}
-
-IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après. Format exact :
-{{
-  "synthese": "Une phrase résumant la performance globale de l'équipe",
-  "points_forts": ["Point fort 1", "Point fort 2"],
-  "points_attention": ["Point d'attention 1", "Point d'attention 2"],
-  "recommandations": ["Action d'équipe 1", "Action d'équipe 2"],
-  "analyses_vendeurs": [
-    {{
-      "vendeur": "Prénom du vendeur",
-      "performance": "Phrase résumant sa performance (CA, ventes, points forts)",
-      "points_forts": ["Son point fort 1", "Son point fort 2"],
-      "axes_progression": ["Axe à améliorer 1", "Axe à améliorer 2"],
-      "recommandations": ["Action personnalisée 1", "Action personnalisée 2"]
-    }}
-  ]
-}}
-
-Consignes :
-- Analyse CHAQUE vendeur individuellement avec ses propres KPIs
-- Sois précis avec les chiffres (utilise UNIQUEMENT les données fournies ci-dessus)
-- Recommandations concrètes et actionnables pour chaque vendeur
-- Ton professionnel mais encourageant"""
-
-        response = await self._send_message(
-            system_message=TEAM_BILAN_SYSTEM_PROMPT,
-            user_prompt=prompt,
-            model="gpt-4o-mini",
-            temperature=0.5  # structured JSON output — semi-factual
-        )
-        
-        if response:
-            return parse_json_safely(response, self._fallback_team_bilan(periode))
-        else:
-            return self._fallback_team_bilan(periode)
-    
-    def _fallback_team_bilan(self, periode: str) -> Dict:
-        """Fallback team bilan"""
-        return {
-            "synthese": f"Performance de l'équipe pour la période {periode}",
-            "points_forts": ["Données collectées"],
-            "points_attention": ["À analyser"],
-            "recommandations": ["Continuer le suivi"],
-            "analyses_vendeurs": []
-        }
-
-    # ==========================================================================
     # 💬 DEBRIEF VENTE (Succès / Échec)
     # ==========================================================================
     
@@ -1048,43 +925,6 @@ FORMAT JSON UNIQUEMENT :
                 "delta_closing": -0.2,
                 "delta_fidelisation": 0.0,
             }
-
-    # ==========================================================================
-    # 📊 EVALUATION FEEDBACK
-    # ==========================================================================
-    
-    async def generate_feedback(self, evaluation_data: Dict) -> str:
-        """
-        Generate AI feedback for self-evaluation
-        
-        Args:
-            evaluation_data: Self-evaluation scores and comments
-            
-        Returns:
-            Feedback text
-        """
-        if not self.available:
-            return "Feedback automatique temporairement indisponible. Continuez votre excellent travail!"
-        
-        prompt = f"""Analyse cette auto-évaluation de vendeur retail:
-
-- Accueil: {evaluation_data.get('accueil', 6)}/10
-- Découverte: {evaluation_data.get('decouverte', 6)}/10
-- Argumentation: {evaluation_data.get('argumentation', 6)}/10
-- Closing: {evaluation_data.get('closing', 6)}/10
-- Fidélisation: {evaluation_data.get('fidelisation', 6)}/10
-
-Commentaire du vendeur: {evaluation_data.get('auto_comment', 'Aucun')}
-
-Résume les points forts et les points à améliorer de manière positive et coachante en 3-5 phrases maximum. Termine par une suggestion d'action concrète."""
-
-        response = await self._send_message(
-            system_message=FEEDBACK_SYSTEM_PROMPT,
-            user_prompt=prompt,
-            model="gpt-4o-mini",
-            temperature=0.5  # structured self-eval feedback — consistency matters
-        )
-        return response or "Feedback automatique temporairement indisponible. Continuez votre excellent travail!"
 
     # ==========================================================================
     # 🎯 DIAGNOSTIC & CHALLENGES

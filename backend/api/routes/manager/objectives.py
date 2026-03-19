@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Query, Request
 
+from config.limits import MAX_PAGE_SIZE
 from core.constants import ERR_STORE_ID_REQUIS, QUERY_STORE_ID_REQUIS_GERANT
 from core.exceptions import AppException, NotFoundError, ValidationError, ForbiddenError
 from core.security import verify_resource_store_access
@@ -71,7 +72,7 @@ async def get_all_objectives(
     if not resolved_store_id:
         return []
     objectives = await achievement_service.get_objectives_by_store(
-        resolved_store_id, limit=100
+        resolved_store_id, limit=MAX_PAGE_SIZE
     )
     objectives = await seller_service.calculate_objectives_progress_batch(
         objectives, manager_id, resolved_store_id

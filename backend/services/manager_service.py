@@ -26,7 +26,7 @@ from repositories.diagnostic_repository import DiagnosticRepository
 from repositories.debrief_repository import DebriefRepository
 from repositories.team_analysis_repository import TeamAnalysisRepository
 from repositories.relationship_consultation_repository import RelationshipConsultationRepository
-from repositories.kpi_repository import KPIRepository, StoreKPIRepository
+from repositories.kpi_repository import KPIRepository
 from repositories.interview_note_repository import InterviewNoteRepository
 from repositories.objective_repository import ObjectiveRepository
 from repositories.challenge_repository import ChallengeRepository
@@ -48,7 +48,6 @@ class ManagerService:
         api_key_repo: APIKeyRepository,
         store_repo: StoreRepository,
         user_repo: UserRepository,
-        store_kpi_repo: Optional[StoreKPIRepository] = None,
         kpi_repo: Optional[KPIRepository] = None,
         morning_brief_repo: Optional[MorningBriefRepository] = None,
         diagnostic_repo: Optional[DiagnosticRepository] = None,
@@ -68,7 +67,6 @@ class ManagerService:
         self.api_key_repo = api_key_repo
         self.store_repo = store_repo
         self.user_repo = user_repo
-        self.store_kpi_repo = store_kpi_repo
         self.kpi_repo = kpi_repo
         self.morning_brief_repo = morning_brief_repo
         self.diagnostic_repo = diagnostic_repo
