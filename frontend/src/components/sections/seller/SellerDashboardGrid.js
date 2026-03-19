@@ -9,7 +9,6 @@ export default function SellerDashboardGrid({
   finalOrder,
   dashboardFilters,
   activeObjectives,
-  activeChallenges,
   onOpenPerformance,
   onOpenObjectives,
   onOpenCoaching,
@@ -67,10 +66,10 @@ export default function SellerDashboardGrid({
               <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
                 <Award className="w-8 h-8" />
               </div>
-              <h2 className="text-2xl font-bold">🎯 Objectifs et Challenges</h2>
-              {(activeObjectives.length > 0 || activeChallenges.length > 0) ? (
+              <h2 className="text-2xl font-bold">🎯 Mes Objectifs</h2>
+              {activeObjectives.length > 0 ? (
                 <p className="text-sm mt-2 opacity-90">
-                  {activeObjectives.length} objectifs • {activeChallenges.length} challenges
+                  {activeObjectives.length} objectif{activeObjectives.length > 1 ? 's' : ''} actif{activeObjectives.length > 1 ? 's' : ''}
                 </p>
               ) : (
                 <p className="text-sm mt-2 opacity-90">Aucun objectif actif pour le moment</p>

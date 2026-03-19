@@ -1,50 +1,38 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Target, Trophy, History, Filter } from 'lucide-react';
+import { X, Target, History, Filter } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import AchievementModal from './AchievementModal';
 
-export default function ObjectivesModal({ 
-  isOpen, 
+export default function ObjectivesModal({
+  isOpen,
   onClose,
   activeObjectives: initialObjectives = [],
-  activeChallenges: initialChallenges = [],
   onUpdate
 }) {
   const isMountedRef = useRef(true);
   useEffect(() => () => { isMountedRef.current = false; }, []);
 
-  // Local state for objectives and challenges
+  // Local state for objectives
   const [activeObjectives, setActiveObjectives] = useState(initialObjectives);
-  const [activeChallenges, setActiveChallenges] = useState(initialChallenges);
-  
+
   // Update local state when props change
   useEffect(() => {
     setActiveObjectives(initialObjectives);
-    setActiveChallenges(initialChallenges);
-  }, [initialObjectives, initialChallenges]);
-  
+  }, [initialObjectives]);
+
   // Always refresh data when modal opens to ensure latest updates are shown
   useEffect(() => {
     if (isOpen) refreshActiveData();
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs', 'challenges', or 'historique'
+  const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs' or 'historique'
   const [updatingObjectiveId, setUpdatingObjectiveId] = useState(null);
   const [objectiveProgressValue, setObjectiveProgressValue] = useState('');
-  const [updatingChallengeId, setUpdatingChallengeId] = useState(null);
-  const [challengeProgress, setChallengeProgress] = useState({
-    ca: 0,
-    ventes: 0,
-    clients: 0
-  });
-  const [challengeCurrentValue, setChallengeCurrentValue] = useState('');
-  
+
   // Historique states
   const [historyObjectives, setHistoryObjectives] = useState([]);
-  const [historyChallenges, setHistoryChallenges] = useState([]);
-  const [historyTypeFilter, setHistoryTypeFilter] = useState('all'); // 'all', 'objectifs', 'challenges'
   const [historyStatusFilter, setHistoryStatusFilter] = useState('all'); // 'all', 'achieved', 'not_achieved'
   
   // Achievement notification states
@@ -61,13 +49,9 @@ export default function ObjectivesModal({
 
   const fetchHistory = async () => {
     try {
-      const [objRes, challRes] = await Promise.all([
-        api.get('/seller/objectives/history'),
-        api.get('/seller/challenges/history'),
-      ]);
+      const objRes = await api.get('/seller/objectives/history');
       if (!isMountedRef.current) return;
       setHistoryObjectives(objRes.data);
-      setHistoryChallenges(challRes.data);
     } catch (err) {
       if (!isMountedRef.current) return;
       logger.error('Error fetching history:', err);
@@ -81,35 +65,21 @@ export default function ObjectivesModal({
       const objRes = await api.get('/seller/objectives/active');
       const objectives = objRes.data || [];
 
-      // Fetch active challenges
-      const challRes = await api.get('/seller/challenges/active');
-      const challenges = challRes.data || [];
-      
       if (!isMountedRef.current) return;
 
       // Filter out achieved objectives from active list
       const activeOnly = objectives.filter(obj => obj.status !== 'achieved');
 
       setActiveObjectives(activeOnly);
-      setActiveChallenges(challenges);
-      
+
       // Check for unseen achievements and show modal
       if (!achievementModal.isOpen) {
         const unseenObjective = activeOnly.find(obj => obj.has_unseen_achievement === true);
-        const unseenChallenge = challenges.find(chall => chall.has_unseen_achievement === true);
-        
-        // Priority: show objective first, then challenge
         if (unseenObjective) {
           setAchievementModal({
             isOpen: true,
             item: unseenObjective,
             itemType: 'objective'
-          });
-        } else if (unseenChallenge) {
-          setAchievementModal({
-            isOpen: true,
-            item: unseenChallenge,
-            itemType: 'challenge'
           });
         }
       }
@@ -210,64 +180,6 @@ export default function ObjectivesModal({
     }
   };
 
-  const handleUpdateChallengeProgress = async (challengeId, challengeType) => {
-    try {
-      let response;
-      
-      // Pour les challenges de type kpi_standard, envoyer value (increment)
-      if (challengeType === 'kpi_standard') {
-        const value = Number.parseFloat(challengeCurrentValue);
-        if (isNaN(value) || value < 0) {
-          toast.error('Veuillez entrer une valeur valide');
-          return;
-        }
-        
-        response = await api.post(
-          `/seller/challenges/${challengeId}/progress`,
-          { value: value }
-        );
-      } else {
-        // Pour les autres challenges, envoyer value comme increment
-        // Note: Pour les challenges multi-KPI, on peut envoyer une valeur globale
-        const totalValue = challengeProgress.ca + challengeProgress.ventes + challengeProgress.clients;
-        if (totalValue <= 0) {
-          toast.error('Veuillez entrer au moins une valeur');
-          return;
-        }
-        
-        response = await api.post(
-          `/seller/challenges/${challengeId}/progress`,
-          { value: totalValue, mode: 'add' }
-        );
-      }
-      
-      const updatedChallenge = response.data;
-      
-      setUpdatingChallengeId(null);
-      setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
-      setChallengeCurrentValue('');
-      
-      // 🎉 PETITE VICTOIRE : Confettis à chaque progression
-      triggerConfetti();
-      toast.success('Progression du challenge mise à jour !', { duration: 2000 });
-      
-      // 🏆 GRANDE VICTOIRE : Modal uniquement quand just_achieved est true
-      if (updatedChallenge.just_achieved === true && updatedChallenge.has_unseen_achievement === true) {
-        setAchievementModal({
-          isOpen: true,
-          item: updatedChallenge,
-          itemType: 'challenge'
-        });
-      }
-      
-      // Refresh data
-      await refreshActiveData();
-    } catch (error) {
-      logger.error('Error updating challenge progress:', error);
-      toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -299,7 +211,7 @@ export default function ObjectivesModal({
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 via-teal-800 to-green-800 p-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">🎯 Objectifs et Challenges</h2>
+            <h2 className="text-2xl font-bold text-white">🎯 Mes Objectifs</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -323,19 +235,6 @@ export default function ObjectivesModal({
               <div className="flex items-center justify-center gap-1">
                 <Target className="w-4 h-4" />
                 <span>Objectifs ({activeObjectives.length})</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('challenges')}
-              className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg ${
-                activeTab === 'challenges'
-                  ? 'bg-green-300 text-gray-800 shadow-md border-b-4 border-green-500'
-                  : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-1">
-                <Trophy className="w-4 h-4" />
-                <span>Challenges ({activeChallenges.length})</span>
               </div>
             </button>
             <button
@@ -583,308 +482,12 @@ export default function ObjectivesModal({
             </div>
           )}
 
-          {activeTab === 'challenges' && (
-            <div>
-              {/* Bandeau fin "Mes Challenges" */}
-              <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3">
-                <p className="text-sm">Relevez vos défis et dépassez-vous chaque jour</p>
-              </div>
-
-              {/* Contenu avec padding */}
-              <div className="px-6 py-6">
-                {activeChallenges.length > 0 ? (
-                  <div className="space-y-4">
-                    {activeChallenges.map((challenge, index) => {
-                      const isAchieved = challenge.status === 'achieved' || (challenge.current_value >= challenge.target_value && challenge.target_value > 0);
-                      const isCompleted = challenge.status === 'completed' || new Date(challenge.end_date) < new Date();
-                      
-                      return (
-                      <div 
-                        key={index}
-                        className={`rounded-xl p-4 border-2 transition-all ${
-                          isAchieved 
-                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 hover:border-green-400 animate-pulse' 
-                            : isCompleted
-                            ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-300'
-                            : 'bg-gradient-to-r from-pink-50 to-orange-50 border-pink-200 hover:border-pink-300'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-bold text-gray-800">{challenge.title || challenge.name}</h4>
-                              {isAchieved && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500 text-white rounded-full text-xs font-bold animate-bounce">
-                                  🎉 Réussi !
-                                </span>
-                              )}
-                              {isCompleted && !isAchieved && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-500 text-white rounded-full text-xs font-semibold">
-                                  ✓ Terminé
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-600">{challenge.description}</p>
-                          </div>
-                          <div className="ml-4 flex flex-col gap-2">
-                            <span className="px-3 py-1 bg-pink-600 text-white rounded-full text-xs font-semibold">
-                              {challenge.type || 'Challenge'}
-                            </span>
-                            {isAchieved && (
-                              <div className="text-center">
-                                <div className="text-2xl animate-spin">🎊</div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Informations détaillées */}
-                        <div className="bg-white rounded-lg p-3 mb-3 space-y-2">
-                          <div className="grid grid-cols-2 gap-3 text-sm">
-                            <div>
-                              <p className="text-xs font-semibold text-gray-500 mb-1">📅 Période</p>
-                              <p className="text-gray-800">
-                                {new Date(challenge.start_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {new Date(challenge.end_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs font-semibold text-gray-500 mb-1">🎯 Type</p>
-                              {challenge.challenge_type === 'kpi_standard' && (
-                                <p className="text-gray-800 capitalize">
-                                  {challenge.kpi_name === 'ca' ? '💰 Chiffre d\'affaires' :
-                                   challenge.kpi_name === 'ventes' ? '🛍️ Nombre de ventes' :
-                                   challenge.kpi_name === 'articles' ? '📦 Nombre d\'articles' :
-                                   challenge.kpi_name || 'N/A'}
-                                </p>
-                              )}
-                              {challenge.challenge_type === 'product_focus' && (
-                                <p className="text-gray-800">📦 Focus Produit</p>
-                              )}
-                              {challenge.challenge_type === 'custom' && (
-                                <p className="text-gray-800">✨ Personnalisé</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Afficher les détails du produit pour product_focus */}
-                          {challenge.challenge_type === 'product_focus' && challenge.product_name && (
-                            <div className="pt-2 border-t border-gray-200">
-                              <p className="text-xs font-semibold text-gray-500 mb-1">📦 Produit ciblé</p>
-                              <p className="text-gray-800 font-semibold">{challenge.product_name}</p>
-                              {challenge.target_value && (
-                                <p className="text-xs text-gray-600 mt-1">
-                                  Objectif : {challenge.target_value} {challenge.unit || ''}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                          
-                          {/* Afficher la description pour custom */}
-                          {challenge.challenge_type === 'custom' && challenge.custom_description && (
-                            <div className="pt-2 border-t border-gray-200">
-                              <p className="text-xs font-semibold text-gray-500 mb-1">✨ Description</p>
-                              <p className="text-xs text-gray-700">{challenge.custom_description}</p>
-                            </div>
-                          )}
-                          
-                          {/* Progression actuelle pour kpi_standard */}
-                          {challenge.challenge_type === 'kpi_standard' && challenge.target_value && (
-                            <div className="pt-2 border-t border-gray-200">
-                              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                <span>Progression</span>
-                                <span className="font-semibold">{challenge.current_value || 0} / {challenge.target_value} {challenge.unit || ''}</span>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className="bg-gradient-to-r from-pink-600 to-orange-600 h-2 rounded-full transition-all"
-                                  style={{ width: `${Math.min(((challenge.current_value || 0) / challenge.target_value) * 100, 100)}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Historique des progressions pour challenges */}
-                          {challenge.progress_history && challenge.progress_history.length > 0 && (
-                            <div className="pt-2 border-t border-gray-200 mt-2">
-                              <details className="group">
-                                <summary className="cursor-pointer text-xs font-semibold text-pink-600 hover:text-pink-700 flex items-center gap-1">
-                                  📊 Historique des progressions ({challenge.progress_history.length})
-                                  <span className="text-xs">▼</span>
-                                </summary>
-                                <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
-                                  {[...challenge.progress_history].reverse().map((entry, idx) => (
-                                    <div key={idx} className="flex items-center justify-between text-xs bg-pink-50 rounded px-2 py-1">
-                                      <span className="text-gray-600">
-                                        {new Date(entry.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                      </span>
-                                      <span className="font-semibold text-pink-700">
-                                        {entry.value} {challenge.unit || ''}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </details>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Récompense ou statut */}
-                        {challenge.reward && (
-                          <div className="mt-2 flex items-center text-sm text-orange-600">
-                            <Trophy className="w-4 h-4 mr-1" />
-                            <span>Récompense : {challenge.reward}</span>
-                          </div>
-                        )}
-                        
-                        {/* Bouton de mise à jour pour vendeur */}
-                        {challenge.data_entry_responsible === 'seller' && (
-                          <div className="mt-3">
-                            {updatingChallengeId === challenge.id ? (
-                              <div className="bg-white rounded-lg p-3 border-2 border-pink-300">
-                                <p className="text-sm font-semibold text-gray-700 mb-2">Mettre à jour ma progression :</p>
-                                
-                                {/* Challenge de type kpi_standard */}
-                                {challenge.challenge_type === 'kpi_standard' ? (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <input
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder={`Nouvelle valeur (${challenge.unit || ''})`}
-                                        value={challengeCurrentValue}
-                                        onChange={(e) => setChallengeCurrentValue(e.target.value)}
-                                        className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
-                                      />
-                                      {challenge.unit && (
-                                        <span className="text-xs text-gray-500">{challenge.unit}</span>
-                                      )}
-                                    </div>
-                                    {challenge.target_value && (
-                                      <p className="text-xs text-gray-500">
-                                        Objectif : {challenge.target_value} {challenge.unit || ''}
-                                      </p>
-                                    )}
-                                  </div>
-                                ) : (
-                                  /* Challenge avec targets multiples */
-                                  <div className="space-y-2">
-                                    {challenge.ca_target && challenge.ca_target > 0 && (
-                                      <div className="flex items-center gap-2">
-                                        <label className="text-xs text-gray-600 w-24">💰 CA :</label>
-                                        <input
-                                          type="number"
-                                          step="0.01"
-                                          min="0"
-                                          placeholder="Valeur en €"
-                                          value={challengeProgress.ca}
-                                          onChange={(e) => {
-                                            const val = Number.parseFloat(e.target.value) || 0;
-                                            setChallengeProgress(prev => ({ ...prev, ca: val }));
-                                          }}
-                                          className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
-                                        />
-                                        <span className="text-xs text-gray-500">€</span>
-                                      </div>
-                                    )}
-                                    {challenge.ventes_target && challenge.ventes_target > 0 && (
-                                      <div className="flex items-center gap-2">
-                                        <label className="text-xs text-gray-600 w-24">📈 Ventes :</label>
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          placeholder="Nombre"
-                                          value={challengeProgress.ventes}
-                                          onChange={(e) => {
-                                            const val = Number.parseInt(e.target.value) || 0;
-                                            setChallengeProgress(prev => ({ ...prev, ventes: val }));
-                                          }}
-                                          className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
-                                        />
-                                      </div>
-                                    )}
-                                    {challenge.clients_target && challenge.clients_target > 0 && (
-                                      <div className="flex items-center gap-2">
-                                        <label className="text-xs text-gray-600 w-24">👥 Clients :</label>
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          placeholder="Nombre"
-                                          value={challengeProgress.clients}
-                                          onChange={(e) => {
-                                            const val = Number.parseInt(e.target.value) || 0;
-                                            setChallengeProgress(prev => ({ ...prev, clients: val }));
-                                          }}
-                                          className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
-                                        />
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                                
-                                <div className="flex gap-1.5 mt-3">
-                                  <button
-                                    onClick={() => handleUpdateChallengeProgress(challenge.id, challenge.challenge_type)}
-                                    className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-sm"
-                                    title="Valider"
-                                  >
-                                    ✅ Valider
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setUpdatingChallengeId(null);
-                                      setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
-                                      setChallengeCurrentValue('');
-                                    }}
-                                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-sm flex-shrink-0"
-                                    title="Annuler"
-                                  >
-                                    ❌
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  setUpdatingChallengeId(challenge.id);
-                                  // Clear values for fresh entry (incremental UX)
-                                  if (challenge.challenge_type === 'kpi_standard') {
-                                    setChallengeCurrentValue('');
-                                  } else {
-                                    setChallengeProgress({
-                                      ca: 0,
-                                      ventes: 0,
-                                      clients: 0
-                                    });
-                                  }
-                                }}
-                                className="w-full px-4 py-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-lg hover:from-pink-600 hover:to-orange-600 transition-all font-semibold flex items-center justify-center gap-2"
-                              >
-                                📝 Mettre à jour ma progression
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    <Trophy className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-semibold mb-2">Aucun challenge actif</p>
-                    <p className="text-sm">Vos challenges apparaîtront ici une fois créés</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {activeTab === 'historique' && (
             <div>
               {/* Bandeau fin "Historique" */}
               <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-3">
-                <p className="text-sm">Consultez l'historique de vos objectifs et challenges terminés</p>
+                <p className="text-sm">Consultez l'historique de vos objectifs terminés</p>
               </div>
 
               {/* Filtres */}
@@ -894,45 +497,9 @@ export default function ObjectivesModal({
                     <Filter className="w-4 h-4 text-gray-600" />
                     <span className="text-sm font-semibold text-gray-700">Filtres :</span>
                   </div>
-                  
-                  {/* Type filter */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setHistoryTypeFilter('all')}
-                      className={`px-3 py-1.5 text-sm rounded-lg transition-all ${
-                        historyTypeFilter === 'all'
-                          ? 'bg-purple-600 text-white shadow-md'
-                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
-                      }`}
-                    >
-                      Tous
-                    </button>
-                    <button
-                      onClick={() => setHistoryTypeFilter('objectifs')}
-                      className={`px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1 ${
-                        historyTypeFilter === 'objectifs'
-                          ? 'bg-blue-600 text-white shadow-md'
-                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
-                      }`}
-                    >
-                      <Target className="w-4 h-4" />
-                      Objectifs
-                    </button>
-                    <button
-                      onClick={() => setHistoryTypeFilter('challenges')}
-                      className={`px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1 ${
-                        historyTypeFilter === 'challenges'
-                          ? 'bg-green-600 text-white shadow-md'
-                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
-                      }`}
-                    >
-                      <Trophy className="w-4 h-4" />
-                      Challenges
-                    </button>
-                  </div>
 
                   {/* Status filter */}
-                  <div className="flex gap-2 ml-auto">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => setHistoryStatusFilter('all')}
                       className={`px-3 py-1.5 text-sm rounded-lg transition-all ${
@@ -970,50 +537,20 @@ export default function ObjectivesModal({
               {/* Contenu historique */}
               <div className="px-6 py-6 overflow-y-auto max-h-[60vh]">
                 {(() => {
-                  // Combine and filter objectives and challenges
-                  let items = [];
-                  
-                  // Add objectives with type marker
-                  if (historyTypeFilter === 'all' || historyTypeFilter === 'objectifs') {
-                    items = items.concat(
-                      historyObjectives
-                        .filter(obj => {
-                          if (historyStatusFilter === 'all') return true;
-                          if (historyStatusFilter === 'achieved') return obj.achieved;
-                          if (historyStatusFilter === 'not_achieved') return !obj.achieved;
-                          return true;
-                        })
-                        .map(obj => ({ ...obj, itemType: 'objectif' }))
-                    );
-                  }
-                  
-                  // Add challenges with type marker
-                  if (historyTypeFilter === 'all' || historyTypeFilter === 'challenges') {
-                    items = items.concat(
-                      historyChallenges
-                        .filter(chall => {
-                          if (historyStatusFilter === 'all') return true;
-                          if (historyStatusFilter === 'achieved') return chall.achieved;
-                          if (historyStatusFilter === 'not_achieved') return !chall.achieved;
-                          return true;
-                        })
-                        .map(chall => ({ ...chall, itemType: 'challenge' }))
-                    );
-                  }
-                  
-                  // Sort by end date (most recent first)
-                  items.sort((a, b) => {
-                    const dateA = new Date(a.period_end || a.end_date);
-                    const dateB = new Date(b.period_end || b.end_date);
-                    return dateB - dateA;
-                  });
-                  
+                  // Filter objectives by status
+                  const items = historyObjectives.filter(obj => {
+                    if (historyStatusFilter === 'all') return true;
+                    if (historyStatusFilter === 'achieved') return obj.achieved;
+                    if (historyStatusFilter === 'not_achieved') return !obj.achieved;
+                    return true;
+                  }).sort((a, b) => new Date(b.period_end || b.end_date) - new Date(a.period_end || a.end_date));
+
                   if (items.length === 0) {
                     return (
                       <div className="text-center py-12 text-gray-500">
                         <History className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                         <p className="text-lg font-semibold mb-2">Aucun élément dans l'historique</p>
-                        <p className="text-sm">Les objectifs et challenges terminés apparaîtront ici</p>
+                        <p className="text-sm">Les objectifs terminés apparaîtront ici</p>
                       </div>
                     );
                   }
@@ -1022,7 +559,7 @@ export default function ObjectivesModal({
                     <div className="space-y-3">
                       {items.map((item, index) => (
                         <div 
-                          key={`${item.itemType}-${item.id}-${index}`}
+                          key={`${item.id}-${index}`}
                           className={`rounded-xl p-4 border-2 transition-all ${
                             item.achieved
                               ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
@@ -1032,11 +569,7 @@ export default function ObjectivesModal({
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                {item.itemType === 'objectif' ? (
-                                  <Target className="w-4 h-4 text-blue-600" />
-                                ) : (
-                                  <Trophy className="w-4 h-4 text-green-600" />
-                                )}
+                                <Target className="w-4 h-4 text-blue-600" />
                                 <h4 className="font-bold text-gray-800">{item.title || item.name}</h4>
                               </div>
                               <p className="text-sm text-gray-600">{item.description}</p>

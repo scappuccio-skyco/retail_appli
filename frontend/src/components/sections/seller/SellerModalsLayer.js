@@ -35,7 +35,6 @@ export default function SellerModalsLayer({
   kpiEntries,
   kpiConfig,
   activeObjectives,
-  activeChallenges,
   dailyChallenge,
   bilanIndividuel,
   currentWeekOffset,
@@ -110,7 +109,6 @@ export default function SellerModalsLayer({
   fetchData,
   fetchDebriefs,
   fetchActiveObjectives,
-  fetchActiveChallenges,
   fetchDailyChallenge,
   fetchBilanIndividuel,
   refreshCompetenceScores,
@@ -342,10 +340,8 @@ export default function SellerModalsLayer({
           isOpen={showObjectivesModal}
           onClose={() => setShowObjectivesModal(false)}
           activeObjectives={activeObjectives}
-          activeChallenges={activeChallenges}
           onUpdate={async () => {
             await fetchActiveObjectives();
-            await fetchActiveChallenges();
           }}
         />
       )}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { toast } from 'sonner';
-import { BarChart3, Users, Target, Award } from 'lucide-react';
+import { BarChart3, Users, Target } from 'lucide-react';
 
 /**
  * Grille des 5 cartes du dashboard manager.
@@ -14,7 +14,6 @@ export default function ManagerDashboardGrid({
   onOpenKPI,
   onOpenTeam,
   onOpenObjectives,
-  onOpenChallenges,
   onOpenRelationship,
 }) {
   const activeSellers = sellers.filter(s => s.status === 'active').length;
@@ -109,31 +108,6 @@ export default function ManagerDashboardGrid({
             <h3 className="text-2xl font-bold text-white text-center mb-2">🎯 Objectifs</h3>
             <p className="text-sm text-white opacity-90 text-center">Définir et suivre des objectifs collectifs et/ou individuels</p>
             <p className="text-xs text-white opacity-80 mt-3">Gérer les objectifs →</p>
-          </div>
-        </div>
-      </div>
-    ),
-
-    challenges: dashboardFilters.showChallenges && (
-      <div
-        key="challenges"
-        onClick={onOpenChallenges}
-        className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-400"
-      >
-        <div className="relative h-56 overflow-hidden">
-          <img
-            src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop"
-            alt="Challenges"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-green-600/80 via-emerald-600/80 to-green-600/80 group-hover:from-green-600/70 group-hover:via-emerald-600/70 group-hover:to-green-600/70 transition-all" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-            <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-              <Award className="w-10 h-10 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold text-white text-center mb-2">🏆 Challenges</h3>
-            <p className="text-sm text-white opacity-90 text-center">Lancer des challenges collectifs et/ou individuels</p>
-            <p className="text-xs text-white opacity-80 mt-3">Gérer les challenges →</p>
           </div>
         </div>
       </div>

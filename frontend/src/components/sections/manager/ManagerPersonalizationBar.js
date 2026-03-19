@@ -4,7 +4,6 @@ const SECTION_NAMES = {
   kpi: '📊 KPI',
   team: '👥 Équipe',
   objectives: '🎯 Objectifs',
-  challenges: '🏆 Challenges',
   relationship: '🤝 Gestion rel.',
 };
 
@@ -12,7 +11,6 @@ const FILTER_CARDS = [
   { key: 'showKPI',          label: 'KPI Magasin',          emoji: '📊' },
   { key: 'showTeam',         label: 'Mon Équipe',           emoji: '👥' },
   { key: 'showObjectives',   label: 'Objectifs',            emoji: '🎯' },
-  { key: 'showChallenges',   label: 'Challenges',           emoji: '🏆' },
   { key: 'showRelationship', label: 'Gestion relationnelle', emoji: '🤝' },
 ];
 

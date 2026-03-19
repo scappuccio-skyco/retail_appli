@@ -36,7 +36,6 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [managerDiagnostic, setManagerDiagnostic] = useState(null);
   const [teamBilan, setTeamBilan] = useState(null);
   const [kpiConfig, setKpiConfig] = useState(null);
-  const [activeChallenges, setActiveChallenges] = useState([]);
   const [activeObjectives, setActiveObjectives] = useState([]);
   const [storeKPIStats, setStoreKPIStats] = useState(null);
   const [storeName, setStoreName] = useState('');
@@ -74,7 +73,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       if (parsed.showRelationship === undefined) return { ...parsed, showRelationship: true };
       return parsed;
     }
-    return { showKPI: true, showTeam: true, showObjectives: true, showChallenges: true, showRelationship: true };
+    return { showKPI: true, showTeam: true, showObjectives: true, showRelationship: true };
   });
 
   const [sectionOrder, setSectionOrder] = useState(() => {
@@ -84,7 +83,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       if (!parsed.includes('relationship')) return [...parsed, 'relationship'];
       return parsed;
     }
-    return ['kpi', 'team', 'objectives', 'challenges', 'relationship'];
+    return ['kpi', 'team', 'objectives', 'relationship'];
   });
 
   // ── Derived ────────────────────────────────────────────────
@@ -132,7 +131,6 @@ export default function ManagerDashboard({ user, onLogout }) {
     fetchManagerDiagnostic();
     fetchTeamBilan();
     fetchKpiConfig();
-    fetchActiveChallenges();
     fetchActiveObjectives();
     fetchStoreKPIStats();
     fetchManagerTasks();
@@ -314,15 +312,6 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
-  const fetchActiveChallenges = async () => {
-    try {
-      const res = await api.get(`/manager/challenges/active${apiStoreIdParam}`);
-      setActiveChallenges(res.data);
-    } catch (err) {
-      logger.error('Error fetching active challenges:', err);
-    }
-  };
-
   const fetchStoreKPIStats = async () => {
     try {
       const res = await api.get(`/manager/store-kpi/stats${apiStoreIdParam}`);
@@ -418,7 +407,6 @@ export default function ManagerDashboard({ user, onLogout }) {
         onOpenKPI={() => setShowStoreKPIModal(true)}
         onOpenTeam={() => setShowTeamModal(true)}
         onOpenObjectives={() => { setSettingsModalType('objectives'); setShowSettingsModal(true); }}
-        onOpenChallenges={() => { setSettingsModalType('challenges'); setShowSettingsModal(true); }}
         onOpenRelationship={() => setShowRelationshipModal(true)}
       />
 
@@ -467,7 +455,6 @@ export default function ManagerDashboard({ user, onLogout }) {
         // Actions
         fetchData={fetchData}
         fetchManagerDiagnostic={fetchManagerDiagnostic}
-        fetchActiveChallenges={fetchActiveChallenges}
         fetchActiveObjectives={fetchActiveObjectives}
         fetchKpiConfig={fetchKpiConfig}
         fetchStoreKPIStats={fetchStoreKPIStats}

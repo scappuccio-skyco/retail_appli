@@ -35,7 +35,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [dailyChallenge, setDailyChallenge] = useState(null);
   const [bilanIndividuel, setBilanIndividuel] = useState(null);
   const [activeObjectives, setActiveObjectives] = useState([]);
-  const [activeChallenges, setActiveChallenges] = useState([]);
   const [storeName, setStoreName] = useState('');
   const [managerName, setManagerName] = useState('');
 
@@ -164,7 +163,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     fetchData();
     fetchKpiConfig();
     fetchBilanIndividuel(0);
-    fetchActiveChallenges();
     fetchActiveObjectives();
     fetchDailyChallenge();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -379,15 +377,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       setActiveObjectives(res.data);
     } catch (err) {
       logger.error('Error fetching active objectives:', err);
-    }
-  };
-
-  const fetchActiveChallenges = async () => {
-    try {
-      const res = await api.get('/seller/challenges/active');
-      setActiveChallenges(res.data);
-    } catch (err) {
-      logger.error('Error fetching active challenges:', err);
     }
   };
 
@@ -606,7 +595,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           finalOrder={finalOrder}
           dashboardFilters={dashboardFilters}
           activeObjectives={activeObjectives}
-          activeChallenges={activeChallenges}
           onOpenPerformance={() => setShowPerformanceModal(true)}
           onOpenObjectives={() => setShowObjectivesModal(true)}
           onOpenCoaching={() => setShowCoachingModal(true)}
@@ -621,7 +609,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         kpiEntries={kpiEntries}
         kpiConfig={kpiConfig}
         activeObjectives={activeObjectives}
-        activeChallenges={activeChallenges}
         dailyChallenge={dailyChallenge}
         bilanIndividuel={bilanIndividuel}
         currentWeekOffset={currentWeekOffset}
@@ -688,7 +675,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         fetchData={fetchData}
         fetchDebriefs={fetchDebriefs}
         fetchActiveObjectives={fetchActiveObjectives}
-        fetchActiveChallenges={fetchActiveChallenges}
         fetchDailyChallenge={fetchDailyChallenge}
         fetchBilanIndividuel={fetchBilanIndividuel}
         refreshCompetenceScores={refreshCompetenceScores}

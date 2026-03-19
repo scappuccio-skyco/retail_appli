@@ -70,7 +70,6 @@ export default function ManagerModalsLayer({
   // Actions
   fetchData,
   fetchManagerDiagnostic,
-  fetchActiveChallenges,
   fetchActiveObjectives,
   fetchKpiConfig,
   fetchStoreKPIStats,
@@ -130,7 +129,6 @@ export default function ManagerModalsLayer({
           modalType={settingsModalType}
           storeIdParam={urlStoreId}
           onUpdate={() => {
-            fetchActiveChallenges();
             fetchActiveObjectives();
             fetchKpiConfig();
           }}
