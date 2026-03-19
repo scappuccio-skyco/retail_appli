@@ -1145,6 +1145,14 @@ class APIKeyService:
         try:
             store_kpi_repo = self.store_kpi_repo
             kpi_repo = self.kpi_repo
+            # Pre-fetch seller IDs for store as fallback when store_id doesn't match kpi_entries
+            seller_ids_for_store = []
+            if self.user_repo:
+                sellers_in_store = await self.user_repo.find_by_store(
+                    store_id, role="seller", status="active",
+                    projection={"_id": 0, "id": 1}, limit=200
+                )
+                seller_ids_for_store = [s["id"] for s in sellers_in_store if s.get("id")]
             last_data_date = None
             for days_back in range(1, 31):
                 check_date = today - timedelta(days=days_back)
@@ -1157,6 +1165,12 @@ class APIKeyService:
                             "date": check_date_str,
                             "ca_journalier": {"$gt": 0},
                         },
+                        {"_id": 0, "date": 1},
+                    )
+                # Fallback: search by seller_ids in case store_id doesn't match kpi_entries
+                if not kpi_check and seller_ids_for_store:
+                    kpi_check = await kpi_repo.find_one(
+                        {"seller_id": {"$in": seller_ids_for_store}, "date": check_date_str, "ca_journalier": {"$gt": 0}},
                         {"_id": 0, "date": 1},
                     )
                 if kpi_check:
@@ -1173,7 +1187,15 @@ class APIKeyService:
             logger.info("[BRIEF] kpis_yesterday (legacy kpis collection): %d entries", len(kpis_yesterday))
             if not kpis_yesterday:
                 kpi_entries = await kpi_repo.find_by_store(store_id, last_data_date)
-                logger.info("[BRIEF] kpi_entries count: %d, first entry sample: %s", len(kpi_entries), kpi_entries[0] if kpi_entries else "EMPTY")
+                logger.info("[BRIEF] kpi_entries by store_id count: %d", len(kpi_entries))
+                # Fallback: query by seller_ids if store_id didn't match (API sync may use different store_id)
+                if not kpi_entries and seller_ids_for_store:
+                    kpi_entries = await kpi_repo.find_many(
+                        {"seller_id": {"$in": seller_ids_for_store}, "date": last_data_date},
+                        projection={"_id": 0},
+                        limit=200,
+                    )
+                    logger.info("[BRIEF] kpi_entries by seller_ids fallback count: %d", len(kpi_entries))
                 if kpi_entries:
                     total_ca = sum(k.get("ca_journalier", 0) or 0 for k in kpi_entries)
                     logger.info("[BRIEF] total_ca computed from kpi_entries: %s", total_ca)
