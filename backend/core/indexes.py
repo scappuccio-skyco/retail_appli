@@ -145,6 +145,10 @@ INDEXES: Dict[str, List[IndexSpec]] = {
         # Lookup par id interne (update_one / find_one par id)
         _spec("id", unique=True, background=True, name="id_unique"),
     ],
+    # stripe_events : idempotence webhook (unique par event_id Stripe)
+    "stripe_events": [
+        _spec("event_id", unique=True, background=True, name="event_id_unique"),
+    ],
 }
 
 

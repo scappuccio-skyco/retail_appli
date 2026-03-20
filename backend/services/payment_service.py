@@ -12,6 +12,7 @@ from typing import Dict, Optional
 from repositories.user_repository import UserRepository
 from repositories.subscription_repository import SubscriptionRepository
 from repositories.store_repository import WorkspaceRepository
+from repositories.stripe_event_repository import StripeEventRepository
 from email_service import (
     send_payment_confirmation_email,
     send_payment_failed_email,
@@ -29,6 +30,7 @@ class PaymentService:
         self.user_repo = UserRepository(db)
         self.subscription_repo = SubscriptionRepository(db)
         self.workspace_repo = WorkspaceRepository(db)
+        self.stripe_event_repo = StripeEventRepository(db)
         self.stripe_api_key = os.environ.get("STRIPE_API_KEY")
         if self.stripe_api_key:
             stripe.api_key = self.stripe_api_key
@@ -52,13 +54,18 @@ class PaymentService:
         data = event['data']['object']
         event_id = event.get('id')
         event_created = event.get('created')  # Unix timestamp
-        
+
         logger.info(f"📥 Processing Stripe webhook: {event_type} (id={event_id}, created={event_created})")
-        
+
+        # Idempotence : vérifier si l'événement a déjà été traité (survit aux redémarrages)
+        if event_id and await self.stripe_event_repo.exists(event_id):
+            logger.info(f"⏭️ Duplicate webhook ignored: {event_type} (id={event_id})")
+            return {"status": "already_processed", "event_id": event_id}
+
         # Inject event metadata into data object for handlers (for ordering protection)
         data['_event_id'] = event_id
         data['_event_created'] = event_created
-        
+
         handlers = {
             'invoice.payment_succeeded': self._handle_payment_succeeded,
             'invoice.payment_failed': self._handle_payment_failed,
@@ -68,13 +75,22 @@ class PaymentService:
             'customer.subscription.trial_will_end': self._handle_trial_will_end,
             'checkout.session.completed': self._handle_checkout_completed,
         }
-        
+
         handler = handlers.get(event_type)
         if handler:
-            return await handler(data)
+            result = await handler(data)
         else:
             logger.info(f"⏭️ Unhandled event type: {event_type}")
-            return {"status": "ignored", "event_type": event_type}
+            result = {"status": "ignored", "event_type": event_type}
+
+        # Persister l'événement traité pour l'idempotence future
+        if event_id:
+            try:
+                await self.stripe_event_repo.mark_processed(event_id, event_type, event_created or 0)
+            except Exception as e:
+                logger.warning(f"Could not persist Stripe event {event_id}: {e}")
+
+        return result
     
     async def _handle_payment_succeeded(self, invoice: Dict) -> Dict:
         """
