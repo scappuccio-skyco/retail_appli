@@ -22,7 +22,8 @@ from api.routes.manager.sellers import (
     get_seller_kpi_entries,
     get_seller_stats,
 )
-from api.routes.manager.analytics import router as analytics_router
+from api.routes.manager.kpi import router as kpi_router
+from api.routes.manager.analyses import router as analyses_router
 from api.routes.manager.objectives import router as objectives_router
 from api.routes.manager.challenges import router as challenges_router
 from api.routes.manager.evaluations import router as evaluations_router
@@ -48,7 +49,8 @@ public_router.include_router(store_public_router)
 
 router.include_router(store_router)
 router.include_router(sellers_router)
-router.include_router(analytics_router)
+router.include_router(kpi_router)
+router.include_router(analyses_router)
 router.include_router(objectives_router)
 router.include_router(challenges_router)
 router.include_router(evaluations_router)

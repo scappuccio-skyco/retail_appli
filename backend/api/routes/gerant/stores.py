@@ -19,7 +19,7 @@ from api.dependencies import (
     get_manager_kpi_service,
     get_ai_service,
 )
-from api.routes.manager.analytics import run_store_kpi_analysis
+from api.routes.manager.analyses import run_store_kpi_analysis
 import logging
 
 logger = logging.getLogger(__name__)
