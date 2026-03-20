@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 19 Mars 2026
+**Dernière mise à jour**: 20 Mars 2026
 
 ---
 
@@ -89,18 +89,35 @@ backend/
 │   └── ...
 └── api/routes/                # Presentation layer
     ├── auth.py
-    ├── manager/               # Package manager (découpage post-audit, Phase 3–4)
-    │   ├── __init__.py        # Agrége les routeurs (store, sellers, analytics, objectives, challenges, evaluations, consultations)
-    │   ├── dependencies.py   # Ré-exports: get_store_context, get_verified_seller, verify_manager_or_gerant
-    │   ├── store.py           # Config magasin, sync, KPI config, abonnement, clés API
-    │   ├── sellers.py         # Vendeurs, invitations, stats, debriefs, competences-history (paginés)
-    │   ├── analytics.py       # KPIs, graphiques, analyses IA (analyze-store-kpis, analyze-team)
+    ├── manager/               # Package manager
+    │   ├── __init__.py        # Agrège les routeurs
+    │   ├── dependencies.py    # get_store_context, get_verified_seller, verify_manager_or_gerant
+    │   ├── store.py           # Config magasin, sync, KPI config
+    │   ├── sellers.py         # Vendeurs, invitations, stats, debriefs, competences-history
+    │   ├── kpi.py             # KPIs bruts (overview, dates, manager-kpi, métriques vendeur/équipe)
+    │   ├── analyses.py        # Analyses IA (analyze-team, analyze-store-kpis, run_store_kpi_analysis)
     │   ├── objectives.py      # Objectifs équipe (CRUD)
     │   ├── challenges.py      # Défis équipe (CRUD)
-    │   ├── evaluations.py     # Diagnostics, debriefs, compétences (évaluations)
+    │   ├── evaluations.py     # Diagnostics, debriefs, compétences
     │   └── consultations.py   # Conseils relationnels, résolutions conflits (IA)
-    ├── gerant.py
-    ├── sellers.py
+    ├── gerant/                # Package gérant (20 Mars 2026)
+    │   ├── __init__.py        # Agrège les 6 sous-routeurs sous /gerant
+    │   ├── profile.py         # ping, api-keys, transfers, profil
+    │   ├── stores.py          # Stores CRUD, stats, KPI, bulk-import
+    │   ├── staff.py           # Managers/sellers, invitations, suspend/delete
+    │   ├── subscription.py    # Abonnements, Stripe portal/checkout, audit
+    │   ├── billing.py         # /billing-profile (TVA, VIES, Stripe sync)
+    │   └── misc.py            # Dashboard, invoices, support, maintenance
+    ├── sellers/               # Package vendeurs (20 Mars 2026)
+    │   ├── __init__.py        # Agrège : router, status_router, diagnostic_router
+    │   ├── status.py          # Routes publiques (subscription-status, kpi-enabled)
+    │   ├── objectives.py      # Tasks, objectives/*
+    │   ├── challenges.py      # Challenges/*, daily-challenge/*
+    │   ├── kpi.py             # kpi-config, kpi-metrics, kpi-entries, kpi-entry
+    │   ├── diagnostic.py      # /seller/diagnostic/* + /diagnostic/* + helpers DISC
+    │   ├── relationship.py    # relationship-advice/*, conflict-*
+    │   ├── bilans.py          # /store-info, /bilan-individuel/*
+    │   └── interview_notes.py # /interview-notes/*
     ├── stores.py
     └── ...
 ```
@@ -674,6 +691,40 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
 - Problème: deux classes `DebriefCreate` coexistaient — une dans `models/sales.py` (non utilisée) et une inline dans `api/routes/debriefs.py`.
 - ✅ Modifié: `models/sales.py` - `DebriefCreate` harmonisé : `vente_conclue: bool = True`, champs texte `Optional[str] = ""`, `shared_with_manager: bool = False`
 - ✅ Modifié: `api/routes/debriefs.py` - classe inline supprimée, import depuis `models.sales`, `shared_with_manager` lu depuis `debrief_data` (plus hardcodé à `False`)
+
+---
+
+### [20 Mars 2026] - Audit complet + refactoring maintenabilité
+
+**Corrections de dette technique**
+- ✅ `models/kpis.py` — suppression `StoreKPI`, `StoreKPICreate` (modèles morts)
+- ✅ `repositories/kpi_repository.py` — suppression `StoreKPIRepository` (collection `kpis` jamais utilisée en production)
+- ✅ `services/manager_service.py`, `api/dependencies.py` — suppression injection `store_kpi_repo`
+- ✅ `services/ai_service.py` — suppression `generate_team_bilan`, `generate_feedback`, `TEAM_BILAN_SYSTEM_PROMPT`, `FEEDBACK_SYSTEM_PROMPT` (fonctions mortes)
+- ✅ `api/routes/manager/store.py` — suppression endpoint `/test`, `_empty_overview_response()`, `except Exception: return ...` silencieux
+- ✅ `api/routes/sellers/` (ex sellers.py) — suppression `except Exception: return []` sur objectives/challenges
+- ✅ `api/routes/gerant/` — suppression `ERR_AUCUN_ABONNEMENT_TROUVE`, doublon `/ping` dans gerant_transfer.py
+- ✅ `core/constants.py` — suppression constante inutilisée
+- ✅ `config/limits.py` — ajout `SELLERS_LIST_LIMIT = 50`, `KPI_RECENT_DAYS = 7`, `DEBRIEFS_HISTORY_CAP = 200`
+- ✅ `email_service.py` — singleton Brevo (évite recréation instance à chaque email)
+
+**Stripe webhook idempotence persistante**
+- ✅ `repositories/stripe_event_repository.py` — `exists()` + `mark_processed()`
+- ✅ `services/payment_service.py` — vérification idempotence persistante + emails en fire-and-forget (`asyncio.to_thread`)
+- ✅ `core/indexes.py` — index unique sur `stripe_events.event_id`
+
+**Nettoyage MongoDB**
+- ✅ Collections droppées : `kpis`, `User` (majuscule, artefact), `manager_kpi` (singulier, legacy)
+- ✅ Scripts de seed supprimés : `create_ylegoff_data.py`, `fill_kpis_ylegoff.py`
+
+**Découpage routes en packages**
+- ✅ `api/routes/gerant.py` (3281 l) → `gerant/` (6 fichiers + __init__.py)
+- ✅ `api/routes/manager/analytics.py` (1060 l) → `manager/kpi.py` (426 l) + `manager/analyses.py` (656 l)
+- ✅ `api/routes/sellers.py` (2564 l) → `sellers/` (8 fichiers + __init__.py)
+
+**Dette restante (nécessite tests avant refactoring)**
+- `gerant_service.py` (2785 l), `seller_service.py` (2295 l), `admin_service.py` (2094 l), `ai_service.py` (2001 l)
+- Frontend : 29 composants >500 lignes, appels API dupliqués (voir section dette frontend ci-dessus)
 
 ---
 
