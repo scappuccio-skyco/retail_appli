@@ -332,20 +332,22 @@ class KpiMixin:
 
         now = datetime.now(timezone.utc)
         first_day_of_month = now.replace(day=1).strftime('%Y-%m-%d')
-        today = now.strftime('%Y-%m-%d')
+        # Use end of month (same range as get_store_stats) so both endpoints are consistent
+        next_month = now.replace(day=28) + timedelta(days=4)
+        last_day_of_month = (next_month.replace(day=1) - timedelta(days=1)).strftime('%Y-%m-%d')
 
         managers_with_kpis = await self.manager_kpi_repo.distinct(
             "manager_id",
-            {"store_id": {"$in": store_ids}, "date": {"$gte": first_day_of_month, "$lte": today}}
+            {"store_id": {"$in": store_ids}, "date": {"$gte": first_day_of_month, "$lte": last_day_of_month}}
         )
 
         pipeline = self._build_seller_kpi_month_pipeline(
-            store_ids, first_day_of_month, today, managers_with_kpis
+            store_ids, first_day_of_month, last_day_of_month, managers_with_kpis
         )
         kpi_stats = await self.kpi_repo.aggregate(pipeline, max_results=1)
 
         manager_pipeline = self._build_manager_kpi_month_pipeline(
-            store_ids, first_day_of_month, today
+            store_ids, first_day_of_month, last_day_of_month
         )
         manager_stats = await self.manager_kpi_repo.aggregate(manager_pipeline, max_results=1)
 
