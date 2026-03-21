@@ -44,6 +44,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         onOpenSubscription={() => s.setShowSubscriptionModal(true)}
         onOpenSupport={() => s.setShowSupportModal(true)}
         onOpenBillingProfile={() => s.setShowBillingProfileModal(true)}
+        onOpenInvoices={() => s.setShowInvoicesModal(true)}
       />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">

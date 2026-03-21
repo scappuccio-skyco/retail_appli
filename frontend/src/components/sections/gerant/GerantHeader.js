@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Settings, Headphones, BarChart3, Store, UserCog, Key, FileText, User } from 'lucide-react';
+import { LogOut, Settings, Headphones, BarChart3, Store, UserCog, Key, FileText, User, Receipt } from 'lucide-react';
 import TutorialButton from '../../onboarding/TutorialButton';
 
 /**
@@ -15,6 +15,7 @@ export default function GerantHeader({
   onOpenSubscription,
   onOpenSupport,
   onOpenBillingProfile,
+  onOpenInvoices,
 }) {
   return (
     <div className="bg-white shadow-md border-b-4 border-orange-500">
@@ -50,8 +51,16 @@ export default function GerantHeader({
 
           <div className="flex gap-1 sm:gap-2 flex-shrink-0">
             <button
-              onClick={onOpenBillingProfile}
+              onClick={onOpenInvoices}
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
+              title="Mes factures"
+            >
+              <Receipt className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden md:inline">Factures</span>
+            </button>
+            <button
+              onClick={onOpenBillingProfile}
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:shadow-md transition-all text-xs sm:text-sm"
               title="Informations de facturation B2B"
             >
               <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
