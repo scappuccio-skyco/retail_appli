@@ -1,159 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { X, Award, RefreshCw, MessageSquare } from 'lucide-react';
-import { toast } from 'sonner';
-import { api } from '../lib/apiClient';
-import { logger } from '../utils/logger';
-import confetti from 'canvas-confetti';
+import useDailyChallengeModal from './dailyChallengeModal/useDailyChallengeModal';
+import ChallengeStatsBar from './dailyChallengeModal/ChallengeStatsBar';
+import ChallengeActions from './dailyChallengeModal/ChallengeActions';
 
 export default function DailyChallengeModal({ challenge, onClose, onRefresh, onComplete, onOpenHistory }) {
-  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
-  const [feedbackComment, setFeedbackComment] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState(null);
-
-  // Fetch challenge stats
-  useEffect(() => {
-    let cancelled = false;
-    api.get('/seller/daily-challenge/stats')
-      .then(res => { if (!cancelled) setStats(res.data); })
-      .catch(err => { if (!cancelled) logger.error('Error fetching stats:', err); });
-    return () => { cancelled = true; };
-  }, []);
-
-  // Note: Confetti is now triggered directly in handleComplete, not on mount
-
-  const triggerConfetti = () => {
-    const duration = 3000;
-    const end = Date.now() + duration;
-    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
-
-    (function frame() {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: colors
-      });
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: colors
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    }());
-  };
-
-  const triggerPartialConfetti = () => {
-    // Animation plus modérée pour "Difficile"
-    const duration = 2000;
-    const end = Date.now() + duration;
-    const colors = ['#fb923c', '#fdba74', '#fcd34d']; // Orange/Yellow
-
-    (function frame() {
-      confetti({
-        particleCount: 2,
-        angle: 90,
-        spread: 45,
-        origin: { x: 0.5, y: 0.5 },
-        colors: colors
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    }());
-  };
-
-  const triggerFailAnimation = () => {
-    // Animation shake pour "Échoué"
-    const modalElement = document.querySelector('.challenge-modal-content');
-    if (modalElement) {
-      modalElement.classList.add('shake-animation');
-      setTimeout(() => {
-        modalElement.classList.remove('shake-animation');
-      }, 600);
-    }
-  };
-
-  const handleComplete = async (result) => {
-    if (!result) {
-      setShowFeedbackForm(true);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await api.post(
-        '/seller/daily-challenge/complete',
-        {
-          challenge_id: challenge.id,
-          result: result,
-          comment: feedbackComment || null
-        }
-      );
-
-      const messages = {
-        success: '🎉 Excellent ! Défi réussi !',
-        partial: '💪 Bon effort ! Continue comme ça !',
-        failed: '🤔 Pas grave ! Chaque essai te fait progresser !'
-      };
-      
-      // Show success message
-      toast.success(messages[result] || '✅ Feedback enregistré !');
-      
-      // Trigger appropriate animation based on result
-      if (result === 'success') {
-        triggerConfetti(); // Confettis complets pour succès
-      } else if (result === 'partial') {
-        triggerPartialConfetti(); // Confettis modérés pour difficile
-      } else if (result === 'failed') {
-        triggerFailAnimation(); // Animation d'encouragement pour échec
-      }
-      
-      // Update challenge state to show completion
-      if (onComplete) {
-        onComplete(res.data);
-      }
-      
-      // Close after a short delay to let user see the success message
-      setTimeout(() => {
-        onClose();
-      }, 1500);
-    } catch (err) {
-      logger.error('Error completing challenge:', err);
-      toast.error('Erreur lors de la validation');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRefresh = async () => {
-    setLoading(true);
-    try {
-      const res = await api.post('/seller/daily-challenge/refresh', {});
-      toast.success('✨ Nouveau défi généré !');
-      
-      if (onRefresh) {
-        onRefresh(res.data);
-      }
-    } catch (err) {
-      logger.error('Error refreshing challenge:', err);
-      toast.error('Erreur lors du rafraîchissement');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    stats, loading,
+    showFeedbackForm, setShowFeedbackForm,
+    feedbackComment, setFeedbackComment,
+    handleComplete, handleRefresh,
+  } = useDailyChallengeModal({ challenge, onClose, onRefresh, onComplete });
 
   if (!challenge) return null;
 
   return (
-    <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    >
       <div className="challenge-modal-content bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <style>{`
           @keyframes shake {
@@ -161,10 +26,9 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
             10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
             20%, 40%, 60%, 80% { transform: translateX(10px); }
           }
-          .shake-animation {
-            animation: shake 0.6s ease-in-out;
-          }
+          .shake-animation { animation: shake 0.6s ease-in-out; }
         `}</style>
+
         {/* Header */}
         <div className="bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white p-6">
           <div className="flex items-center justify-between mb-4">
@@ -174,78 +38,32 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
               </div>
               <div>
                 <h2 className="text-2xl font-bold">🤖 Mon Coach IA</h2>
-                <p className="text-sm text-orange-100">
-                  {challenge.completed ? '✅ Défi relevé !' : 'Ton défi personnalisé'}
-                </p>
+                <p className="text-sm text-orange-100">{challenge.completed ? '✅ Défi relevé !' : 'Ton défi personnalisé'}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all"
-            >
+            <button onClick={onClose} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all">
               <X className="w-6 h-6" />
             </button>
           </div>
-          
-          {/* Action buttons in header */}
           <div className="flex gap-2">
             <button
               onClick={onOpenHistory}
               className="flex-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
             >
-              <MessageSquare className="w-4 h-4" />
-              📜 Historique
+              <MessageSquare className="w-4 h-4" />📜 Historique
             </button>
-            {challenge.completed ? (
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className="flex-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                🔄 Nouveau défi
-              </button>
-            ) : (
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className="flex-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Relancer
-              </button>
-            )}
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              className="flex-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              {challenge.completed ? '🔄 Nouveau défi' : 'Relancer'}
+            </button>
           </div>
         </div>
 
-        {/* Statistics Section */}
-        {stats && (
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 border-b-2 border-purple-100">
-            <p className="text-xs text-gray-600 font-semibold mb-3">📊 Tes Statistiques</p>
-            <div className="grid grid-cols-4 gap-2">
-              <div className="bg-white rounded-xl p-2 text-center shadow-sm">
-                <div className="text-2xl mb-1">🏆</div>
-                <p className="text-lg font-bold text-gray-800">{stats.completed_count}</p>
-                <p className="text-xs text-gray-600">Relevé{stats.completed_count > 1 ? 's' : ''}</p>
-              </div>
-              <div className="bg-white rounded-xl p-2 text-center shadow-sm">
-                <div className="text-2xl mb-1">✅</div>
-                <p className="text-lg font-bold text-[#10B981]">{stats.success_count}</p>
-                <p className="text-xs text-gray-600">Réussi{stats.success_count > 1 ? 's' : ''}</p>
-              </div>
-              <div className="bg-white rounded-xl p-2 text-center shadow-sm">
-                <div className="text-2xl mb-1">💪</div>
-                <p className="text-lg font-bold text-[#F97316]">{stats.partial_count}</p>
-                <p className="text-xs text-gray-600">Difficile{stats.partial_count > 1 ? 's' : ''}</p>
-              </div>
-              <div className="bg-white rounded-xl p-2 text-center shadow-sm">
-                <div className="text-2xl mb-1">❌</div>
-                <p className="text-lg font-bold text-red-600">{stats.failed_count}</p>
-                <p className="text-xs text-gray-600">Échoué{stats.failed_count > 1 ? 's' : ''}</p>
-              </div>
-            </div>
-          </div>
-        )}
+        <ChallengeStatsBar stats={stats} />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
@@ -257,13 +75,11 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
               <h3 className="text-base font-bold text-gray-900">{challenge.title}</h3>
             </div>
 
-            {/* Le Défi */}
             <div className="bg-white rounded-lg p-3 mb-2">
               <p className="text-xs font-semibold text-orange-900 mb-1">💪 Ton Défi :</p>
               <p className="text-sm text-gray-800">{challenge.description}</p>
             </div>
 
-            {/* Rappel & Exemple */}
             <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="bg-white rounded-lg p-2">
                 <p className="text-xs font-semibold text-blue-900 mb-1">🎓 Rappel</p>
@@ -275,8 +91,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
               </div>
             </div>
 
-            {/* Exemples Concrets (3) */}
-            {challenge.examples && challenge.examples.length > 0 && (
+            {challenge.examples?.length > 0 && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 mb-3 border-2 border-green-200">
                 <p className="text-xs font-semibold text-green-900 mb-2">✨ 3 Exemples pour Réussir</p>
                 <div className="space-y-2">
@@ -290,91 +105,15 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
               </div>
             )}
 
-            {/* Actions */}
-            {!challenge.completed ? (
-              !showFeedbackForm ? (
-                <button
-                  onClick={() => setShowFeedbackForm(true)}
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white font-bold py-3 px-6 rounded-lg transition-all disabled:opacity-50"
-                >
-                  ✅ J'ai relevé le défi !
-                </button>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-700">Comment ça s'est passé ?</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      onClick={() => handleComplete('success')}
-                      disabled={loading}
-                      className="bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white font-bold py-2 px-3 rounded-lg transition-all disabled:opacity-50 flex flex-col items-center gap-0.5"
-                    >
-                      <span className="text-xl">✅</span>
-                      <span className="text-xs">Réussi</span>
-                    </button>
-                    <button
-                      onClick={() => handleComplete('partial')}
-                      disabled={loading}
-                      className="bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-lg text-white font-bold py-2 px-3 rounded-lg transition-all disabled:opacity-50 flex flex-col items-center gap-0.5"
-                    >
-                      <span className="text-xl">⚠️</span>
-                      <span className="text-xs">Difficile</span>
-                    </button>
-                    <button
-                      onClick={() => handleComplete('failed')}
-                      disabled={loading}
-                      className="bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg text-white font-bold py-2 px-3 rounded-lg transition-all disabled:opacity-50 flex flex-col items-center gap-0.5"
-                    >
-                      <span className="text-xl">❌</span>
-                      <span className="text-xs">Échoué</span>
-                    </button>
-                  </div>
-                  <div>
-                    <textarea
-                      value={feedbackComment}
-                      onChange={(e) => setFeedbackComment(e.target.value)}
-                      placeholder="Commentaire optionnel..."
-                      className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-                      rows={2}
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowFeedbackForm(false);
-                      setFeedbackComment('');
-                    }}
-                    className="w-full text-xs text-gray-600 hover:text-gray-800 py-1 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                </div>
-              )
-            ) : (
-              <div className="space-y-2">
-                <div className={`rounded-lg p-3 flex items-center justify-center gap-2 ${
-                  challenge.challenge_result === 'success' 
-                    ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800'
-                    : challenge.challenge_result === 'partial'
-                    ? 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800'
-                    : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800'
-                }`}>
-                  <span className="text-xl">
-                    {challenge.challenge_result === 'success' ? '🎉' : 
-                     challenge.challenge_result === 'partial' ? '💪' : '🤔'}
-                  </span>
-                  <span className="font-bold text-sm">
-                    {challenge.challenge_result === 'success' ? 'Défi réussi !' : 
-                     challenge.challenge_result === 'partial' ? 'Défi difficile' : 'Défi non réussi'}
-                  </span>
-                </div>
-                {challenge.feedback_comment && (
-                  <div className="bg-white rounded-lg p-2 border border-gray-200">
-                    <p className="text-xs font-semibold text-gray-600 mb-0.5">Ton commentaire :</p>
-                    <p className="text-xs text-gray-800 italic">{challenge.feedback_comment}</p>
-                  </div>
-                )}
-              </div>
-            )}
+            <ChallengeActions
+              challenge={challenge}
+              loading={loading}
+              showFeedbackForm={showFeedbackForm}
+              feedbackComment={feedbackComment}
+              setFeedbackComment={setFeedbackComment}
+              setShowFeedbackForm={setShowFeedbackForm}
+              onComplete={handleComplete}
+            />
           </div>
         </div>
 
