@@ -43,8 +43,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         onboarding={s.onboarding}
         onOpenSubscription={() => s.setShowSubscriptionModal(true)}
         onOpenSupport={() => s.setShowSupportModal(true)}
-        onOpenBillingProfile={() => s.setShowBillingProfileModal(true)}
-        onOpenInvoices={() => s.setShowInvoicesModal(true)}
+        onOpenBillingProfile={() => s.openBillingModal('profile')}
       />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
@@ -114,7 +113,8 @@ const GerantDashboard = ({ user, onLogout }) => {
         showSubscriptionModal={s.showSubscriptionModal}
         showSupportModal={s.showSupportModal}
         showBillingProfileModal={s.showBillingProfileModal}
-        showInvoicesModal={s.showInvoicesModal}
+        billingInitialTab={s.billingInitialTab}
+        openBillingModal={s.openBillingModal}
         setShowCreateStoreModal={s.setShowCreateStoreModal}
         setShowStoreDetailModal={s.setShowStoreDetailModal}
         setShowManagerTransferModal={s.setShowManagerTransferModal}
@@ -124,7 +124,6 @@ const GerantDashboard = ({ user, onLogout }) => {
         setShowSubscriptionModal={s.setShowSubscriptionModal}
         setShowSupportModal={s.setShowSupportModal}
         setShowBillingProfileModal={s.setShowBillingProfileModal}
-        setShowInvoicesModal={s.setShowInvoicesModal}
         setSelectedStore={s.setSelectedStore}
         setSelectedManager={s.setSelectedManager}
         setSelectedSeller={s.setSelectedSeller}

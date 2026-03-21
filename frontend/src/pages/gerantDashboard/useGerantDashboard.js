@@ -48,6 +48,7 @@ export default function useGerantDashboard({ user, onLogout }) {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showBillingProfileModal, setShowBillingProfileModal] = useState(false);
+  const [billingInitialTab, setBillingInitialTab] = useState('profile');
   const [showInvoicesModal, setShowInvoicesModal] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
   const [selectedStoreColorIndex, setSelectedStoreColorIndex] = useState(0);
@@ -267,6 +268,8 @@ export default function useGerantDashboard({ user, onLogout }) {
     showSubscriptionModal, setShowSubscriptionModal,
     showSupportModal, setShowSupportModal,
     showBillingProfileModal, setShowBillingProfileModal,
+    billingInitialTab,
+    openBillingModal: (tab = 'profile') => { setBillingInitialTab(tab); setShowBillingProfileModal(true); },
     showInvoicesModal, setShowInvoicesModal,
     selectedStore, setSelectedStore,
     selectedStoreColorIndex, setSelectedStoreColorIndex,

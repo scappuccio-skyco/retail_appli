@@ -402,12 +402,12 @@ export default function GerantDashboardView({
                         <div className="flex items-center justify-center gap-3 text-xs text-gray-600">
                           <span className="flex items-center gap-1">
                             <Users className="w-3.5 h-3.5 text-blue-400" />
-                            <span className="font-semibold">{s.stats?.managers_count ?? 0}</span>
+                            <span className="font-semibold">{storesStats[s.id]?.managers_count ?? '—'}</span>
                           </span>
                           <span className="text-gray-300">|</span>
                           <span className="flex items-center gap-1">
                             <Users className="w-3.5 h-3.5 text-purple-400" />
-                            <span className="font-semibold">{s.stats?.sellers_count ?? 0}</span>
+                            <span className="font-semibold">{storesStats[s.id]?.sellers_count ?? '—'}</span>
                           </span>
                         </div>
                       </td>
