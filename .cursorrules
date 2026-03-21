@@ -854,16 +854,18 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
 
 **Reste à traiter** : `ManagerDashboard.js` (474L), `ManagerDiagnosticForm.js` (499L)
 
+### ✅ Session 21 Mars 2026 (suite) — COMPLÉTÉ
+- `ManagerDashboard.js` (474L → 148L) — `useManagerDashboard.js` (350L) + sections
+- `ManagerDiagnosticForm.js` (499L → 113L) — `managerDiagnosticForm/questions.js` (361L)
+- `TrialManagement.js` (453L → 120L) — `trialManagement/useTrialManagement.js` + `GerantTrialCard.js`
+
 ---
 
 ## 📋 PROCHAINES TÂCHES — Pour le prochain agent (21 Mars 2026)
 
 ### 🔄 Refactoring frontend (suite)
-1. **`pages/ManagerDashboard.js`** (474L) — hook `useManagerDashboard` + sous-composants
-2. **`components/ManagerDiagnosticForm.js`** (499L) — hook `useManagerDiagnosticForm` + étapes séparées
-3. **`components/superadmin/TrialManagement.js`** (453L) — hook + sous-composants
-4. **`components/gerant/StoreDetailModal.js`** (441L) — hook + sous-composants
-5. **`pages/ManagerSettings.js`** (435L) — orchestrateur d'onglets, vérifier si hook déjà en place
+1. **`components/gerant/StoreDetailModal.js`** (441L) — hook `useStoreDetailModal` + sous-composants
+2. **`pages/ManagerSettings.js`** (435L) — orchestrateur d'onglets, vérifier si hook déjà en place
 
 ### 🏗️ Backend — Dette technique documentée
 - Services monolithiques restants à découper (voir section Architecture ci-dessus)
