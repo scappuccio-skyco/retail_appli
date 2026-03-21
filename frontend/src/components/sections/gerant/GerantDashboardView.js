@@ -1,6 +1,5 @@
 import React from 'react';
-import { Plus, Building2, Users, TrendingUp, BarChart3, Lock } from 'lucide-react';
-import StoreCard from '../../gerant/StoreCard';
+import { Plus, Building2, Users, TrendingUp, BarChart3, Lock, TrendingDown, Minus, MapPin, Eye } from 'lucide-react';
 
 /**
  * Vue principale du dashboard gérant (onglet "Vue d'ensemble").
@@ -304,25 +303,130 @@ export default function GerantDashboardView({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {rankedStores.map((rankedStore, index) => {
-              const originalIndex = stores.findIndex(s => s.id === rankedStore.id);
-              const badge = getPerformanceBadge(rankedStore);
-              return (
-                <StoreCard
-                  key={rankedStore.id}
-                  store={rankedStore}
-                  stats={rankedStore.stats}
-                  rank={index}
-                  badge={badge}
-                  periodCA={rankedStore.periodCA}
-                  periodVentes={rankedStore.periodVentes}
-                  periodEvolution={rankedStore.periodEvolution}
-                  onClick={() => onStoreClick(rankedStore, originalIndex >= 0 ? originalIndex : index)}
-                  colorIndex={originalIndex >= 0 ? originalIndex : index}
-                />
-              );
-            })}
+          <div className="glass-morphism rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-center w-10">#</th>
+                  <th className="px-4 py-3 text-left">Magasin</th>
+                  <th className="px-4 py-3 text-right">CA période</th>
+                  <th className="px-4 py-3 text-right hidden sm:table-cell">Ventes</th>
+                  <th className="px-4 py-3 text-center hidden md:table-cell">Évolution</th>
+                  <th className="px-4 py-3 text-center hidden lg:table-cell">Performance</th>
+                  <th className="px-4 py-3 text-center hidden md:table-cell">Équipe</th>
+                  <th className="px-4 py-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {rankedStores.map((s, index) => {
+                  const originalIndex = stores.findIndex(st => st.id === s.id);
+                  const badge = getPerformanceBadge(s);
+                  const rankIcons = ['🥇', '🥈', '🥉', '🏅', '⭐', '✨'];
+                  const rankIcon = index < rankIcons.length ? rankIcons[index] : `${index + 1}`;
+                  const evo = s.periodEvolution;
+                  const hasEvo = evo !== null && evo !== undefined && !isNaN(evo) && (s.stats?.prev_period_ca > 0 || s.periodCA > 0);
+                  return (
+                    <tr key={s.id} className={`hover:bg-orange-50/40 transition-colors ${index < 3 ? 'bg-orange-50/20' : 'bg-white'}`}>
+                      {/* Rang */}
+                      <td className="px-4 py-4 text-center">
+                        <span className="text-xl">{rankIcon}</span>
+                      </td>
+
+                      {/* Magasin */}
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <p className="font-semibold text-gray-900">{s.name}</p>
+                            {s.location && (
+                              <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                                <MapPin className="w-3 h-3" />{s.location}
+                              </p>
+                            )}
+                          </div>
+                          {(s.pending_manager_count || 0) + (s.pending_seller_count || 0) > 0 && (
+                            <span className="text-xs font-bold text-yellow-800 bg-yellow-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                              +{(s.pending_manager_count || 0) + (s.pending_seller_count || 0)} en attente
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* CA période */}
+                      <td className="px-4 py-4 text-right">
+                        <p className="font-bold text-gray-900 text-base">
+                          {s.periodCA > 0 ? `${s.periodCA.toLocaleString('fr-FR')} €` : <span className="text-gray-400 font-normal text-sm">—</span>}
+                        </p>
+                      </td>
+
+                      {/* Ventes */}
+                      <td className="px-4 py-4 text-right hidden sm:table-cell">
+                        <p className="font-semibold text-gray-700">
+                          {s.periodVentes > 0 ? s.periodVentes : <span className="text-gray-400 font-normal text-sm">—</span>}
+                        </p>
+                      </td>
+
+                      {/* Évolution */}
+                      <td className="px-4 py-4 text-center hidden md:table-cell">
+                        {hasEvo ? (
+                          evo > 0 ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                              <TrendingUp className="w-3 h-3" />+{Math.round(evo * 10) / 10}%
+                            </span>
+                          ) : evo < 0 ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full">
+                              <TrendingDown className="w-3 h-3" />{Math.round(evo * 10) / 10}%
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                              <Minus className="w-3 h-3" />0%
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-gray-300 text-xs">—</span>
+                        )}
+                      </td>
+
+                      {/* Badge performance */}
+                      <td className="px-4 py-4 text-center hidden lg:table-cell">
+                        {badge ? (
+                          <span className={`inline-flex items-center gap-1 text-xs font-bold text-white px-2 py-1 rounded-full ${badge.bgClass}`}>
+                            {badge.icon} {badge.label}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300 text-xs">—</span>
+                        )}
+                      </td>
+
+                      {/* Équipe (masquée sur md, visible lg) */}
+                      <td className="px-4 py-4 text-center hidden md:table-cell">
+                        <div className="flex items-center justify-center gap-3 text-xs text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3.5 h-3.5 text-blue-400" />
+                            <span className="font-semibold">{s.stats?.managers_count ?? 0}</span>
+                          </span>
+                          <span className="text-gray-300">|</span>
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3.5 h-3.5 text-purple-400" />
+                            <span className="font-semibold">{s.stats?.sellers_count ?? 0}</span>
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Action */}
+                      <td className="px-4 py-4 text-center">
+                        <button
+                          onClick={() => onStoreClick(s, originalIndex >= 0 ? originalIndex : index)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-100 hover:bg-orange-200 rounded-lg transition-colors"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Équipe</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
