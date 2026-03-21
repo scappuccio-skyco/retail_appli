@@ -823,8 +823,11 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
   - `apiKeysManagement/APIKeyCard.js` (ligne de clé avec permissions)
   - `apiKeysManagement/CreateKeyModal.js` (formulaire de création + checkboxes permissions)
 
+- ✅ `gerant/GerantProfile.js` (539L → 169L) — Session 21 Mars 2026
+  - `gerantProfile/useGerantProfile.js` (état, fetch, validation, handlers profil + mot de passe)
+  - `gerantProfile/PasswordSection.js` (section MDP avec PasswordField réutilisable)
+
 **Reste à traiter** :
-- `gerant/GerantProfile.js` (539L)
 - `KPIEntryModal.js` (532L)
 - `storeKPI/StoreKPIModalOverviewTab.js` (502L)
 - `gerant/BillingProfileModal.js` (501L)
