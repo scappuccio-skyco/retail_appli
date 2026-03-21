@@ -805,9 +805,23 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
   - `bilanTab/WeekView.js` (vue semaine — résumé + tableau + graphiques + IA)
   - `bilanTab/MonthYearView.js` (vue mois/année — agrégats + tableau + graphiques + IA)
 
-**Dette restante frontend** :
-- Plus aucun composant >500L connu après les sessions de refactoring
-- 29 composants >500L initialement → tous réduits
+**Nouvelle vague — composants non audités initialement** :
+
+- ✅ `gerant/StaffOverview.js` (771L → 143L) — Session 21 Mars 2026
+  - `staffOverview/useStaffOverview.js` (état, fetch, handlers CRUD/transfer/suspend/reactivate)
+  - `staffOverview/StaffFilters.js` (barre de filtres recherche/magasin/statut)
+  - `staffOverview/UsersTable.js` (tableau managers & vendeurs + menu actions)
+  - `staffOverview/InvitationsTable.js` (tableau invitations + actions renvoyer/annuler)
+  - `staffOverview/TransferModal.js` (modal inline extraite)
+
+**Reste à traiter** :
+- `pages/SuperAdminDashboard.js` (750L)
+- `gerant/APIDocModal.js` (734L) — surtout JSX statique, basse priorité
+- `gerant/APIKeysManagement.js` (602L)
+- `gerant/GerantProfile.js` (539L)
+- `KPIEntryModal.js` (532L)
+- `storeKPI/StoreKPIModalOverviewTab.js` (502L)
+- `gerant/BillingProfileModal.js` (501L)
 
 ---
 
