@@ -99,8 +99,6 @@ export default function GerantDashboardView({
     return { type: 'weak', bgClass: 'bg-red-500', icon: '⚠️', label: 'À améliorer' };
   };
 
-  const periodLabel = periodType === 'week' ? 'Sem.' : periodType === 'month' ? 'Mois' : 'An';
-
   return (
     <>
       {/* Stats Globales */}
@@ -170,114 +168,97 @@ export default function GerantDashboardView({
         </div>
       </div>
 
-      {/* Sélecteur de Période */}
+      {/* Mes Magasins */}
       <div className="mb-8">
-        <div className="glass-morphism rounded-xl p-3 sm:p-4 border-2 border-blue-200">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <span className="text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Type d'analyse :</span>
-              <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-                {[['week', 'Semaine'], ['month', 'Mois'], ['year', 'Année']].map(([type, label]) => (
-                  <button
-                    key={type}
-                    onClick={() => { setPeriodType(type); setPeriodOffset(-1); }}
-                    className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
-                      periodType === type
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="w-full h-px sm:hidden bg-gray-200" />
-
-            <div className="flex items-center justify-between sm:justify-center gap-2 sm:gap-3 flex-wrap">
-              <button
-                onClick={() => setPeriodOffset(periodOffset - 1)}
-                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all text-xs sm:text-sm"
-              >
-                <span>◀</span>
-                <span className="hidden xs:inline sm:inline">{periodLabel} préc.</span>
-              </button>
-
-              <div className="text-center flex-1 sm:flex-none sm:min-w-[140px]">
-                <p className="text-xs text-gray-500">📅 Période</p>
-                <p className="text-xs sm:text-sm font-bold text-gray-800 truncate max-w-[150px] sm:max-w-none mx-auto">
-                  {formatPeriod(periodType, periodOffset)}
-                </p>
-                {periodType === 'week' && (
-                  <p className="text-xs text-gray-400">
-                    S{getPeriodNumber('week', getPeriodDates('week', periodOffset).start)}
-                  </p>
-                )}
-              </div>
-
-              <button
-                onClick={() => setPeriodOffset(periodOffset + 1)}
-                disabled={periodOffset >= 0}
-                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 font-semibold rounded-lg transition-all text-xs sm:text-sm ${
-                  periodOffset >= 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-              >
-                <span className="hidden xs:inline sm:inline">{periodLabel} suiv.</span>
-                <span>▶</span>
-              </button>
-
-              {periodOffset !== 0 && (
-                <button
-                  onClick={() => setPeriodOffset(0)}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-semibold underline whitespace-nowrap w-full sm:w-auto text-center sm:text-left mt-2 sm:mt-0"
-                >
-                  ↻ Actuel
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mes Magasins — classés par CA de la période sélectionnée */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+        {/* Ligne 1 : titre + boutons d'action */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+          <h2 className="text-xl font-bold text-gray-700 flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-orange-500" />
             Mes Magasins
-            {rankedStores.length > 0 && (
-              <span className="text-sm font-normal text-gray-500">
-                — {formatPeriod(periodType, periodOffset)}
-              </span>
-            )}
           </h2>
-          <div className="flex flex-wrap gap-2 sm:gap-3">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => !isReadOnly && onOpenInviteStaff()}
               disabled={isReadOnly}
               title={isReadOnly ? "Période d'essai terminée" : 'Inviter du personnel'}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold rounded-xl transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl transition-all ${
                 isReadOnly ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg'
               }`}
             >
-              <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden xs:inline">Inviter du</span> Personnel
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">Inviter du</span> Personnel
               {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
             </button>
             <button
               onClick={() => !isReadOnly && onOpenCreateStore()}
               disabled={isReadOnly}
               title={isReadOnly ? "Période d'essai terminée" : 'Créer un nouveau magasin'}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold rounded-xl transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl transition-all ${
                 isReadOnly ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg'
               }`}
             >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden xs:inline">Nouveau</span> Magasin
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Nouveau</span> Magasin
               {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
             </button>
           </div>
+        </div>
+
+        {/* Ligne 2 : sélecteur de période intégré */}
+        <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+          {/* Type */}
+          <div className="flex gap-1">
+            {[['week', 'Semaine'], ['month', 'Mois'], ['year', 'Année']].map(([type, label]) => (
+              <button
+                key={type}
+                onClick={() => { setPeriodType(type); setPeriodOffset(0); }}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  periodType === type
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Séparateur */}
+          <div className="w-px h-5 bg-gray-300 hidden sm:block" />
+
+          {/* Navigation */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPeriodOffset(periodOffset - 1)}
+              className="p-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-600 rounded-lg transition-all text-xs font-bold"
+            >
+              ◀
+            </button>
+            <span className="px-3 py-1.5 text-xs font-semibold text-gray-800 bg-white border border-gray-200 rounded-lg min-w-[120px] text-center">
+              {formatPeriod(periodType, periodOffset)}
+            </span>
+            <button
+              onClick={() => setPeriodOffset(periodOffset + 1)}
+              disabled={periodOffset >= 0}
+              className={`p-1.5 border rounded-lg transition-all text-xs font-bold ${
+                periodOffset >= 0
+                  ? 'bg-gray-100 border-gray-200 text-gray-300 cursor-not-allowed'
+                  : 'bg-white border-gray-300 hover:bg-gray-50 text-gray-600'
+              }`}
+            >
+              ▶
+            </button>
+          </div>
+
+          {/* Retour au présent */}
+          {periodOffset !== 0 && (
+            <button
+              onClick={() => setPeriodOffset(0)}
+              className="text-xs text-blue-600 hover:text-blue-700 font-semibold underline whitespace-nowrap"
+            >
+              ↻ Actuel
+            </button>
+          )}
         </div>
 
         {stores.length === 0 ? (
