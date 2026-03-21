@@ -860,14 +860,31 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
 - `TrialManagement.js` (453L → 120L) — `trialManagement/useTrialManagement.js` + `GerantTrialCard.js`
 - `StoreDetailModal.js` (441L → 130L) — `storeDetailModal/useStoreDetailModal.js` + `TeamMemberRow.js` + `PendingInvitationRow.js`
 - `ManagerSettings.js` (page, 435L → 55L) — `managerSettings/useManagerSettingsPage.js` + `KpiConfigSection.js` + `ObjectivesSection.js` + `ChallengesSection.js`
+- `GerantDashboard.js` (391L → 115L) — `gerantDashboard/useGerantDashboard.js` (220L)
+- `EvaluationNotesNotebook.js` (420L → 155L) — `evaluationNotesNotebook/useEvaluationNotesNotebook.js` + `NoteItem.js`
+- `DailyChallengeModal.js` (393L → 130L) — `dailyChallengeModal/useDailyChallengeModal.js` + `ChallengeStatsBar.js` + `ChallengeActions.js`
 
 ---
 
 ## 📋 PROCHAINES TÂCHES — Pour le prochain agent
 
 ### 🔄 Refactoring frontend — Fichiers restants > 300L
-Lancer `wc -l frontend/src/**/*.js frontend/src/**/**/*.js | sort -rn | head -20` pour identifier les nouveaux candidats.
-Les fichiers prioritaires précédents ont tous été traités. Scanner le codebase pour trouver les suivants.
+Commande de scan : `find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs wc -l | sort -rn | head -25`
+
+Candidats identifiés (à vérifier) :
+1. `components/ConflictResolutionForm.js` (404L) — formulaire avec état, hook à extraire
+2. `components/EvaluationGenerator.js` (392L) — générateur avec état, hook à extraire
+3. `components/gerant/StoresManagement.js` (377L) — liste magasins avec état
+4. `components/superadmin/AIAssistant.js` (390L) — assistant IA avec état
+5. `components/BilanIndividuelModal.js` (368L) — modal avec état
+6. `components/DebriefHistoryModal.js` (358L) — modal avec état
+7. `components/AchievementModal.js` (357L) — modal avec état
+
+⚠️ Fichiers data/statiques à NE PAS refactorer (déjà optimaux) :
+- `guideProfilsData.js` (1561L) — données statiques
+- `diagnosticForm/questions.js` (457L) — questions statiques
+- `managerDiagnosticForm/questions.js` (364L) — questions statiques
+- `apiDocModal/DocContent.js` (540L) — JSX statique de documentation
 
 ### 🏗️ Backend — Dette technique documentée
 - Services monolithiques restants à découper (voir section Architecture ci-dessus)
