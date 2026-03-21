@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingUp, Download } from 'lucide-react';
 import KPICalendar from '../KPICalendar';
-import { WeekPicker } from '../storeKPI/StoreKPIModalOverviewTab';
+import { WeekPicker } from '../storeKPI/WeekPicker';
 import { getWeekStartEnd } from '../storeKPI/storeKPIUtils';
 import DayView from './bilanTab/DayView';
 import WeekView from './bilanTab/WeekView';
