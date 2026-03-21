@@ -827,8 +827,12 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
   - `gerantProfile/useGerantProfile.js` (état, fetch, validation, handlers profil + mot de passe)
   - `gerantProfile/PasswordSection.js` (section MDP avec PasswordField réutilisable)
 
+- ✅ `components/KPIEntryModal.js` (532L → 167L) — Session 21 Mars 2026
+  - `kpiEntryModal/useKPIEntryModal.js` (état, fetch, détection anomalies, save)
+  - `kpiEntryModal/KPIInputField.js` (champ KPI réutilisable, remplace 4 blocs identiques)
+  - `kpiEntryModal/WarningModal.js` (modal confirmation anomalie)
+
 **Reste à traiter** :
-- `KPIEntryModal.js` (532L)
 - `storeKPI/StoreKPIModalOverviewTab.js` (502L)
 - `gerant/BillingProfileModal.js` (501L)
 - `gerant/APIDocModal.js` (734L) — surtout JSX statique, basse priorité
