@@ -168,7 +168,7 @@ export default function GerantDashboardView({
                 <TrendingUp className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">CA du Mois</p>
+                <p className="text-sm text-gray-600">CA mois en cours</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {globalStats?.month_ca ? `${globalStats.month_ca.toLocaleString('fr-FR')} €` : '0 €'}
                 </p>
@@ -248,7 +248,7 @@ export default function GerantDashboardView({
         </div>
       </div>
 
-      {/* Mes Magasins — classés par CA période */}
+      {/* Mes Magasins — classés par CA de la période sélectionnée */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -256,7 +256,7 @@ export default function GerantDashboardView({
             Mes Magasins
             {rankedStores.length > 0 && (
               <span className="text-sm font-normal text-gray-500">
-                — classés par CA {periodType === 'week' ? 'semaine' : periodType === 'month' ? 'mensuel' : 'annuel'}
+                — {formatPeriod(periodType, periodOffset)}
               </span>
             )}
           </h2>
@@ -309,7 +309,7 @@ export default function GerantDashboardView({
                 <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
                   <th className="px-4 py-3 text-center w-10">#</th>
                   <th className="px-4 py-3 text-left">Magasin</th>
-                  <th className="px-4 py-3 text-right">CA période</th>
+                  <th className="px-4 py-3 text-right">CA — {formatPeriod(periodType, periodOffset)}</th>
                   <th className="px-4 py-3 text-right hidden sm:table-cell">Ventes</th>
                   <th className="px-4 py-3 text-center hidden md:table-cell">Évolution</th>
                   <th className="px-4 py-3 text-center hidden lg:table-cell">Performance</th>
@@ -351,7 +351,7 @@ export default function GerantDashboardView({
                         </div>
                       </td>
 
-                      {/* CA période */}
+                      {/* CA sélectionné */}
                       <td className="px-4 py-4 text-right">
                         <p className="font-bold text-gray-900 text-base">
                           {s.periodCA > 0 ? `${s.periodCA.toLocaleString('fr-FR')} €` : <span className="text-gray-400 font-normal text-sm">—</span>}
