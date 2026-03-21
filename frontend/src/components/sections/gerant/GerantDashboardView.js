@@ -100,16 +100,6 @@ export default function GerantDashboardView({
     return { type: 'weak', bgClass: 'bg-red-500', icon: '⚠️', label: 'À améliorer' };
   };
 
-  const getRankIcon = (rank) => {
-    if (rank === 0) return '🥇';
-    if (rank === 1) return '🥈';
-    if (rank === 2) return '🥉';
-    if (rank === 3) return '🏅';
-    if (rank === 4) return '⭐';
-    if (rank === 5) return '✨';
-    return `${rank + 1}.`;
-  };
-
   const periodLabel = periodType === 'week' ? 'Sem.' : periodType === 'month' ? 'Mois' : 'An';
 
   return (
@@ -259,83 +249,17 @@ export default function GerantDashboardView({
         </div>
       </div>
 
-      {/* Classement des Magasins */}
-      {rankedStores.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-orange-600" />
-            🏆 Classement {periodType === 'week' ? 'de la Semaine' : periodType === 'month' ? 'du Mois' : "de l'Année"}
-            <span className="text-sm font-normal text-gray-500">({rankedStores.length} magasin{rankedStores.length > 1 ? 's' : ''})</span>
-          </h2>
-          <div className="glass-morphism rounded-xl p-4 border-2 border-orange-200">
-            {rankedStores.length <= 6 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {rankedStores.map((s, idx) => (
-                  <div
-                    key={s.id}
-                    className={`p-3 rounded-lg border-2 transition-all hover:shadow-md ${
-                      idx === 0 ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-300' :
-                      idx === 1 ? 'bg-gradient-to-br from-gray-50 to-slate-100 border-gray-300' :
-                      idx === 2 ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-300' :
-                      'bg-white border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-2xl">{getRankIcon(idx)}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm text-gray-800 truncate">{s.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{s.location}</p>
-                      </div>
-                    </div>
-                    <p className="text-lg font-bold text-gray-800">{(s.periodCA || 0).toLocaleString('fr-FR')} €</p>
-                    <p className="text-xs text-gray-500">{s.periodVentes || 0} ventes</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="overflow-hidden rounded-lg border border-gray-200">
-                <div className="grid grid-cols-12 gap-2 p-2 bg-gray-100 font-semibold text-xs text-gray-600 border-b border-gray-200">
-                  <div className="col-span-1 text-center">#</div>
-                  <div className="col-span-6">Magasin</div>
-                  <div className="col-span-5 text-right">CA</div>
-                </div>
-                <div className="max-h-[240px] overflow-y-auto">
-                  {rankedStores.slice(0, 20).map((s, idx) => (
-                    <div
-                      key={s.id}
-                      className={`grid grid-cols-12 gap-2 p-2 items-center text-sm border-b border-gray-100 hover:bg-orange-50 transition-colors ${idx < 3 ? 'bg-orange-50/50' : 'bg-white'}`}
-                    >
-                      <div className="col-span-1 text-center">
-                        {idx < 3 ? <span className="text-lg">{getRankIcon(idx)}</span> : <span className="text-gray-500 font-medium">{idx + 1}</span>}
-                      </div>
-                      <div className="col-span-5">
-                        <p className="font-semibold text-gray-800 truncate text-xs sm:text-sm">{s.name}</p>
-                        <p className="text-xs text-gray-400 truncate hidden sm:block">{s.location}</p>
-                      </div>
-                      <div className="col-span-6 text-right">
-                        <p className="font-bold text-gray-800 text-xs sm:text-sm">{(s.periodCA || 0).toLocaleString('fr-FR')} €</p>
-                        <p className="text-xs text-gray-400">{s.periodVentes || 0} ventes</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {rankedStores.length > 20 && (
-                  <div className="p-2 bg-gray-50 text-center text-xs text-gray-500 border-t border-gray-200">
-                    +{rankedStores.length - 20} autres magasins
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Mes Magasins */}
+      {/* Mes Magasins — classés par CA période */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
             <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
             Mes Magasins
+            {rankedStores.length > 0 && (
+              <span className="text-sm font-normal text-gray-500">
+                — classés par CA {periodType === 'week' ? 'semaine' : periodType === 'month' ? 'mensuel' : 'annuel'}
+              </span>
+            )}
           </h2>
           <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
@@ -381,21 +305,21 @@ export default function GerantDashboardView({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {stores.map((store, index) => {
-              const badge = getPerformanceBadge(store);
-              const stats = storesStats[store.id];
-              const sparklineData = stats
-                ? [(stats.week_ca || 0) * 0.7, (stats.week_ca || 0) * 0.85, (stats.week_ca || 0) * 0.95, stats.week_ca || 0]
-                : [];
+            {rankedStores.map((rankedStore, index) => {
+              const originalIndex = stores.findIndex(s => s.id === rankedStore.id);
+              const badge = getPerformanceBadge(rankedStore);
               return (
                 <StoreCard
-                  key={store.id}
-                  store={store}
-                  stats={stats}
+                  key={rankedStore.id}
+                  store={rankedStore}
+                  stats={rankedStore.stats}
+                  rank={index}
                   badge={badge}
-                  sparklineData={sparklineData}
-                  onClick={() => onStoreClick(store, index)}
-                  colorIndex={index}
+                  periodCA={rankedStore.periodCA}
+                  periodVentes={rankedStore.periodVentes}
+                  periodEvolution={rankedStore.periodEvolution}
+                  onClick={() => onStoreClick(rankedStore, originalIndex >= 0 ? originalIndex : index)}
+                  colorIndex={originalIndex >= 0 ? originalIndex : index}
                 />
               );
             })}
