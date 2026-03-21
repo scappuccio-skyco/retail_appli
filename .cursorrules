@@ -886,6 +886,33 @@ Candidats identifiés (à vérifier) :
 - `managerDiagnosticForm/questions.js` (364L) — questions statiques
 - `apiDocModal/DocContent.js` (540L) — JSX statique de documentation
 
+### 🐛 CORRECTIONS À FAIRE — Priorité haute
+
+#### 1. Props orphelines — `EvaluationNotesNotebook`
+- **Fichier** : `components/sections/seller/SellerModalsLayer.js` (ligne ~438)
+- **Problème** : `sellerId={user?.id}` et `sellerName={user?.name}` sont passés mais le composant `EvaluationNotesNotebook` ne les accepte plus après le refacto (supprimés par erreur lors de l'extraction du hook)
+- **Fix** : Vérifier si le backend `/seller/interview-notes` utilise l'ID de session ou a besoin de ces props. Si nécessaire, ajouter `sellerId` et `sellerName` aux props de `EvaluationNotesNotebook.js` et les passer au hook `useEvaluationNotesNotebook`.
+
+#### 2. Prop `isReadOnly` ignorée — `StoreDetailModal`
+- **Fichier** : `components/gerant/StoreDetailModal.js`
+- **Problème** : `isReadOnly` est déclaré dans les props mais jamais utilisé dans le JSX ni passé au hook. En mode read-only, les boutons Transférer/Suspendre/Supprimer devraient être désactivés.
+- **Fix** : Passer `isReadOnly` au hook `useStoreDetailModal` et conditionner l'affichage des boutons d'action dans `TeamMemberRow.js`.
+
+#### 3. Double `setTimeout` dans `useTrialManagement`
+- **Fichier** : `components/superadmin/trialManagement/useTrialManagement.js` (lignes 73–78)
+- **Problème** : `onTrialUpdated` est appelé 3 fois (immédiat + 300ms + 500ms) et `fetchGerants` est appelé 2 fois (immédiat + 500ms). Code hérité de l'original mais fragile.
+- **Fix** : Simplifier à un seul `fetchGerants()` suivi d'un seul `onTrialUpdated()` avec un délai raisonnable (ex: 500ms). Supprimer le double appel.
+
+#### 4. `handleLogoutClick` dans `useGerantDashboard` — API inhabituelle
+- **Fichier** : `pages/gerantDashboard/useGerantDashboard.js` (ligne 174)
+- **Problème** : `handleLogoutClick(onLogout)` prend `onLogout` en paramètre au lieu de le capturer en closure (pattern incohérent avec le reste du projet).
+- **Fix** : Passer `onLogout` au hook via les paramètres d'initialisation `useGerantDashboard({ user, onLogout })` et supprimer le paramètre de la fonction.
+
+#### 5. `Redirection temporaire IT Admin` dans App.js
+- **Fichier** : `App.js` (ligne ~250)
+- **Problème** : Commentaire `/* Redirection temporaire des IT Admin vers le GerantDashboard */` — à vérifier si c'est encore intentionnel ou si une route dédiée est nécessaire.
+- **Fix** : Confirmer avec le product owner si IT Admin doit avoir sa propre vue ou continuer à partager GerantDashboard.
+
 ### 🏗️ Backend — Dette technique documentée
 - Services monolithiques restants à découper (voir section Architecture ci-dessus)
 - Vérifier que tous les services passent bien par des Repositories (pas de `self.db` direct)
