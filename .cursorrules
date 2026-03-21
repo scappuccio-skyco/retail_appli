@@ -841,8 +841,10 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
 - ✅ `gerant/BillingProfileModal.js` (501L → 171L) — Session 21 Mars 2026
   - `billingProfileModal/useBillingProfileModal.js` (état, fetch, validation, submit + export EU_COUNTRIES)
 
-**Reste à traiter** :
-- `gerant/APIDocModal.js` (734L) — surtout JSX statique, basse priorité
+- ✅ `gerant/APIDocModal.js` (734L → 65L) — Session 21 Mars 2026
+  - `apiDocModal/DocContent.js` (540L) — tout le JSX documentaire statique, reçoit `onContactSupport` prop
+
+**Reste à traiter** : aucun composant prioritaire identifié
 
 ---
 
