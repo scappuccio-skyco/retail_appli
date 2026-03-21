@@ -856,4 +856,59 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
 
 ---
 
+## 📋 PROCHAINES TÂCHES — Pour le prochain agent (21 Mars 2026)
+
+### 🔄 Refactoring frontend (suite)
+1. **`pages/ManagerDashboard.js`** (474L) — hook `useManagerDashboard` + sous-composants
+2. **`components/ManagerDiagnosticForm.js`** (499L) — hook `useManagerDiagnosticForm` + étapes séparées
+3. **`components/superadmin/TrialManagement.js`** (453L) — hook + sous-composants
+4. **`components/gerant/StoreDetailModal.js`** (441L) — hook + sous-composants
+5. **`pages/ManagerSettings.js`** (435L) — orchestrateur d'onglets, vérifier si hook déjà en place
+
+### 🏗️ Backend — Dette technique documentée
+- Services monolithiques restants à découper (voir section Architecture ci-dessus)
+- Vérifier que tous les services passent bien par des Repositories (pas de `self.db` direct)
+
+### 💡 Fonctionnalités à développer (backlog)
+- *(à compléter selon les priorités produit)*
+
+---
+
+## 🔌 ÉTAT DES CONNEXIONS SERVICES — 21 Mars 2026
+
+### Vercel ✅
+- **Équipe** : SKY CO (`team_bRhit2O8PVfIlAfNRViO5BJ3`)
+- **Projet** : `retail-appli` (`prj_lek6R9XlvDKnSbGIjKaFYINZEW0s`)
+- **Framework** : create-react-app — Node 24.x
+- **Domaines** : `retailperformerai.com`, `www.retailperformerai.com`
+- **Dernier déploiement** : READY — commit `7b995374` (cursorrules session 21 Mars 2026)
+- **Auto-deploy** : actif sur push `main` → Vercel déploie automatiquement
+- **Autres projets** : `wetask-next`, `positionnement-formateurs`, `qualiguard`
+
+### GitHub ✅
+- **Repo** : `scappuccio-skyco/retail_appli` (public)
+- **Branche principale** : `main`
+- **CI/CD** : push main → Vercel build automatique
+- **Pas de `.vercel/project.json`** local (projet lié directement via dashboard Vercel)
+
+### Stripe ✅ (livemode)
+- **Compte** : `skyco.fr` (`acct_1K7IGPIiTXd4gOhy`)
+- **Mode** : **PRODUCTION** (livemode: true) ⚠️ Attention aux tests
+- **Solde disponible** : -0,34€ (débit de frais en attente — normal)
+- **Solde pending** : 0€
+
+### n8n ✅ (SKY CO — usage interne)
+- **85 workflows** au total, dont ~35 actifs
+- **Usage** : 100% opérations internes SKY CO (formations, intervenants, facturation, CRM)
+- **Aucun workflow dédié à retail_appli** à ce jour
+- Workflows les plus récents : automatisations formations (sept-oct 2025)
+- **Potentiel** : n8n pourrait être connecté à retail_appli pour des webhooks/alertes futurs
+
+### Railway ⚠️ (non vérifié)
+- Backend FastAPI déployé sur Railway (selon architecture connue)
+- **Connexion MCP Railway non disponible** — vérifier manuellement sur railway.app
+- Variables d'env à vérifier : `DATABASE_URL`, `SECRET_KEY`, `STRIPE_SECRET_KEY`
+
+---
+
 *Document créé le 27 Janvier 2026 - À mettre à jour à chaque modification significative*
