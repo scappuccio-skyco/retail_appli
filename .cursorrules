@@ -832,8 +832,13 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
   - `kpiEntryModal/KPIInputField.js` (champ KPI réutilisable, remplace 4 blocs identiques)
   - `kpiEntryModal/WarningModal.js` (modal confirmation anomalie)
 
+- ✅ `storeKPI/StoreKPIModalOverviewTab.js` (502L → 163L) — Session 21 Mars 2026
+  - `storeKPI/WeekPicker.js` (calendrier semaine, named export partagé)
+  - `storeKPI/storeKPIOverview/ChartFilters.js` (filtres graphiques)
+  - `storeKPI/storeKPIOverview/OverviewListTotals.js` (totaux période)
+  - `storeKPI/storeKPIOverview/OverviewListEntries.js` (liste quotidienne paginée)
+
 **Reste à traiter** :
-- `storeKPI/StoreKPIModalOverviewTab.js` (502L)
 - `gerant/BillingProfileModal.js` (501L)
 - `gerant/APIDocModal.js` (734L) — surtout JSX statique, basse priorité
 
