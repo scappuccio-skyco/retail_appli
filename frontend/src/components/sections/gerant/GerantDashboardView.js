@@ -105,76 +105,68 @@ export default function GerantDashboardView({
     <>
       {/* Stats Globales */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <BarChart3 className="w-6 h-6 text-orange-600" />
-          Vue d'Ensemble
+        <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-orange-500" />
+          Vue d'ensemble
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="glass-morphism rounded-xl p-6 border-2 border-orange-200">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Magasins</p>
-                <p className="text-2xl font-bold text-gray-800">{globalStats?.total_stores || 0}</p>
-              </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+
+          {/* Magasins */}
+          <div className="glass-morphism rounded-2xl p-5 border border-orange-200 flex flex-col items-center text-center gap-2">
+            <div className="w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-orange-600" />
+            </div>
+            <p className="text-3xl font-extrabold text-gray-900">{globalStats?.total_stores || 0}</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Magasins</p>
+          </div>
+
+          {/* Managers */}
+          <div className="glass-morphism rounded-2xl p-5 border border-blue-200 flex flex-col items-center text-center gap-2">
+            <div className="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-blue-600" />
+            </div>
+            <p className="text-3xl font-extrabold text-gray-900">{globalStats?.total_managers || 0}</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Managers actifs</p>
+            <div className="flex flex-wrap justify-center gap-1">
+              {pendingInvitations.managers > 0 && (
+                <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">+{pendingInvitations.managers} en attente</span>
+              )}
+              {globalStats?.suspended_managers > 0 && (
+                <span className="text-xs text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full">{globalStats.suspended_managers} en veille</span>
+              )}
             </div>
           </div>
 
-          <div className="glass-morphism rounded-xl p-6 border-2 border-blue-200">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-600">Managers actifs</p>
-                <p className="text-2xl font-bold text-gray-800">{globalStats?.total_managers || 0}</p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {pendingInvitations.managers > 0 && (
-                    <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">+{pendingInvitations.managers} en attente</span>
-                  )}
-                  {globalStats?.suspended_managers > 0 && (
-                    <span className="text-xs text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">{globalStats.suspended_managers} en veille</span>
-                  )}
-                </div>
-              </div>
+          {/* Vendeurs */}
+          <div className="glass-morphism rounded-2xl p-5 border border-indigo-200 flex flex-col items-center text-center gap-2">
+            <div className="w-11 h-11 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-indigo-600" />
+            </div>
+            <p className="text-3xl font-extrabold text-gray-900">{globalStats?.total_sellers || 0}</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Vendeurs actifs</p>
+            <div className="flex flex-wrap justify-center gap-1">
+              {pendingInvitations.sellers > 0 && (
+                <span className="text-xs text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">+{pendingInvitations.sellers} en attente</span>
+              )}
+              {globalStats?.suspended_sellers > 0 && (
+                <span className="text-xs text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full">{globalStats.suspended_sellers} en veille</span>
+              )}
             </div>
           </div>
 
-          <div className="glass-morphism rounded-xl p-6 border-2 border-indigo-200">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-indigo-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-600">Vendeurs actifs</p>
-                <p className="text-2xl font-bold text-gray-800">{globalStats?.total_sellers || 0}</p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {pendingInvitations.sellers > 0 && (
-                    <span className="text-xs text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">+{pendingInvitations.sellers} en attente</span>
-                  )}
-                  {globalStats?.suspended_sellers > 0 && (
-                    <span className="text-xs text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">{globalStats.suspended_sellers} en veille</span>
-                  )}
-                </div>
-              </div>
+          {/* CA mois */}
+          <div className="glass-morphism rounded-2xl p-5 border border-green-200 flex flex-col items-center text-center gap-2 col-span-2 lg:col-span-1">
+            <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-green-600" />
             </div>
+            <p className="text-3xl font-extrabold text-gray-900">
+              {globalStats?.month_ca ? `${Math.round(globalStats.month_ca).toLocaleString('fr-FR')} €` : '0 €'}
+            </p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              CA — {new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+            </p>
           </div>
 
-          <div className="glass-morphism rounded-xl p-6 border-2 border-green-200">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">CA mois en cours</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {globalStats?.month_ca ? `${globalStats.month_ca.toLocaleString('fr-FR')} €` : '0 €'}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
