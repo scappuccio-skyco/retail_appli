@@ -19,7 +19,7 @@ function deriveSubscriptionState(subscriptionInfo) {
   return { isReadOnly: true, subscriptionBlockCode: 'SUBSCRIPTION_INACTIVE', isPastDue: false };
 }
 
-export default function useGerantDashboard({ user }) {
+export default function useGerantDashboard({ user, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
   const onboarding = useOnboarding(gerantSteps.length);
@@ -171,7 +171,7 @@ export default function useGerantDashboard({ user }) {
   };
 
   // ── Action handlers ────────────────────────────────────────
-  const handleLogoutClick = (onLogout) => {
+  const handleLogoutClick = () => {
     if (onLogout) onLogout();
     else if (isSafeUrl('/login')) navigate('/login');
   };

@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 21 Mars 2026
+**Dernière mise à jour**: 21 Mars 2026 (session 4)
 
 ---
 
@@ -871,42 +871,52 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
 ### 🔄 Refactoring frontend — Fichiers restants > 300L
 Commande de scan : `find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs wc -l | sort -rn | head -25`
 
-Candidats identifiés (à vérifier) :
-1. `components/ConflictResolutionForm.js` (404L) — formulaire avec état, hook à extraire
-2. `components/EvaluationGenerator.js` (392L) — générateur avec état, hook à extraire
-3. `components/gerant/StoresManagement.js` (377L) — liste magasins avec état
-4. `components/superadmin/AIAssistant.js` (390L) — assistant IA avec état
-5. `components/BilanIndividuelModal.js` (368L) — modal avec état
-6. `components/DebriefHistoryModal.js` (358L) — modal avec état
-7. `components/AchievementModal.js` (357L) — modal avec état
-
 ⚠️ Fichiers data/statiques à NE PAS refactorer (déjà optimaux) :
 - `guideProfilsData.js` (1561L) — données statiques
 - `diagnosticForm/questions.js` (457L) — questions statiques
 - `managerDiagnosticForm/questions.js` (364L) — questions statiques
 - `apiDocModal/DocContent.js` (540L) — JSX statique de documentation
 
+Candidats restants (après scan 21 Mars 2026 session 4) :
+1. ~~`components/sections/seller/SellerModalsLayer.js` (461L)~~ — SKIP : orchestrateur JSX pur
+2. ~~`components/sections/gerant/GerantDashboardView.js` (407L)~~ — SKIP : vue pure, tout en props
+3. ~~`components/managerSettings/ActiveObjectivesTab.js` (338L)~~ — SKIP : reçoit tout en props
+4. ~~`components/RelationshipManagementModal.js` (337L)~~ — ✅ REFACTORISÉ (→ 112L, session 4)
+5. ~~`components/superadmin/InvitationsManagement.js` (335L)~~ — ✅ REFACTORISÉ (→ 43L, session 4)
+6. ~~`components/StoreKPIModal.js` (332L)~~ — SKIP : déjà utilise `useStoreKPIModal` + 5 sous-composants (`DailyTab`, `OverviewTab`, `ConfigTab`, `ProspectsTab`, `WeekPicker`) ; seul résidu local = 2 états AI (aiAnalysis, aiGenerating) + 1 handler, trop peu pour extraire
+7. ~~`pages/superAdminDashboard/WorkspacesTab.js` (328L)~~ — SKIP : tout en props
+8. ~~`components/sellerDetail/KpiTab.js` (320L)~~ — SKIP : tout en props
+9. ~~`components/TeamBilanIA.js` (315L)~~ — ✅ REFACTORISÉ (→ 160L, session 4)
+
+### ✅ CONCLUSION — Refactoring frontend > 300L TERMINÉ (21 Mars 2026)
+
+Le scan complet de tous les composants > 300 lignes a été réalisé sur 4 sessions. **Aucun candidat restant.**
+
+**Bilan global (sessions 2 → 4) :**
+- 13 composants refactorisés : logique extraite en hooks custom (`useXxx.js`) + sous-composants dédiés
+- 6 composants skippés car déjà bien structurés (orchestrateurs JSX purs ou tout en props)
+- Pattern appliqué : composant principal < 150L, logique dans le hook, JSX dans des sous-composants nommés
+
+**Prochains axes d'amélioration possibles (non urgents) :**
+- React Query / SWR pour le cache API partagé (appels dupliqués `/debriefs`, `/objectives`)
+- i18n : centraliser les labels et messages d'erreur hardcodés
+- Bug #5 (déféré) : redirection IT Admin dans `App.js` — nécessite confirmation product owner
+
+---
+
 ### 🐛 CORRECTIONS À FAIRE — Priorité haute
 
-#### 1. Props orphelines — `EvaluationNotesNotebook`
-- **Fichier** : `components/sections/seller/SellerModalsLayer.js` (ligne ~438)
-- **Problème** : `sellerId={user?.id}` et `sellerName={user?.name}` sont passés mais le composant `EvaluationNotesNotebook` ne les accepte plus après le refacto (supprimés par erreur lors de l'extraction du hook)
-- **Fix** : Vérifier si le backend `/seller/interview-notes` utilise l'ID de session ou a besoin de ces props. Si nécessaire, ajouter `sellerId` et `sellerName` aux props de `EvaluationNotesNotebook.js` et les passer au hook `useEvaluationNotesNotebook`.
+#### ~~1. Props orphelines — `EvaluationNotesNotebook`~~ ✅ CORRIGÉ (21 Mars 2026)
+- `sellerId` et `sellerName` supprimés de l'appel dans `SellerModalsLayer.js` (props inutiles, le backend identifie le vendeur via JWT).
 
-#### 2. Prop `isReadOnly` ignorée — `StoreDetailModal`
-- **Fichier** : `components/gerant/StoreDetailModal.js`
-- **Problème** : `isReadOnly` est déclaré dans les props mais jamais utilisé dans le JSX ni passé au hook. En mode read-only, les boutons Transférer/Suspendre/Supprimer devraient être désactivés.
-- **Fix** : Passer `isReadOnly` au hook `useStoreDetailModal` et conditionner l'affichage des boutons d'action dans `TeamMemberRow.js`.
+#### ~~2. Prop `isReadOnly` ignorée — `StoreDetailModal`~~ ✅ CORRIGÉ (21 Mars 2026)
+- `isReadOnly` passé à `TeamMemberRow` ; boutons Transférer/Suspendre/Supprimer masqués quand actif. Bouton "Supprimer" du footer également masqué.
 
-#### 3. Double `setTimeout` dans `useTrialManagement`
-- **Fichier** : `components/superadmin/trialManagement/useTrialManagement.js` (lignes 73–78)
-- **Problème** : `onTrialUpdated` est appelé 3 fois (immédiat + 300ms + 500ms) et `fetchGerants` est appelé 2 fois (immédiat + 500ms). Code hérité de l'original mais fragile.
-- **Fix** : Simplifier à un seul `fetchGerants()` suivi d'un seul `onTrialUpdated()` avec un délai raisonnable (ex: 500ms). Supprimer le double appel.
+#### ~~3. Double `setTimeout` dans `useTrialManagement`~~ ✅ CORRIGÉ (21 Mars 2026)
+- Simplifié à un seul `fetchGerants()` + un seul `setTimeout(() => onTrialUpdated(), 500)`.
 
-#### 4. `handleLogoutClick` dans `useGerantDashboard` — API inhabituelle
-- **Fichier** : `pages/gerantDashboard/useGerantDashboard.js` (ligne 174)
-- **Problème** : `handleLogoutClick(onLogout)` prend `onLogout` en paramètre au lieu de le capturer en closure (pattern incohérent avec le reste du projet).
-- **Fix** : Passer `onLogout` au hook via les paramètres d'initialisation `useGerantDashboard({ user, onLogout })` et supprimer le paramètre de la fonction.
+#### ~~4. `handleLogoutClick` dans `useGerantDashboard`~~ ✅ CORRIGÉ (21 Mars 2026)
+- `onLogout` passé au hook via `useGerantDashboard({ user, onLogout })` ; `handleLogoutClick` capture désormais `onLogout` en closure.
 
 #### 5. `Redirection temporaire IT Admin` dans App.js
 - **Fichier** : `App.js` (ligne ~250)
@@ -956,6 +966,37 @@ Candidats identifiés (à vérifier) :
 - Backend FastAPI déployé sur Railway (selon architecture connue)
 - **Connexion MCP Railway non disponible** — vérifier manuellement sur railway.app
 - Variables d'env à vérifier : `DATABASE_URL`, `SECRET_KEY`, `STRIPE_SECRET_KEY`
+
+### [21 Mars 2026 — session 4] - Refactoring frontend : 3 composants supplémentaires
+
+- ✅ `RelationshipManagementModal.js` (337L → 112L) — `relationshipModal/useRelationshipManagementModal.js` (SITUATION_TYPES exportée comme constante)
+- ✅ `superadmin/InvitationsManagement.js` (335L → 43L) — `invitationsManagement/useInvitationsManagement.js` + `InvitationsTable.js` (STATUS_BADGES/ROLE_BADGES constantes + StatusBadge/RoleBadge sous-composants)
+- ✅ `TeamBilanIA.js` (315L → 160L) — `teamBilanIA/useTeamBilanIA.js` ; sections répétitives (points_forts/attention/actions) unifiées en map
+- ⏭️ `SellerModalsLayer.js` (461L) — SKIP : orchestrateur JSX pur, aucun état local
+- ⏭️ `ActiveObjectivesTab.js` (338L) — SKIP : reçoit tous ses handlers en props, aucun état local
+- ⏭️ `GerantDashboardView.js` (407L) — SKIP : vue pure, tout reçu en props
+- ⏭️ `WorkspacesTab.js` (328L) — SKIP : tout reçu en props
+- ⏭️ `KpiTab.js` (320L) — SKIP : tout reçu en props
+
+### [21 Mars 2026 — session 3] - Refactoring frontend : 7 composants supplémentaires
+
+- ✅ `ConflictResolutionForm.js` (404L → 113L) — `conflictResolutionForm/useConflictResolutionForm.js` + `ConflictHistoryList.js`
+- ✅ `EvaluationGenerator.js` (392L → 120L) — `evaluationGenerator/useEvaluationGenerator.js`
+- ✅ `superadmin/AIAssistant.js` (390L → 80L) — `aiAssistant/useAIAssistant.js` + `ConversationSidebar.js` + `MessageList.js`
+- ✅ `gerant/StoresManagement.js` (377L → 72L) — `storesManagement/useStoresManagement.js` + `StoreCard.js`
+- ✅ `BilanIndividuelModal.js` (368L → 76L) — `bilanIndividuel/useBilanIndividuelModal.js` + `KPISummary.js`
+- ✅ `DebriefHistoryModal.js` (358L → 72L) — `debriefHistory/useDebriefHistoryModal.js`
+- ✅ `AchievementModal.js` (357L → 115L) — `achievementModal/useAchievementModal.js`
+
+---
+
+### [21 Mars 2026 — session 2] - Corrections bugs priorité haute (4/5)
+
+- ✅ `components/sections/seller/SellerModalsLayer.js` — suppression props orphelines `sellerId`/`sellerName` sur `EvaluationNotesNotebook` (JWT suffit)
+- ✅ `components/gerant/StoreDetailModal.js` — `isReadOnly` propagé ; bouton Supprimer footer masqué en read-only
+- ✅ `components/gerant/storeDetailModal/TeamMemberRow.js` — accept prop `isReadOnly`, boutons action masqués quand actif
+- ✅ `components/superadmin/trialManagement/useTrialManagement.js` — double `setTimeout`/`fetchGerants` simplifié (1 seul appel chacun)
+- ✅ `pages/gerantDashboard/useGerantDashboard.js` + `pages/GerantDashboard.js` — `onLogout` capturé en closure dans le hook (pattern cohérent)
 
 ---
 

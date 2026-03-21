@@ -91,6 +91,7 @@ export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = f
                       role="manager"
                       managers={managers}
                       refreshKey={refreshKey}
+                      isReadOnly={isReadOnly}
                       onTransfer={onTransferManager}
                       onToggleSuspend={handleToggleSuspend}
                       onDelete={handleDeleteUser}
@@ -118,6 +119,7 @@ export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = f
                       role="seller"
                       managers={managers}
                       refreshKey={refreshKey}
+                      isReadOnly={isReadOnly}
                       onTransfer={onTransferSeller}
                       onToggleSuspend={handleToggleSuspend}
                       onDelete={handleDeleteUser}
@@ -134,14 +136,16 @@ export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = f
 
         {/* Footer */}
         <div className="border-t border-gray-200 p-3 sm:p-6 bg-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 flex-shrink-0">
-          <button
-            onClick={() => onDeleteStore(store)}
-            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm sm:text-base font-semibold order-2 sm:order-1"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span className="hidden xs:inline">Supprimer</span>
-            <span className="xs:hidden">Suppr.</span>
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={() => onDeleteStore(store)}
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm sm:text-base font-semibold order-2 sm:order-1"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="hidden xs:inline">Supprimer</span>
+              <span className="xs:hidden">Suppr.</span>
+            </button>
+          )}
           <div className="flex gap-2 order-1 sm:order-2">
             <button
               onClick={handleRefresh}

@@ -12,7 +12,7 @@ import GerantDashboardView from '../components/sections/gerant/GerantDashboardVi
 import GerantModalsLayer from '../components/sections/gerant/GerantModalsLayer';
 
 const GerantDashboard = ({ user, onLogout }) => {
-  const s = useGerantDashboard({ user });
+  const s = useGerantDashboard({ user, onLogout });
 
   if (s.loading) {
     return (
@@ -39,7 +39,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         subscriptionInfo={s.subscriptionInfo}
         activeView={s.activeView}
         setActiveView={s.setActiveView}
-        onLogout={() => s.handleLogoutClick(onLogout)}
+        onLogout={s.handleLogoutClick}
         onboarding={s.onboarding}
         onOpenSubscription={() => s.setShowSubscriptionModal(true)}
         onOpenSupport={() => s.setShowSupportModal(true)}

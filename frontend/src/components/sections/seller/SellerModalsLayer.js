@@ -438,8 +438,6 @@ export default function SellerModalsLayer({
       <EvaluationNotesNotebook
         isOpen={showNotesNotebook}
         onClose={() => setShowNotesNotebook(false)}
-        sellerId={user?.id}
-        sellerName={user?.name}
         onGenerateSynthesis={() => {
           setShowNotesNotebook(false);
           setShowEvaluationModal(true);

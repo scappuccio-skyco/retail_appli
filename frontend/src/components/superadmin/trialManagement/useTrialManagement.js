@@ -70,12 +70,7 @@ export default function useTrialManagement({ onTrialUpdated }) {
       setNewTrialEnd('');
       await fetchGerants();
       setRefreshKey(prev => prev + 1);
-      if (onTrialUpdated) setTimeout(() => onTrialUpdated(), 300);
-      setTimeout(async () => {
-        await fetchGerants();
-        setRefreshKey(prev => prev + 1);
-        if (onTrialUpdated) onTrialUpdated();
-      }, 500);
+      if (onTrialUpdated) setTimeout(() => onTrialUpdated(), 500);
     } catch (error) {
       logger.error('Error updating trial:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
