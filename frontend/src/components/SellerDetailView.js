@@ -1,273 +1,27 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { api } from '../lib/apiClient';
-import { LABEL_DECOUVERTE } from '../lib/constants';
-import { logger } from '../utils/logger';
-import { toast } from 'sonner';
+import React from 'react';
 import { ArrowLeft, X, TrendingUp, Award, MessageSquare, BarChart3, Calendar, StickyNote } from 'lucide-react';
 import ConflictResolutionForm from './ConflictResolutionForm';
 import CompetencesTab from './sellerDetail/CompetencesTab';
 import KpiTab from './sellerDetail/KpiTab';
 import DebriefsTab from './sellerDetail/DebriefsTab';
-
-const MONTHS_FR = ['jan.', 'fév.', 'mar.', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sep.', 'oct.', 'nov.', 'déc.'];
-function formatNoteDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (isNaN(d)) return dateStr;
-  return `${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
-}
+import NotesTab from './sellerDetail/NotesTab';
+import useSellerDetail from './sellerDetail/useSellerDetail';
 
 export default function SellerDetailView({ seller, onBack, onClose, storeIdParam = null }) {
-  const [diagnostic, setDiagnostic] = useState(null);
-  const [debriefs, setDebriefs] = useState([]);
-  const [competencesHistory, setCompetencesHistory] = useState([]);
-  const [liveCompetences, setLiveCompetences] = useState(null); // NEW: Live scores for current radar
-  const [kpiEntries, setKpiEntries] = useState([]);
-  const [kpiMetrics, setKpiMetrics] = useState(null); // Server-side aggregated metrics
-  const [kpiConfig, setKpiConfig] = useState(null); // NEW: Manager's KPI configuration
-  const [loading, setLoading] = useState(true);
-  const [expandedDebriefs, setExpandedDebriefs] = useState({});
-  const [activeTab, setActiveTab] = useState(seller?._openTab || 'competences');
-  const [sharedNotes, setSharedNotes] = useState([]);
-  const [notesLoading, setNotesLoading] = useState(false);
-  const [replyingTo, setReplyingTo] = useState(null);
-  const [replyText, setReplyText] = useState('');
-  const [sendingReply, setSendingReply] = useState(false);
-  const [showAllDebriefs, setShowAllDebriefs] = useState(false); // New state for debriefs display
-  const [debriefFilter, setDebriefFilter] = useState('all'); // New state for debrief filter: 'all', 'success', 'missed'
-  const [kpiFilter, setKpiFilter] = useState('7j'); // New state for KPI filter: '7j', '30j', 'tout'
-  const [visibleCharts, setVisibleCharts] = useState({
-    ca: true,
-    ventes: true,
-    clients: true,
-    articles: true,
-    ventesVsClients: true,
-    panierMoyen: true,
-    tauxTransfo: true,
-    indiceVente: true
-  }); // New state for chart visibility toggles
-
-  // Build store_id param for API calls (for gerant viewing as manager)
-  const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
-  const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
-
-  useEffect(() => {
-    fetchSellerData();
-  }, [seller.id, storeIdParam]);
-
-  // Charger les KPI une fois les autres données prêtes, puis quand le filtre change (un seul appel pour éviter 429)
-  useEffect(() => {
-    if (seller?.id && !loading) {
-      fetchKPIData();
-    }
-  }, [kpiFilter, loading]);
-
-  // Charger les notes partagées quand l'onglet Notes est actif
-  useEffect(() => {
-    if (activeTab === 'notes' && seller?.id) {
-      fetchSharedNotes();
-    }
-  }, [activeTab, seller?.id]);
-
-  const handleSendReply = async (noteId) => {
-    if (!replyText.trim()) return;
-    setSendingReply(true);
-    try {
-      const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
-      await api.patch(
-        `/manager/sellers/${seller.id}/interview-notes/${noteId}/reply${storeParam}`,
-        { reply: replyText.trim() }
-      );
-      toast.success('Réponse envoyée');
-      setReplyingTo(null);
-      setReplyText('');
-      await fetchSharedNotes();
-    } catch (err) {
-      logger.error('Error sending reply:', err);
-      toast.error('Erreur lors de l\'envoi de la réponse');
-    } finally {
-      setSendingReply(false);
-    }
-  };
-
-  const fetchSharedNotes = async () => {
-    setNotesLoading(true);
-    try {
-      const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
-      const res = await api.get(`/manager/sellers/${seller.id}/interview-notes${storeParam}`);
-      setSharedNotes(res.data.notes || []);
-      // Marquer les notes comme vues
-      await api.patch(`/manager/sellers/${seller.id}/notes-seen${storeParam}`);
-    } catch (err) {
-      logger.error('Error loading shared notes:', err);
-    } finally {
-      setNotesLoading(false);
-    }
-  };
-
-  const fetchKPIData = async () => {
-    if (!seller?.id) return;
-
-    try {
-      const days = kpiFilter === '7j' ? 7 : kpiFilter === '30j' ? 30 : 365;
-      const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
-      const [entriesRes, metricsRes] = await Promise.all([
-        // Entries pour les graphiques time-series (taille garantie suffisante par le backend)
-        api.get(`/manager/kpi-entries/${seller.id}?days=${days}${storeParamAnd}`),
-        // Métriques agrégées server-side — source de vérité unique
-        api.get(`/manager/seller/${seller.id}/kpi-metrics?days=${days}${storeParamAnd}`),
-      ]);
-      const entries = Array.isArray(entriesRes.data?.items)
-        ? entriesRes.data.items
-        : (Array.isArray(entriesRes.data) ? entriesRes.data : []);
-      setKpiEntries(entries);
-      setKpiMetrics(metricsRes.data);
-    } catch (err) {
-      logger.error('Error loading KPI data:', err);
-      setKpiEntries([]);
-      setKpiMetrics(null);
-      toast.error(`Erreur de chargement des KPI: ${err.response?.data?.detail || err.message}`);
-    }
-  };
-
-  const fetchSellerData = async () => {
-    setLoading(true);
-    try {
-      const [statsRes, diagRes, debriefsRes, competencesRes, kpiConfigRes] = await Promise.all([
-        api.get(`/manager/seller/${seller.id}/stats${storeParam}`),
-        api.get(`/manager-diagnostic/seller/${seller.id}${storeParam}`),
-        api.get(`/manager/debriefs/${seller.id}${storeParam}`),
-        api.get(`/manager/competences-history/${seller.id}${storeParam}`),
-        api.get(`/manager/kpi-config${storeParam}`)
-      ]);
-
-      // Extract LIVE scores from stats endpoint (harmonized with manager overview)
-      const statsData = statsRes.data;
-      const liveScores = statsData.avg_radar_scores || {
-        accueil: 0,
-        decouverte: 0,
-        argumentation: 0,
-        closing: 0,
-        fidelisation: 0
-      };
-
-      // Set live scores for current radar chart (consistent with manager overview)
-      setLiveCompetences({
-        type: "live",
-        date: new Date().toISOString(),
-        score_accueil: liveScores.accueil || 0,
-        score_decouverte: liveScores.decouverte || 0,
-        score_argumentation: liveScores.argumentation || 0,
-        score_closing: liveScores.closing || 0,
-        score_fidelisation: liveScores.fidelisation || 0
-      });
-
-      setDiagnostic(diagRes.data);
-      setDebriefs(debriefsRes.data);
-      setCompetencesHistory(competencesRes.data || []); // Keep historical data for evolution chart
-      setKpiConfig(kpiConfigRes.data); // Store manager's KPI configuration
-      // KPI : chargé par l'effet (kpiFilter) après setLoading(false) pour éviter double appel → 429
-    } catch (err) {
-      logger.error('Error loading seller data:', err);
-      toast.error('Erreur de chargement des données du vendeur');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleDebrief = (debriefId) => {
-    setExpandedDebriefs(prev => ({
-      ...prev,
-      [debriefId]: !prev[debriefId]
-    }));
-  };
-
-  // Calculate current competences (use LIVE scores for consistency with overview)
-  const currentCompetences = liveCompetences;
-
-  // Always create radar data structure (even if scores are 0) for consistent display
-  const radarData = [
-    { skill: 'Accueil', value: currentCompetences?.score_accueil || 0 },
-    { skill: LABEL_DECOUVERTE, value: currentCompetences?.score_decouverte || 0 },
-    { skill: 'Argumentation', value: currentCompetences?.score_argumentation || 0 },
-    { skill: 'Closing', value: currentCompetences?.score_closing || 0 },
-    { skill: 'Fidélisation', value: currentCompetences?.score_fidelisation || 0 }
-  ];
-  
-  // Check if all scores are zero (no evaluation)
-  const hasAnyScore = radarData.some(d => d.value > 0);
-
-  // Calculate evolution data (score global sur 50 = 5 compétences × 10)
-  const evolutionData = competencesHistory.map((entry) => {
-    const date = new Date(entry.date);
-    const scoreTotal = 
-      (entry.score_accueil || 0) + 
-      (entry.score_decouverte || 0) + 
-      (entry.score_argumentation || 0) + 
-      (entry.score_closing || 0) + 
-      (entry.score_fidelisation || 0);
-    
-    return {
-      name: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-      'Score Global': scoreTotal,
-      fullDate: date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-    };
-  });
-
-  // Determine which charts should be available based on manager's KPI configuration
-  const availableCharts = useMemo(() => {
-    // Helper: check flags with backward compatibility (manager_*, seller_*, track_*)
-    const track = (key) => {
-      if (!kpiConfig) return true; // si pas de config, ne pas bloquer l'affichage
-      const managerKey = `manager_track_${key}`;
-      const sellerKey = `seller_track_${key}`;
-      const legacyKey = `track_${key}`;
-      return (
-        kpiConfig[managerKey] === true ||
-        kpiConfig[sellerKey] === true ||
-        kpiConfig[legacyKey] === true
-      );
-    };
-
-    return {
-      ca: track('ca'),
-      ventes: track('ventes'),
-      clients: track('clients'),
-      articles: track('articles'),
-      ventesVsClients: track('ventes') && track('clients'),
-      panierMoyen: track('ca') && track('ventes'),
-      tauxTransfo: track('ventes') && track('clients'),
-      indiceVente: track('ca') && track('ventes') && track('articles')
-    };
-  }, [kpiConfig]);
-
-  // Calculate KPI stats (last 7 days)
-  const last7Days = new Date();
-  last7Days.setDate(last7Days.getDate() - 7);
-  
-  const recentKpis = kpiEntries.filter(entry => {
-    const entryDate = new Date(entry.date);
-    return entryDate >= last7Days;
-  });
-
-  const kpiStats = {
-    totalEvaluations: (diagnostic ? 1 : 0) + debriefs.length,
-    totalVentes: recentKpis.reduce((sum, e) => sum + (e.nb_ventes || 0), 0),
-    totalCA: recentKpis.reduce((sum, e) => sum + (e.ca_journalier || 0), 0)
-  };
-
-  // Helper accessible dans le rendu pour contrôler l'affichage des cartes KPI
-  const isTrack = (key) => {
-    if (!kpiConfig) return true;
-    const managerKey = `manager_track_${key}`;
-    const sellerKey = `seller_track_${key}`;
-    const legacyKey = `track_${key}`;
-    return (
-      kpiConfig[managerKey] === true ||
-      kpiConfig[sellerKey] === true ||
-      kpiConfig[legacyKey] === true
-    );
-  };
+  const {
+    diagnostic, debriefs, loading,
+    activeTab, setActiveTab,
+    expandedDebriefs, showAllDebriefs, setShowAllDebriefs,
+    debriefFilter, setDebriefFilter,
+    kpiEntries, kpiMetrics, kpiFilter, setKpiFilter,
+    visibleCharts, setVisibleCharts,
+    sharedNotes, notesLoading,
+    replyingTo, setReplyingTo, replyText, setReplyText,
+    sendingReply,
+    toggleDebrief, handleSendReply,
+    currentCompetences, radarData, hasAnyScore, evolutionData,
+    availableCharts, isTrack, kpiStats,
+  } = useSellerDetail(seller, storeIdParam);
 
   if (loading) {
     return (
@@ -283,7 +37,6 @@ export default function SellerDetailView({ seller, onBack, onClose, storeIdParam
 
       {/* ── Header ── */}
       <div className="flex-shrink-0 bg-slate-900 px-5 pt-4 pb-0 rounded-t-2xl">
-        {/* Back + Identity row */}
         <div className="flex items-center gap-3 pb-3">
           <button
             onClick={onBack}
@@ -291,7 +44,6 @@ export default function SellerDetailView({ seller, onBack, onClose, storeIdParam
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          {/* Avatar initials */}
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ring-2 ring-white/20">
             {seller.name?.charAt(0)?.toUpperCase() || '?'}
           </div>
@@ -299,7 +51,6 @@ export default function SellerDetailView({ seller, onBack, onClose, storeIdParam
             <h1 className="text-base font-bold text-white truncate leading-tight">{seller.name}</h1>
             <p className="text-xs text-slate-400 truncate">{seller.email}</p>
           </div>
-          {/* Profile badge */}
           {diagnostic && (
             <span className="flex-shrink-0 text-[10px] font-semibold text-indigo-200 bg-indigo-500/30 border border-indigo-400/30 px-2 py-0.5 rounded-full">
               {diagnostic.profile === 'communicant_naturel' ? 'Comm. Naturel' :
@@ -357,10 +108,10 @@ export default function SellerDetailView({ seller, onBack, onClose, storeIdParam
       <div className="flex-shrink-0 bg-white border-b border-gray-100">
         <div className="flex px-2">
           {[
-            { id: 'competences', Icon: Award,         label: 'Compétences' },
-            { id: 'kpi',         Icon: BarChart3,      label: 'KPI'         },
-            { id: 'debriefs',    Icon: MessageSquare,  label: 'Analyses'    },
-            { id: 'notes',       Icon: StickyNote,     label: 'Notes'       },
+            { id: 'competences', Icon: Award,        label: 'Compétences' },
+            { id: 'kpi',         Icon: BarChart3,     label: 'KPI'         },
+            { id: 'debriefs',    Icon: MessageSquare, label: 'Analyses'    },
+            { id: 'notes',       Icon: StickyNote,    label: 'Notes'       },
           ].map(({ id, Icon, label }) => (
             <button
               key={id}
@@ -381,7 +132,6 @@ export default function SellerDetailView({ seller, onBack, onClose, storeIdParam
       {/* ── Scrollable Content ── */}
       <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-4">
 
-        {/* ══ TAB: Compétences ══ */}
         {activeTab === 'competences' && (
           <CompetencesTab
             diagnostic={diagnostic}
@@ -393,7 +143,6 @@ export default function SellerDetailView({ seller, onBack, onClose, storeIdParam
           />
         )}
 
-        {/* ══ TAB: KPI ══ */}
         {activeTab === 'kpi' && (
           <KpiTab
             kpiEntries={kpiEntries}
@@ -407,223 +156,37 @@ export default function SellerDetailView({ seller, onBack, onClose, storeIdParam
           />
         )}
 
-        {/* ══ TAB: Analyses ══ */}
         {activeTab === 'debriefs' && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-4">
-              <MessageSquare className="w-4 h-4 text-blue-500" />
-              <h2 className="text-sm font-bold text-gray-800">Dernières analyses des ventes</h2>
-            </div>
-
-            {debriefs.length > 0 ? (
-              <>
-                <div className="flex gap-1.5 mb-4">
-                  {[
-                    { id: 'all',     label: `Toutes (${debriefs.length})`,                                     cls: 'bg-slate-700 text-white' },
-                    { id: 'success', label: `✅ Réussies (${debriefs.filter(d => d.vente_conclue === true).length})`,  cls: 'bg-green-600 text-white'  },
-                    { id: 'missed',  label: `❌ Manquées (${debriefs.filter(d => d.vente_conclue === false).length})`, cls: 'bg-orange-600 text-white'  },
-                  ].map(f => (
-                    <button
-                      key={f.id}
-                      onClick={() => setDebriefFilter(f.id)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                        debriefFilter === f.id ? f.cls : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="space-y-2">
-                  {debriefs
-                    .filter(d => debriefFilter === 'success' ? d.vente_conclue === true : debriefFilter === 'missed' ? d.vente_conclue === false : true)
-                    .slice(0, showAllDebriefs ? debriefs.length : 3)
-                    .map(debrief => {
-                      const isConclue = debrief.vente_conclue === true;
-                      return (
-                        <div
-                          key={debrief.id}
-                          className={`rounded-xl border border-gray-100 bg-gray-50 overflow-hidden border-l-4 ${isConclue ? 'border-l-green-400' : 'border-l-orange-400'}`}
-                        >
-                          <button
-                            onClick={() => toggleDebrief(debrief.id)}
-                            className="w-full p-3 text-left hover:bg-gray-100/80 transition-colors"
-                          >
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${isConclue ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
-                                    {isConclue ? '✅ Réussi' : '❌ Manqué'}
-                                  </span>
-                                  <span className="text-[11px] text-gray-400">
-                                    {new Date(debrief.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-600 truncate">
-                                  {debrief.produit || debrief.context || 'N/A'} · {debrief.type_client || debrief.customer_profile || 'N/A'}
-                                </p>
-                                {!expandedDebriefs[debrief.id] && (
-                                  <p className="text-xs text-gray-400 truncate mt-0.5">
-                                    {debrief.description_vente || debrief.demarche_commerciale || ''}
-                                  </p>
-                                )}
-                              </div>
-                              <span className="ml-2 text-gray-400 text-base flex-shrink-0">{expandedDebriefs[debrief.id] ? '−' : '+'}</span>
-                            </div>
-                          </button>
-
-                          {expandedDebriefs[debrief.id] && (
-                            <div className="px-3 pb-3 space-y-2 border-t border-gray-100 pt-2">
-                              {debrief.ai_recommendation && (
-                                <div className="bg-blue-50 rounded-xl p-2.5">
-                                  <p className="text-[10px] font-semibold text-blue-700 mb-1">💡 Recommandation IA</p>
-                                  <p className="text-xs text-blue-800 leading-relaxed">{debrief.ai_recommendation}</p>
-                                </div>
-                              )}
-                              <div className="grid grid-cols-5 gap-1.5">
-                                <div className="bg-purple-50 rounded-lg p-1.5 text-center">
-                                  <p className="text-[10px] text-purple-600">Accueil</p>
-                                  <p className="text-sm font-bold text-purple-900">{debrief.score_accueil ?? 0}/10</p>
-                                </div>
-                                <div className="bg-green-50 rounded-lg p-1.5 text-center">
-                                  <p className="text-[10px] text-green-600">{LABEL_DECOUVERTE}</p>
-                                  <p className="text-sm font-bold text-green-900">{debrief.score_decouverte ?? 0}/10</p>
-                                </div>
-                                <div className="bg-orange-50 rounded-lg p-1.5 text-center">
-                                  <p className="text-[10px] text-orange-600">Argum.</p>
-                                  <p className="text-sm font-bold text-orange-900">{debrief.score_argumentation ?? 0}/10</p>
-                                </div>
-                                <div className="bg-red-50 rounded-lg p-1.5 text-center">
-                                  <p className="text-[10px] text-red-600">Closing</p>
-                                  <p className="text-sm font-bold text-red-900">{debrief.score_closing ?? 0}/10</p>
-                                </div>
-                                <div className="bg-blue-50 rounded-lg p-1.5 text-center">
-                                  <p className="text-[10px] text-blue-600">Fidél.</p>
-                                  <p className="text-sm font-bold text-blue-900">{debrief.score_fidelisation ?? 0}/10</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-
-                {debriefs.length > 3 && (
-                  <div className="mt-4 text-center">
-                    <button
-                      onClick={() => setShowAllDebriefs(!showAllDebriefs)}
-                      className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-medium transition-colors"
-                    >
-                      {showAllDebriefs ? '↑ Voir moins' : `↓ Charger plus (${debriefs.length - 3} autres)`}
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 gap-2">
-                <MessageSquare className="w-8 h-8 text-gray-200" />
-                <p className="text-sm text-gray-400">Aucune analyse de vente pour le moment</p>
-              </div>
-            )}
-          </div>
+          <DebriefsTab
+            debriefs={debriefs}
+            debriefFilter={debriefFilter}
+            setDebriefFilter={setDebriefFilter}
+            expandedDebriefs={expandedDebriefs}
+            toggleDebrief={toggleDebrief}
+            showAllDebriefs={showAllDebriefs}
+            setShowAllDebriefs={setShowAllDebriefs}
+          />
         )}
 
-        {/* ══ TAB: Conflit (navigable via _openTab) ══ */}
         {activeTab === 'conflit' && (
           <ConflictResolutionForm sellerId={seller.id} sellerName={seller.name} />
         )}
 
-        {/* ══ TAB: Notes ══ */}
         {activeTab === 'notes' && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <StickyNote className="w-4 h-4 text-amber-500" />
-                <h3 className="text-sm font-bold text-gray-800">Notes partagées</h3>
-              </div>
-              {sharedNotes.length > 0 && (
-                <span className="text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">
-                  {sharedNotes.length}
-                </span>
-              )}
-            </div>
-
-            {notesLoading ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-7 w-7 border-2 border-amber-500 border-t-transparent" />
-              </div>
-            ) : sharedNotes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center">
-                  <StickyNote className="w-7 h-7 text-amber-300" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-700 text-sm">Aucune note partagée</p>
-                  <p className="text-gray-400 text-xs mt-1">{seller.name} n'a pas encore partagé de notes avec vous.</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {sharedNotes.map(note => (
-                  <div key={note.id} className="bg-amber-50 border border-amber-100 rounded-xl p-3.5">
-                    <span className="text-[11px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-                      {formatNoteDate(note.date || note.created_at)}
-                    </span>
-                    <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap leading-relaxed">{note.content}</p>
-
-                    {/* Réponse existante du manager */}
-                    {note.manager_reply && replyingTo !== note.id && (
-                      <div className="mt-3 pt-3 border-t border-amber-200">
-                        <p className="text-[11px] font-semibold text-blue-600 mb-1">Votre réponse :</p>
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{note.manager_reply}</p>
-                      </div>
-                    )}
-
-                    {/* Formulaire de réponse inline */}
-                    {replyingTo === note.id ? (
-                      <div className="mt-3 pt-3 border-t border-amber-200 flex flex-col gap-2">
-                        <textarea
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          placeholder="Votre réponse au vendeur…"
-                          rows={3}
-                          className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none"
-                          autoFocus
-                        />
-                        <div className="flex gap-2 justify-end">
-                          <button
-                            onClick={() => { setReplyingTo(null); setReplyText(''); }}
-                            className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg"
-                          >
-                            Annuler
-                          </button>
-                          <button
-                            onClick={() => handleSendReply(note.id)}
-                            disabled={sendingReply || !replyText.trim()}
-                            className="text-xs bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-3 py-1.5 disabled:opacity-50 transition-colors"
-                          >
-                            {sendingReply ? 'Envoi…' : 'Envoyer'}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => { setReplyingTo(note.id); setReplyText(note.manager_reply || ''); }}
-                        className="mt-2.5 text-[11px] text-blue-500 hover:text-blue-700 font-medium"
-                      >
-                        {note.manager_reply ? '✏️ Modifier la réponse' : '💬 Répondre'}
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <NotesTab
+            seller={seller}
+            sharedNotes={sharedNotes}
+            notesLoading={notesLoading}
+            replyingTo={replyingTo}
+            setReplyingTo={setReplyingTo}
+            replyText={replyText}
+            setReplyText={setReplyText}
+            sendingReply={sendingReply}
+            handleSendReply={handleSendReply}
+          />
         )}
 
-      </div>{/* end scrollable */}
+      </div>
     </div>
   );
 }
