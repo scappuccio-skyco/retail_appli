@@ -818,8 +818,12 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
   - `superAdminDashboard/useSuperAdminDashboard.js` (état, effets, fetch, handlers workspace/bulk/logs)
   - `superAdminDashboard/OverviewTab.js` (vue d'ensemble : statut système + activité + détails)
 
+- ✅ `gerant/APIKeysManagement.js` (602L → 152L) — Session 21 Mars 2026
+  - `apiKeysManagement/useAPIKeysManagement.js` (état, fetch, CRUD, togglePermission)
+  - `apiKeysManagement/APIKeyCard.js` (ligne de clé avec permissions)
+  - `apiKeysManagement/CreateKeyModal.js` (formulaire de création + checkboxes permissions)
+
 **Reste à traiter** :
-- `gerant/APIKeysManagement.js` (602L)
 - `gerant/GerantProfile.js` (539L)
 - `KPIEntryModal.js` (532L)
 - `storeKPI/StoreKPIModalOverviewTab.js` (502L)
