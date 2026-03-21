@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 20 Mars 2026
+**Dernière mise à jour**: 21 Mars 2026
 
 ---
 
@@ -76,15 +76,44 @@ backend/
 ├── services/                  # Business Logic layer
 │   ├── auth_service.py
 │   ├── kpi_service.py
-│   ├── ai_service.py         # OpenAI integration
-│   ├── gerant_service.py
-│   ├── manager_service.py    # Façade (délègue aux services manager/)
-│   ├── manager/              # Services spécialisés manager
+│   ├── ai_service/            # OpenAI integration (20 Mars 2026 session 2)
+│   │   ├── __init__.py        # Re-exporte AIService, AIDataService, EvaluationGuideService, constantes
+│   │   ├── _prompts.py        # Constantes système + anonymize_name_for_ai, clean_json_response, parse_json_safely
+│   │   ├── _core_mixin.py     # Circuit breaker, _send_message, generate_admin_response
+│   │   ├── _analysis_mixin.py # generate_team_analysis, generate_debrief, generate_diagnostic
+│   │   ├── _seller_mixin.py   # generate_daily_challenge, generate_seller_bilan
+│   │   ├── _brief_mixin.py    # generate_morning_brief + helpers
+│   │   ├── _data_service.py   # AIDataService
+│   │   └── _evaluation_service.py # EvaluationGuideService
+│   ├── gerant_service/        # Service gérant (20 Mars 2026 session 2)
+│   │   ├── __init__.py        # GerantService(ProfileMixin, SubscriptionMixin, StoresMixin, StaffMixin, KpiMixin)
+│   │   ├── _profile_mixin.py  # User/workspace/billing/access guards
+│   │   ├── _subscription_mixin.py # Subscription wrappers + status + formatters
+│   │   ├── _stores_mixin.py   # Store CRUD + bulk_import
+│   │   ├── _staff_mixin.py    # Staff/invitations/suspend/delete
+│   │   └── _kpi_mixin.py      # KPI stats/history/overview + helpers
+│   ├── seller_service/        # Service vendeur (20 Mars 2026 session 2)
+│   │   ├── __init__.py        # SellerService(ProfileMixin, KpiMixin, ObjectivesMixin, ChallengesMixin, NotesMixin, SalesMixin)
+│   │   ├── _profile_mixin.py  # Profil, diagnostic, config KPI, accès
+│   │   ├── _kpi_mixin.py      # Entrées KPI, métriques, pagination
+│   │   ├── _objectives_mixin.py # Bilans, objectifs, compute_status, calculs
+│   │   ├── _challenges_mixin.py # Challenges, daily challenges, calculs
+│   │   ├── _notes_mixin.py    # Interview notes, debriefs
+│   │   └── _sales_mixin.py    # Sales, evaluations, achievements
+│   ├── admin_service/         # Service admin (20 Mars 2026 session 2)
+│   │   ├── __init__.py        # AdminService(WorkspacesMixin, StatsMixin, SubscriptionsMixin, AdminsMixin, AiMixin)
+│   │   ├── _repos.py          # Mini-repos (PaymentTransaction, StripeEvent, AIConversation, AIMessage, AIUsageLog)
+│   │   ├── _workspaces_mixin.py # Workspace CRUD + update_status/plan
+│   │   ├── _stats_mixin.py    # Platform stats, health, logs, audit, invitations
+│   │   ├── _subscriptions_mixin.py # Subscriptions overview, trials, sync
+│   │   ├── _admins_mixin.py   # Admin CRUD (add/remove super_admin)
+│   │   └── _ai_mixin.py       # AI conversations + chat assistant
+│   ├── manager_service.py     # Façade (délègue aux services manager/)
+│   ├── manager/               # Services spécialisés manager
 │   │   ├── store_service.py
 │   │   ├── seller_management_service.py
 │   │   ├── kpi_service.py
 │   │   └── achievement_service.py
-│   ├── seller_service.py
 │   ├── payment_service.py     # Stripe integration
 │   └── ...
 └── api/routes/                # Presentation layer
@@ -139,6 +168,12 @@ backend/
 4. **Service Layer Pattern**
    - Logique métier dans services, pas dans routes
    - Services utilisent repositories pour accès DB
+
+5. **Mixin Pattern** (services volumineux — 20 Mars 2026)
+   - Les gros services (`GerantService`, `SellerService`, `AdminService`, `AIService`) sont découpés en packages `services/xxx_service/`
+   - Chaque fichier `_xxx_mixin.py` contient un `class XxxMixin` avec les méthodes thématiques
+   - Le `__init__.py` définit la classe concrète héritant de tous les mixins : `class XxxService(MixinA, MixinB, ...)`
+   - `from services.xxx_service import XxxService` fonctionne sans changement dans les routes
 
 ---
 
@@ -722,9 +757,46 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
 - ✅ `api/routes/manager/analytics.py` (1060 l) → `manager/kpi.py` (426 l) + `manager/analyses.py` (656 l)
 - ✅ `api/routes/sellers.py` (2564 l) → `sellers/` (8 fichiers + __init__.py)
 
-**Dette restante (nécessite tests avant refactoring)**
-- `gerant_service.py` (2785 l), `seller_service.py` (2295 l), `admin_service.py` (2094 l), `ai_service.py` (2001 l)
+**Dette restante**
 - Frontend : 29 composants >500 lignes, appels API dupliqués (voir section dette frontend ci-dessus)
+
+---
+
+### [20 Mars 2026 — session 2] - Refactoring services en packages Mixin
+
+**Pattern Mixin appliqué aux 4 gros services** — `from services.xxx import XxxService` inchangé partout.
+
+- ✅ `services/gerant_service.py` (2785 l) → `services/gerant_service/` (6 fichiers, 2822 l)
+  - Mixins : `_profile_mixin`, `_subscription_mixin`, `_stores_mixin`, `_staff_mixin`, `_kpi_mixin`
+- ✅ `services/seller_service.py` (2295 l) → `services/seller_service/` (7 fichiers, 2347 l)
+  - Mixins : `_profile_mixin`, `_kpi_mixin`, `_objectives_mixin`, `_challenges_mixin`, `_notes_mixin`, `_sales_mixin`
+- ✅ `services/ai_service.py` (2001 l) → `services/ai_service/` (8 fichiers, 2134 l)
+  - Fichiers : `_prompts`, `_core_mixin`, `_analysis_mixin`, `_seller_mixin`, `_brief_mixin`, `_data_service`, `_evaluation_service`
+- ✅ `services/admin_service.py` (2094 l) → `services/admin_service/` (7 fichiers, 2151 l)
+  - Fichiers : `_repos`, `_workspaces_mixin`, `_stats_mixin`, `_subscriptions_mixin`, `_admins_mixin`, `_ai_mixin`
+
+---
+
+### [21 Mars 2026] - Refactoring frontend : finalisation découpe composants
+
+**Pattern appliqué** : chaque gros composant devient un wrapper fin qui délègue à un hook custom + sous-composants thématiques dans un sous-dossier.
+
+- ✅ `SellerDetailView.js` (629L → 192L) → `sellerDetail/`
+  - `useSellerDetail.js` (state, fetch, computed), `NotesTab.js` (onglet notes)
+  - Fix : `DebriefsTab.js` (existait mais n'était pas utilisé, doublon inline supprimé)
+
+- ✅ `MorningBriefModal.js` (598L → 112L) → `morningBrief/`
+  - `useMorningBrief.js` (state + handlers), `briefPdfExport.js` (export PDF DOM-based + fallback legacy)
+
+- ✅ `GuideProfilsModal.js` (533L → 85L) → `guideProfilsModal/`
+  - `useGuideProfilsModal.js` (state, fetch compatibilité), `CompatibiliteSection.js`, `ProfileSection.js`
+
+- ✅ `TeamModal.js` (930L → 252L) → `teamModal/`
+  - `useTeamModal.js` (state, fetch, agrégations semaine/bi-semaine/mois, IA), `CustomTooltip.js` (formatNumber)
+
+**Dette restante frontend** :
+- `performanceModal/BilanTab.js` (865L) : encore trop gros, à découper en session future
+- 29 composants >500L initialement → réduits, seul BilanTab reste >500L
 
 ---
 
