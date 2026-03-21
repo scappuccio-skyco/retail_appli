@@ -844,7 +844,15 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
 - ✅ `gerant/APIDocModal.js` (734L → 65L) — Session 21 Mars 2026
   - `apiDocModal/DocContent.js` (540L) — tout le JSX documentaire statique, reçoit `onContactSupport` prop
 
-**Reste à traiter** : aucun composant prioritaire identifié
+- ✅ `managerSettings/ActiveChallengesTab.js` (499L → 54L) — Session 21 Mars 2026
+  - `managerSettings/shared/ChallengeCard.js` (329L) — carte challenge avec KpiProgressBars + ChallengeDetails
+
+- ✅ `managerSettings/CreateChallengeTab.js` (568L → 229L) — Session 21 Mars 2026
+- ✅ `managerSettings/CreateObjectiveTab.js` (480L → 234L) — Session 21 Mars 2026
+  - `managerSettings/shared/SellerVisibilityDropdown.js` (138L) — dropdown multi-sélection vendeurs partagé
+  - `managerSettings/shared/DataEntryResponsibleToggle.js` (55L) — toggle saisie vendeur/manager partagé
+
+**Reste à traiter** : `ManagerDashboard.js` (474L), `ManagerDiagnosticForm.js` (499L)
 
 ---
 
