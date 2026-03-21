@@ -2,9 +2,9 @@ import React, { useMemo, useRef } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
-import { Sparkles, X, TrendingUp, AlertTriangle, Target, ChevronLeft, ChevronRight, BarChart3, Download } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { renderMarkdownBold } from '../utils/markdownRenderer';
+import { Sparkles, X, TrendingUp, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import BilanChartsSection from './bilanIndividuel/BilanChartsSection';
+import BilanTextPanels from './bilanIndividuel/BilanTextPanels';
 
 export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onClose, currentWeekOffset, onWeekChange, onRegenerate, generatingBilan }) {
   if (!bilan) return null;
@@ -62,49 +62,49 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
           }
         }
       });
-      
+
       const imgData = canvas.toDataURL('image/png', 0.95);
       const pdf = new jsPDF('p', 'mm', 'a4');
-      
+
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const margin = 8;
-      
+
       // Add professional header
       pdf.setFillColor(255, 216, 113); // Yellow color
       pdf.rect(0, 0, pdfWidth, 25, 'F');
-      
+
       // Title
       pdf.setFontSize(18);
       pdf.setTextColor(51, 51, 51);
       pdf.setFont('helvetica', 'bold');
       pdf.text('Retail Performer', margin, 10);
-      
+
       // Subtitle
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
       pdf.text('Bilan Individuel de Performance', margin, 17);
-      
+
       // Period on the right
       pdf.setFontSize(9);
       pdf.setTextColor(80, 80, 80);
       const periodText = bilan.periode || 'Semaine actuelle';
       const periodWidth = pdf.getTextWidth(periodText);
       pdf.text(periodText, pdfWidth - margin - periodWidth, 17);
-      
+
       // Calculate image dimensions
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
       const contentWidth = pdfWidth - (2 * margin);
       const ratio = contentWidth / imgWidth;
       const contentHeight = imgHeight * ratio;
-      
+
       // Calculate how many pages we need
       const headerHeight = 30;
       const footerHeight = 8;
       const firstPageAvailable = pdfHeight - headerHeight - footerHeight;
       const otherPagesAvailable = pdfHeight - (2 * margin) - footerHeight;
-      
+
       if (contentHeight <= firstPageAvailable) {
         // Single page - all content fits
         pdf.addImage(imgData, 'PNG', margin, headerHeight, contentWidth, contentHeight, undefined, 'FAST');
@@ -113,20 +113,20 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
         let remainingHeight = contentHeight;
         let currentY = 0;
         let pageNum = 0;
-        
+
         while (remainingHeight > 0) {
           if (pageNum > 0) {
             pdf.addPage();
           }
-          
+
           const availableSpace = pageNum === 0 ? firstPageAvailable : otherPagesAvailable;
           const startY = pageNum === 0 ? headerHeight : margin;
           const sliceHeight = Math.min(availableSpace, remainingHeight);
-          
+
           // Calculate source rectangle in the canvas
           const sy = (currentY / contentHeight) * imgHeight;
           const sh = (sliceHeight / contentHeight) * imgHeight;
-          
+
           // Create a temporary canvas for this slice (integer dimensions required)
           const shInt = Math.max(1, Math.round(sh));
           const tempCanvas = document.createElement('canvas');
@@ -136,17 +136,17 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
 
           // Draw the slice
           tempCtx.drawImage(canvas, 0, sy, imgWidth, sh, 0, 0, imgWidth, shInt);
-          
+
           // Add to PDF
           const sliceImgData = tempCanvas.toDataURL('image/png', 1.0);
           pdf.addImage(sliceImgData, 'PNG', margin, startY, contentWidth, sliceHeight, undefined, 'FAST');
-          
+
           currentY += sliceHeight;
           remainingHeight -= sliceHeight;
           pageNum++;
         }
       }
-      
+
       // Add footer with page numbers
       const pageCount = pdf.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
@@ -154,13 +154,13 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
         pdf.setFontSize(8);
         pdf.setTextColor(128, 128, 128);
         pdf.text(
-          `Page ${i} / ${pageCount} - Généré le ${new Date().toLocaleDateString('fr-FR')}`, 
-          pdfWidth / 2, 
-          pdfHeight - 5, 
+          `Page ${i} / ${pageCount} - Généré le ${new Date().toLocaleDateString('fr-FR')}`,
+          pdfWidth / 2,
+          pdfHeight - 5,
           { align: 'center' }
         );
       }
-      
+
       // Add metadata
       pdf.setProperties({
         title: `Bilan Individuel - ${bilan.periode || 'Actuel'}`,
@@ -169,10 +169,10 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
         keywords: 'bilan, KPI, performance, ventes',
         creator: 'Retail Performer App'
       });
-      
+
       // Generate filename with date
       const fileName = `bilan_${bilan.periode || 'actuel'}.pdf`.replace(/\s+/g, '_');
-      
+
       // Save PDF in batchedUpdates to prevent React conflicts
       await new Promise(resolve => {
         unstable_batchedUpdates(() => {
@@ -180,7 +180,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
           resolve();
         });
       });
-      
+
     } catch (error) {
       logger.error('Erreur lors de l\'export PDF:', error);
       toast.error('Erreur lors de l\'export PDF. Veuillez réessayer.');
@@ -195,27 +195,27 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
   // Prepare chart data from KPI entries for current week
   const chartData = useMemo(() => {
     if (!kpiEntries || kpiEntries.length === 0) return [];
-    
+
     // Get current week dates
     const now = new Date();
     const offsetDays = currentWeekOffset * 7;
     const monday = new Date(now);
     monday.setDate(monday.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) + offsetDays);
     monday.setHours(0, 0, 0, 0);
-    
+
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23, 59, 59, 999);
-    
+
     // Filter entries for current week
     const weekEntries = kpiEntries.filter(entry => {
       const entryDate = new Date(entry.date);
       return entryDate >= monday && entryDate <= sunday;
     });
-    
+
     // Sort by date
     const sortedEntries = weekEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
-    
+
     // Transform for charts
     return sortedEntries.map(entry => ({
       date: new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
@@ -229,7 +229,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
   // Calculate week-over-week comparison
   const comparisonData = useMemo(() => {
     if (!bilan || !bilan.kpi_resume) return null;
-    
+
     const current = bilan.kpi_resume;
     // This would need previous week data - for now showing trend indicators
     return {
@@ -257,7 +257,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
                 <p className="text-sm text-white opacity-90">📅 {currentWeekOffset === 0 ? 'Semaine actuelle' : bilan.periode}</p>
               </div>
             </div>
-            
+
             {/* Week Navigation - Enhanced */}
             {onWeekChange && (
               <div className="flex items-center gap-3 mr-10 bg-white bg-opacity-50 rounded-xl px-3 py-2">
@@ -283,7 +283,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
               </div>
             )}
           </div>
-          
+
           {/* Action buttons */}
           <div className="flex gap-2 mt-3">
             {onRegenerate && (
@@ -357,221 +357,10 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
           </div>
 
           {/* Charts Section */}
-          {chartData && chartData.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <BarChart3 className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-gray-800">📊 Évolution de la semaine</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* CA Evolution Chart */}
-                {kpiConfig?.track_ca && (
-                  <div className="bg-blue-50 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-3">💰 Évolution du CA</h4>
-                    <ResponsiveContainer width="100%" height={180}>
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 11, fill: '#1e40af' }}
-                          stroke="#3b82f6"
-                        />
-                        <YAxis 
-                          tick={{ fontSize: 11, fill: '#1e40af' }}
-                          stroke="#3b82f6"
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: '#eff6ff', 
-                            border: '2px solid #3b82f6',
-                            borderRadius: '8px',
-                            fontSize: '12px'
-                          }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="CA" 
-                          stroke="#3b82f6" 
-                          strokeWidth={3}
-                          dot={{ fill: '#1e40af', r: 4 }}
-                          activeDot={{ r: 6 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
+          <BilanChartsSection chartData={chartData} kpiConfig={kpiConfig} />
 
-                {/* Ventes Evolution Chart */}
-                {kpiConfig?.track_ventes && (
-                  <div className="bg-green-50 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-green-900 mb-3">🛒 Évolution des Ventes</h4>
-                    <ResponsiveContainer width="100%" height={180}>
-                      <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#d1fae5" />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 11, fill: '#166534' }}
-                          stroke="#22c55e"
-                        />
-                        <YAxis 
-                          tick={{ fontSize: 11, fill: '#166534' }}
-                          stroke="#22c55e"
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: '#f0fdf4', 
-                            border: '2px solid #22c55e',
-                            borderRadius: '8px',
-                            fontSize: '12px'
-                          }}
-                        />
-                        <Bar 
-                          dataKey="Ventes" 
-                          fill="#22c55e"
-                          radius={[8, 8, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-
-                {/* Panier Moyen Chart */}
-                {kpiConfig?.track_ca && kpiConfig?.track_ventes && (
-                  <div className="bg-indigo-50 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-indigo-900 mb-3">💳 Évolution du Panier Moyen</h4>
-                    <ResponsiveContainer width="100%" height={180}>
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 11, fill: '#3730a3' }}
-                          stroke="#6366f1"
-                        />
-                        <YAxis 
-                          tick={{ fontSize: 11, fill: '#3730a3' }}
-                          stroke="#6366f1"
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: '#eef2ff', 
-                            border: '2px solid #6366f1',
-                            borderRadius: '8px',
-                            fontSize: '12px'
-                          }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="Panier Moyen" 
-                          stroke="#6366f1" 
-                          strokeWidth={3}
-                          dot={{ fill: '#4338ca', r: 4 }}
-                          activeDot={{ r: 6 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-
-                {/* Articles Chart */}
-                {kpiConfig?.track_articles && (
-                  <div className="bg-orange-50 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-orange-900 mb-3">📦 Évolution des Articles</h4>
-                    <ResponsiveContainer width="100%" height={180}>
-                      <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#fed7aa" />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 11, fill: '#9a3412' }}
-                          stroke="#f97316"
-                        />
-                        <YAxis 
-                          tick={{ fontSize: 11, fill: '#9a3412' }}
-                          stroke="#f97316"
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: '#fff7ed', 
-                            border: '2px solid #f97316',
-                            borderRadius: '8px',
-                            fontSize: '12px'
-                          }}
-                        />
-                        <Bar 
-                          dataKey="Articles" 
-                          fill="#f97316"
-                          radius={[8, 8, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Synthèse */}
-          <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-xl p-4 mb-4">
-            <p className="text-white font-medium">{renderMarkdownBold(bilan.synthese)}</p>
-          </div>
-
-          {/* Action prioritaire */}
-          {bilan.action_prioritaire && (
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-4 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-white font-bold text-sm">⚡ Action prioritaire</span>
-              </div>
-              <p className="text-white font-semibold">{renderMarkdownBold(bilan.action_prioritaire)}</p>
-            </div>
-          )}
-
-          {/* Points forts */}
-          <div className="bg-green-50 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-5 h-5 text-[#10B981]" />
-              <h3 className="font-bold text-green-900">💪 Tes points forts</h3>
-            </div>
-            <ul className="space-y-2">
-              {bilan.points_forts && bilan.points_forts.map((point, idx) => (
-                <li key={`bilan-${bilan.periode}-forts-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-green-800">
-                  <span className="text-[#10B981] mt-1">✓</span>
-                  <span>{renderMarkdownBold(point)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Points d'attention */}
-          <div className="bg-orange-50 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-[#F97316]" />
-              <h3 className="font-bold text-orange-900">⚠️ Points à améliorer</h3>
-            </div>
-            <ul className="space-y-2">
-              {bilan.points_attention && bilan.points_attention.map((point, idx) => (
-                <li key={`bilan-${bilan.periode}-attention-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-orange-800">
-                  <span className="text-[#F97316] mt-1">!</span>
-                  <span>{renderMarkdownBold(point)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Recommandations personnalisées */}
-          <div className="bg-blue-50 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-blue-900">🎯 Recommandations personnalisées</h3>
-            </div>
-            <ul className="space-y-2">
-              {bilan.recommandations && bilan.recommandations.map((action, idx) => (
-                <li key={`bilan-${bilan.periode}-recommandations-${idx}-${action.substring(0, 20)}`} className="flex items-start gap-2 text-blue-800">
-                  <span className="text-blue-600 font-bold mt-1">{idx + 1}.</span>
-                  <span>{renderMarkdownBold(action)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Text Panels: synthèse, action prioritaire, points forts, attention, recommandations */}
+          <BilanTextPanels bilan={bilan} />
         </div>
       </div>
     </div>
