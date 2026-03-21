@@ -1,0 +1,850 @@
+"""Staff management methods for GerantService."""
+import logging
+import os
+from typing import Dict, Optional, List
+from datetime import datetime, timezone, timedelta
+
+logger = logging.getLogger(__name__)
+
+
+class StaffMixin:
+
+    async def get_all_managers(self, gerant_id: str) -> list:
+        """Get all managers (active and suspended, excluding deleted)"""
+        managers = await self.user_repo.find_many(
+            {
+                "gerant_id": gerant_id,
+                "role": "manager",
+                "status": {"$ne": "deleted"}
+            },
+            {"_id": 0, "password": 0}
+        )
+        return managers
+
+    async def get_all_sellers(self, gerant_id: str) -> list:
+        """Get all sellers (active and suspended, excluding deleted)"""
+        sellers = await self.user_repo.find_many(
+            {
+                "gerant_id": gerant_id,
+                "role": "seller",
+                "status": {"$ne": "deleted"}
+            },
+            {"_id": 0, "password": 0}
+        )
+        return sellers
+
+    async def transfer_seller_to_store(
+        self,
+        seller_id: str,
+        transfer_data: Dict,
+        gerant_id: str
+    ) -> Dict:
+        """
+        Transfer a seller to another store with a new manager
+
+        Args:
+            seller_id: Seller user ID
+            transfer_data: {"new_store_id": "...", "new_manager_id": "..."}
+            gerant_id: Current gérant ID for authorization
+
+        Returns:
+            Dict with success status and message
+        """
+        from models.sellers import SellerTransfer
+
+        # Validate input
+        try:
+            transfer = SellerTransfer(**transfer_data)
+        except Exception as e:
+            raise ValueError(f"Invalid transfer data: {str(e)}")
+
+        # Verify seller exists and belongs to current gérant
+        seller = await self.user_repo.find_one({
+            "id": seller_id,
+            "gerant_id": gerant_id,
+            "role": "seller"
+        }, {"_id": 0})
+
+        if not seller:
+            raise ValueError("Vendeur non trouvé ou accès non autorisé")
+
+        # Check if this is a same-store manager change or a full transfer
+        is_same_store = seller.get('store_id') == transfer.new_store_id
+
+        # Verify new store exists, is active, and belongs to current gérant
+        new_store = await self.store_repo.find_one({
+            "id": transfer.new_store_id,
+            "gerant_id": gerant_id
+        }, {"_id": 0})
+
+        if not new_store:
+            raise ValueError("Magasin non trouvé ou accès non autorisé")
+
+        # Only check if store is active if it's a different store
+        if not is_same_store and not new_store.get('active', False):
+            raise ValueError(
+                f"Le magasin '{new_store['name']}' est inactif. Impossible de transférer vers un magasin inactif."
+            )
+
+        # Verify new manager exists and is in the target store
+        new_manager = await self.user_repo.find_one({
+            "id": transfer.new_manager_id,
+            "store_id": transfer.new_store_id,
+            "role": "manager",
+            "status": "active"
+        }, {"_id": 0})
+
+        if not new_manager:
+            raise ValueError("Manager non trouvé dans ce magasin ou manager inactif")
+
+        # Prepare update fields
+        update_fields = {
+            "manager_id": transfer.new_manager_id,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+
+        # Only update store_id if it's a different store
+        if not is_same_store:
+            update_fields["store_id"] = transfer.new_store_id
+        unset_fields = {}
+
+        # Auto-reactivation if seller was suspended due to inactive store
+        if seller.get('status') == 'suspended' and seller.get('suspended_reason', '').startswith('Magasin'):
+            update_fields["status"] = "active"
+            update_fields["reactivated_at"] = datetime.now(timezone.utc).isoformat()
+            unset_fields = {
+                "suspended_at": "",
+                "suspended_by": "",
+                "suspended_reason": ""
+            }
+
+        # Execute transfer
+        update_operation = {"$set": update_fields}
+        if unset_fields:
+            update_operation["$unset"] = unset_fields
+
+        await self.user_repo.update_one(
+            {"id": seller_id},
+            update_operation
+        )
+        from core.cache import invalidate_user_cache
+        await invalidate_user_cache(seller_id)
+
+        # ⭐ IMPORTANT: Update all existing KPI entries for this seller with the new store_id
+        # This ensures that when the seller returns to their original store, their KPI data is still accessible
+        if not is_same_store and transfer.new_store_id:
+            # Get seller's gerant_id for updating KPI entries
+            seller_gerant_id = seller.get('gerant_id')
+
+            # Update all KPI entries for this seller
+            kpi_update_result = await self.kpi_repo.update_many(
+                {"seller_id": seller_id},
+                {
+                    "store_id": transfer.new_store_id,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            )
+
+            logger.info(
+                f"Updated {kpi_update_result.modified_count} KPI entries for seller {seller_id} "
+                f"from store {seller.get('store_id')} to store {transfer.new_store_id}"
+            )
+
+        # Build response message
+        if is_same_store:
+            message = f"Manager changé avec succès : {seller.get('name')} est maintenant sous la responsabilité de {new_manager['name']}"
+        else:
+            message = f"Vendeur transféré avec succès vers {new_store['name']}"
+            if update_fields.get("status") == "active":
+                message += " et réactivé automatiquement"
+
+        return {
+            "success": True,
+            "message": message,
+            "new_store": new_store['name'] if not is_same_store else seller.get('store_id'),
+            "new_manager": new_manager['name'],
+            "reactivated": update_fields.get("status") == "active",
+            "same_store": is_same_store
+        }
+
+    async def get_store_managers(self, store_id: str, gerant_id: str) -> list:
+        """
+        Get all managers for a specific store (exclude deleted)
+
+        Security: Verifies store ownership
+        """
+        # Verify store ownership
+        store = await self.store_repo.find_by_id(store_id, gerant_id=gerant_id, projection={"_id": 0})
+        if not store or not store.get('active'):
+            raise Exception("Magasin non trouvé ou accès non autorisé")
+
+        # Get managers (exclude deleted ones)
+        managers = await self.user_repo.find_by_store(
+            store_id,
+            role="manager",
+            projection={"_id": 0, "password": 0},
+            limit=100
+        )
+        # Filter out deleted
+        managers = [m for m in managers if m.get('status') != 'deleted']
+
+        return managers
+
+    async def get_store_sellers(self, store_id: str, gerant_id: str) -> list:
+        """
+        Get all sellers for a specific store (exclude deleted)
+
+        Security: Verifies store ownership
+        """
+        # Verify store ownership
+        store = await self.store_repo.find_by_id(store_id, gerant_id=gerant_id, projection={"_id": 0})
+        if not store or not store.get('active'):
+            raise Exception("Magasin non trouvé ou accès non autorisé")
+
+        # Get sellers (exclude deleted ones). PHASE 8: iterator via repository, no .collection
+        sellers = []
+        async for seller in self.user_repo.find_by_store_iter(
+            store_id, role="seller", status_exclude="deleted", projection={"_id": 0, "password": 0}
+        ):
+            sellers.append(seller)
+
+        return sellers
+
+    async def send_invitation(self, invitation_data: Dict, gerant_id: str) -> Dict:
+        """
+        Send an invitation to a new manager or seller.
+
+        Args:
+            invitation_data: Contains name, email, role, store_id
+            gerant_id: ID of the gérant sending the invitation
+        """
+        from uuid import uuid4
+        import os
+
+        # === GUARD CLAUSE: Check subscription access ===
+        await self.check_gerant_active_access(gerant_id)
+
+        name = invitation_data.get('name')
+        email = invitation_data.get('email')
+        role = invitation_data.get('role')
+        store_id = invitation_data.get('store_id')
+
+        if not all([name, email, role, store_id]):
+            raise ValueError("Tous les champs sont requis: name, email, role, store_id")
+
+        if role not in ['manager', 'seller']:
+            raise ValueError("Le rôle doit être 'manager' ou 'seller'")
+
+        # Verify store belongs to this gérant
+        store = await self.store_repo.find_one(
+            {"id": store_id, "gerant_id": gerant_id, "active": True}
+        )
+        if not store:
+            raise ValueError("Magasin non trouvé ou inactif")
+
+        # Check if email already exists
+        existing_user = await self.user_repo.find_one({"email": email})
+        if existing_user:
+            raise ValueError("Un utilisateur avec cet email existe déjà")
+
+        # Check for pending invitation
+        existing_invitation = await self.gerant_invitation_repo.find_by_email(
+            email, gerant_id=gerant_id, status="pending"
+        )
+        if existing_invitation:
+            raise ValueError("Une invitation est déjà en attente pour cet email")
+
+        # For sellers: automatically assign manager_id if there's a manager in the store
+        manager_id = None
+        manager_name = None
+        if role == 'seller':
+            # Find active manager in the store
+            manager = await self.user_repo.find_one({
+                "role": "manager",
+                "store_id": store_id,
+                "status": "active"
+            })
+            if manager:
+                manager_id = manager.get('id')
+                manager_name = manager.get('name')
+                logger.info(f"Auto-assigning seller invitation to manager {manager_name} ({manager_id}) for store {store_id}")
+            else:
+                logger.warning(f"No active manager found for store {store_id} when creating seller invitation")
+
+        # Create invitation
+        invitation_id = str(uuid4())
+        token = str(uuid4())
+
+        invitation = {
+            "id": invitation_id,
+            "token": token,
+            "email": email,
+            "name": name,
+            "role": role,
+            "store_id": store_id,
+            "store_name": store.get('name'),
+            "gerant_id": gerant_id,
+            "manager_id": manager_id,  # Auto-assigned for sellers
+            "manager_name": manager_name,  # For email display
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "expires_at": (datetime.now(timezone.utc).replace(hour=0, minute=0, second=0) +
+                         __import__('datetime').timedelta(days=7)).isoformat()
+        }
+
+        await self.gerant_invitation_repo.create_invitation(invitation, gerant_id)
+
+        # Send email
+        try:
+            await self._send_invitation_email(invitation)
+        except Exception as e:
+            logger.error(f"Failed to send invitation email: {e}")
+            # Continue even if email fails - invitation is created
+
+        return {
+            "message": "Invitation envoyée avec succès",
+            "invitation_id": invitation_id
+        }
+
+    async def _send_invitation_email(self, invitation: Dict):
+        """Send invitation email using Brevo"""
+        import httpx
+
+        # Get environment variables
+        brevo_api_key = os.environ.get('BREVO_API_KEY')
+        environment = os.environ.get('ENVIRONMENT', 'development')
+        cors_origins = os.environ.get('CORS_ORIGINS', '')
+
+        # Determine frontend URL based on environment
+        frontend_url = os.environ.get('FRONTEND_URL', '')
+
+        # In production, extract URL from CORS_ORIGINS if FRONTEND_URL is not properly set
+        if not frontend_url or 'localhost' in frontend_url:
+            # Try to get production URL from CORS_ORIGINS
+            if cors_origins and cors_origins != '*':
+                origins = [o.strip() for o in cors_origins.split(',')]
+                # Prefer retailperformerai.com
+                for origin in origins:
+                    if 'retailperformerai.com' in origin:
+                        frontend_url = origin
+                        break
+                if not frontend_url and origins:
+                    frontend_url = origins[0]  # Use first origin as fallback
+                logger.info(f"[INVITATION EMAIL] Using URL from CORS_ORIGINS: {frontend_url}")
+
+        # Fallback for local development
+        if not frontend_url or frontend_url == '*':
+            frontend_url = 'http://localhost:3000'
+            # Try loading from .env file
+            try:
+                from dotenv import dotenv_values
+                env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+                env_vars = dotenv_values(env_path)
+                env_frontend = env_vars.get('FRONTEND_URL', '')
+                if env_frontend:
+                    frontend_url = env_frontend
+            except Exception:
+                pass
+
+        if not brevo_api_key:
+            # Try loading from .env file as fallback for local dev
+            try:
+                from dotenv import dotenv_values
+                env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+                env_vars = dotenv_values(env_path)
+                brevo_api_key = env_vars.get('BREVO_API_KEY')
+            except Exception as e:
+                logger.warning(f"Could not load .env file: {e}")
+
+        if not brevo_api_key:
+            logger.warning("BREVO_API_KEY not set, skipping email")
+            return
+
+        logger.info(f"Sending invitation email to {invitation['email']}")
+        logger.info(f"[INVITATION EMAIL] Environment: {environment}")
+        logger.info(f"[INVITATION EMAIL] CORS_ORIGINS: {cors_origins}")
+        logger.info(f"[INVITATION EMAIL] Final FRONTEND_URL: {frontend_url}")
+
+        # Remove trailing slash to avoid double slashes in URL
+        frontend_url = frontend_url.rstrip('/')
+
+        invitation_link = f"{frontend_url}/invitation/{invitation['token']}"
+
+        # Use role-specific templates with features list
+        if invitation['role'] == 'manager':
+            # Manager invitation template
+            store_info = f" pour le magasin <strong>{invitation['store_name']}</strong>" if invitation.get('store_name') else ""
+            gerant_name = invitation.get('gerant_name') or "Votre gérant"
+
+            email_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">👋 Vous êtes invité !</h1>
+                </div>
+
+                <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <p style="font-size: 16px;">Bonjour {invitation['name']},</p>
+
+                    <p style="font-size: 16px;">
+                        <strong>{gerant_name}</strong> vous invite à rejoindre son équipe{store_info}
+                        sur <strong>Retail Performer AI</strong>.
+                    </p>
+
+                    <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea;">
+                        <h3 style="margin-top: 0; color: #9333ea;">🎯 En tant que Manager, vous pourrez :</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">👥 <strong>Consulter les performances</strong> de chaque membre de votre équipe</li>
+                            <li style="padding: 8px 0;">📊 <strong>Suivre les KPI</strong> de votre magasin en temps réel</li>
+                            <li style="padding: 8px 0;">🎯 <strong>Créer et suivre des objectifs</strong> individuels et collectifs</li>
+                            <li style="padding: 8px 0;">🏆 <strong>Lancer des challenges</strong> pour motiver votre équipe</li>
+                            <li style="padding: 8px 0;">🤖 <strong>Coaching IA personnalisé</strong> pour booster les performances</li>
+                            <li style="padding: 8px 0;">📋 <strong>Générer bilans, briefing et entretiens annuels</strong> en 1 clic avec l'IA</li>
+                            <li style="padding: 8px 0;">🤝 <strong>Conseils IA relationnels</strong> adaptés à chaque profil DISC de vos vendeurs</li>
+                        </ul>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{invitation_link}"
+                           style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+                                  color: white;
+                                  padding: 15px 40px;
+                                  text-decoration: none;
+                                  border-radius: 25px;
+                                  font-size: 16px;
+                                  font-weight: bold;
+                                  display: inline-block;
+                                  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);">
+                            ✅ Accepter l'invitation
+                        </a>
+                    </div>
+
+                    <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                        <strong>Note :</strong> Ce lien d'invitation est valable pendant 7 jours.
+                    </p>
+
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+                    <p style="font-size: 12px; color: #999; text-align: center;">
+                        Retail Performer AI<br>
+                        © 2024 Tous droits réservés
+                    </p>
+                </div>
+            </body>
+            </html>
+            """
+            email_subject = f"👋 {gerant_name} vous invite à rejoindre Retail Performer AI"
+        else:
+            # Seller invitation template
+            store_info = f" du magasin <strong>{invitation['store_name']}</strong>" if invitation.get('store_name') else ""
+            manager_name = invitation.get('manager_name') or invitation.get('gerant_name') or "Votre manager"
+
+            email_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">🌟 Bienvenue dans l'équipe !</h1>
+                </div>
+
+                <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <p style="font-size: 16px;">Bonjour {invitation['name']},</p>
+
+                    <p style="font-size: 16px;">
+                        <strong>{manager_name}</strong>, votre manager{store_info},
+                        vous invite à rejoindre <strong>Retail Performer AI</strong> !
+                    </p>
+
+                    <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea;">
+                        <h3 style="margin-top: 0; color: #9333ea;">🚀 Votre espace personnel :</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">📊 Suivre vos KPI et performances en temps réel</li>
+                            <li style="padding: 8px 0;">🎯 Consulter vos objectifs et challenges</li>
+                            <li style="padding: 8px 0;">🤖 Créer vos défis personnels avec votre coach IA</li>
+                            <li style="padding: 8px 0;">✅ Analyser vos ventes conclues avec l'IA</li>
+                            <li style="padding: 8px 0;">❌ Analyser vos opportunités manquées avec l'IA</li>
+                            <li style="padding: 8px 0;">📋 Préparer votre évaluation annuelle</li>
+                        </ul>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{invitation_link}"
+                           style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+                                  color: white;
+                                  padding: 15px 40px;
+                                  text-decoration: none;
+                                  border-radius: 25px;
+                                  font-size: 16px;
+                                  font-weight: bold;
+                                  display: inline-block;
+                                  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);">
+                            🎉 Commencer maintenant
+                        </a>
+                    </div>
+
+                    <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                        <strong>Note :</strong> Ce lien d'invitation est valable pendant 7 jours.
+                    </p>
+
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+                    <p style="font-size: 12px; color: #999; text-align: center;">
+                        Retail Performer AI - Votre coach personnel<br>
+                        © 2024 Tous droits réservés
+                    </p>
+                </div>
+            </body>
+            </html>
+            """
+            email_subject = f"🌟 {manager_name} vous invite à rejoindre l'équipe !"
+
+        # Get sender email from environment
+        sender_email = os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
+        sender_name = os.environ.get('SENDER_NAME', 'Retail Performer AI')
+
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                payload = {
+                    "sender": {"name": sender_name, "email": sender_email},
+                    "to": [{"email": invitation['email'], "name": invitation['name']}],
+                    "subject": email_subject,
+                    "htmlContent": email_content
+                }
+
+                logger.info("📧 Sending email via Brevo:")
+                logger.info(f"   - From: {sender_name} <{sender_email}>")
+                logger.info(f"   - To: {invitation['name']} <{invitation['email']}>")
+                logger.info(f"   - Subject: {email_subject}")
+
+                response = await client.post(
+                    "https://api.brevo.com/v3/smtp/email",
+                    headers={
+                        "api-key": brevo_api_key,
+                        "Content-Type": "application/json"
+                    },
+                    json=payload
+                )
+
+                if response.status_code in [200, 201]:
+                    response_data = response.json() if response.text else {}
+                    message_id = response_data.get('messageId', 'N/A')
+                    logger.info(f"✅ Email sent successfully to {invitation['email']}")
+                    logger.info(f"   - Brevo Response: {response.status_code}")
+                    logger.info(f"   - Message ID: {message_id}")
+                else:
+                    logger.error(f"❌ Brevo API error ({response.status_code}): {response.text}")
+        except Exception as e:
+            logger.error(f"❌ Failed to send email: {str(e)}")
+
+    async def get_invitations(self, gerant_id: str) -> list:
+        """Get all invitations sent by this gérant"""
+        invitations = await self.gerant_invitation_repo.find_by_gerant(
+            gerant_id,
+            projection={"_id": 0},
+            limit=100,
+            sort=[("created_at", -1)]
+        )
+
+        return invitations
+
+    async def cancel_invitation(self, invitation_id: str, gerant_id: str) -> Dict:
+        """Cancel a pending invitation"""
+        invitation = await self.gerant_invitation_repo.find_by_id(invitation_id, gerant_id=gerant_id)
+
+        if not invitation:
+            raise ValueError("Invitation non trouvée")
+
+        if invitation.get('status') != 'pending':
+            raise ValueError("Seules les invitations en attente peuvent être annulées")
+
+        await self.gerant_invitation_repo.update_invitation(
+            invitation_id,
+            {"status": "cancelled", "cancelled_at": datetime.now(timezone.utc).isoformat()},
+            gerant_id=gerant_id
+        )
+
+        return {"message": "Invitation annulée"}
+
+    async def resend_invitation(self, invitation_id: str, gerant_id: str) -> Dict:
+        """Resend an invitation email"""
+        from uuid import uuid4
+
+        invitation = await self.gerant_invitation_repo.find_by_id(invitation_id, gerant_id=gerant_id)
+
+        if not invitation:
+            raise ValueError("Invitation non trouvée")
+
+        if invitation.get('status') not in ['pending', 'expired']:
+            raise ValueError("Seules les invitations en attente ou expirées peuvent être renvoyées")
+
+        # Generate new token and update expiration
+        new_token = str(uuid4())
+        new_expiry = (datetime.now(timezone.utc).replace(hour=0, minute=0, second=0) + timedelta(days=7)).isoformat()
+
+        await self.gerant_invitation_repo.update_invitation(
+            invitation_id,
+            {
+                "token": new_token,
+                "status": "pending",
+                "expires_at": new_expiry,
+                "resent_at": datetime.now(timezone.utc).isoformat()
+            },
+            gerant_id=gerant_id
+        )
+
+        # Refresh invitation data with new token
+        invitation['token'] = new_token
+
+        # Send email
+        try:
+            await self._send_invitation_email(invitation)
+            return {"message": "Invitation renvoyée avec succès"}
+        except Exception as e:
+            logger.error(f"Failed to resend invitation email: {e}")
+            return {"message": "Invitation mise à jour mais email non envoyé"}
+
+    # ===== USER SUSPEND/REACTIVATE/DELETE METHODS =====
+
+    async def suspend_user(self, user_id: str, gerant_id: str, role: str) -> Dict:
+        """
+        Suspend a manager or seller
+
+        ✅ AUTORISÉ même si trial_expired pour permettre l'ajustement d'abonnement.
+        Le calcul d'abonnement exclut automatiquement les vendeurs suspendus.
+
+        Args:
+            user_id: User ID to suspend
+            gerant_id: Gérant ID for authorization
+            role: 'manager' or 'seller'
+        """
+        # === GUARD CLAUSE: Check subscription access ===
+        # ✅ Exception: allow_user_management=True pour bypasser le blocage trial_expired
+        await self.check_gerant_active_access(gerant_id, allow_user_management=True)
+
+        user = await self.user_repo.find_one({
+            "id": user_id,
+            "gerant_id": gerant_id,
+            "role": role
+        })
+
+        if not user:
+            raise ValueError(f"{role.capitalize()} non trouvé")
+
+        if user.get('status') == 'suspended':
+            raise ValueError(f"Ce {role} est déjà suspendu")
+
+        if user.get('status') == 'deleted':
+            raise ValueError(f"Ce {role} a été supprimé")
+
+        await self.user_repo.update_one(
+            {"id": user_id},
+            {
+                "$set": {
+                    "status": "suspended",
+                    "suspended_at": datetime.now(timezone.utc).isoformat(),
+                    "suspended_by": gerant_id,
+                    "suspended_reason": "Suspendu par le gérant",
+                }
+            },
+        )
+
+        return {"message": f"{role.capitalize()} suspendu avec succès"}
+
+    async def reactivate_user(self, user_id: str, gerant_id: str, role: str) -> Dict:
+        """
+        Reactivate a suspended manager or seller
+
+        ✅ AUTORISÉ même si trial_expired pour permettre l'ajustement d'abonnement.
+
+        Args:
+            user_id: User ID to reactivate
+            gerant_id: Gérant ID for authorization
+            role: 'manager' or 'seller'
+        """
+        # === GUARD CLAUSE: Check subscription access ===
+        # ✅ Exception: allow_user_management=True pour bypasser le blocage trial_expired
+        await self.check_gerant_active_access(gerant_id, allow_user_management=True)
+
+        user = await self.user_repo.find_one({
+            "id": user_id,
+            "gerant_id": gerant_id,
+            "role": role
+        })
+
+        if not user:
+            raise ValueError(f"{role.capitalize()} non trouvé")
+
+        if user.get('status') != 'suspended':
+            raise ValueError(f"Ce {role} n'est pas suspendu")
+
+        # PHASE 8: update_with_unset via repository, no .collection
+        set_data = {
+            "status": "active",
+            "reactivated_at": datetime.now(timezone.utc).isoformat(),
+            "reactivated_by": gerant_id
+        }
+        unset_data = {"suspended_at": "", "suspended_by": "", "suspended_reason": ""}
+        await self.user_repo.update_with_unset({"id": user_id}, set_data, unset_data)
+        from core.cache import invalidate_user_cache
+        await invalidate_user_cache(user_id)
+
+        return {"message": f"{role.capitalize()} réactivé avec succès"}
+
+    async def delete_user(self, user_id: str, gerant_id: str, role: str) -> Dict:
+        """
+        Soft delete a manager or seller (set status to 'deleted')
+
+        ✅ AUTORISÉ même si trial_expired pour permettre l'ajustement d'abonnement.
+
+        Args:
+            user_id: User ID to delete
+            gerant_id: Gérant ID for authorization
+            role: 'manager' or 'seller'
+        """
+        # === GUARD CLAUSE: Check subscription access ===
+        # ✅ Exception: allow_user_management=True pour bypasser le blocage trial_expired
+        await self.check_gerant_active_access(gerant_id, allow_user_management=True)
+
+        user = await self.user_repo.find_one({
+            "id": user_id,
+            "gerant_id": gerant_id,
+            "role": role
+        })
+
+        if not user:
+            raise ValueError(f"{role.capitalize()} non trouvé")
+
+        if user.get('status') == 'deleted':
+            raise ValueError(f"Ce {role} a déjà été supprimé")
+
+        anonymized_email = f"deleted+{user_id}@example.invalid"
+        await self.user_repo.update_one(
+            {"id": user_id},
+            {
+                "$set": {
+                    "status": "deleted",
+                    "email": anonymized_email,
+                    "deleted_at": datetime.now(timezone.utc).isoformat(),
+                    "deleted_by": gerant_id,
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }
+            },
+        )
+        from core.cache import invalidate_user_cache
+        await invalidate_user_cache(user_id)
+
+        return {"message": f"{role.capitalize()} supprimé avec succès"}
+
+    async def anonymize_inactive_emails(self, gerant_id: str) -> dict:
+        """Anonymize emails for inactive/deleted users + non-pending invitations.
+
+        Goal: free up emails for reuse while keeping historical data.
+        Scope: only users/invitations belonging to this gérant.
+        """
+        import re
+        from datetime import datetime, timezone
+
+        # Users (seller/manager) under this gérant
+        user_query = {
+            "gerant_id": gerant_id,
+            "status": {"$in": ["deleted", "inactive"]},
+            "email": {"$exists": True, "$ne": None, "$ne": "", "$not": re.compile(r"^deleted\\+", re.I)},
+        }
+        users_matched = 0
+        users_modified = 0
+        async for u in self.user_repo.find_iter(user_query, projection={"_id": 0, "id": 1, "email": 1}):
+            users_matched += 1
+            uid = u.get("id")
+            if not uid:
+                continue
+            new_email = f"deleted+{uid}@example.invalid"
+            await self.user_repo.update_one(
+                {"id": uid},
+                {"$set": {"email": new_email, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            )
+            users_modified += 1
+
+        # Invitations (gerant_invitations)
+        inv_query = {
+            "gerant_id": gerant_id,
+            "status": {"$ne": "pending"},
+            "email": {"$exists": True, "$ne": None, "$ne": "", "$not": re.compile(r"^deleted\\+", re.I)},
+        }
+        invitations_matched = 0
+        inv_modified = 0
+        async for inv in self.gerant_invitation_repo.find_iter(inv_query, projection={"_id": 0, "id": 1, "token": 1, "email": 1}):
+            invitations_matched += 1
+            token = inv.get("token") or inv.get("id")
+            if not token:
+                continue
+            new_email = f"deleted-invite+{token}@example.invalid"
+            await self.gerant_invitation_repo.update_many(
+                {"token": inv.get("token")},
+                {"$set": {"email": new_email, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            )
+            inv_modified += 1
+
+        return {
+            "users_matched": users_matched,
+            "users_modified": users_modified,
+            "invitations_matched": invitations_matched,
+            "invitations_modified": inv_modified,
+        }
+
+    async def find_user_by_email_scoped(self, gerant_id: str, email: str) -> dict:
+        """Find a user by email (case-insensitive) within the gérant scope."""
+        import re
+        email_raw = (email or "").strip()
+        if not email_raw:
+            return {"found": False}
+
+        user = await self.user_repo.find_one(
+            {"email": {"$regex": f"^{re.escape(email_raw)}$", "$options": "i"}},
+            {"_id": 0, "id": 1, "email": 1, "role": 1, "status": 1, "store_id": 1, "gerant_id": 1, "workspace_id": 1, "name": 1},
+        )
+        if not user:
+            return {"found": False}
+
+        # Scope guard: user must belong to this gérant (either direct gerant account or child).
+        if user.get("id") != gerant_id and user.get("gerant_id") != gerant_id:
+            return {"found": True, "in_scope": False}
+
+        return {"found": True, "in_scope": True, "user": user}
+
+    async def free_email(self, gerant_id: str, email: str) -> dict:
+        """Soft-delete + anonymize the user that currently owns `email` (within gérant scope)."""
+        from datetime import datetime, timezone
+
+        info = await self.find_user_by_email_scoped(gerant_id, email)
+        if not info.get("found"):
+            return {"found": False}
+        if not info.get("in_scope"):
+            return {"found": True, "in_scope": False}
+
+        user = info.get("user") or {}
+        uid = user.get("id")
+        if not uid:
+            return {"found": True, "in_scope": True, "updated": False}
+
+        new_email = f"deleted+{uid}@example.invalid"
+        await self.user_repo.update_one(
+            {"id": uid},
+            {
+                "$set": {
+                    "status": "deleted",
+                    "email": new_email,
+                    "deleted_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }
+            },
+        )
+        return {"found": True, "in_scope": True, "updated": True, "user_id": uid, "new_email": new_email}
