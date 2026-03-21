@@ -794,9 +794,20 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
 - ✅ `TeamModal.js` (930L → 252L) → `teamModal/`
   - `useTeamModal.js` (state, fetch, agrégations semaine/bi-semaine/mois, IA), `CustomTooltip.js` (formatNumber)
 
+- ✅ `PerformanceModal.js` (787L → 142L) + `performanceModal/BilanTab.js` (865L → 181L) — Session 21 Mars 2026
+  - `usePerformanceModal.js` (état, effets, KPI save/anomaly detection, period fetch, chart data, PDF export)
+  - `WarningModal.js` (modal inline anomalies → composant dédié)
+  - `performancePdfExport.js` (exportToPDF → utilitaire standalone)
+  - `bilanTab/AIBilanSection.js` (affichage IA bilan réutilisable — semaine/jour/mois/annee)
+  - `bilanTab/KPITable.js` (tableau KPI réutilisable — semaine/mois/annee)
+  - `bilanTab/KPICharts.js` (4 graphiques réutilisables — CA/Ventes/Articles/Prospects)
+  - `bilanTab/DayView.js` (vue jour — cartes KPI + section IA)
+  - `bilanTab/WeekView.js` (vue semaine — résumé + tableau + graphiques + IA)
+  - `bilanTab/MonthYearView.js` (vue mois/année — agrégats + tableau + graphiques + IA)
+
 **Dette restante frontend** :
-- `performanceModal/BilanTab.js` (865L) : encore trop gros, à découper en session future
-- 29 composants >500L initialement → réduits, seul BilanTab reste >500L
+- Plus aucun composant >500L connu après les sessions de refactoring
+- 29 composants >500L initialement → tous réduits
 
 ---
 
