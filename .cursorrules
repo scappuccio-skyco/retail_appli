@@ -838,8 +838,10 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
   - `storeKPI/storeKPIOverview/OverviewListTotals.js` (totaux période)
   - `storeKPI/storeKPIOverview/OverviewListEntries.js` (liste quotidienne paginée)
 
+- ✅ `gerant/BillingProfileModal.js` (501L → 171L) — Session 21 Mars 2026
+  - `billingProfileModal/useBillingProfileModal.js` (état, fetch, validation, submit + export EU_COUNTRIES)
+
 **Reste à traiter** :
-- `gerant/BillingProfileModal.js` (501L)
 - `gerant/APIDocModal.js` (734L) — surtout JSX statique, basse priorité
 
 ---
