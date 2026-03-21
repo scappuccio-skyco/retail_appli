@@ -814,14 +814,17 @@ Points forts à conserver : `apiClient.js` centralisé (gestion 401/403/429/5xx)
   - `staffOverview/InvitationsTable.js` (tableau invitations + actions renvoyer/annuler)
   - `staffOverview/TransferModal.js` (modal inline extraite)
 
+- ✅ `pages/SuperAdminDashboard.js` (750L → 250L) — Session 21 Mars 2026
+  - `superAdminDashboard/useSuperAdminDashboard.js` (état, effets, fetch, handlers workspace/bulk/logs)
+  - `superAdminDashboard/OverviewTab.js` (vue d'ensemble : statut système + activité + détails)
+
 **Reste à traiter** :
-- `pages/SuperAdminDashboard.js` (750L)
-- `gerant/APIDocModal.js` (734L) — surtout JSX statique, basse priorité
 - `gerant/APIKeysManagement.js` (602L)
 - `gerant/GerantProfile.js` (539L)
 - `KPIEntryModal.js` (532L)
 - `storeKPI/StoreKPIModalOverviewTab.js` (502L)
 - `gerant/BillingProfileModal.js` (501L)
+- `gerant/APIDocModal.js` (734L) — surtout JSX statique, basse priorité
 
 ---
 
