@@ -122,6 +122,10 @@ jobs:
         run: |
           pytest -q backend/tests/test_ai_cache_integration.py
 
+      - name: Run gerant sellers pagination integration tests
+        run: |
+          pytest -q backend/tests/test_pagination_gerant_integration.py
+
       - name: Dump server log on failure
         if: failure()
         run: |
