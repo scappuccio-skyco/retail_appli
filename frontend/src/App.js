@@ -130,8 +130,6 @@ function AppContent() {
               <Navigate to="/login" replace />
             ) : user.role === 'super_admin' ? (
               <Navigate to="/superadmin" replace />
-            ) : user.role === 'it_admin' ? (
-              <Navigate to="/it-admin" replace />
             ) : (user.role === 'gerant' || user.role === 'gérant') ? (
               <Navigate to="/gerant-dashboard" replace />
             ) : user.role === 'seller' ? (
@@ -233,25 +231,6 @@ function AppContent() {
           }
         />
         
-        {/* DEPRECATED: IT Admin Dashboard - Fonctionnalité fusionnée dans GerantDashboard */}
-        {/* <Route
-          path="/it-admin"
-          element={
-            !user ? (
-              <Navigate to="/login" replace />
-            ) : user.role !== 'it_admin' ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <ITAdminDashboard user={user} onLogout={handleLogout} />
-            )
-          }
-        /> */}
-        
-        {/* Redirection temporaire des IT Admin vers le GerantDashboard */}
-        <Route
-          path="/it-admin"
-          element={<Navigate to="/dashboard" replace />}
-        />
       </Routes>
     </>
   );
