@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, RefreshCw, AlertTriangle } from 'lucide-react';
 
-const ManagerTransferModal = ({ manager, stores, currentStoreId, onClose, onTransfer }) => {
+const ManagerTransferModal = ({ manager, stores, currentStoreId, orphanedSellersCount = 0, onClose, onTransfer }) => {
   const [selectedStoreId, setSelectedStoreId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -108,10 +108,16 @@ const ManagerTransferModal = ({ manager, stores, currentStoreId, onClose, onTran
             <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm">
               <p className="font-semibold text-yellow-800 mb-1">⚠️ Important</p>
-              <p className="text-yellow-700">
-                Les vendeurs de ce manager resteront dans le magasin actuel. 
-                Vous devrez les réassigner à un autre manager si nécessaire.
-              </p>
+              {orphanedSellersCount > 0 ? (
+                <p className="text-yellow-700">
+                  <strong>{orphanedSellersCount} vendeur{orphanedSellersCount > 1 ? 's' : ''}</strong> géré{orphanedSellersCount > 1 ? 's' : ''} par ce manager rester{orphanedSellersCount > 1 ? 'ont' : 'a'} sans manager dans le magasin actuel.
+                  Vous devrez les réassigner après le transfert.
+                </p>
+              ) : (
+                <p className="text-yellow-700">
+                  Ce manager n'a aucun vendeur actif à réassigner.
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -248,7 +248,7 @@ export function useSellerDashboardData({ user, initialDiagnostic, isReadOnly, is
       ]);
       const today = new Date().toISOString().split('T')[0];
       try {
-        const datesRes = await api.get('/seller/kpi-dates-with-data');
+        const datesRes = await api.get('/seller/dates-with-data');
         const kpiDates = datesRes.data?.dates ?? [];
         const hasTodayKPI = kpiDates.includes(today);
         let newTasks = [...tasksRes.data];

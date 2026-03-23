@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '../../../contexts';
 import CreateStoreModal from '../../gerant/CreateStoreModal';
@@ -68,6 +68,8 @@ export default function GerantModalsLayer({
   onboarding,
 }) {
   const { user } = useAuth();
+  const [storeDetailRefreshToken, setStoreDetailRefreshToken] = useState(0);
+  const [orphanedSellersCount, setOrphanedSellersCount] = useState(0);
 
   return (
     <>
@@ -87,9 +89,13 @@ export default function GerantModalsLayer({
             setShowStoreDetailModal(false);
             setSelectedStore(null);
           }}
-          onTransferManager={(manager) => {
+          onTransferManager={(manager, sellers) => {
             if (!isReadOnly) {
               setSelectedManager(manager);
+              const count = (sellers || []).filter(
+                s => s.manager_id === manager.id && s.status === 'active'
+              ).length;
+              setOrphanedSellersCount(count);
               setShowManagerTransferModal(true);
             }
           }}
@@ -106,6 +112,7 @@ export default function GerantModalsLayer({
             }
           }}
           onRefresh={fetchDashboardData}
+          refreshToken={storeDetailRefreshToken}
         />
       )}
 
@@ -114,11 +121,15 @@ export default function GerantModalsLayer({
           manager={selectedManager}
           stores={stores}
           currentStoreId={selectedStore?.id}
+          orphanedSellersCount={orphanedSellersCount}
           onClose={() => {
             setShowManagerTransferModal(false);
             setSelectedManager(null);
           }}
-          onTransfer={handleTransferManager}
+          onTransfer={async (managerId, storeId) => {
+            await handleTransferManager(managerId, storeId);
+            setStoreDetailRefreshToken(t => t + 1);
+          }}
         />
       )}
 
@@ -131,7 +142,10 @@ export default function GerantModalsLayer({
             setShowSellerTransferModal(false);
             setSelectedSeller(null);
           }}
-          onTransfer={handleTransferSeller}
+          onTransfer={async (sellerId, storeId, managerId) => {
+            await handleTransferSeller(sellerId, storeId, managerId);
+            setStoreDetailRefreshToken(t => t + 1);
+          }}
         />
       )}
 

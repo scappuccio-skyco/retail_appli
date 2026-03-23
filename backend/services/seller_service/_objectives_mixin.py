@@ -93,24 +93,6 @@ class ObjectivesMixin:
                 "icon": "📋"
             })
 
-        # --- Pending manager requests ---
-        requests_list = await self.manager_request_repo.find_by_seller(
-            seller_id, status="pending", limit=100
-        )
-        for req in requests_list:
-            if isinstance(req.get('created_at'), str):
-                req['created_at'] = datetime.fromisoformat(req['created_at'])
-            tasks.append({
-                "id": req['id'],
-                "type": "manager_request",
-                "category": "action",
-                "title": req['title'],
-                "description": req['message'],
-                "priority": "medium",
-                "icon": "💬",
-                "data": req
-            })
-
         # --- Debrief (none submitted in last 7 days) ---
         try:
             recent_debriefs = await self.debrief_repo.find_by_seller(

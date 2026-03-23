@@ -22,7 +22,6 @@ from repositories.manager_diagnostic_results_repository import ManagerDiagnostic
 from repositories.achievement_notification_repository import AchievementNotificationRepository
 from repositories.interview_note_repository import InterviewNoteRepository
 from repositories.debrief_repository import DebriefRepository
-from repositories.manager_request_repository import ManagerRequestRepository
 from repositories.objective_repository import ObjectiveRepository
 from repositories.challenge_repository import ChallengeRepository
 from repositories.kpi_config_repository import KPIConfigRepository
@@ -291,7 +290,6 @@ def get_seller_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> SellerServ
     return SellerService(
         user_repo=UserRepository(db),
         diagnostic_repo=DiagnosticRepository(db),
-        manager_request_repo=ManagerRequestRepository(db),
         objective_repo=ObjectiveRepository(db),
         challenge_repo=ChallengeRepository(db),
         kpi_repo=KPIRepository(db),

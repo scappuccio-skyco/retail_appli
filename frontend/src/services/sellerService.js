@@ -44,10 +44,6 @@ const sellerService = {
   getChallengesHistory: () =>
     api.get('/seller/challenges/history').then((r) => toArray(r.data)),
 
-  /** Réponse à une demande de challenge (accepter / refuser) */
-  respondToRequest: (payload) =>
-    api.post('/seller/respond-request', payload).then((r) => r.data),
-
   // ─── Daily Challenge ─────────────────────────────────────────────────────────
 
   getDailyChallenge: () =>

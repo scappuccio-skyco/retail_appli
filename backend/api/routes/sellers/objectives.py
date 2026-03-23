@@ -4,7 +4,6 @@ Routes for seller tasks and objectives management.
 """
 from fastapi import APIRouter, Depends
 from typing import Dict, List
-from datetime import datetime, timezone
 
 from services.seller_service import SellerService
 from api.dependencies import get_seller_service
@@ -22,11 +21,7 @@ async def get_seller_tasks(
     current_user: Dict = Depends(get_current_seller),
     seller_service: SellerService = Depends(get_seller_service)
 ) -> List[Dict]:
-    """
-    Get all pending tasks for current seller
-    - Diagnostic completion status
-    - Pending manager requests
-    """
+    """Get all pending tasks for current seller (diagnostic, debrief, KPI, objectives)"""
     tasks = await seller_service.get_seller_tasks(current_user['id'])
     return tasks
 

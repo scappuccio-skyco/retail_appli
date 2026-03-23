@@ -128,12 +128,9 @@ async def transfer_manager_to_store(
     Transfer a manager to another store.
     Body: { "new_store_id": "store_uuid" } (aligné avec le frontend).
     """
-    try:
-        return await gerant_service.transfer_manager_to_store(
-            manager_id, body.model_dump(), current_user['id']
-        )
-    except ValueError as e:
-        raise ValidationError(str(e))
+    return await gerant_service.transfer_manager_to_store(
+        manager_id, body.model_dump(), current_user['id']
+    )
 
 
 @router.post("/sellers/{seller_id}/transfer")
@@ -148,17 +145,9 @@ async def transfer_seller_to_store(
     Body: { "new_store_id": "store_uuid", "new_manager_id": "manager_uuid" } (aligné avec le frontend).
     """
     logger.debug("---> ATTEMPTING TRANSFER FOR SELLER: %s", seller_id)
-    try:
-        return await gerant_service.transfer_seller_to_store(
-            seller_id, body.model_dump(), current_user['id']
-        )
-    except ValueError as e:
-        error_msg = str(e)
-        if "Invalid transfer data" in error_msg:
-            raise ValidationError(error_msg)
-        if "inactif" in error_msg:
-            raise ValidationError(error_msg)
-        raise NotFoundError(error_msg)
+    return await gerant_service.transfer_seller_to_store(
+        seller_id, body.model_dump(), current_user['id']
+    )
 
 
 @router.get("/profile")

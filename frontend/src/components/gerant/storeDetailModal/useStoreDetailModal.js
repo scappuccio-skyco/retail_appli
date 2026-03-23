@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { api } from '../../../lib/apiClient';
 import { logger } from '../../../utils/logger';
 
-export default function useStoreDetailModal({ store, onRefresh }) {
+export default function useStoreDetailModal({ store, onRefresh, refreshToken = 0 }) {
   const [activeTab, setActiveTab] = useState('performance');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
@@ -101,6 +101,12 @@ export default function useStoreDetailModal({ store, onRefresh }) {
     fetchStoreTeam(controller.signal);
     return () => controller.abort();
   }, [store?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (refreshToken > 0 && store?.id) {
+      fetchStoreTeam();
+    }
+  }, [refreshToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     activeTab, setActiveTab,

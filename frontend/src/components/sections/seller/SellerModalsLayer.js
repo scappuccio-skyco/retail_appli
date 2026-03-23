@@ -50,7 +50,6 @@ export default function SellerModalsLayer({
   showChallengeHistoryModal,
   showDailyChallengeModal,
   showDiagnosticModal,
-  showTaskModal,
   showProfileModal,
   showPerformanceModal,
   showObjectivesModal,
@@ -73,7 +72,6 @@ export default function SellerModalsLayer({
   setShowChallengeHistoryModal,
   setShowDailyChallengeModal,
   setShowDiagnosticModal,
-  setShowTaskModal,
   setShowProfileModal,
   setShowPerformanceModal,
   setShowObjectivesModal,
@@ -86,11 +84,6 @@ export default function SellerModalsLayer({
   setShowNotesNotebook,
   setShowEvaluationModal,
   setShowSupportModal,
-
-  // Task modal state
-  selectedTask,
-  taskResponse,
-  setTaskResponse,
 
   // KPI edit state
   editingKPI,
@@ -245,54 +238,6 @@ export default function SellerModalsLayer({
                 className="flex-1 btn-secondary"
               >
                 Plus tard
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Manager request response modal */}
-      {showTaskModal && selectedTask && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedTask.title}</h2>
-            <p className="text-gray-600 mb-6">{selectedTask.description}</p>
-            <textarea
-              value={taskResponse}
-              onChange={(e) => setTaskResponse(e.target.value)}
-              placeholder="Écris ta réponse ici..."
-              rows={5}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none mb-4"
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={async () => {
-                  try {
-                    await api.post('/seller/respond-request', {
-                      request_id: selectedTask.id,
-                      response: taskResponse,
-                    });
-                    toast.success('Réponse envoyée!');
-                    setShowTaskModal(false);
-                    setTaskResponse('');
-                    fetchData();
-                  } catch {
-                    toast.error("Erreur lors de l'envoi");
-                  }
-                }}
-                disabled={!taskResponse.trim()}
-                className="flex-1 btn-primary disabled:opacity-50"
-              >
-                Envoyer
-              </button>
-              <button
-                onClick={() => {
-                  setShowTaskModal(false);
-                  setTaskResponse('');
-                }}
-                className="flex-1 btn-secondary"
-              >
-                Annuler
               </button>
             </div>
           </div>

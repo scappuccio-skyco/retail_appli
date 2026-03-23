@@ -42,9 +42,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showChallengeHistoryModal, setShowChallengeHistoryModal] = useState(false);
   const [showDailyChallengeModal, setShowDailyChallengeModal] = useState(false);
   const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
-  const [showTaskModal, setShowTaskModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [taskResponse, setTaskResponse] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
   const [showObjectivesModal, setShowObjectivesModal] = useState(false);
@@ -88,12 +85,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     }
     if (entry) setEditingKPI(entry);
     setShowKPIModal(true);
-  };
-
-  // ── Task / modal handlers ──────────────────────────────────
-  const handleSelectTask = (task) => {
-    setSelectedTask(task);
-    setShowTaskModal(true);
   };
 
   const handleOpenKpi = () => {
@@ -168,7 +159,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               setInitialObjectiveId(objectiveId || null);
               setShowObjectivesModal(true);
             }}
-            onSelectTask={handleSelectTask}
           />
         </div>
 
@@ -204,7 +194,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         showChallengeHistoryModal={showChallengeHistoryModal}
         showDailyChallengeModal={showDailyChallengeModal}
         showDiagnosticModal={showDiagnosticModal}
-        showTaskModal={showTaskModal}
         showProfileModal={showProfileModal}
         showPerformanceModal={showPerformanceModal}
         showObjectivesModal={showObjectivesModal}
@@ -226,7 +215,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         setShowChallengeHistoryModal={setShowChallengeHistoryModal}
         setShowDailyChallengeModal={setShowDailyChallengeModal}
         setShowDiagnosticModal={setShowDiagnosticModal}
-        setShowTaskModal={setShowTaskModal}
         setShowProfileModal={setShowProfileModal}
         setShowPerformanceModal={setShowPerformanceModal}
         setShowObjectivesModal={setShowObjectivesModal}
@@ -239,10 +227,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         setShowNotesNotebook={setShowNotesNotebook}
         setShowEvaluationModal={setShowEvaluationModal}
         setShowSupportModal={setShowSupportModal}
-        // Task modal
-        selectedTask={selectedTask}
-        taskResponse={taskResponse}
-        setTaskResponse={setTaskResponse}
         // KPI edit
         editingKPI={editingKPI}
         setEditingKPI={setEditingKPI}

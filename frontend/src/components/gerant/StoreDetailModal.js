@@ -4,7 +4,7 @@ import StoreKPIModal from '../StoreKPIModal';
 import useStoreDetailModal from './storeDetailModal/useStoreDetailModal';
 import TeamMemberRow from './storeDetailModal/TeamMemberRow';
 import PendingInvitationRow from './storeDetailModal/PendingInvitationRow';
-import SellerPassportModal from '../SellerPassportModal';
+import SellerPassportModal from './SellerPassportModal';
 
 const STORE_COLOR_CONFIG = [
   { name: 'orange', from: '#f97316', via: '#ea580c', to: '#c2410c', accent: 'text-orange-600 border-orange-600' },
@@ -17,14 +17,14 @@ const STORE_COLOR_CONFIG = [
   { name: 'indigo', from: '#6366f1', via: '#4f46e5', to: '#4338ca', accent: 'text-indigo-600 border-indigo-600' },
 ];
 
-export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = false, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh }) {
+export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = false, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh, refreshToken = 0 }) {
   const colorConfig = STORE_COLOR_CONFIG[colorIndex % STORE_COLOR_CONFIG.length];
   const {
     activeTab, setActiveTab,
     managers, sellers, pendingInvitations,
     loading, refreshKey,
     handleDeleteUser, handleToggleSuspend, handleCancelInvitation, handleRefresh,
-  } = useStoreDetailModal({ store, onRefresh });
+  } = useStoreDetailModal({ store, onRefresh, refreshToken });
 
   const [passportSeller, setPassportSeller] = useState(null);
 
@@ -95,7 +95,7 @@ export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = f
                       managers={managers}
                       refreshKey={refreshKey}
                       isReadOnly={isReadOnly}
-                      onTransfer={onTransferManager}
+                      onTransfer={(manager) => onTransferManager(manager, sellers)}
                       onToggleSuspend={handleToggleSuspend}
                       onDelete={handleDeleteUser}
                     />

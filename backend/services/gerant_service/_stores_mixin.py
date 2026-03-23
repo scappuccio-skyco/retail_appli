@@ -2,6 +2,7 @@
 import logging
 from typing import Dict, Optional, List
 from datetime import datetime, timezone
+from core.exceptions import ValidationError, NotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ class StoresMixin:
         """Transfer a manager to another store"""
         new_store_id = transfer_data.get('new_store_id')
         if not new_store_id:
-            raise ValueError("new_store_id est requis")
+            raise ValidationError("new_store_id est requis", error_code="MISSING_FIELD")
 
         # Verify manager belongs to this gérant
         manager = await self.user_repo.find_one({
@@ -188,11 +189,11 @@ class StoresMixin:
             "role": "manager"
         })
         if not manager:
-            raise ValueError("Manager non trouvé")
+            raise NotFoundError("Manager non trouvé", error_code="MANAGER_NOT_FOUND")
 
         # Guard: no-op transfer
         if manager.get("store_id") == new_store_id:
-            raise ValueError("Le manager est déjà dans ce magasin")
+            raise ValidationError("Le manager est déjà dans ce magasin", error_code="SAME_STORE")
 
         # Verify new store belongs to this gérant and is active
         new_store = await self.store_repo.find_one({
@@ -201,7 +202,7 @@ class StoresMixin:
             "active": True
         })
         if not new_store:
-            raise ValueError("Nouveau magasin non trouvé ou inactif")
+            raise NotFoundError("Nouveau magasin non trouvé ou inactif", error_code="STORE_NOT_FOUND")
 
         # Update manager's store
         await self.user_repo.update_one(

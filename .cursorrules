@@ -967,6 +967,40 @@ Le scan complet de tous les composants > 300 lignes a été réalisé sur 4 sess
 - **Connexion MCP Railway non disponible** — vérifier manuellement sur railway.app
 - Variables d'env à vérifier : `DATABASE_URL`, `SECRET_KEY`, `STRIPE_SECRET_KEY`
 
+### [23 Mars 2026 — session 6] - Fix 404 vendeur + suppression dead code + codes erreur structurés + UX transferts
+
+#### Fix erreurs 404 vendeur
+- **URL incorrecte** : `useSellerDashboardData.js` appelait `/seller/kpi-dates-with-data` → corrigé en `/seller/dates-with-data` (route réelle du backend).
+- **Import Vercel crash** : `StoreDetailModal.js` importait `'../SellerPassportModal'` → corrigé en `'./SellerPassportModal'` (fichier dans le même dossier `gerant/`).
+
+#### Suppression dead code — feature `manager_request`
+La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé côté backend actif. Suppression complète sur 7 fichiers :
+- **`_objectives_mixin.py`** : suppression du bloc qui interrogeait `manager_request_repo`
+- **`seller_service/__init__.py`** : suppression import + injection `ManagerRequestRepository`
+- **`api/dependencies.py`** : suppression `manager_request_repo=ManagerRequestRepository(db)` dans `get_seller_service()`
+- **`api/routes/sellers/objectives.py`** : suppression `POST /seller/respond-request` (endpoint jamais justifié)
+- **`SellerModalsLayer.js`** : suppression bloc modal réponse tâche (props `showTaskModal`, `selectedTask`, `taskResponse`)
+- **`SellerDashboard.js`** : suppression états et handler correspondants
+- **`SellerTaskList.js`** : suppression prop `onSelectTask` et fallback `else { onSelectTask?.() }`
+- **`sellerService.js`** : suppression méthode `respondToRequest`
+
+#### #7 — Codes d'erreur structurés (backend)
+- **`gerant_service/_stores_mixin.py`** : `transfer_manager_to_store` remplace les `ValueError` par `NotFoundError`/`ValidationError` avec `error_code` explicites (`MANAGER_NOT_FOUND`, `SAME_STORE`, `STORE_NOT_FOUND`, `MISSING_FIELD`)
+- **`gerant_service/_staff_mixin.py`** : idem pour `transfer_seller_to_store` (`INVALID_TRANSFER_DATA`, `SELLER_NOT_FOUND`, `STORE_NOT_FOUND`, `STORE_INACTIVE`, `MANAGER_NOT_FOUND`)
+- **`api/routes/gerant/profile.py`** : suppression des blocs `try/except ValueError` avec string-matching — les exceptions typées `AppException` remontent directement au handler FastAPI
+
+#### #6 — Refresh de StoreDetailModal après un transfert
+- **`useStoreDetailModal.js`** : accepte `refreshToken` (default 0) ; `useEffect([refreshToken])` déclenche `fetchStoreTeam()` quand le token change (post-mount uniquement)
+- **`StoreDetailModal.js`** : accepte et transmet `refreshToken` au hook
+- **`GerantModalsLayer.js`** : state `storeDetailRefreshToken` (int) incrémenté après chaque transfert manager ou vendeur réussi → déclenche le re-fetch de l'équipe dans la modal encore ouverte
+
+#### #2 — Nombre de vendeurs orphelins avant confirmation de transfert manager
+- **`StoreDetailModal.js`** : passe la liste `sellers` au callback `onTransferManager(manager, sellers)`
+- **`GerantModalsLayer.js`** : filtre `sellers` par `manager_id === manager.id && status === 'active'`, stocke `orphanedSellersCount`
+- **`ManagerTransferModal.js`** : accepte prop `orphanedSellersCount` ; avertissement dynamique — « X vendeur(s) resteront sans manager » si >0, sinon « aucun vendeur actif à réassigner »
+
+---
+
 ### [23 Mars 2026 — session 5] - Passeport vendeur + fix transferts + UX dashboard gérant
 
 #### Passeport vendeur cross-magasin (nouvelle feature)

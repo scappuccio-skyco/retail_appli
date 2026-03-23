@@ -14,7 +14,7 @@ function snoozeTask(taskId) {
 
 export default function SellerTaskList({
   tasks, diagnostic, onOpenDiagnostic, onOpenKpi, onOpenCoaching,
-  onOpenDebrief, onOpenBilan, onOpenObjectives, onSelectTask,
+  onOpenDebrief, onOpenBilan, onOpenObjectives,
 }) {
   const [snoozedIds, setSnoozedIds] = useState(() => {
     const s = getSnoozed();
@@ -40,8 +40,6 @@ export default function SellerTaskList({
       onOpenBilan?.();
     } else if (task.type === 'objective') {
       onOpenObjectives?.(task.objective_id);
-    } else {
-      onSelectTask?.(task);
     }
   };
 

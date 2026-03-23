@@ -13,7 +13,6 @@ from repositories.debrief_repository import DebriefRepository
 from repositories.achievement_notification_repository import AchievementNotificationRepository
 from repositories.sale_repository import SaleRepository
 from repositories.evaluation_repository import EvaluationRepository
-from repositories.manager_request_repository import ManagerRequestRepository
 from repositories.store_repository import WorkspaceRepository
 from repositories.kpi_config_repository import KPIConfigRepository
 from repositories.daily_challenge_repository import DailyChallengeRepository
@@ -34,7 +33,6 @@ class SellerService(ProfileMixin, KpiMixin, ObjectivesMixin, ChallengesMixin, No
         self,
         user_repo: UserRepository,
         diagnostic_repo: DiagnosticRepository,
-        manager_request_repo: ManagerRequestRepository,
         objective_repo: ObjectiveRepository,
         challenge_repo: ChallengeRepository,
         kpi_repo: KPIRepository,
@@ -52,7 +50,6 @@ class SellerService(ProfileMixin, KpiMixin, ObjectivesMixin, ChallengesMixin, No
     ):
         self.user_repo = user_repo
         self.diagnostic_repo = diagnostic_repo
-        self.manager_request_repo = manager_request_repo
         self.objective_repo = objective_repo
         self.challenge_repo = challenge_repo
         self.kpi_repo = kpi_repo

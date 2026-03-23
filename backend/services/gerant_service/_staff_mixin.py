@@ -3,6 +3,7 @@ import logging
 import os
 from typing import Dict, Optional, List
 from datetime import datetime, timezone, timedelta
+from core.exceptions import ValidationError, NotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ class StaffMixin:
         try:
             transfer = SellerTransfer(**transfer_data)
         except Exception as e:
-            raise ValueError(f"Invalid transfer data: {str(e)}")
+            raise ValidationError(f"Données de transfert invalides: {str(e)}", error_code="INVALID_TRANSFER_DATA")
 
         # Verify seller exists and belongs to current gérant
         seller = await self.user_repo.find_one({
@@ -66,7 +67,7 @@ class StaffMixin:
         }, {"_id": 0})
 
         if not seller:
-            raise ValueError("Vendeur non trouvé ou accès non autorisé")
+            raise NotFoundError("Vendeur non trouvé ou accès non autorisé", error_code="SELLER_NOT_FOUND")
 
         # Check if this is a same-store manager change or a full transfer
         is_same_store = seller.get('store_id') == transfer.new_store_id
@@ -78,12 +79,13 @@ class StaffMixin:
         }, {"_id": 0})
 
         if not new_store:
-            raise ValueError("Magasin non trouvé ou accès non autorisé")
+            raise NotFoundError("Magasin non trouvé ou accès non autorisé", error_code="STORE_NOT_FOUND")
 
         # Only check if store is active if it's a different store
         if not is_same_store and not new_store.get('active', False):
-            raise ValueError(
-                f"Le magasin '{new_store['name']}' est inactif. Impossible de transférer vers un magasin inactif."
+            raise ValidationError(
+                f"Le magasin '{new_store['name']}' est inactif. Impossible de transférer vers un magasin inactif.",
+                error_code="STORE_INACTIVE"
             )
 
         # Verify new manager exists and is in the target store
@@ -95,7 +97,7 @@ class StaffMixin:
         }, {"_id": 0})
 
         if not new_manager:
-            raise ValueError("Manager non trouvé dans ce magasin ou manager inactif")
+            raise NotFoundError("Manager non trouvé dans ce magasin ou manager inactif", error_code="MANAGER_NOT_FOUND")
 
         # Prepare update fields
         update_fields = {
