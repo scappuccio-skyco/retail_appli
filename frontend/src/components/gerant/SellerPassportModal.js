@@ -3,7 +3,7 @@ import { X, TrendingUp, Store, ArrowRight, Calendar } from 'lucide-react';
 import { api } from '../../lib/apiClient';
 import { logger } from '../../utils/logger';
 
-export default function SellerPassportModal({ seller, onClose }) {
+export default function SellerPassportModal({ seller, onClose, apiPath }) {
   const [passport, setPassport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -11,7 +11,8 @@ export default function SellerPassportModal({ seller, onClose }) {
   useEffect(() => {
     const fetchPassport = async () => {
       try {
-        const res = await api.get(`/gerant/sellers/${seller.id}/passport`);
+        const path = apiPath || `/gerant/sellers/${seller.id}/passport`;
+        const res = await api.get(path);
         setPassport(res.data);
       } catch (err) {
         logger.error('Erreur chargement passeport vendeur:', err);
@@ -118,9 +119,10 @@ export default function SellerPassportModal({ seller, onClose }) {
                   <div className="space-y-2">
                     {[...passport.transfer_history].reverse().map((t, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 rounded-lg px-4 py-2">
-                        <span className="text-gray-400 text-xs">{new Date(t.transferred_at).toLocaleDateString('fr-FR')}</span>
+                        <span className="text-gray-400 text-xs flex-shrink-0">{new Date(t.transferred_at).toLocaleDateString('fr-FR')}</span>
+                        <span className="text-gray-500 truncate">{t.from_store_name || t.from_store_id}</span>
                         <ArrowRight className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                        <span className="font-medium">{t.to_store_id}</span>
+                        <span className="font-medium truncate">{t.to_store_name || t.to_store_id}</span>
                       </div>
                     ))}
                   </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, FileText } from 'lucide-react';
+import { Info, FileText, BookUser } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Utility function to format numbers with spaces for thousands
@@ -26,6 +26,7 @@ export default function SellersTableSection({
   showNiveauTooltip,
   setShowNiveauTooltip,
   onViewSellerDetail,
+  onPassport,
   setShowEvaluationModal,
   setSelectedSellerForEval,
   refreshSellersData,
@@ -206,6 +207,16 @@ export default function SellersTableSection({
                       Bilan
                     </button>
 
+                    {onPassport && (
+                      <button
+                        onClick={() => onPassport(seller)}
+                        className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-medium rounded hover:from-purple-600 hover:to-indigo-600 transition-colors flex items-center gap-1"
+                        title="Voir le passeport vendeur"
+                      >
+                        <BookUser className="w-3 h-3" />
+                        Passeport
+                      </button>
+                    )}
                     {/* Actions de suspension/suppression/réactivation - RÉSERVÉES EXCLUSIVEMENT AU GÉRANT */}
                     {/* Un Manager ne peut ni suspendre, ni supprimer, ni réactiver un vendeur */}
                   </div>

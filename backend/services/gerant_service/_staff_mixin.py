@@ -202,8 +202,14 @@ class StaffMixin:
         ]
         kpi_by_store = await self.kpi_repo.aggregate(pipeline, max_results=50)
 
-        # Resolve store names
-        store_ids = [row["_id"] for row in kpi_by_store if row.get("_id")]
+        # Resolve store names (KPI stores + transfer history stores)
+        transfer_history = seller.get("transfer_history", [])
+        history_store_ids = [
+            sid for t in transfer_history
+            for sid in [t.get("from_store_id"), t.get("to_store_id")]
+            if sid
+        ]
+        store_ids = list({row["_id"] for row in kpi_by_store if row.get("_id")} | set(history_store_ids))
         stores_list = await self.store_repo.find_many(
             {"id": {"$in": store_ids}},
             {"_id": 0, "id": 1, "name": 1, "location": 1}
@@ -251,7 +257,14 @@ class StaffMixin:
                 "created_at": seller.get("created_at"),
             },
             "current_store": stores_map.get(seller.get("store_id", ""), {}),
-            "transfer_history": seller.get("transfer_history", []),
+            "transfer_history": [
+                {
+                    **t,
+                    "from_store_name": stores_map.get(t.get("from_store_id", ""), {}).get("name", "Magasin inconnu"),
+                    "to_store_name": stores_map.get(t.get("to_store_id", ""), {}).get("name", "Magasin inconnu"),
+                }
+                for t in transfer_history
+            ],
             "store_stats": store_stats,
             "global_metrics": {
                 "total_ca": round(total_ca, 2),

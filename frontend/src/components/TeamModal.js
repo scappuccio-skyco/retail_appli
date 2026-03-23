@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts';
 import { toast } from 'sonner';
 import { X, Users, TrendingUp, RefreshCw, Coffee } from 'lucide-react';
@@ -9,9 +9,11 @@ import SellersTableSection from './teamModal/SellersTableSection';
 import ChartsSection from './teamModal/ChartsSection';
 import useTeamModal from './teamModal/useTeamModal';
 import { formatNumber } from './teamModal/CustomTooltip';
+import SellerPassportModal from './gerant/SellerPassportModal';
 
 export default function TeamModal({ sellers, storeIdParam, onClose, onViewSellerDetail, onDataUpdate, storeName, managerName, userRole }) {
   const { user } = useAuth();
+  const [passportSeller, setPassportSeller] = useState(null);
   const {
     teamData, loading,
     showMorningBriefModal, setShowMorningBriefModal,
@@ -178,6 +180,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                 userRole={userRole} storeIdParam={storeIdParam} user={user}
                 showNiveauTooltip={showNiveauTooltip} setShowNiveauTooltip={setShowNiveauTooltip}
                 onViewSellerDetail={onViewSellerDetail}
+                onPassport={setPassportSeller}
                 setShowEvaluationModal={setShowEvaluationModal}
                 setSelectedSellerForEval={setSelectedSellerForEval}
                 refreshSellersData={refreshSellersData}
@@ -247,6 +250,14 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
         managerName={managerName}
         storeId={storeIdParam}
       />
+
+      {passportSeller && (
+        <SellerPassportModal
+          seller={passportSeller}
+          apiPath={userRole === 'manager' ? `/manager/sellers/${passportSeller.id}/passport` : `/gerant/sellers/${passportSeller.id}/passport`}
+          onClose={() => setPassportSeller(null)}
+        />
+      )}
     </div>
   );
 }

@@ -26,7 +26,9 @@ from api.dependencies import (
     get_manager_seller_management_service,
     get_manager_kpi_service,
     get_competence_service,
+    get_gerant_service,
 )
+from services.gerant_service import GerantService
 from api.dependencies_rate_limiting import rate_limit
 from models.pagination import PaginatedResponse, PaginationParams
 from services.manager_service import ManagerService
@@ -425,3 +427,31 @@ async def mark_seller_notes_seen(
     from api.dependencies import get_seller_service
     now = await manager_service.mark_notes_seen(manager_id, seller_id, resolved_store_id)
     return {"success": True, "notes_last_seen_at": now}
+
+
+@router.get("/sellers/{seller_id}/passport")
+async def get_seller_passport(
+    seller_id: str,
+    request: Request,
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context_required),
+    manager_service: ManagerService = Depends(get_manager_service),
+    gerant_service: GerantService = Depends(get_gerant_service),
+):
+    """
+    Passeport vendeur cross-magasin pour le manager.
+    Accès limité aux vendeurs du magasin actuel du manager.
+    """
+    resolved_store_id = context.get("resolved_store_id")
+    gerant_id = context.get("gerant_id")
+
+    # Vérifier que le vendeur appartient au magasin du manager
+    await verify_seller_store_access(
+        seller_id=seller_id,
+        user_store_id=resolved_store_id,
+        user_role=context.get("role", "manager"),
+        user_id=context.get("id"),
+        manager_service=manager_service,
+    )
+
+    return await gerant_service.get_seller_passport(seller_id, gerant_id)
