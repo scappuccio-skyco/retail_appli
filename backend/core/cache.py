@@ -58,10 +58,15 @@ class CacheService:
             logger.info("Redis disabled via REDIS_ENABLED=false - cache disabled")
             return
         
-        # Identifiants Redis depuis les variables d'environnement uniquement
-        redis_url = os.getenv("REDIS_URL") or getattr(settings, "REDIS_URL", None)
+        # CACHE_REDIS_URL prioritaire sur REDIS_URL pour éviter le conflit
+        # avec le rate limiter (slowapi/limits) qui lit aussi REDIS_URL.
+        redis_url = (
+            os.getenv("CACHE_REDIS_URL")
+            or os.getenv("REDIS_URL")
+            or getattr(settings, "REDIS_URL", None)
+        )
         if not redis_url:
-            logger.info("REDIS_URL not configured - cache disabled (graceful fallback)")
+            logger.info("CACHE_REDIS_URL/REDIS_URL not configured - cache disabled (graceful fallback)")
             return
         
         try:
