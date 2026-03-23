@@ -14,6 +14,7 @@ from core.constants import (
     QUERY_STORE_ID_REQUIS_GERANT,
 )
 from core.exceptions import NotFoundError, ValidationError, ForbiddenError
+from core.cache import invalidate_store_cache
 from api.routes.manager.dependencies import get_store_context
 from api.dependencies import (
     get_manager_service,
@@ -258,6 +259,14 @@ async def save_manager_kpi(
             await manager_service.insert_manager_kpi_one(prospects_entry_data)
         prospects_entry_data.pop("_id", None)
         results["prospects_entry"] = prospects_entry_data
+
+    # Invalider le cache Redis KPI pour ce magasin après toute mutation
+    if results.get("sellers_entries") or results.get("prospects_entry"):
+        try:
+            await invalidate_store_cache(resolved_store_id)
+        except Exception:
+            pass  # fallback silencieux
+
     return results
 
 

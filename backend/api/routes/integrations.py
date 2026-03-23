@@ -8,6 +8,7 @@ from uuid import uuid4
 import logging
 from core.constants import QUERY_PAGE_NUM_DESC, QUERY_PAGE_SIZE_DESC
 from core.exceptions import NotFoundError, ValidationError, ForbiddenError, ConflictError, BusinessLogicError
+from core.cache import invalidate_store_cache
 from models.integrations import (
     APIKeyCreate, KPISyncRequest, APIStoreCreate,
     APIManagerCreate, APISellerCreate, APIUserUpdate
@@ -477,6 +478,7 @@ async def sync_kpi_data(
         seller_operations = []
         entries_created = 0
         entries_updated = 0
+        affected_store_ids = set()
         
         for entry in data.kpi_entries:
             if not entry.seller_id:
@@ -545,12 +547,19 @@ async def sync_kpi_data(
                 })
                 seller_operations.append(InsertOne(kpi_data))
                 entries_created += 1
-        
+            if entry_store_id:
+                affected_store_ids.add(entry_store_id)
+
         # Execute bulk operations
         if seller_operations:
             try:
                 result = await kpi_service.bulk_write_kpis(seller_operations)
                 logger.info("Bulk write completed: %s", result)
+                for sid in affected_store_ids:
+                    try:
+                        await invalidate_store_cache(sid)
+                    except Exception:
+                        pass  # fallback silencieux
             except Exception as bulk_error:
                 logger.error("Bulk write failed: %s", bulk_error, exc_info=True)
                 raise ValidationError(f"Failed to write KPI data to database: {str(bulk_error)}")
