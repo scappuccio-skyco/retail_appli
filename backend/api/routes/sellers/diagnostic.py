@@ -631,7 +631,7 @@ async def get_seller_diagnostic_for_manager(
     return diagnostic
 
 
-@diag_router.post("")
+@diag_router.post("/")
 async def create_diagnostic(
     diagnostic_data: DiagnosticCreate,
     current_user: Dict = Depends(get_current_seller),
