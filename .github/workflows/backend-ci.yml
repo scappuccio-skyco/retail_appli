@@ -118,6 +118,10 @@ jobs:
         run: |
           pytest -q backend/tests/test_kpi_seller_entry_json_safe.py
 
+      - name: Run AI cache integration tests
+        run: |
+          pytest -q backend/tests/test_ai_cache_integration.py
+
       - name: Dump server log on failure
         if: failure()
         run: |
