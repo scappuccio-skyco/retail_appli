@@ -37,6 +37,12 @@ async def _create_indexes_background() -> None:
         logger.info("Indexes: %s created, %s skipped, %s errors", created, skipped, len(errors))
 
         try:
+            from core.schemas import apply_schemas
+            await apply_schemas(db, logger=logger)
+        except Exception as e:
+            logger.warning("Schema validation setup warning (non-critical): %s", e)
+
+        try:
             from init_db import init_database
             await asyncio.to_thread(init_database)
             logger.info("Database initialization complete")
