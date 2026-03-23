@@ -21,18 +21,13 @@ from core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Try to import redis, fallback to None if not available
+# Try to import redis asyncio client
 try:
-    from redis import asyncio as redis
+    import redis.asyncio as redis
     REDIS_AVAILABLE = True
 except ImportError:
-    try:
-        # Fallback for older redis versions
-        import redis.asyncio as redis
-        REDIS_AVAILABLE = True
-    except ImportError:
-        REDIS_AVAILABLE = False
-        logger.warning("Redis not available - cache will be disabled. Install redis package to enable caching.")
+    REDIS_AVAILABLE = False
+    logger.warning("Redis not available - cache will be disabled. Install redis[asyncio] to enable caching.")
 
 
 class CacheService:
