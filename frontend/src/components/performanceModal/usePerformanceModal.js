@@ -320,7 +320,22 @@ export default function usePerformanceModal({
     }));
   }, [kpiEntries, currentWeekOffset]);
 
-  const exportToPDF = () => _exportToPDF(contentRef, bilanData, setExportingPDF);
+  const exportToPDF = () => {
+    const fmt = (d) =>
+      `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getFullYear()).slice(-2)}`;
+    let effectivePeriode = bilanData?.periode;
+    if (viewMode === 'semaine' && selectedWeek) {
+      const { startDate, endDate } = getWeekStartEnd(selectedWeek);
+      effectivePeriode = `Semaine du ${fmt(startDate)} au ${fmt(endDate)}`;
+    } else if (viewMode === 'jour' && selectedDay) {
+      effectivePeriode = selectedDay;
+    } else if (viewMode === 'mois' && selectedMonth) {
+      effectivePeriode = selectedMonth;
+    } else if (viewMode === 'annee' && selectedYear) {
+      effectivePeriode = String(selectedYear);
+    }
+    _exportToPDF(contentRef, { ...bilanData, periode: effectivePeriode }, setExportingPDF);
+  };
 
   return {
     // Tabs
