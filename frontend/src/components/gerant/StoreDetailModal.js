@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Users, RefreshCw, Trash2 } from 'lucide-react';
 import StoreKPIModal from '../StoreKPIModal';
 import useStoreDetailModal from './storeDetailModal/useStoreDetailModal';
 import TeamMemberRow from './storeDetailModal/TeamMemberRow';
 import PendingInvitationRow from './storeDetailModal/PendingInvitationRow';
+import SellerPassportModal from '../SellerPassportModal';
 
 const STORE_COLOR_CONFIG = [
   { name: 'orange', from: '#f97316', via: '#ea580c', to: '#c2410c', accent: 'text-orange-600 border-orange-600' },
@@ -24,6 +25,8 @@ export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = f
     loading, refreshKey,
     handleDeleteUser, handleToggleSuspend, handleCancelInvitation, handleRefresh,
   } = useStoreDetailModal({ store, onRefresh });
+
+  const [passportSeller, setPassportSeller] = useState(null);
 
   const managerInvites = pendingInvitations.filter(inv => inv.role === 'manager');
   const sellerInvites  = pendingInvitations.filter(inv => inv.role === 'seller');
@@ -123,6 +126,7 @@ export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = f
                       onTransfer={onTransferSeller}
                       onToggleSuspend={handleToggleSuspend}
                       onDelete={handleDeleteUser}
+                      onPassport={(member) => setPassportSeller(member)}
                     />
                   ))}
                   {sellerInvites.map(inv => (
@@ -163,6 +167,13 @@ export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = f
           </div>
         </div>
       </div>
+
+      {passportSeller && (
+        <SellerPassportModal
+          seller={passportSeller}
+          onClose={() => setPassportSeller(null)}
+        />
+      )}
     </div>
   );
 }

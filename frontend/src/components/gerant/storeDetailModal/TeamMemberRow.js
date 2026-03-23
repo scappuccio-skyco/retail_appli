@@ -1,7 +1,7 @@
 import React from 'react';
-import { RefreshCw, Pause, Trash2 } from 'lucide-react';
+import { RefreshCw, Pause, Trash2, BookOpen } from 'lucide-react';
 
-export default function TeamMemberRow({ member, role, managers, isReadOnly, onTransfer, onToggleSuspend, onDelete, refreshKey }) {
+export default function TeamMemberRow({ member, role, managers, isReadOnly, onTransfer, onToggleSuspend, onDelete, onPassport, refreshKey }) {
   const isManager = role === 'manager';
   const bgClass = isManager ? 'bg-blue-50 border-blue-200' : 'bg-purple-50 border-purple-200';
   const transferClass = isManager
@@ -34,6 +34,16 @@ export default function TeamMemberRow({ member, role, managers, isReadOnly, onTr
 
       {!isReadOnly && (
         <div className="flex gap-2">
+          {!isManager && onPassport && (
+            <button
+              onClick={() => onPassport(member)}
+              className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-indigo-400 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-all text-sm font-semibold"
+              title="Voir le passeport cross-magasin"
+            >
+              <BookOpen className="w-4 h-4" />
+              Passeport
+            </button>
+          )}
           <button
             onClick={() => onTransfer(member)}
             className={`flex items-center gap-2 px-3 py-2 bg-white border-2 rounded-lg transition-all text-sm font-semibold ${transferClass}`}

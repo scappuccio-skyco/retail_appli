@@ -212,7 +212,7 @@ export default function useGerantDashboard({ user, onLogout }) {
       await fetchDashboardData();
     } catch (error) {
       logger.error('Erreur transfert manager:', error);
-      throw error;
+      throw new Error(error.response?.data?.detail || 'Erreur lors du transfert');
     }
   };
 

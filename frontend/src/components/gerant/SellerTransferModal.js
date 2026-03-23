@@ -29,7 +29,7 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
     setLoadingManagers(true);
     try {
       const res = await api.get(`/gerant/stores/${storeId}/managers`);
-      setManagers(res.data);
+      setManagers((res.data || []).filter(m => m.status === 'active'));
     } catch (err) {
       logger.error('Erreur chargement managers:', err);
     } finally {

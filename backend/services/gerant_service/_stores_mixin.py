@@ -190,6 +190,10 @@ class StoresMixin:
         if not manager:
             raise ValueError("Manager non trouvé")
 
+        # Guard: no-op transfer
+        if manager.get("store_id") == new_store_id:
+            raise ValueError("Le manager est déjà dans ce magasin")
+
         # Verify new store belongs to this gérant and is active
         new_store = await self.store_repo.find_one({
             "id": new_store_id,
@@ -212,10 +216,21 @@ class StoresMixin:
         from core.cache import invalidate_user_cache
         await invalidate_user_cache(manager_id)
 
+        # Count sellers left without a manager in the same store as manager
+        old_store_id = manager.get("store_id")
+        orphaned_count = await self.user_repo.count({
+            "manager_id": manager_id,
+            "store_id": old_store_id,
+            "role": "seller",
+            "status": "active"
+        })
+
         return {
             "message": f"Manager transféré vers {new_store.get('name')}",
             "manager_id": manager_id,
-            "new_store_id": new_store_id
+            "new_store_id": new_store_id,
+            "orphaned_sellers_count": orphaned_count,
+            "warning": f"{orphaned_count} vendeur(s) restent sans manager dans l'ancien magasin" if orphaned_count > 0 else None
         }
 
     async def bulk_import_stores(

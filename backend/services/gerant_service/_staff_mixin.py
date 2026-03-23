@@ -118,8 +118,18 @@ class StaffMixin:
                 "suspended_reason": ""
             }
 
-        # Execute transfer
-        update_operation = {"$set": update_fields}
+        # Add transfer history entry (only for real store changes)
+        if not is_same_store:
+            transfer_entry = {
+                "from_store_id": seller.get("store_id"),
+                "to_store_id": transfer.new_store_id,
+                "transferred_at": datetime.now(timezone.utc).isoformat(),
+                "transferred_by_gerant_id": gerant_id
+            }
+            update_operation = {"$set": update_fields, "$push": {"transfer_history": transfer_entry}}
+        else:
+            update_operation = {"$set": update_fields}
+
         if unset_fields:
             update_operation["$unset"] = unset_fields
 
@@ -130,24 +140,12 @@ class StaffMixin:
         from core.cache import invalidate_user_cache
         await invalidate_user_cache(seller_id)
 
-        # ⭐ IMPORTANT: Update all existing KPI entries for this seller with the new store_id
-        # This ensures that when the seller returns to their original store, their KPI data is still accessible
-        if not is_same_store and transfer.new_store_id:
-            # Get seller's gerant_id for updating KPI entries
-            seller_gerant_id = seller.get('gerant_id')
-
-            # Update all KPI entries for this seller
-            kpi_update_result = await self.kpi_repo.update_many(
-                {"seller_id": seller_id},
-                {
-                    "store_id": transfer.new_store_id,
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }
-            )
-
+        # KPI entries intentionally NOT migrated — historical data stays with original store.
+        # Use get_seller_passport() to view cross-store performance history.
+        if not is_same_store:
             logger.info(
-                f"Updated {kpi_update_result.modified_count} KPI entries for seller {seller_id} "
-                f"from store {seller.get('store_id')} to store {transfer.new_store_id}"
+                "Seller %s transferred from store %s to store %s — KPI history preserved in original store",
+                seller_id, seller.get('store_id'), transfer.new_store_id
             )
 
         # Build response message
@@ -165,6 +163,102 @@ class StaffMixin:
             "new_manager": new_manager['name'],
             "reactivated": update_fields.get("status") == "active",
             "same_store": is_same_store
+        }
+
+    async def get_seller_passport(self, seller_id: str, gerant_id: str) -> Dict:
+        """
+        Passeport vendeur cross-magasin : historique de transferts + métriques agrégées par magasin.
+        Les KPI ne sont PAS filtrés par store_id courant — on voit tout l'historique du vendeur.
+
+        Args:
+            seller_id: ID du vendeur
+            gerant_id: ID du gérant (vérification d'appartenance)
+        """
+        # Verify seller belongs to gerant
+        seller = await self.user_repo.find_one({
+            "id": seller_id,
+            "gerant_id": gerant_id,
+            "role": "seller"
+        }, {"_id": 0, "password": 0})
+
+        if not seller:
+            raise ValueError("Vendeur non trouvé ou accès non autorisé")
+
+        # Aggregate KPI by store (cross-store, no store_id filter)
+        pipeline = [
+            {"$match": {"seller_id": seller_id}},
+            {"$group": {
+                "_id": "$store_id",
+                "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
+                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
+                "entries": {"$sum": 1},
+                "first_date": {"$min": "$date"},
+                "last_date": {"$max": "$date"},
+            }}
+        ]
+        kpi_by_store = await self.kpi_repo.aggregate(pipeline, max_results=50)
+
+        # Resolve store names
+        store_ids = [row["_id"] for row in kpi_by_store if row.get("_id")]
+        stores_list = await self.store_repo.find_many(
+            {"id": {"$in": store_ids}},
+            {"_id": 0, "id": 1, "name": 1, "location": 1}
+        ) if store_ids else []
+        stores_map = {s["id"]: s for s in stores_list}
+
+        # Build per-store stats
+        store_stats = []
+        for row in kpi_by_store:
+            sid = row["_id"]
+            ventes = row.get("total_ventes", 0)
+            clients = row.get("total_clients", 0)
+            ca = round(row.get("total_ca", 0), 2)
+            store_stats.append({
+                "store_id": sid,
+                "store_name": stores_map.get(sid, {}).get("name", "Magasin inconnu"),
+                "store_location": stores_map.get(sid, {}).get("location", ""),
+                "total_ca": ca,
+                "total_ventes": ventes,
+                "total_clients": clients,
+                "total_articles": row.get("total_articles", 0),
+                "entries": row.get("entries", 0),
+                "first_date": row.get("first_date"),
+                "last_date": row.get("last_date"),
+                "panier_moyen": round(ca / ventes, 2) if ventes > 0 else 0,
+                "taux_transformation": round(ventes / clients * 100, 1) if clients > 0 else 0,
+                "is_current_store": sid == seller.get("store_id"),
+            })
+
+        # Sort: current store first, then by total CA desc
+        store_stats.sort(key=lambda s: (not s["is_current_store"], -s["total_ca"]))
+
+        # Global metrics
+        total_ca = sum(s["total_ca"] for s in store_stats)
+        total_ventes = sum(s["total_ventes"] for s in store_stats)
+        total_clients = sum(s["total_clients"] for s in store_stats)
+
+        return {
+            "seller": {
+                "id": seller["id"],
+                "name": seller.get("name"),
+                "email": seller.get("email"),
+                "status": seller.get("status"),
+                "store_id": seller.get("store_id"),
+                "created_at": seller.get("created_at"),
+            },
+            "current_store": stores_map.get(seller.get("store_id", ""), {}),
+            "transfer_history": seller.get("transfer_history", []),
+            "store_stats": store_stats,
+            "global_metrics": {
+                "total_ca": round(total_ca, 2),
+                "total_ventes": total_ventes,
+                "total_clients": total_clients,
+                "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else 0,
+                "taux_transformation": round(total_ventes / total_clients * 100, 1) if total_clients > 0 else 0,
+                "stores_count": len(store_stats),
+            }
         }
 
     async def get_store_managers(self, store_id: str, gerant_id: str) -> list:

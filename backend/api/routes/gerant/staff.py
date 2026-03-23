@@ -330,3 +330,19 @@ async def delete_seller(
         return await gerant_service.delete_user(seller_id, current_user['id'], 'seller')
     except ValueError as e:
         raise NotFoundError(str(e))
+
+
+@router.get("/sellers/{seller_id}/passport")
+async def get_seller_passport(
+    seller_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+):
+    """
+    Passeport vendeur cross-magasin : historique de transferts et métriques KPI par magasin.
+    Les KPI historiques ne sont pas réattribués au magasin actuel — chaque donnée reste liée au magasin où elle a été produite.
+    """
+    try:
+        return await gerant_service.get_seller_passport(seller_id, current_user["id"])
+    except ValueError as e:
+        raise NotFoundError(str(e))
