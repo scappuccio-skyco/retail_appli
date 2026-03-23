@@ -174,7 +174,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
               <SellersTableSection
                 teamData={teamData} sellers={sellers}
                 searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-                displayedSellerCount={displayedSellerCount} setDisplayedSellerCount={setDisplayedSellerCount}
                 hiddenSellerIds={hiddenSellerIds} setHiddenSellerIds={setHiddenSellerIds}
                 isUpdating={isUpdating} periodFilter={periodFilter} customDateRange={customDateRange}
                 userRole={userRole} storeIdParam={storeIdParam} user={user}
