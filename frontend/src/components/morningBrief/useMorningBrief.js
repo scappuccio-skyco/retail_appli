@@ -19,11 +19,13 @@ export default function useMorningBrief({ storeId, storeName, onClose }) {
   const [expandedItems, setExpandedItems] = useState({});
   const [exportingPDF, setExportingPDF] = useState(false);
   const briefContentRef = useRef(null);
+  const generateAbortRef = useRef(null);
 
   const storeParam = storeId ? `?store_id=${storeId}` : '';
 
   useEffect(() => {
     loadHistory();
+    return () => { if (generateAbortRef.current) generateAbortRef.current.abort(); };
   }, []);
 
   useEffect(() => {
@@ -43,6 +45,9 @@ export default function useMorningBrief({ storeId, storeName, onClose }) {
   };
 
   const handleGenerate = async () => {
+    if (generateAbortRef.current) generateAbortRef.current.abort();
+    generateAbortRef.current = new AbortController();
+
     setIsLoading(true);
     setBrief(null);
     try {
@@ -50,7 +55,7 @@ export default function useMorningBrief({ storeId, storeName, onClose }) {
         comments: comments.trim() || null,
         objective_daily: objectiveDaily ? Number.parseFloat(objectiveDaily) : null,
       };
-      const response = await api.post(`/briefs/morning${storeParam}`, payload);
+      const response = await api.post(`/briefs/morning${storeParam}`, payload, { signal: generateAbortRef.current.signal });
       if (response.data.success) {
         setBrief(response.data);
         toast.success('☕ Brief matinal généré !');
@@ -59,6 +64,7 @@ export default function useMorningBrief({ storeId, storeName, onClose }) {
         toast.error('Erreur lors de la génération');
       }
     } catch (error) {
+      if (error.code === 'ERR_CANCELED') return;
       logger.error('Erreur génération brief:', error);
       toast.error(getSubscriptionErrorMessage(error, user?.role) || error.response?.data?.detail || 'Erreur lors de la génération du brief');
     } finally {

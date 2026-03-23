@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { getSubscriptionErrorMessage } from '../utils/apiHelpers';
@@ -18,12 +18,14 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
+  const generateAbortRef = useRef(null);
 
   // Build store_id param for gerant viewing as manager
   const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
 
   useEffect(() => {
     loadHistory();
+    return () => { if (generateAbortRef.current) generateAbortRef.current.abort(); };
   }, []);
 
   useEffect(() => {
@@ -60,6 +62,9 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
   };
 
   const handleGenerateAnalysis = async () => {
+    if (generateAbortRef.current) generateAbortRef.current.abort();
+    generateAbortRef.current = new AbortController();
+
     setLoading(true);
     try {
       const teamContext = {
@@ -88,7 +93,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
         requestBody.end_date = customDateRange.end;
       }
 
-      const res = await api.post(`/manager/analyze-team${storeParam}`, requestBody);
+      const res = await api.post(`/manager/analyze-team${storeParam}`, requestBody, { signal: generateAbortRef.current.signal });
 
       setAiAnalysis(res.data.analysis);
       setAnalysisMetadata({
@@ -99,6 +104,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
       toast.success('Analyse IA générée !');
       loadHistory();
     } catch (err) {
+      if (err.code === 'ERR_CANCELED') return;
       logger.error('Error generating AI analysis:', err);
       toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de l\'analyse IA');
     } finally {

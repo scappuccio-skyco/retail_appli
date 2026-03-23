@@ -80,6 +80,11 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Requête annulée volontairement (AbortController) — ne pas afficher de toast
+    if (axios.isCancel(error) || error.code === 'ERR_CANCELED') {
+      return Promise.reject(error);
+    }
+
     // Log en dev seulement
     if (process.env.NODE_ENV === 'development') {
       logger.error('API Error:', error.response?.data || error.message);

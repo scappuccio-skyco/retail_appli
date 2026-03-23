@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { X, Award, MessageSquare } from 'lucide-react';
 import ChallengeHistoryModal from './ChallengeHistoryModal';
@@ -11,6 +11,8 @@ import confetti from 'canvas-confetti';
 import { TabButton } from './coachingModal/shared';
 import { ChallengeTab } from './coachingModal/ChallengeTab';
 import { AnalyseTab } from './coachingModal/AnalyseTab';
+import { useDailyChallengeStats } from '../hooks/useDailyChallengeStats';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function CoachingModal({
   isOpen,
@@ -24,6 +26,7 @@ export default function CoachingModal({
   activeTab: initialTab = 'coach'
 }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [analyseSubTab, setAnalyseSubTab] = useState('conclue');
   const [showChallengeHistoryModal, setShowChallengeHistoryModal] = useState(false);
@@ -32,27 +35,12 @@ export default function CoachingModal({
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackComment, setFeedbackComment] = useState('');
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState(null);
+  const { data: stats } = useDailyChallengeStats();
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [selectedCompetence, setSelectedCompetence] = useState(null);
 
   // Filter state for historique
   const [historyFilter, setHistoryFilter] = useState('all');
-
-  useEffect(() => {
-    if (isOpen && activeTab === 'coach') {
-      fetchStats();
-    }
-  }, [isOpen, activeTab]);
-
-  const fetchStats = async () => {
-    try {
-      const res = await api.get('/seller/daily-challenge/stats');
-      setStats(res.data);
-    } catch (err) {
-      logger.error('Error fetching stats:', err);
-    }
-  };
 
   const triggerConfetti = () => {
     const duration = 3000;
@@ -93,7 +81,7 @@ export default function CoachingModal({
       setFeedbackComment('');
 
       if (onCompleteChallenge) onCompleteChallenge();
-      await fetchStats();
+      queryClient.invalidateQueries({ queryKey: ['dailyChallengeStats'] });
     } catch (err) {
       logger.error('Error completing challenge:', err);
       toast.error('Erreur lors de la validation');

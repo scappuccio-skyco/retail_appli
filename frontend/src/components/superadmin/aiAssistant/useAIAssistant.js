@@ -11,8 +11,12 @@ export default function useAIAssistant() {
   const [conversations, setConversations] = useState([]);
   const [appContext, setAppContext] = useState(null);
   const messagesEndRef = useRef(null);
+  const sendAbortRef = useRef(null);
 
-  useEffect(() => { fetchConversations(); }, []);
+  useEffect(() => {
+    fetchConversations();
+    return () => { if (sendAbortRef.current) sendAbortRef.current.abort(); };
+  }, []);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const fetchConversations = async () => {
@@ -56,12 +60,15 @@ export default function useAIAssistant() {
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
+    if (sendAbortRef.current) sendAbortRef.current.abort();
+    sendAbortRef.current = new AbortController();
+
     const userMessage = input.trim();
     setInput('');
     setLoading(true);
     setMessages(prev => [...prev, { role: 'user', content: userMessage, timestamp: new Date().toISOString() }]);
     try {
-      const res = await api.post('/superadmin/ai-assistant/chat', { message: userMessage, conversation_id: conversationId });
+      const res = await api.post('/superadmin/ai-assistant/chat', { message: userMessage, conversation_id: conversationId }, { signal: sendAbortRef.current.signal });
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: res.data.response || res.data.message,
@@ -73,6 +80,7 @@ export default function useAIAssistant() {
       }
       if (res.data.context_used) setAppContext(res.data.context_used);
     } catch (error) {
+      if (error.code === 'ERR_CANCELED') return;
       toast.error("Erreur lors de l'envoi du message");
       logger.error('Error sending message:', error);
       setMessages(prev => prev.slice(0, -1));

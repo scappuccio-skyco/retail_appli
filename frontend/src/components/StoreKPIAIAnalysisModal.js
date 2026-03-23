@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
@@ -17,8 +17,16 @@ export default function StoreKPIAIAnalysisModal({
   const { user } = useAuth();
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
+  const generateAbortRef = useRef(null);
+
+  useEffect(() => {
+    return () => { if (generateAbortRef.current) generateAbortRef.current.abort(); };
+  }, []);
 
   const handleGenerateAnalysis = async () => {
+    if (generateAbortRef.current) generateAbortRef.current.abort();
+    generateAbortRef.current = new AbortController();
+
     setLoading(true);
 
     try {
@@ -77,11 +85,12 @@ export default function StoreKPIAIAnalysisModal({
         };
       }
 
-      const res = await api.post(endpoint, payload);
+      const res = await api.post(endpoint, payload, { signal: generateAbortRef.current.signal });
 
       setAiAnalysis(res.data.analysis);
       toast.success('Analyse IA générée !');
     } catch (err) {
+      if (err.code === 'ERR_CANCELED') return;
       logger.error('Error generating AI analysis:', err);
       toast.error(getSubscriptionErrorMessage(err, user?.role) || 'Erreur lors de l\'analyse IA');
     } finally {

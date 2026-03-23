@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { api } from '../../lib/apiClient';
 import { logger } from '../../utils/logger';
 import confetti from 'canvas-confetti';
+import { useDailyChallengeStats } from '../../hooks/useDailyChallengeStats';
 
 function triggerConfetti() {
   const end = Date.now() + 3000;
@@ -35,15 +36,7 @@ export default function useDailyChallengeModal({ challenge, onClose, onRefresh, 
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackComment, setFeedbackComment] = useState('');
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    api.get('/seller/daily-challenge/stats')
-      .then(res => { if (!cancelled) setStats(res.data); })
-      .catch(err => { if (!cancelled) logger.error('Error fetching stats:', err); });
-    return () => { cancelled = true; };
-  }, []);
+  const { data: stats } = useDailyChallengeStats();
 
   const handleComplete = async (result) => {
     if (!result) { setShowFeedbackForm(true); return; }
