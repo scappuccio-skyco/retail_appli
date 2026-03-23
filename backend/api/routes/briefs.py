@@ -211,6 +211,28 @@ async def generate_morning_brief(
         stats = _default_brief_stats()
     data_date = stats.get("data_date")
 
+    # Cache check: si pas de contexte custom, retourner le brief déjà généré aujourd'hui
+    if not brief_request.comments and final_store_id:
+        try:
+            cached_brief = await manager_service.get_cached_morning_brief(final_store_id)
+            if cached_brief:
+                logger.info("Cache hit: morning brief store=%s", final_store_id)
+                return {
+                    "success": True,
+                    "brief": cached_brief.get("brief", ""),
+                    "brief_id": cached_brief.get("brief_id"),
+                    "date": cached_brief.get("date", ""),
+                    "data_date": cached_brief.get("data_date"),
+                    "store_name": cached_brief.get("store_name", store_name),
+                    "manager_name": cached_brief.get("manager_name", manager_name),
+                    "has_context": False,
+                    "generated_at": cached_brief.get("generated_at", ""),
+                    "fallback": cached_brief.get("fallback", False),
+                    "cached": True,
+                }
+        except Exception as _e:
+            logger.warning("Cache check failed for morning brief: %s", _e)
+
     # Fetch team DISC profiles for personalised brief tone
     team_disc_profiles = []
     try:

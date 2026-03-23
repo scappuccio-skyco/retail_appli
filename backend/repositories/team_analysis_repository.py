@@ -22,6 +22,28 @@ class TeamAnalysisRepository(BaseRepository):
         
         return await self.insert_one(analysis_data)
     
+    async def find_recent_by_period(
+        self,
+        store_id: str,
+        period_start: str,
+        period_end: str,
+        max_age_hours: int = 6,
+    ) -> Optional[Dict[str, Any]]:
+        """Return the most recent analysis for store+period if younger than max_age_hours."""
+        from datetime import datetime, timezone, timedelta
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=max_age_hours)).isoformat()
+        results = await self.find_many(
+            {
+                "store_id": store_id,
+                "period_start": period_start,
+                "period_end": period_end,
+                "generated_at": {"$gte": cutoff},
+            },
+            limit=1,
+            sort=[("generated_at", -1)],
+        )
+        return results[0] if results else None
+
     async def delete_analysis(self, analysis_id: str) -> bool:
         """Delete team analysis by ID"""
         return await self.delete_one({"id": analysis_id})

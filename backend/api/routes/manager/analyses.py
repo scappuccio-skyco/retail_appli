@@ -182,6 +182,29 @@ async def analyze_team(
         except Exception as _e:
             logger.warning("Could not enrich team_data with aggregate metrics: %s", _e)
 
+    # Cache check: retourner une analyse récente (<6h) pour le même store+période
+    if resolved_store_id:
+        try:
+            cached = await manager_service.get_cached_team_analysis(
+                store_id=resolved_store_id,
+                period_start=period_start,
+                period_end=period_end,
+            )
+            if cached and cached.get("analysis"):
+                logger.info(
+                    "Cache hit: team analysis store=%s period=%s/%s",
+                    resolved_store_id, period_start, period_end,
+                )
+                return {
+                    "analysis": cached["analysis"],
+                    "period_start": period_start,
+                    "period_end": period_end,
+                    "generated_at": cached["generated_at"],
+                    "cached": True,
+                }
+        except Exception as _e:
+            logger.warning("Cache check failed for team analysis: %s", _e)
+
     # Fetch previous recommendations from last saved analysis
     previous_recommendations = []
     if resolved_store_id:

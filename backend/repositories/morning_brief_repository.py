@@ -170,3 +170,22 @@ class MorningBriefRepository(BaseRepository):
         if store_id:
             filters["store_id"] = store_id
         return await self.count(filters)
+
+    async def find_today_uncustomized(
+        self,
+        store_id: str,
+        today_date_str: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Return the most recent brief for this store generated today without custom context."""
+        if not store_id:
+            raise ValueError("store_id is required for security")
+        results = await self.find_many(
+            {
+                "store_id": store_id,
+                "generated_at": {"$gte": f"{today_date_str}T00:00:00"},
+                "$or": [{"context": None}, {"context": ""}],
+            },
+            limit=1,
+            sort=[("generated_at", -1)],
+        )
+        return results[0] if results else None

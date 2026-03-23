@@ -497,6 +497,26 @@ class ManagerService:
             return False
         return await self.team_analysis_repo.delete_one(filter)
 
+    async def get_cached_team_analysis(
+        self, store_id: str, period_start: str, period_end: str, max_age_hours: int = 6
+    ) -> Optional[Dict]:
+        """Return a recent cached team analysis for the same store+period, or None."""
+        if not self.team_analysis_repo:
+            return None
+        return await self.team_analysis_repo.find_recent_by_period(
+            store_id=store_id,
+            period_start=period_start,
+            period_end=period_end,
+            max_age_hours=max_age_hours,
+        )
+
+    async def get_cached_morning_brief(self, store_id: str) -> Optional[Dict]:
+        """Return today's uncustomized morning brief for the store, or None."""
+        if not self.morning_brief_repo:
+            return None
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        return await self.morning_brief_repo.find_today_uncustomized(store_id, today)
+
     # ===== RELATIONSHIP CONSULTATION =====
 
     async def get_relationship_consultations_paginated(
