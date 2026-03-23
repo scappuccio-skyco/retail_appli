@@ -269,12 +269,17 @@ async def get_cache_service() -> CacheService:
 # Cache key prefixes (for organization and easy invalidation)
 class CacheKeys:
     """Cache key prefixes and helpers (REDIS_KEY_PREFIX = user key prefix, not a secret)."""
-    
+
     REDIS_KEY_PREFIX = "user:"
     STORE = "store:"
     WORKSPACE = "workspace:"
     STORE_CONFIG = "store_config:"
     DIAGNOSTIC = "diagnostic:"
+    KPI_STATS = "kpi_stats:"
+
+    @staticmethod
+    def key_for_kpi_stats(store_id: str, start_date: str, end_date: str) -> str:
+        return f"{CacheKeys.KPI_STATS}{store_id}:{start_date}:{end_date}"
     
     @staticmethod
     def key_for_user(user_id: str) -> str:

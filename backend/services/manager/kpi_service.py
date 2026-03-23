@@ -10,6 +10,7 @@ from utils.pagination import paginate
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.team_bilan_repository import TeamBilanRepository
 from utils.kpi_pipeline import build_seller_kpi_pipeline, EMPTY_KPI_METRICS
+from core.cache import get_cache_service, CacheKeys
 
 
 class ManagerKpiService:
@@ -192,12 +193,23 @@ class ManagerKpiService:
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
     ) -> Dict:
-        """Statistiques KPI agrégées du magasin."""
+        """Statistiques KPI agrégées du magasin (avec cache Redis 5min/1h)."""
         if not start_date:
             today = datetime.now(timezone.utc)
             start_date = today.replace(day=1).strftime("%Y-%m-%d")
         if not end_date:
             end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+        # Cache Redis : 5 min si période courante, 1h si historique
+        cache_key = CacheKeys.key_for_kpi_stats(store_id, start_date, end_date)
+        try:
+            cache = await get_cache_service()
+            cached = await cache.get(cache_key)
+            if cached is not None:
+                return cached
+        except Exception:
+            pass  # fallback silencieux
+
         seller_pipeline = [
             {
                 "$match": {
@@ -262,7 +274,7 @@ class ManagerKpiService:
         total_ca = seller_ca + manager_ca
         total_ventes = seller_ventes + manager_ventes
         total_articles = seller_articles + manager_articles
-        return {
+        result = {
             "store_id": store_id,
             "period": {"start": start_date, "end": end_date},
             "total_ca": total_ca,
@@ -281,3 +293,13 @@ class ManagerKpiService:
                 "articles": manager_articles,
             },
         }
+
+        # Stocker en cache : 5 min si période inclut aujourd'hui, 1h sinon
+        try:
+            today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            ttl = 300 if end_date >= today_str else 3600
+            await cache.set(cache_key, result, ttl=ttl)
+        except Exception:
+            pass  # fallback silencieux
+
+        return result
