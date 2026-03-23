@@ -32,8 +32,9 @@ export default function useStaffOverview({ onRefresh }) {
         api.get('/gerant/stores'),
         api.get('/gerant/invitations').catch(() => ({ data: [] })),
       ]);
-      setManagers(managersRes.data || []);
-      setSellers(sellersRes.data || []);
+      const toArr = (d) => (Array.isArray(d) ? d : (d?.items ?? []));
+      setManagers(toArr(managersRes.data));
+      setSellers(toArr(sellersRes.data));
       setStores(storesRes.data || []);
       setInvitations(invitationsRes.data || []);
     } catch (error) {

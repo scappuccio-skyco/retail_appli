@@ -74,38 +74,46 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
       const storeParam = storeIdParam ? `&store_id=${storeIdParam}` : '';
       const storeQueryParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
 
-      const teamMetricsPayload = {
-        seller_ids: sellersToUse.map(s => s.id),
-        days: daysParam,
-        ...(periodFilter === 'custom' && customDateRange.start && customDateRange.end
-          ? { start_date: customDateRange.start, end_date: customDateRange.end }
-          : {}),
-      };
-      const teamMetricsUrl = `/manager/team/kpi-metrics${storeIdParam ? `?store_id=${storeIdParam}` : ''}`;
-      const teamMetricsMap = await api.post(teamMetricsUrl, teamMetricsPayload)
-        .then(r => r.data)
-        .catch(err => { logger.error('team/kpi-metrics failed:', err?.response?.data || err.message); return {}; });
+      const sellerIds = sellersToUse.map(s => s.id);
+      const storeQs = storeIdParam ? `?store_id=${storeIdParam}` : '';
+
+      // Batch 1: KPI metrics agrégés (CA, ventes, panier, articles, indice)
+      const chunkSize = 200;
+      const metricsChunks = [];
+      for (let i = 0; i < sellerIds.length; i += chunkSize) {
+        metricsChunks.push(sellerIds.slice(i, i + chunkSize));
+      }
+      const metricsResults = await Promise.all(metricsChunks.map(chunk =>
+        api.post(`/manager/team/kpi-metrics${storeQs}`, {
+          seller_ids: chunk, days: daysParam,
+          ...(periodFilter === 'custom' && customDateRange.start && customDateRange.end
+            ? { start_date: customDateRange.start, end_date: customDateRange.end } : {}),
+        }).then(r => r.data).catch(err => { logger.error('kpi-metrics chunk failed:', err?.response?.data || err.message); return {}; })
+      ));
+      const teamMetricsMap = Object.assign({}, ...metricsResults);
+
+      // Batch 2: Profils vendeurs (radar scores + niveau) — remplace N×2 appels /stats + /diagnostic
+      const profileChunks = [];
+      for (let i = 0; i < sellerIds.length; i += 100) {
+        profileChunks.push(sellerIds.slice(i, i + 100));
+      }
+      const profileResults = await Promise.all(profileChunks.map(chunk =>
+        api.post(`/manager/team/seller-profiles${storeQs}`, { seller_ids: chunk })
+          .then(r => r.data).catch(err => { logger.error('seller-profiles chunk failed:', err?.response?.data || err.message); return {}; })
+      ));
+      const profilesMap = Object.assign({}, ...profileResults);
 
       const sellersDataPromises = sellersToUse.map(async (seller) => {
         try {
-          let apiParams = { _t: Date.now() };
-          if (storeIdParam) apiParams.store_id = storeIdParam;
           let kpiUrl = `/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
             kpiUrl = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
           }
-          const [statsRes, kpiRes, diagRes] = await Promise.all([
-            api.get(`/manager/seller/${seller.id}/stats${storeQueryParam}`, { params: apiParams }),
-            api.get(kpiUrl, { params: { _t: Date.now() } }),
-            api.get(`/manager/seller/${seller.id}/diagnostic${storeQueryParam}`, {
-              params: { _t: Date.now(), ...(storeIdParam ? { store_id: storeIdParam } : {}) }
-            }).catch(() => ({ data: null })),
-          ]);
+          const kpiRes = await api.get(kpiUrl, { params: { _t: Date.now() } });
 
-          const stats = statsRes.data;
           const kpiEntries = Array.isArray(kpiRes.data?.items) ? kpiRes.data.items : (Array.isArray(kpiRes.data) ? kpiRes.data : []);
-          const diagnostic = diagRes.data;
           const metricsData = teamMetricsMap[seller.id] ?? null;
+          const profileData = profilesMap[seller.id] ?? {};
 
           const monthlyCA = metricsData?.ca ?? kpiEntries.reduce((sum, e) => {
             const ca = e.ca_journalier || e.seller_ca || e.ca || 0;
@@ -116,7 +124,7 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
           const articles = metricsData?.articles ?? kpiEntries.reduce((sum, e) => sum + (e.nb_articles || 0), 0);
           const indice_vente = metricsData?.indice_vente ?? (monthlyVentes > 0 ? articles / monthlyVentes : 0);
 
-          const competences = stats.avg_radar_scores || {};
+          const competences = profileData.avg_radar_scores || {};
           const competencesList = [
             { name: 'Accueil', value: competences.accueil || 0 },
             { name: LABEL_DECOUVERTE, value: competences.decouverte || 0 },
@@ -145,9 +153,9 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
             avgCompetence, bestCompetence, worstCompetence,
             lastKpiDate: kpiEntries.length > 0 ? kpiEntries[0].date : null,
             hasKpiToday: kpiEntries.some(e => e.date === new Date().toISOString().split('T')[0]),
-            scoreSource: diagnostic ? 'diagnostic' : 'none',
-            hasDiagnostic: !!diagnostic,
-            niveau: diagnostic?.level || seller.niveau || 'Non défini',
+            scoreSource: profileData.has_diagnostic ? 'diagnostic' : 'none',
+            hasDiagnostic: profileData.has_diagnostic ?? false,
+            niveau: profileData.niveau || seller.niveau || 'Non défini',
             _kpiEntries: kpiEntries,
           };
         } catch (err) {

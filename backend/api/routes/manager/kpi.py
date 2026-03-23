@@ -19,7 +19,9 @@ from api.dependencies import (
     get_manager_service,
     get_manager_kpi_service,
     get_gerant_service,
+    get_competence_service,
 )
+from services.competence_service import CompetenceService
 from api.dependencies_rate_limiting import rate_limit
 from core.security import verify_seller_store_access
 from models.pagination import PaginatedResponse, PaginationParams
@@ -354,8 +356,8 @@ async def get_team_kpi_metrics(
     seller_ids: list = payload.get("seller_ids", [])
     if not seller_ids or not isinstance(seller_ids, list):
         raise ValidationError("seller_ids doit être un tableau non vide")
-    if len(seller_ids) > 50:
-        raise ValidationError("Maximum 50 vendeurs par requête")
+    if len(seller_ids) > 200:
+        raise ValidationError("Maximum 200 vendeurs par requête")
 
     # Validation dates
     start_date: Optional[str] = payload.get("start_date")
@@ -375,7 +377,7 @@ async def get_team_kpi_metrics(
 
     # Vérification sécurité : tous les sellers doivent appartenir au magasin
     valid_sellers = await manager_service.get_users_by_ids_and_store(
-        seller_ids, resolved_store_id, role="seller", limit=50, projection={"_id": 0, "id": 1}
+        seller_ids, resolved_store_id, role="seller", limit=200, projection={"_id": 0, "id": 1}
     )
     valid_ids = {s["id"] for s in valid_sellers}
     invalid = set(seller_ids) - valid_ids
@@ -388,6 +390,55 @@ async def get_team_kpi_metrics(
         for sid in valid_ids
     ])
     return {sid: metrics for sid, metrics in zip(valid_ids, results)}
+
+
+@router.post("/team/seller-profiles", dependencies=[rate_limit("60/minute")])
+async def get_team_seller_profiles(
+    request: Request,
+    payload: dict,
+    store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
+    context: dict = Depends(get_store_context),
+    manager_service: ManagerService = Depends(get_manager_service),
+    competence_service: CompetenceService = Depends(get_competence_service),
+) -> dict:
+    """
+    Batch: radar scores + niveau pour N vendeurs en 1 seul appel.
+    Remplace N×2 appels /seller/{id}/stats + /seller/{id}/diagnostic.
+
+    Body: { "seller_ids": ["id1", "id2", ...] }
+    Retourne: { seller_id: { avg_radar_scores: {...}, niveau: str|null, has_diagnostic: bool } }
+    """
+    import asyncio as _asyncio
+
+    resolved_store_id = context.get("resolved_store_id")
+    if not resolved_store_id:
+        raise ValidationError(ERR_STORE_ID_REQUIS)
+
+    seller_ids: list = payload.get("seller_ids", [])
+    if not seller_ids or not isinstance(seller_ids, list):
+        raise ValidationError("seller_ids doit être un tableau non vide")
+    if len(seller_ids) > 100:
+        raise ValidationError("Maximum 100 vendeurs par requête")
+
+    valid_sellers = await manager_service.get_users_by_ids_and_store(
+        seller_ids, resolved_store_id, role="seller", limit=100, projection={"_id": 0, "id": 1}
+    )
+    valid_ids = {s["id"] for s in valid_sellers}
+
+    async def get_profile(sid: str):
+        diagnostic = await manager_service.get_diagnostic_by_seller(sid)
+        debriefs = await manager_service.get_debriefs_by_seller(sid, limit=5)
+        avg_radar_scores = await competence_service.calculate_seller_performance_scores(
+            seller_id=sid, diagnostic=diagnostic, debriefs=debriefs
+        )
+        return sid, {
+            "avg_radar_scores": avg_radar_scores,
+            "niveau": diagnostic.get("level") if diagnostic else None,
+            "has_diagnostic": bool(diagnostic),
+        }
+
+    results = await _asyncio.gather(*[get_profile(sid) for sid in valid_ids])
+    return dict(results)
 
 
 @router.get("/kpi-entries/{seller_id}", dependencies=[rate_limit("200/minute")])

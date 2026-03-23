@@ -1,7 +1,7 @@
 """
 Gérant staff routes: managers/sellers list, staff update, invitations, suspend/reactivate/delete.
 """
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks, Query
 from datetime import datetime, timezone
 from typing import Dict
 
@@ -21,35 +21,27 @@ router = APIRouter(prefix="", tags=["Gérant"])
 
 @router.get("/managers")
 async def get_all_managers(
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    size: int = Query(100, ge=1, le=200, description="Taille de page (max 200)"),
     current_user: dict = Depends(get_current_gerant),
     gerant_service: GerantService = Depends(get_gerant_service)
 ):
-    """
-    Get all managers (active and suspended, excluding deleted)
-
-    Returns:
-        List of managers with their details (password excluded)
-    """
+    """Get managers paginated (active and suspended, excluding deleted)."""
     try:
-        managers = await gerant_service.get_all_managers(current_user['id'])
-        return managers
+        return await gerant_service.get_all_managers(current_user['id'], page=page, size=size)
     except ValueError as e:
         raise NotFoundError(str(e))
 
 
 @router.get("/sellers")
 async def get_all_sellers(
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    size: int = Query(100, ge=1, le=200, description="Taille de page (max 200)"),
     current_user: dict = Depends(get_current_gerant),
     gerant_service: GerantService = Depends(get_gerant_service)
 ):
-    """
-    Get all sellers (active and suspended, excluding deleted)
-
-    Returns:
-        List of sellers with their details (password excluded)
-    """
-    sellers = await gerant_service.get_all_sellers(current_user['id'])
-    return sellers
+    """Get sellers paginated (active and suspended, excluding deleted)."""
+    return await gerant_service.get_all_sellers(current_user['id'], page=page, size=size)
 
 
 @router.put("/staff/{user_id}")

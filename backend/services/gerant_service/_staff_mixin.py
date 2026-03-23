@@ -10,29 +10,29 @@ logger = logging.getLogger(__name__)
 
 class StaffMixin:
 
-    async def get_all_managers(self, gerant_id: str) -> list:
-        """Get all managers (active and suspended, excluding deleted)"""
+    async def get_all_managers(self, gerant_id: str, page: int = 1, size: int = 100) -> dict:
+        """Get managers paginated (active and suspended, excluding deleted)."""
+        size = min(max(size, 1), 200)
+        skip = (page - 1) * size
+        filter_q = {"gerant_id": gerant_id, "role": "manager", "status": {"$ne": "deleted"}}
+        total = await self.user_repo.count_by_gerant(gerant_id, role="manager")
         managers = await self.user_repo.find_many(
-            {
-                "gerant_id": gerant_id,
-                "role": "manager",
-                "status": {"$ne": "deleted"}
-            },
-            {"_id": 0, "password": 0}
+            filter_q, {"_id": 0, "password": 0},
+            limit=size, skip=skip, sort=[("name", 1)]
         )
-        return managers
+        return {"items": managers, "total": total, "page": page, "size": size, "pages": -(-total // size)}
 
-    async def get_all_sellers(self, gerant_id: str) -> list:
-        """Get all sellers (active and suspended, excluding deleted)"""
+    async def get_all_sellers(self, gerant_id: str, page: int = 1, size: int = 100) -> dict:
+        """Get sellers paginated (active and suspended, excluding deleted)."""
+        size = min(max(size, 1), 200)
+        skip = (page - 1) * size
+        filter_q = {"gerant_id": gerant_id, "role": "seller", "status": {"$ne": "deleted"}}
+        total = await self.user_repo.count_by_gerant(gerant_id, role="seller")
         sellers = await self.user_repo.find_many(
-            {
-                "gerant_id": gerant_id,
-                "role": "seller",
-                "status": {"$ne": "deleted"}
-            },
-            {"_id": 0, "password": 0}
+            filter_q, {"_id": 0, "password": 0},
+            limit=size, skip=skip, sort=[("name", 1)]
         )
-        return sellers
+        return {"items": sellers, "total": total, "page": page, "size": size, "pages": -(-total // size)}
 
     async def transfer_seller_to_store(
         self,
