@@ -6,6 +6,45 @@ on:
   pull_request:
 
 jobs:
+  # ── Job 1 : tests unitaires (rapide, pas de serveur ni MongoDB) ───────────
+  unit-tests:
+    name: Unit tests (cache + pagination)
+    runs-on: ubuntu-latest
+
+    env:
+      MONGO_URL: mongodb://localhost:27017/test
+      JWT_SECRET: ci-test-secret-key-at-least-32-characters-long
+      OPENAI_API_KEY: sk-ci-dummy
+      STRIPE_API_KEY: sk_test_ci_dummy
+      STRIPE_WEBHOOK_SECRET: whsec_ci_dummy
+      BREVO_API_KEY: ci-dummy-brevo
+      STRIPE_PRICE_ID_MONTHLY: price_ci_monthly
+      STRIPE_PRICE_ID_YEARLY: price_ci_yearly
+      FRONTEND_URL: http://localhost:3000
+      ADMIN_CREATION_SECRET: ci-admin-secret
+      DEFAULT_ADMIN_EMAIL: admin@ci-test.local
+      DEFAULT_ADMIN_PASSWORD: TestAdminPassword123!
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install deps
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        working-directory: backend
+        run: |
+          pytest tests/test_cache_logic.py tests/test_pagination_gerant.py -v
+
+  # ── Job 2 : test d'intégration KPI (nécessite MongoDB + serveur) ──────────
   kpi-json-safe:
     runs-on: ubuntu-latest
 
