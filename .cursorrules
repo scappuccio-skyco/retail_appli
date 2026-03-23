@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 21 Mars 2026 (session 4)
+**Dernière mise à jour**: 23 Mars 2026 (session 5)
 
 ---
 
@@ -966,6 +966,31 @@ Le scan complet de tous les composants > 300 lignes a été réalisé sur 4 sess
 - Backend FastAPI déployé sur Railway (selon architecture connue)
 - **Connexion MCP Railway non disponible** — vérifier manuellement sur railway.app
 - Variables d'env à vérifier : `DATABASE_URL`, `SECRET_KEY`, `STRIPE_SECRET_KEY`
+
+### [23 Mars 2026 — session 5] - Passeport vendeur + fix transferts + UX dashboard gérant
+
+#### Passeport vendeur cross-magasin (nouvelle feature)
+- **Problème corrigé** : `transfer_seller_to_store` réécrivait tous les KPI historiques du vendeur vers le nouveau magasin (`update_many` supprimé). Les KPI restent désormais liés au magasin où ils ont été produits — intégrité des données préservée.
+- **`transfer_history`** : chaque transfert de magasin ajoute un `$push` `{from_store_id, to_store_id, transferred_at, transferred_by_gerant_id}` sur le document vendeur.
+- **`get_seller_passport(seller_id, gerant_id)`** : nouvelle méthode `StaffMixin` — agrégation KPI cross-store par `seller_id` (sans filtre `store_id`), résolution des noms de magasins, métriques globales + par magasin, `transfer_history`.
+- **`GET /gerant/sellers/{id}/passport`** : nouvelle route (gerant/staff.py).
+- **`transfer_manager_to_store`** : guard "même magasin" ajouté + `orphaned_sellers_count` dans la réponse + `warning` si vendeurs orphelins.
+
+#### Frontend — Passeport
+- **`SellerPassportModal.js`** : nouveau composant — affiche métriques globales, performance par magasin (trié : courant en premier), historique de transferts.
+- **`TeamMemberRow.js`** : bouton "Passeport" (BookOpen) sur les vendeurs uniquement, prop `onPassport`.
+- **`StoreDetailModal.js`** : `useState(passportSeller)` + wire-up `SellerPassportModal`.
+
+#### Frontend — correctifs transferts
+- **`SellerTransferModal.js`** : managers filtrés `status === 'active'` (les suspendus ne s'affichent plus).
+- **`useGerantDashboard.js`** — `handleTransferManager` : erreur propagée via `error.response?.data?.detail` (cohérent avec `handleTransferSeller`).
+
+#### UX dashboard gérant (session 5)
+- **Sélecteur de période** supprimé comme bloc indépendant → intégré dans la barre tableau (toolbar compacte : tabs type + ◀ label ▶ + ↻ Actuel).
+- **Cards "Vue d'ensemble"** recentrées : `flex-col items-center text-center`, chiffres `text-3xl font-extrabold`, grille 2 col mobile / 4 col desktop, CA sur pleine largeur mobile.
+- **Fix backend CA** : `get_dashboard_stats` utilisait `today` comme borne haute → aligné sur `last_day_of_month` (cohérent avec `get_store_stats`).
+
+---
 
 ### [21 Mars 2026 — session 4] - Refactoring frontend : 3 composants supplémentaires
 
