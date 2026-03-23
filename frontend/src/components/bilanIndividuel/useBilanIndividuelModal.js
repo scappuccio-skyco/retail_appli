@@ -117,7 +117,9 @@ export default function useBilanIndividuelModal({ bilan, kpiEntries, currentWeek
       }
 
       pdf.setProperties({ title: `Bilan Individuel - ${bilan.periode || 'Actuel'}`, subject: 'Rapport de performance hebdomadaire', author: 'Retail Performer', creator: 'Retail Performer App' });
-      const fileName = `bilan_${bilan.periode || 'actuel'}.pdf`.replace(/\s+/g, '_');
+      const fileName = `bilan_${bilan.periode || 'actuel'}.pdf`
+        .replace(/\s+/g, '_')
+        .replace(/[/\\:*?"<>|]/g, '-');
       await new Promise(resolve => { unstable_batchedUpdates(() => { pdf.save(fileName); resolve(); }); });
     } catch (error) {
       logger.error("Erreur lors de l'export PDF:", error);

@@ -75,7 +75,9 @@ export async function exportToPDF(contentRef, bilanData, setExportingPDF) {
       }
     }
 
-    const fileName = `bilan_${bilanData?.periode || 'actuel'}.pdf`.replace(/\s+/g, '_');
+    const fileName = `bilan_${bilanData?.periode || 'actuel'}.pdf`
+      .replace(/\s+/g, '_')
+      .replace(/[/\\:*?"<>|]/g, '-');
     pdf.save(fileName);
 
   } catch (error) {
