@@ -16,6 +16,7 @@ from core.constants import (
 )
 from core.exceptions import AppException, NotFoundError, ValidationError
 from api.routes.manager.dependencies import get_store_context
+from api.dependencies_rate_limiting import rate_limit
 from api.routes.manager.response_utils import pagination_dict
 from api.dependencies import (
     get_manager_service,
@@ -51,7 +52,7 @@ async def get_team_analyses_history(
         return {"analyses": []}
 
 
-@router.post("/analyze-team")
+@router.post("/analyze-team", dependencies=[rate_limit("10/hour")])
 async def analyze_team(
     request: Request,
     analysis_data: dict,
@@ -656,7 +657,7 @@ Format exact :
     }
 
 
-@router.post("/analyze-store-kpis")
+@router.post("/analyze-store-kpis", dependencies=[rate_limit("10/hour")])
 async def analyze_store_kpis(
     request: Request,
     analysis_data: dict,
