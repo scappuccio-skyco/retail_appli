@@ -282,6 +282,13 @@ INDEXES: Dict[str, List[IndexSpec]] = {
     "admin_logs": [
         _spec("created_at", expireAfterSeconds=_TTL_365D, background=True, name="ttl_365d"),
     ],
+
+    # ── Audit logs métier (KPI, objectifs, évaluations — toutes mutations) ───
+    "audit_logs": [
+        _spec([("store_id", 1), ("created_at", -1)], background=True, name="store_created_idx"),
+        _spec([("user_id",  1), ("created_at", -1)], background=True, name="user_created_idx"),
+        _spec("created_at", expireAfterSeconds=_TTL_365D, background=True, name="ttl_365d"),
+    ],
 }
 
 

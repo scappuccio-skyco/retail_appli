@@ -5,10 +5,13 @@ from fastapi import APIRouter, Depends, Header, Query
 from typing import Dict, Optional, List
 from datetime import datetime, timezone
 from uuid import uuid4
+import asyncio
 import logging
 from core.constants import QUERY_PAGE_NUM_DESC, QUERY_PAGE_SIZE_DESC
 from core.exceptions import NotFoundError, ValidationError, ForbiddenError, ConflictError, BusinessLogicError
 from core.cache import invalidate_store_cache
+from core.audit import log_action
+from core.database import get_db
 from models.integrations import (
     APIKeyCreate, KPISyncRequest, APIStoreCreate,
     APIManagerCreate, APISellerCreate, APIUserUpdate
@@ -455,6 +458,7 @@ async def sync_kpi_data(
     api_key: Dict = Depends(verify_api_key),
     kpi_service: KPIService = Depends(get_kpi_service),
     gerant_service: GerantService = Depends(get_gerant_service),
+    db=Depends(get_db),
 ):
     """
     Sync KPI data from external systems. Phase 0 Vague 2: no db.
@@ -560,6 +564,19 @@ async def sync_kpi_data(
                         await invalidate_store_cache(sid)
                     except Exception:
                         pass  # fallback silencieux
+                # Audit log (fire-and-forget)
+                asyncio.create_task(log_action(
+                    db=db,
+                    user_id=api_key.get("user_id", "api"),
+                    user_role="api",
+                    action="kpi_sync",
+                    resource_type="kpi_entry",
+                    details={
+                        "entries_created": entries_created,
+                        "entries_updated": entries_updated,
+                        "store_ids": list(affected_store_ids),
+                    },
+                ))
             except Exception as bulk_error:
                 logger.error("Bulk write failed: %s", bulk_error, exc_info=True)
                 raise ValidationError(f"Failed to write KPI data to database: {str(bulk_error)}")

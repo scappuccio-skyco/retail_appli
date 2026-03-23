@@ -2,6 +2,7 @@
 Manager - KPI routes: store KPI overview, dates, manager KPI entries, seller metrics.
 """
 from datetime import datetime, timezone, timedelta
+import asyncio
 import logging
 from typing import Optional
 from uuid import uuid4
@@ -15,6 +16,8 @@ from core.constants import (
 )
 from core.exceptions import NotFoundError, ValidationError, ForbiddenError
 from core.cache import invalidate_store_cache
+from core.audit import log_action
+from core.database import get_db
 from api.routes.manager.dependencies import get_store_context
 from api.dependencies import (
     get_manager_service,
@@ -163,6 +166,7 @@ async def save_manager_kpi(
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),
+    db=Depends(get_db),
 ):
     """
     Save manager KPI entries (sellers_data per seller, nb_prospects global).
@@ -266,6 +270,21 @@ async def save_manager_kpi(
             await invalidate_store_cache(resolved_store_id)
         except Exception:
             pass  # fallback silencieux
+
+        # Audit log (fire-and-forget)
+        asyncio.create_task(log_action(
+            db=db,
+            user_id=manager_id or "unknown",
+            user_role=role,
+            store_id=resolved_store_id,
+            action="kpi_upsert",
+            resource_type="kpi_entry",
+            details={
+                "date": date,
+                "sellers_count": len(results.get("sellers_entries", [])),
+                "has_prospects": results.get("prospects_entry") is not None,
+            },
+        ))
 
     return results
 
