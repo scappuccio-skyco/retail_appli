@@ -259,8 +259,8 @@ async def update_kpi_config(
 @router.get("/manager-kpi")
 async def get_manager_kpis(
     request: Request,
-    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
-    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)", pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)", pattern=r"^\d{4}-\d{2}-\d{2}$"),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     pagination: PaginationParams = Depends(),
     context: dict = Depends(get_store_context),
@@ -430,8 +430,8 @@ async def get_team_bilans_all(
 @router.get("/store-kpi/stats")
 async def get_store_kpi_stats(
     request: Request,
-    start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None),
+    start_date: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    end_date: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_REQUIS_GERANT),
     context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service),

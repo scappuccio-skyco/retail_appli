@@ -18,6 +18,7 @@ from core.exceptions import NotFoundError, ValidationError, ForbiddenError
 from core.cache import invalidate_store_cache
 from core.audit import log_action
 from core.database import get_db
+from core.validators import validate_date
 from api.routes.manager.dependencies import get_store_context
 from api.dependencies import (
     get_manager_service,
@@ -299,6 +300,8 @@ async def get_store_kpi_stats(
     kpi_service: ManagerKpiService = Depends(get_manager_kpi_service),
 ):
     """Get aggregated KPI statistics for the store."""
+    validate_date(start_date, "start_date")
+    validate_date(end_date, "end_date")
     resolved_store_id = context.get("resolved_store_id")
     return await kpi_service.get_store_kpi_stats(store_id=resolved_store_id, start_date=start_date, end_date=end_date)
 

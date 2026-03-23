@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     
     # Security
     JWT_SECRET: str = Field(..., description="JWT secret key for token signing")
-    CORS_ORIGINS: str = Field(default="*", description="Allowed CORS origins")
+    CORS_ORIGINS: str = Field(default="https://retailperformerai.com,https://www.retailperformerai.com", description="Allowed CORS origins (comma-separated). Set CORS_ORIGINS env var to override.")
     API_RATE_LIMIT: int = Field(default=60, description="API rate limit per minute")
     
     # External Services
