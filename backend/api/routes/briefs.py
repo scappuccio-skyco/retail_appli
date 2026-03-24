@@ -151,6 +151,7 @@ class MorningBriefResponse(BaseModel):
     has_context: bool
     generated_at: str
     fallback: Optional[bool] = False
+    cached: Optional[bool] = None
 
 
 class BriefHistoryItem(BaseModel):
