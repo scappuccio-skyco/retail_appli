@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 import bcrypt
+import jwt
 import pytest
 import requests
 from pymongo import MongoClient
@@ -25,6 +26,7 @@ BASE_URL = os.environ.get("TEST_BASE_URL", "http://127.0.0.1:8001")
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://127.0.0.1:27017/")
 TEST_PASSWORD = os.environ.get("TEST_PASSWORD", "TestUserPassword123!")
 DB_NAME = os.environ.get("DB_NAME", "retail_coach")
+JWT_SECRET = os.environ.get("JWT_SECRET", "test-jwt-secret-not-real-32chars!!")
 
 _ALLOWED_TEST_HOSTS = ("localhost", "127.0.0.1")
 
@@ -94,14 +96,15 @@ def _build_gerant_graph(db):
     }
 
 
-def _login(email: str) -> str:
-    url = f"{BASE_URL}/api/auth/login"
-    assert _safe(url)
-    r = requests.post(url, json={"email": email, "password": TEST_PASSWORD})
-    assert r.status_code == 200, f"Login failed: {r.text}"
-    token = r.json().get("token")
-    assert token
-    return token
+def _make_token(user_id: str, email: str, role: str) -> str:
+    """Generate a JWT directly — avoids hitting the login rate limiter."""
+    payload = {
+        "user_id": user_id,
+        "email": email,
+        "role": role,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=24),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 
 # ---------------------------------------------------------------------------
@@ -120,7 +123,7 @@ def test_team_analysis_cache_hit():
     db = client[DB_NAME]
 
     graph = _build_gerant_graph(db)
-    token = _login(graph["manager_email"])
+    token = _make_token(graph["manager_id"], graph["manager_email"], "manager")
     headers = {"Authorization": f"Bearer {token}"}
 
     store_id = graph["store_id"]
@@ -175,7 +178,7 @@ def test_team_analysis_cache_miss_no_doc():
     db = client[DB_NAME]
 
     graph = _build_gerant_graph(db)
-    token = _login(graph["manager_email"])
+    token = _make_token(graph["manager_id"], graph["manager_email"], "manager")
     headers = {"Authorization": f"Bearer {token}"}
 
     store_id = graph["store_id"]
@@ -217,7 +220,7 @@ def test_morning_brief_cache_hit():
     db = client[DB_NAME]
 
     graph = _build_gerant_graph(db)
-    token = _login(graph["gerant_email"])
+    token = _make_token(graph["gerant_id"], graph["gerant_email"], "gerant")
     headers = {"Authorization": f"Bearer {token}"}
 
     store_id = graph["store_id"]
@@ -268,7 +271,7 @@ def test_morning_brief_cache_bypassed_with_comments():
     db = client[DB_NAME]
 
     graph = _build_gerant_graph(db)
-    token = _login(graph["gerant_email"])
+    token = _make_token(graph["gerant_id"], graph["gerant_email"], "gerant")
     headers = {"Authorization": f"Bearer {token}"}
 
     store_id = graph["store_id"]
