@@ -70,8 +70,9 @@ export default function LegalNotice() {
                 4. Hébergement
               </h2>
               <div className="bg-gray-50 rounded-xl p-6 space-y-3">
-                <p><strong>Plateforme d&apos;hébergement :</strong> Railway (railway.app)</p>
-                <p><strong>Infrastructure Cloud :</strong> Google Cloud Platform (GCP)</p>
+                <p><strong>Frontend :</strong> Vercel Inc. (vercel.com) — États-Unis</p>
+                <p><strong>Backend :</strong> Railway (railway.app) — Google Cloud Platform (GCP)</p>
+                <p><strong>Nom de domaine :</strong> Hostinger (hostinger.com)</p>
                 <p><strong>Base de données :</strong> MongoDB Atlas</p>
                 <p><strong>Localisation des données :</strong> Union Européenne et États-Unis</p>
                 <p className="text-sm text-gray-500 mt-2">

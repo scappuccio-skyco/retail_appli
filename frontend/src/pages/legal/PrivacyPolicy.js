@@ -139,8 +139,13 @@ export default function PrivacyPolicy() {
                 <td className="border border-gray-200 px-4 py-3">UE (France)</td>
               </tr>
               <tr>
+                <td className="border border-gray-200 px-4 py-3 font-medium">Vercel</td>
+                <td className="border border-gray-200 px-4 py-3">Hébergement frontend</td>
+                <td className="border border-gray-200 px-4 py-3">US (CCT)</td>
+              </tr>
+              <tr className="bg-gray-50">
                 <td className="border border-gray-200 px-4 py-3 font-medium">Railway (GCP)</td>
-                <td className="border border-gray-200 px-4 py-3">Hébergement infrastructure</td>
+                <td className="border border-gray-200 px-4 py-3">Hébergement backend</td>
                 <td className="border border-gray-200 px-4 py-3">US (CCT)</td>
               </tr>
               <tr className="bg-gray-50">
