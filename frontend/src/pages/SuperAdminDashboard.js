@@ -9,10 +9,12 @@ import WorkspacesTab from './superAdminDashboard/WorkspacesTab';
 import LogsTab from './superAdminDashboard/LogsTab';
 import SystemLogsTab from './superAdminDashboard/SystemLogsTab';
 import OverviewTab from './superAdminDashboard/OverviewTab';
+import ToolsTab from './superAdminDashboard/ToolsTab';
+import UsersTab from './superAdminDashboard/UsersTab';
 import useSuperAdminDashboard from './superAdminDashboard/useSuperAdminDashboard';
 import {
   Users, Building2, TrendingUp, Activity,
-  ShieldCheck, AlertCircle, Sparkles, Clock
+  ShieldCheck, AlertCircle, Sparkles, Clock, Wrench
 } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
@@ -187,6 +189,24 @@ export default function SuperAdminDashboard() {
             <TrendingUp className="w-4 h-4" />
             Abonnements Stripe
           </button>
+          <button
+            onClick={() => s.setActiveTab('users')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
+              s.activeTab === 'users' ? 'bg-purple-600 text-white shadow-lg' : 'text-purple-200 hover:bg-white/10'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            Utilisateurs
+          </button>
+          <button
+            onClick={() => s.setActiveTab('tools')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
+              s.activeTab === 'tools' ? 'bg-purple-600 text-white shadow-lg' : 'text-purple-200 hover:bg-white/10'
+            }`}
+          >
+            <Wrench className="w-4 h-4" />
+            Outils
+          </button>
         </div>
       </div>
 
@@ -244,6 +264,8 @@ export default function SuperAdminDashboard() {
         )}
 
         {s.activeTab === 'subscriptions' && <StripeSubscriptionsView />}
+        {s.activeTab === 'users' && <UsersTab />}
+        {s.activeTab === 'tools' && <ToolsTab />}
       </div>
     </div>
   );
