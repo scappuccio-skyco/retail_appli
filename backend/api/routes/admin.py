@@ -419,6 +419,20 @@ async def get_all_invitations(
     )
 
 
+@router.post("/notify-cgu-update")
+async def notify_cgu_update(
+    dry_run: bool = Query(True, description="Si True (défaut), simule sans envoyer. False pour envoyer réellement."),
+    admin_service: AdminService = Depends(get_admin_service),
+    current_admin: dict = Depends(get_super_admin),
+):
+    """
+    RGPD — Notifie par email tous les utilisateurs actifs dont la version CGU
+    est inférieure à CGU_CURRENT_VERSION.
+    Utiliser dry_run=true d'abord pour vérifier le nombre concerné.
+    """
+    return await admin_service.notify_cgu_update(current_admin=current_admin, dry_run=dry_run)
+
+
 @router.post("/ai-assistant/chat")
 async def chat_with_ai_assistant(
     request: ChatRequest,

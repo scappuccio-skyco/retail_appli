@@ -146,3 +146,72 @@ class AdminsMixin:
         )
 
         return {"success": True, "message": "Super admin supprimé"}
+
+    async def notify_cgu_update(self, current_admin: dict, dry_run: bool = True) -> dict:
+        """
+        Envoie un email de notification de mise à jour des CGU à tous les utilisateurs
+        dont la cgu_version est différente de CGU_CURRENT_VERSION (ou absente).
+
+        dry_run=True (défaut) : retourne le nombre d'utilisateurs concernés sans envoyer.
+        dry_run=False : envoie réellement les emails.
+        """
+        from config.limits import CGU_CURRENT_VERSION
+        from email_service import send_cgu_update_email
+        import asyncio
+
+        users = await self.user_repo.find_many(
+            {
+                "status": {"$in": ["active", "trial"]},
+                "$or": [
+                    {"cgu_version": {"$exists": False}},
+                    {"cgu_version": None},
+                    {"cgu_version": {"$ne": CGU_CURRENT_VERSION}},
+                ]
+            },
+            projection={"_id": 0, "id": 1, "email": 1, "name": 1, "cgu_version": 1}
+        )
+
+        # Filtrer les emails anonymisés (comptes supprimés)
+        users = [u for u in users if u.get("email") and "@example.invalid" not in u["email"]]
+        total = len(users)
+
+        if dry_run:
+            return {
+                "dry_run": True,
+                "total_to_notify": total,
+                "cgu_version": CGU_CURRENT_VERSION,
+                "message": f"{total} utilisateur(s) seraient notifiés. Relancez avec dry_run=false pour envoyer."
+            }
+
+        sent = 0
+        errors = 0
+        for user in users:
+            try:
+                success = await asyncio.to_thread(
+                    send_cgu_update_email,
+                    user["email"],
+                    user.get("name", ""),
+                    CGU_CURRENT_VERSION,
+                )
+                if success:
+                    sent += 1
+                else:
+                    errors += 1
+            except Exception:
+                errors += 1
+
+        await self.log_admin_action(
+            admin_id=current_admin.get("id"),
+            admin_email=current_admin.get("email"),
+            admin_name=current_admin.get("name"),
+            action="notify_cgu_update",
+            details={"cgu_version": CGU_CURRENT_VERSION, "sent": sent, "errors": errors, "total": total}
+        )
+
+        return {
+            "dry_run": False,
+            "cgu_version": CGU_CURRENT_VERSION,
+            "total": total,
+            "sent": sent,
+            "errors": errors,
+        }

@@ -1252,3 +1252,72 @@ def send_trial_ending_email(
         logger.error(f"Error sending trial ending email to {recipient_email}: {e}")
         return False
 
+
+def send_cgu_update_email(recipient_email: str, recipient_name: str, new_version: str) -> bool:
+    """
+    Email de notification envoyé aux utilisateurs lorsque les CGU/Politique de confidentialité
+    sont mises à jour. Conforme LCEN / RGPD.
+    """
+    frontend_url = get_frontend_url().rstrip('/')
+    terms_link = f"{frontend_url}/terms"
+    privacy_link = f"{frontend_url}/privacy"
+
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+
+  <div style="background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 22px;">Mise à jour de nos conditions</h1>
+    <p style="color: rgba(255,255,255,0.9); margin-top: 8px;">Retail Performer AI — version {new_version}</p>
+  </div>
+
+  <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+    <p>Bonjour <strong>{recipient_name}</strong>,</p>
+
+    <p>Nous avons mis à jour nos <strong>Conditions Générales d'Utilisation</strong> et notre
+    <strong>Politique de Confidentialité</strong> (version {new_version}).</p>
+
+    <p>Nous vous invitons à en prendre connaissance avant de continuer à utiliser Retail Performer AI :</p>
+
+    <div style="margin: 24px 0; display: flex; gap: 12px; flex-wrap: wrap;">
+      <a href="{terms_link}" style="display: inline-block; background-color: #1E40AF; color: white;
+         padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-right: 12px;">
+        Lire les CGU
+      </a>
+      <a href="{privacy_link}" style="display: inline-block; background-color: #F97316; color: white;
+         padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+        Politique de confidentialité
+      </a>
+    </div>
+
+    <p style="color: #6B7280; font-size: 14px;">
+      En continuant à utiliser Retail Performer AI après cette notification, vous acceptez les
+      nouvelles conditions. Si vous avez des questions, contactez-nous à
+      <a href="mailto:hello@retailperformerai.com" style="color: #F97316;">hello@retailperformerai.com</a>.
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+    <p style="font-size: 12px; color: #9CA3AF; text-align: center;">
+      SKY CO — 25 Allée Rose Dieng-Kuntz, 75019 Paris<br>
+      Vous recevez cet email car vous avez un compte actif sur Retail Performer AI.
+    </p>
+  </div>
+</body>
+</html>"""
+
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject=f"📋 Mise à jour de nos CGU — Retail Performer AI ({new_version})",
+            html_content=html_content,
+        )
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"CGU update email sent to {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending CGU update email to {recipient_email}: {e}")
+        return False
+
