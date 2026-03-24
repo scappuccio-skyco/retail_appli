@@ -260,7 +260,7 @@ INDEXES: Dict[str, List[IndexSpec]] = {
         _spec([("user_id", 1), ("created_at", -1)], background=True, name="user_created_idx"),
     ],
     "billing_profiles": [
-        _spec("user_id", unique=True, background=True, name="user_id_unique"),
+        _spec("gerant_id", unique=True, background=True, name="gerant_id_unique"),
     ],
 
     # ── Onboarding ───────────────────────────────────────────────────────────
