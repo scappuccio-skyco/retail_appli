@@ -137,6 +137,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.warning("System log repo not available: %s", e)
         app.state.system_log_repo = None
 
+    # WebSocket Redis pub/sub listener
+    try:
+        from core.ws_manager import ws_manager
+        from core.config import settings
+        redis_url = getattr(settings, "CACHE_REDIS_URL", None) or getattr(settings, "REDIS_URL", None)
+        if redis_url and str(redis_url).strip():
+            await ws_manager.start_redis_listener(str(redis_url).strip())
+        else:
+            logger.info("No Redis URL — WebSocket using local broadcast only")
+    except Exception as e:
+        logger.warning("WsManager init warning (non-critical): %s", e)
+
     # Schedule index creation in background (does not block healthcheck).
     # Keep task in module-level set to prevent premature garbage collection.
     index_task = asyncio.create_task(_create_indexes_background())
@@ -147,6 +159,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Shutdown
+    try:
+        from core.ws_manager import ws_manager
+        await ws_manager.stop()
+    except Exception as e:
+        logger.warning("WsManager stop warning: %s", e)
     try:
         await database.disconnect()
         logger.info("MongoDB connection closed")

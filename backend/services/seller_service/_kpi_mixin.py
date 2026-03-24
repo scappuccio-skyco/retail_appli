@@ -1,4 +1,5 @@
 """KPI-related methods for SellerService."""
+import asyncio
 import logging
 from typing import Dict, List, Optional
 
@@ -71,13 +72,18 @@ class KpiMixin:
 
     async def update_kpi_entry_by_id(self, entry_id: str, update_data: Dict) -> bool:
         """Update KPI entry by id. Used by routes instead of kpi_repo.update_one."""
-        return await self.kpi_repo.update_one(
+        result = await self.kpi_repo.update_one(
             {"id": entry_id}, {"$set": update_data}
         )
+        if result and update_data.get("store_id"):
+            asyncio.create_task(_emit_kpi_event(update_data))
+        return result
 
     async def create_kpi_entry(self, entry_data: Dict) -> str:
         """Create KPI entry. Used by routes instead of kpi_repo.insert_one."""
-        return await self.kpi_repo.insert_one(entry_data)
+        result = await self.kpi_repo.insert_one(entry_data)
+        asyncio.create_task(_emit_kpi_event(entry_data))
+        return result
 
     async def get_kpis_for_period_paginated(
         self,
@@ -99,3 +105,34 @@ class KpiMixin:
             projection={"_id": 0},
             sort=[("date", -1)],
         )
+
+
+# ---------------------------------------------------------------------------
+# Helper module-level (fire-and-forget via asyncio.create_task)
+# ---------------------------------------------------------------------------
+
+_KPI_EVENT_FIELDS = (
+    "ca_journalier", "nb_ventes", "nb_articles", "nb_clients", "nb_prospects"
+)
+
+
+async def _emit_kpi_event(entry: dict) -> None:
+    """
+    Publie un evenement kpi_entry_saved sur le canal WebSocket du store.
+    Fire-and-forget : les erreurs sont loggees mais n'interrompent pas le flux.
+    """
+    store_id = entry.get("store_id")
+    if not store_id:
+        return
+    try:
+        from core.ws_manager import ws_manager
+        event = {
+            "type": "kpi_entry_saved",
+            "store_id": store_id,
+            "seller_id": entry.get("seller_id"),
+            "date": entry.get("date"),
+            "data": {k: entry[k] for k in _KPI_EVENT_FIELDS if k in entry},
+        }
+        await ws_manager.publish(store_id, event)
+    except Exception as e:
+        logger.warning("KPI event emit failed (non-critical): %s", e)
