@@ -192,6 +192,10 @@ async def create_billing_profile(
 
     except AppException:
         raise
+    except Exception as e:
+        import traceback
+        logger.error("BILLING_PROFILE_ERROR type=%s msg=%s\n%s", type(e).__name__, e, traceback.format_exc())
+        raise
 
 
 @router.put("/billing-profile")
