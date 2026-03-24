@@ -77,14 +77,19 @@ export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection 
               ) : (
                 <div>
                   <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-5xl font-bold text-[#334155]">278€</span>
+                    <span className="text-3xl font-bold text-gray-400 line-through">278€</span>
+                    <span className="text-5xl font-bold text-[#334155]">182€</span>
                     <span className="text-[#334155]">/vendeur/an</span>
                   </div>
+                  <p className="text-xs text-[#F97316] font-semibold mt-1">Tarif Fondateur</p>
                   <p className="text-xs text-gray-500 mt-1">TTC</p>
                   <p className="text-sm text-green-600 font-semibold mt-2">
                     1 à 5 espaces vendeur
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Au lieu de 348€ • Économisez 70€/vendeur/an • Espace Gérant & Manager inclus</p>
+                  <p className="text-xs text-gray-600 mt-1">+ Espace Gérant & Manager inclus</p>
+                  <p className="text-xs text-[#F97316] font-medium mt-2 italic">
+                    Tarif bloqué à vie pour les 5 prochains magasins partenaires.
+                  </p>
                 </div>
               )}
             </div>
@@ -154,14 +159,19 @@ export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection 
               ) : (
                 <div>
                   <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-5xl font-bold text-[#334155]">240€</span>
+                    <span className="text-3xl font-bold text-gray-400 line-through">240€</span>
+                    <span className="text-5xl font-bold text-[#334155]">144€</span>
                     <span className="text-[#334155]">/vendeur/an</span>
                   </div>
+                  <p className="text-xs text-[#F97316] font-semibold mt-1">Tarif Fondateur</p>
                   <p className="text-xs text-gray-500 mt-1">TTC</p>
                   <p className="text-sm text-green-600 font-semibold mt-2">
                     6 à 15 espaces vendeur
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Au lieu de 300€ • Économisez 60€/vendeur/an</p>
+                  <p className="text-xs text-gray-600 mt-1">+ Espace Gérant & Manager inclus</p>
+                  <p className="text-xs text-[#F97316] font-medium mt-2 italic">
+                    Tarif bloqué à vie pour les 5 prochains magasins partenaires.
+                  </p>
                 </div>
               )}
             </div>
