@@ -28,7 +28,7 @@ async def api_health_check():
     s = _get_settings()
     try:
         from core.database import database
-        db_ok = database is not None and getattr(database, "db", None)
+        db_ok = database is not None and getattr(database, "db", None) is not None
     except Exception:
         db_ok = False
     return {
