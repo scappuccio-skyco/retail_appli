@@ -37,6 +37,19 @@ PROFIL_LE_COACH = "Le Coach"
 PROFIL_LE_STRATEGE = "Le Stratège"
 PROFIL_DEFAULT = PROFIL_LE_COACH
 
+# ----- Pricing (tarifs par palier, TTC) -----
+# Mensuel
+PRICE_PER_SEAT_STARTER_MONTHLY = 29        # 1-5 sièges
+PRICE_PER_SEAT_PROFESSIONAL_MONTHLY = 25   # 6+ sièges
+# Annuel
+PRICE_PER_SEAT_STARTER_YEARLY = 278        # 1-5 sièges
+PRICE_PER_SEAT_PROFESSIONAL_YEARLY = 240   # 6+ sièges
+# Seuil
+SEATS_THRESHOLD_PROFESSIONAL = 6           # À partir de ce nombre de sièges → plan Professional
+# Aliases mensuels (rétrocompatibilité)
+PRICE_PER_SEAT_STARTER = PRICE_PER_SEAT_STARTER_MONTHLY
+PRICE_PER_SEAT_PROFESSIONAL = PRICE_PER_SEAT_PROFESSIONAL_MONTHLY
+
 # ----- Opérateurs MongoDB (agrégations) -----
 MONGO_IFNULL = "$ifNull"
 MONGO_MATCH = "$match"

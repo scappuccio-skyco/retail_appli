@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 from datetime import datetime, timezone, timedelta
 
 from config.limits import MAX_PAGE_SIZE
+from core.constants import PRICE_PER_SEAT_STARTER
 from models.pagination import PaginatedResponse
 
 logger = logging.getLogger(__name__)
@@ -87,7 +88,7 @@ class StatsMixin:
         trial_subscriptions = await self.admin_repo.count_workspaces_by_criteria({
             "subscription_status": "trialing"
         })
-        mrr = active_subscriptions * 29  # Average price per subscription
+        mrr = active_subscriptions * PRICE_PER_SEAT_STARTER  # Indicatif : basé sur le tarif Starter
 
         # Activity stats (recent signups and analyses)
         seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)

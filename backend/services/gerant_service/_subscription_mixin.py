@@ -4,6 +4,11 @@ import os
 from typing import Dict, Optional, List
 from datetime import datetime, timezone
 
+from core.constants import (
+    PRICE_PER_SEAT_STARTER_MONTHLY, PRICE_PER_SEAT_PROFESSIONAL_MONTHLY,
+    PRICE_PER_SEAT_STARTER_YEARLY, PRICE_PER_SEAT_PROFESSIONAL_YEARLY,
+    SEATS_THRESHOLD_PROFESSIONAL,
+)
 from models.pagination import PaginatedResponse
 from utils.pagination import paginate
 
@@ -433,8 +438,13 @@ class SubscriptionMixin:
             "subscription": {
                 "id": db_subscription.get('stripe_subscription_id'),
                 "seats": quantity,
-                "price_per_seat": 25 if current_plan == 'professional' else 29,
-                "billing_interval": "month",
+                "price_per_seat": (
+                    PRICE_PER_SEAT_PROFESSIONAL_YEARLY if (current_plan == 'professional' and db_subscription.get('billing_interval') == 'year')
+                    else PRICE_PER_SEAT_STARTER_YEARLY if db_subscription.get('billing_interval') == 'year'
+                    else PRICE_PER_SEAT_PROFESSIONAL_MONTHLY if current_plan == 'professional'
+                    else PRICE_PER_SEAT_STARTER_MONTHLY
+                ),
+                "billing_interval": db_subscription.get('billing_interval', 'month'),
                 "current_period_start": db_subscription.get('current_period_start'),
                 "current_period_end": db_subscription.get('current_period_end'),
                 "cancel_at_period_end": db_subscription.get('cancel_at_period_end', False),

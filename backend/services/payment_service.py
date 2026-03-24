@@ -9,6 +9,10 @@ import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Optional
 
+from core.constants import (
+    PRICE_PER_SEAT_STARTER, PRICE_PER_SEAT_PROFESSIONAL,
+    SEATS_THRESHOLD_PROFESSIONAL,
+)
 from repositories.user_repository import UserRepository
 from repositories.subscription_repository import SubscriptionRepository
 from repositories.store_repository import WorkspaceRepository
@@ -901,15 +905,12 @@ class PaymentService:
                 raise Exception(f"Erreur Stripe: {str(e)}")
         
         # Calculate plan based on seats
-        if new_seats <= 5:
-            price_per_seat = 29
+        if new_seats < SEATS_THRESHOLD_PROFESSIONAL:
+            price_per_seat = PRICE_PER_SEAT_STARTER
             plan = 'starter'
-        elif new_seats <= 15:
-            price_per_seat = 25
-            plan = 'professional'
         else:
-            price_per_seat = 22
-            plan = 'enterprise'
+            price_per_seat = PRICE_PER_SEAT_PROFESSIONAL
+            plan = 'professional'
         
         new_monthly_cost = new_seats * price_per_seat
         
