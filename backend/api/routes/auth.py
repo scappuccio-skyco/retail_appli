@@ -90,6 +90,7 @@ async def register_gerant(
         password=user_data.password,
         company_name=company_name,
         phone=user_data.phone,
+        cgu_accepted_at=user_data.cgu_accepted_at,
     )
     token = result.get("token")
     if token:
@@ -121,6 +122,7 @@ async def register_with_invitation(
         password=registration_data.password,
         name=registration_data.name,
         invitation_token=registration_data.invitation_token,
+        cgu_accepted_at=registration_data.cgu_accepted_at,
     )
     token = result.get("token")
     if token:

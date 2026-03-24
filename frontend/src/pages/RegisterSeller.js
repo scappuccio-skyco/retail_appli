@@ -72,7 +72,8 @@ export default function RegisterSeller() {
         invitation_token: token,
         name: formData.name,
         password: formData.password,
-        phone: formData.phone
+        phone: formData.phone,
+        cgu_accepted_at: new Date().toISOString()
       });
 
       toast.success('Compte créé avec succès ! Redirection...');

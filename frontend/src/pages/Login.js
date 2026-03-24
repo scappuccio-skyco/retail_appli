@@ -84,7 +84,8 @@ export default function Login({ onLogin }) {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          invitation_token: inviteToken
+          invitation_token: inviteToken,
+          cgu_accepted_at: new Date().toISOString()
         };
       } else if (isRegister) {
         // Normal registration (manager)
@@ -94,7 +95,8 @@ export default function Login({ onLogin }) {
           email: formData.email,
           password: formData.password,
           role: formData.role,
-          workspace_name: formData.workspace_name
+          workspace_name: formData.workspace_name,
+          cgu_accepted_at: new Date().toISOString()
         };
       } else {
         // Login

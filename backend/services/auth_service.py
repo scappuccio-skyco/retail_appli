@@ -165,7 +165,8 @@ class AuthService:
         email: str,
         password: str,
         company_name: str,
-        phone: Optional[str] = None
+        phone: Optional[str] = None,
+        cgu_accepted_at: Optional[datetime] = None
     ) -> Dict:
         """
         Register a new gérant with workspace
@@ -204,7 +205,8 @@ class AuthService:
             "phone": phone,
             "workspace_id": workspace_id,  # Link workspace to user
             "created_at": now,
-            "status": "active"
+            "status": "active",
+            "cgu_accepted_at": cgu_accepted_at or now,
         }
         
         await self.user_repo.insert_one(user)
@@ -247,7 +249,8 @@ class AuthService:
         email: str,
         password: str,
         name: str,
-        invitation_token: str
+        invitation_token: str,
+        cgu_accepted_at: Optional[datetime] = None
     ) -> Dict:
         """
         Register user with invitation token
@@ -284,6 +287,7 @@ class AuthService:
         
         # Create user
         user_id = str(uuid4())
+        now_inv = datetime.now(timezone.utc)
         user = {
             "id": user_id,
             "name": name,
@@ -293,8 +297,9 @@ class AuthService:
             "gerant_id": invitation.get('gerant_id'),
             "store_id": invitation.get('store_id'),
             "manager_id": invitation.get('manager_id'),
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "status": "active"
+            "created_at": now_inv.isoformat(),
+            "status": "active",
+            "cgu_accepted_at": (cgu_accepted_at or now_inv).isoformat(),
         }
         
         await self.user_repo.insert_one(user)

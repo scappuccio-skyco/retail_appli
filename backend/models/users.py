@@ -41,6 +41,7 @@ class User(BaseModel):
     deactivated_at: Optional[datetime] = None  # Date de désactivation
     deleted_at: Optional[datetime] = None  # Date de suppression
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    cgu_accepted_at: Optional[datetime] = None  # Date d'acceptation des CGU (RGPD)
 
 
 
@@ -53,6 +54,7 @@ class UserCreate(BaseModel):
     workspace_name: Optional[str] = None  # Alias pour company_name (pour compatibilité frontend)
     company_name: Optional[str] = None  # Nom de l'entreprise
     phone: Optional[str] = None  # Téléphone optionnel
+    cgu_accepted_at: Optional[datetime] = None  # Date d'acceptation des CGU
 
 
 
@@ -96,6 +98,7 @@ class RegisterWithInvite(BaseModel):
     email: EmailStr
     password: str
     invitation_token: str
+    cgu_accepted_at: Optional[datetime] = None
 
 
 
@@ -136,6 +139,7 @@ class RegisterWithGerantInvite(BaseModel):
     password: str
     invitation_token: str
     phone: Optional[str] = None
+    cgu_accepted_at: Optional[datetime] = None  # Date d'acceptation des CGU
 
 # ============================================
 # USER MODELS (Modified for Multi-Store)

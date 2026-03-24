@@ -57,7 +57,8 @@ export default function RegisterGerant() {
         name: formData.name,
         password: formData.password,
         phone: formData.phone,
-        company: formData.company
+        company: formData.company,
+        cgu_accepted_at: new Date().toISOString()
       });
 
       toast.success('Compte créé avec succès ! Redirection...');

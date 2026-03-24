@@ -102,12 +102,21 @@ async def register_with_gerant_invite_legacy(
         invitation = await auth_service.get_invitation_by_token(invitation_token)
         if invitation:
             email = invitation.get("email", "")
+    from datetime import datetime, timezone
+    cgu_raw = request_data.get("cgu_accepted_at")
+    cgu_accepted_at = None
+    if cgu_raw:
+        try:
+            cgu_accepted_at = datetime.fromisoformat(cgu_raw.replace("Z", "+00:00"))
+        except Exception:
+            cgu_accepted_at = datetime.now(timezone.utc)
     try:
         return await auth_service.register_with_invitation(
             email=email,
             password=request_data.get("password"),
             name=request_data.get("name"),
             invitation_token=invitation_token,
+            cgu_accepted_at=cgu_accepted_at,
         )
     except ValidationError:
         raise
