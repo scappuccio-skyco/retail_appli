@@ -1121,3 +1121,19 @@ La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé 
 - ⚠️ Snyk CI intégré dans `backend-ci.yml` (job `snyk-security`) mais `SNYK_TOKEN` non encore configuré
 - TODO : récupérer le token Snyk (snyk.io → Settings → Service accounts ou Auth token) et l'ajouter en secret GitHub : `SNYK_TOKEN`
 - Sans ce token, le job Snyk sera skippé/en erreur (continue-on-error=true → ne bloque pas le CI)
+
+#### RGPD — CGU & consentement
+- ✅ Checkbox CGU obligatoire à l'inscription (Login.js + RegisterManager.js + RegisterSeller.js)
+- ✅ `cgu_accepted_at` (datetime UTC) stocké dans le document user MongoDB à l'inscription
+- ✅ `cgu_version` stocké dans le document user MongoDB (`"v1.0"` actuellement)
+- Constante `CGU_CURRENT_VERSION` dans `backend/config/limits.py` — **à incrémenter à chaque mise à jour des CGU ou de la politique de confidentialité**
+- **RÈGLE** : quand `CGU_CURRENT_VERSION` change → envoyer un email de notification à tous les users avec `cgu_version != nouvelle_version` (via Brevo / endpoint admin)
+- ⚠️ TODO : implémenter l'email de notification aux utilisateurs lors d'un changement de CGU (re-consentement explicite requis uniquement si changement majeur affectant les droits des données — sinon notification suffit légalement)
+
+#### TODOs pré-commercialisation restants
+- ⚠️ **SNYK_TOKEN** : récupérer sur snyk.io → Settings → Auth token → ajouter en secret GitHub
+- ⚠️ **Stripe live mode** : vérifier que les clés Railway prod sont `sk_live_*` et que le webhook prod `https://api.retailperformerai.com/webhooks/stripe` est enregistré en mode live dans Stripe Dashboard
+- ⚠️ **Suppression données RGPD** : implémenter endpoint/process de suppression de compte (droit à l'effacement RGPD — promis dans la privacy policy)
+- ⚠️ **Email CGU** : endpoint admin pour envoyer email de notification à tous les users quand CGU changent
+- ⚠️ **Emails Brevo en prod** : vérifier délivrabilité (SPF/DKIM configurés, pas en spam)
+- ⚠️ **Backup Atlas** : vérifier que le backup automatique est activé sur le cluster prod
