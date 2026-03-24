@@ -49,6 +49,16 @@ async def root():
     }
 
 
+@router.get("/_debug/sentry", include_in_schema=False)
+async def sentry_debug():
+    """Déclenche une erreur test pour valider l'intégration Sentry. Non-production uniquement."""
+    s = _get_settings()
+    if s.ENVIRONMENT == "production":
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404)
+    raise ValueError("Test Sentry — cette erreur est intentionnelle")
+
+
 @router.get("/_debug/routes", include_in_schema=False)
 async def debug_routes(request: Request):
     s = _get_settings()
