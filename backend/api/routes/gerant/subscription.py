@@ -483,6 +483,7 @@ class GerantCheckoutRequest(BaseModel):
     quantity: Optional[int] = None  # Nombre de vendeurs (si None, utiliser le compte actif)
     billing_period: str = "monthly"  # 'monthly' ou 'yearly'
     origin_url: str  # URL d'origine pour les redirections
+    promo_code: Optional[str] = None  # Code promo fondateurs (optionnel)
 
 
 class BillingPortalRequest(BaseModel):
@@ -514,6 +515,19 @@ async def create_billing_portal_session(
         return {"portal_url": session.url}
     except stripe.error.InvalidRequestError as e:
         raise ValidationError(f"Impossible d'ouvrir le portail de facturation : {str(e)}")
+
+
+@router.post("/stripe/validate-promo")
+async def validate_promo_code(
+    body: dict,
+    current_user: dict = Depends(get_current_gerant),
+):
+    """Valide un code promo fondateurs (ne révèle pas le code, retourne juste valid/invalid)."""
+    code = body.get("promo_code", "").strip().upper()
+    founder_code = getattr(settings, 'FOUNDER_PROMO_CODE', None)
+    if founder_code and code == founder_code.strip().upper():
+        return {"valid": True, "type": "founder"}
+    return {"valid": False}
 
 
 @router.post("/stripe/checkout")
@@ -678,15 +692,28 @@ async def create_gerant_checkout_session(
         success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{checkout_data.origin_url}/dashboard"
 
-        # Sélectionner le Price ID selon la période (monthly ou yearly)
-        if checkout_data.billing_period == 'monthly':
+        # Sélectionner le Price ID selon la période et le code promo fondateurs
+        is_monthly = checkout_data.billing_period == 'monthly'
+        is_founder = (
+            checkout_data.promo_code
+            and getattr(settings, 'FOUNDER_PROMO_CODE', None)
+            and checkout_data.promo_code.strip().upper() == settings.FOUNDER_PROMO_CODE.strip().upper()
+        )
+        if is_founder and is_monthly and getattr(settings, 'STRIPE_PRICE_ID_MONTHLY_FONDATEURS', None):
+            price_id = settings.STRIPE_PRICE_ID_MONTHLY_FONDATEURS
+        elif is_founder and not is_monthly and getattr(settings, 'STRIPE_PRICE_ID_YEARLY_FONDATEURS', None):
+            price_id = settings.STRIPE_PRICE_ID_YEARLY_FONDATEURS
+        elif is_monthly:
             price_id = settings.STRIPE_PRICE_ID_MONTHLY
         else:
             price_id = settings.STRIPE_PRICE_ID_YEARLY
 
+        if is_founder:
+            logger.info(f"[CHECKOUT] Tarif fondateurs appliqué pour gérant {current_user.get('id')}")
+
         # Vérifier que le price_id est défini
         if not price_id:
-            logger.error(f"STRIPE_PRICE_ID_{'MONTHLY' if checkout_data.billing_period == 'monthly' else 'YEARLY'} non configuré")
+            logger.error(f"Price ID manquant pour période={checkout_data.billing_period}, fondateur={is_founder}")
             raise BusinessLogicError(f"Configuration Stripe incomplète: Price ID manquant pour la période {checkout_data.billing_period}")
 
         billing_interval = 'month' if checkout_data.billing_period == 'monthly' else 'year'

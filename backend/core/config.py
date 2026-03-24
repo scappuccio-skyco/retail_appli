@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     # Stripe Price IDs (single product with tiered pricing)
     STRIPE_PRICE_ID_MONTHLY: str = Field(..., description="Stripe Price ID for monthly subscription (tiered pricing)")
     STRIPE_PRICE_ID_YEARLY: str = Field(..., description="Stripe Price ID for yearly subscription (tiered pricing)")
+    STRIPE_PRICE_ID_MONTHLY_FONDATEURS: Optional[str] = Field(default=None, description="Stripe Price ID for monthly founders subscription")
+    STRIPE_PRICE_ID_YEARLY_FONDATEURS: Optional[str] = Field(default=None, description="Stripe Price ID for yearly founders subscription")
+
+    # Founders promo code
+    FOUNDER_PROMO_CODE: Optional[str] = Field(default=None, description="Secret promo code to unlock founders pricing")
     
     # Email Configuration
     SENDER_EMAIL: str = Field(default="hello@retailperformerai.com")

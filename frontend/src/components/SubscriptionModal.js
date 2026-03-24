@@ -62,6 +62,11 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     handleReactivateSubscription,
     confirmReactivateSubscription,
     fetchSubscriptionStatus,
+    promoCode,
+    setPromoCode,
+    promoStatus,
+    setPromoStatus,
+    handleValidatePromo,
   } = useSubscription({ isOpen, onClose, propSubscriptionInfo, userRole, onOpenBillingProfile, onOpenInvoices });
 
   // Don't render anything if not open
@@ -164,6 +169,10 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
             loadingIntervalSwitch={loadingIntervalSwitch}
             handleIntervalToggleClick={handleIntervalToggleClick}
             handleSelectPlan={handleSelectPlan}
+            promoCode={promoCode}
+            setPromoCode={setPromoCode}
+            promoStatus={promoStatus}
+            handleValidatePromo={handleValidatePromo}
           />
         </div>
       </div>

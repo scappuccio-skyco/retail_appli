@@ -42,6 +42,21 @@ export function useSubscription({ isOpen, onClose, propSubscriptionInfo, userRol
   // Billing period state
   const [isAnnual, setIsAnnual] = useState(false);
 
+  // Promo code state
+  const [promoCode, setPromoCode] = useState('');
+  const [promoStatus, setPromoStatus] = useState(null); // null | 'valid' | 'invalid' | 'checking'
+
+  const handleValidatePromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoStatus('checking');
+    try {
+      const res = await api.post('/gerant/stripe/validate-promo', { promo_code: promoCode });
+      setPromoStatus(res.data.valid ? 'valid' : 'invalid');
+    } catch {
+      setPromoStatus('invalid');
+    }
+  };
+
   // Interval switch modal state
   const [showIntervalSwitchModal, setShowIntervalSwitchModal] = useState(false);
   const [intervalSwitchPreview, setIntervalSwitchPreview] = useState(null);
@@ -372,7 +387,8 @@ export function useSubscription({ isOpen, onClose, propSubscriptionInfo, userRol
         ? {
             origin_url: originUrl,
             quantity: selectedQuantity,
-            billing_period: isAnnual ? 'annual' : 'monthly'
+            billing_period: isAnnual ? 'annual' : 'monthly',
+            promo_code: promoStatus === 'valid' ? promoCode : undefined
           }
         : {
             plan: selectedPlan,
@@ -537,6 +553,11 @@ export function useSubscription({ isOpen, onClose, propSubscriptionInfo, userRol
     setSubscriptionAction,
     isAnnual,
     setIsAnnual,
+    promoCode,
+    setPromoCode,
+    promoStatus,
+    setPromoStatus,
+    handleValidatePromo,
     showIntervalSwitchModal,
     setShowIntervalSwitchModal,
     intervalSwitchPreview,

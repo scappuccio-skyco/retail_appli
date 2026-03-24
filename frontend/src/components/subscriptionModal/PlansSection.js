@@ -1,14 +1,54 @@
 import React from 'react';
-import { Crown, Check, Loader, Users, Star } from 'lucide-react';
+import { Crown, Check, Loader, Users, Star, Tag } from 'lucide-react';
 import { PLANS } from './plans';
 
-export default function PlansSection({ subscriptionInfo, currentPlan, isActive, isAnnual, sellerCount, processingPlan, loadingIntervalSwitch, handleIntervalToggleClick, handleSelectPlan }) {
+export default function PlansSection({ subscriptionInfo, currentPlan, isActive, isAnnual, sellerCount, processingPlan, loadingIntervalSwitch, handleIntervalToggleClick, handleSelectPlan, promoCode, setPromoCode, promoStatus, handleValidatePromo }) {
   return (
     <>
       {/* Plans */}
       <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
         Choisissez votre plan
       </h3>
+
+      {/* Promo Code */}
+      <div className="flex justify-center mb-6">
+        <div className="flex flex-col items-center gap-2 w-full max-w-sm">
+          <div className="flex items-center gap-2 w-full">
+            <div className="relative flex-1">
+              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="J'ai un code promo"
+                value={promoCode}
+                onChange={(e) => { setPromoCode(e.target.value); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleValidatePromo(); }}
+                className={`w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1E40AF] transition-colors ${
+                  promoStatus === 'valid' ? 'border-green-500 bg-green-50' :
+                  promoStatus === 'invalid' ? 'border-red-400 bg-red-50' :
+                  'border-gray-300'
+                }`}
+              />
+            </div>
+            <button
+              onClick={handleValidatePromo}
+              disabled={!promoCode.trim() || promoStatus === 'checking'}
+              className="px-4 py-2 bg-[#1E40AF] text-white text-sm rounded-lg hover:bg-[#1E3A8A] disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+            >
+              {promoStatus === 'checking' ? <Loader className="w-4 h-4 animate-spin" /> : 'Valider'}
+            </button>
+          </div>
+          {promoStatus === 'valid' && (
+            <p className="text-sm text-green-600 font-semibold flex items-center gap-1">
+              ✅ Code fondateur activé — tarif préférentiel appliqué
+            </p>
+          )}
+          {promoStatus === 'invalid' && (
+            <p className="text-sm text-red-500 flex items-center gap-1">
+              ❌ Code invalide
+            </p>
+          )}
+        </div>
+      </div>
 
       {/* Billing Period Toggle */}
       <div className="flex justify-center items-center gap-4 mb-16">
