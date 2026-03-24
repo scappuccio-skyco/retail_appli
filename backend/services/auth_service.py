@@ -20,7 +20,7 @@ from repositories.store_repository import WorkspaceRepository
 from repositories.gerant_invitation_repository import GerantInvitationRepository
 from repositories.invitation_repository import InvitationRepository
 from repositories.password_reset_repository import PasswordResetRepository
-from core.exceptions import UnauthorizedError, ValidationError
+from core.exceptions import UnauthorizedError, ValidationError, ConflictError
 
 logger = logging.getLogger(__name__)
 
@@ -187,7 +187,7 @@ class AuthService:
 
         # Check if email exists
         if await self.user_repo.email_exists(email):
-            raise Exception("Cet email est déjà utilisé")
+            raise ConflictError("Cet email est déjà utilisé")
         
         # Create gérant user
         gerant_id = str(uuid4())
