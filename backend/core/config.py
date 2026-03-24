@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     DEFAULT_ADMIN_PASSWORD: str = Field(..., description="Default admin password")
     DEFAULT_ADMIN_NAME: str = Field(default="Super Admin")
     
+    # Monitoring
+    SENTRY_DSN: Optional[str] = Field(default=None, description="Sentry DSN for error tracking (optional)")
+
     # Application
     ENVIRONMENT: str = Field(default="development", description="Environment: development, staging, production")
     DEBUG: bool = Field(default=False, description="Debug mode")

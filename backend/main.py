@@ -9,6 +9,23 @@ logger = logging.getLogger(__name__)
 
 from core.config import settings
 
+# --- Sentry (optionnel : activé si SENTRY_DSN est défini) ---
+if getattr(settings, "SENTRY_DSN", None):
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.fastapi import FastApiIntegration
+        from sentry_sdk.integrations.starlette import StarletteIntegration
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            integrations=[FastApiIntegration(), StarletteIntegration()],
+            traces_sample_rate=0.05,
+            environment=settings.ENVIRONMENT,
+            send_default_pii=False,
+        )
+        logger.info("✅ Sentry initialisé (env: %s)", settings.ENVIRONMENT)
+    except Exception as e:
+        logger.warning("Sentry non initialisé : %s", e)
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
