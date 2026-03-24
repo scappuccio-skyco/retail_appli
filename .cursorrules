@@ -962,10 +962,12 @@ Le scan complet de tous les composants > 300 lignes a été réalisé sur 4 sess
 - Workflows les plus récents : automatisations formations (sept-oct 2025)
 - **Potentiel** : n8n pourrait être connecté à retail_appli pour des webhooks/alertes futurs
 
-### Railway ⚠️ (non vérifié)
-- Backend FastAPI déployé sur Railway (selon architecture connue)
-- **Connexion MCP Railway non disponible** — vérifier manuellement sur railway.app
-- Variables d'env à vérifier : `DATABASE_URL`, `SECRET_KEY`, `STRIPE_SECRET_KEY`
+### Railway ✅ (vérifié 24 Mars 2026)
+- **Prod** : service `retail_appli`, branche `main`, DB `Retail_Performer`, URL `retailappli.up.railway.app`
+- **Staging** : service `retail_appli-staging`, branche `develop`, DB `Retail_Performer_staging`, URL `retailappli-staging.up.railway.app`
+- Redis partagé : `redis.railway.internal:6379`, variable env `CACHE_REDIS_URL` (pas `REDIS_URL` → conflit slowapi)
+- `requirements.txt` racine = lu par Railway (synchroniser avec `backend/requirements.txt`)
+- Stripe test mode sur staging : `STRIPE_API_KEY=sk_test_*`, `STRIPE_WEBHOOK_SECRET=whsec_*`
 
 ### [23 Mars 2026 — session 6] - Fix 404 vendeur + suppression dead code + codes erreur structurés + UX transferts
 
@@ -1060,3 +1062,54 @@ La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé 
 ---
 
 *Document créé le 27 Janvier 2026 - À mettre à jour à chaque modification significative*
+
+---
+
+### [24 Mars 2026] - Infrastructure : WebSocket, Time-series, Cache IA, Sécurité, CI, Staging
+
+#### WebSocket temps réel KPIs
+- ✅ `core/ws_manager.py` — WsManager Redis pub/sub + fallback local
+- ✅ `core/ws_auth.py` — `_authenticate_ws` **isolé** (imports module-level : `get_db`, `UserRepository`, `StoreRepository`) — CRITIQUE : doit rester isolé de `api/routes/ws.py` pour que les patches de tests fonctionnent
+- ✅ `api/routes/ws.py` — endpoint `ws://.../api/ws/store/{store_id}?token=<JWT>` (JWT en query param — les browsers ne supportent pas les headers WS)
+- ✅ `services/seller_service/_kpi_mixin.py` — émission fire-and-forget sur create/update KPI
+- Canal Redis : `kpi:store:{store_id}`
+- 36/36 tests WebSocket passent
+
+#### Cache IA (MongoDB)
+- ✅ `repositories/team_analysis_repository.py` — `find_recent_by_period()` (TTL 6h par store+période)
+- ✅ `repositories/morning_brief_repository.py` — `find_today_uncustomized()` (1 brief/jour sans comments)
+- ✅ `api/routes/briefs.py` — `MorningBriefResponse` a un champ `cached: Optional[bool] = None` — **OBLIGATOIRE** : FastAPI filtre silencieusement les champs non déclarés dans le response_model
+- Cache IA bypassed si `comments` fourni (brief personnalisé → toujours appel LLM)
+
+#### Time-series kpi_entries
+- ✅ `utils/kpi_ts.py` — `date_str_to_ts()` → datetime UTC minuit
+- ✅ `repositories/kpi_repository.py` — override `insert_one` + `bulk_write` → injection automatique champ `ts`
+- ✅ `core/lifespan.py` — `_ensure_timeseries_collections()` au démarrage
+- Migration prod : 6 779 documents, backup dans `kpi_entries_legacy` (à supprimer manuellement sur Atlas quand validé)
+
+#### Sécurité
+- ✅ CSP header : `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`
+- ✅ Bug CORS corrigé dans `main.py` + `build_cors_response_headers()` dans `core/startup_helpers.py`
+- ✅ Cache Redis : `CACHE_REDIS_URL` (pas `REDIS_URL` → conflit slowapi)
+
+#### Index MongoDB — billing_profiles
+- ✅ `core/indexes.py` — index `gerant_id_unique` sur `gerant_id` (pas `user_id`)
+- ⚠️ Si l'ancien index `user_id_unique` existe encore sur Atlas prod : `db.billing_profiles.dropIndex("user_id_unique")`
+
+#### CI GitHub Actions
+- ✅ `.github/workflows/backend-ci.yml` — tourne sur `main` ET `develop`
+- Job `unit-tests` : `test_cache_logic`, `test_pagination_gerant`, `test_security_audit`, `test_timeseries_migration`, `test_websocket`
+- Job `kpi-json-safe` : `test_kpi_seller_entry_json_safe`, `test_ai_cache_integration`, `test_pagination_gerant_integration`
+- `anyio_backend` fixture dans `conftest.py` → asyncio uniquement (trio non installé)
+- **RÈGLE CRITIQUE** : tous les tests d'intégration utilisent `_make_token(user_id, email, role)` (jwt.encode direct) — **JAMAIS** `POST /api/auth/login` en CI (rate limité à 10/min → 429 sur tests en rafale)
+
+#### Staging Railway
+- URL staging : `retailappli-staging.up.railway.app` (branche `develop`)
+- DB staging : `Retail_Performer_staging` (Atlas — créée lazily au premier démarrage)
+- Stripe test mode configuré sur staging : clés `sk_test_*` + webhook `https://retailappli-staging.up.railway.app/stripe/webhook`
+- Script de test Stripe : `python test_stripe_staging.py` (à la racine du repo)
+
+#### État Railway (à jour 24 Mars 2026)
+- Service `retail_appli` (prod) : branche `main`, DB `Retail_Performer`
+- Service `retail_appli-staging` : branche `develop`, DB `Retail_Performer_staging`
+- Redis : `redis.railway.internal:6379`, variable `CACHE_REDIS_URL`
