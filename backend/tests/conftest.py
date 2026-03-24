@@ -37,3 +37,10 @@ _TEST_ENV = {
 
 for key, value in _TEST_ENV.items():
     os.environ.setdefault(key, value)
+
+# anyio: utiliser uniquement asyncio (trio n'est pas dans les deps de prod)
+import pytest
+
+@pytest.fixture(params=["asyncio"])
+def anyio_backend(request):
+    return request.param
