@@ -13,6 +13,7 @@ from repositories.user_repository import UserRepository
 from repositories.subscription_repository import SubscriptionRepository
 from repositories.store_repository import WorkspaceRepository
 from repositories.stripe_event_repository import StripeEventRepository
+from repositories.payment_transaction_repository import PaymentTransactionRepository
 from email_service import (
     send_payment_confirmation_email,
     send_payment_failed_email,
@@ -31,6 +32,7 @@ class PaymentService:
         self.subscription_repo = SubscriptionRepository(db)
         self.workspace_repo = WorkspaceRepository(db)
         self.stripe_event_repo = StripeEventRepository(db)
+        self.payment_transaction_repo = PaymentTransactionRepository(db)
         self.stripe_api_key = os.environ.get("STRIPE_API_KEY")
         if self.stripe_api_key:
             stripe.api_key = self.stripe_api_key
@@ -140,6 +142,28 @@ class PaymentService:
                 {"subscription_status": "active", "stripe_subscription_id": subscription_id},
             )
         logger.info(f"✅ Payment succeeded for {gerant['email']} - subscription active until {period_end}")
+
+        # Record payment transaction
+        try:
+            import uuid as _uuid
+            transaction = {
+                "id": str(_uuid.uuid4()),
+                "gerant_id": gerant["id"],
+                "stripe_customer_id": customer_id,
+                "stripe_subscription_id": subscription_id,
+                "stripe_invoice_id": invoice.get("id"),
+                "amount_eur": invoice.get("amount_paid", invoice.get("amount_due", 0)) / 100,
+                "currency": invoice.get("currency", "eur"),
+                "status": "succeeded",
+                "billing_reason": invoice.get("billing_reason", "subscription_cycle"),
+                "invoice_url": invoice.get("hosted_invoice_url"),
+                "period_end": period_end.isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await self.payment_transaction_repo.insert_one(transaction)
+            logger.info(f"💳 Payment transaction recorded for {gerant['email']}")
+        except Exception as e:
+            logger.error(f"Failed to record payment transaction: {e}")
 
         # Send payment confirmation email
         try:
