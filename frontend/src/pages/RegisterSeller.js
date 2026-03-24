@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 import { UserPlus, Lock, User, Phone, CheckCircle, Building2 } from 'lucide-react';
 
 export default function RegisterSeller() {
@@ -15,7 +16,8 @@ export default function RegisterSeller() {
     name: '',
     password: '',
     confirmPassword: '',
-    phone: ''
+    phone: '',
+    acceptCGU: false
   });
 
   useEffect(() => {
@@ -217,6 +219,27 @@ export default function RegisterSeller() {
                   autoComplete="new-password"
                 />
               </div>
+            </div>
+
+            <div className="flex items-start gap-3 pt-1">
+              <input
+                type="checkbox"
+                id="acceptCGU"
+                required
+                checked={formData.acceptCGU}
+                onChange={(e) => setFormData({ ...formData, acceptCGU: e.target.checked })}
+                className="mt-0.5 h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
+              />
+              <label htmlFor="acceptCGU" className="text-sm text-gray-600 cursor-pointer">
+                J'accepte les{' '}
+                <Link to="/terms" target="_blank" className="text-purple-600 hover:underline font-medium">
+                  Conditions Générales d'Utilisation
+                </Link>{' '}
+                et la{' '}
+                <Link to="/privacy" target="_blank" className="text-purple-600 hover:underline font-medium">
+                  Politique de Confidentialité
+                </Link>{' '}*
+              </label>
             </div>
 
             <button
