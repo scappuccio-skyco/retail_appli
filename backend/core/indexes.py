@@ -117,9 +117,14 @@ INDEXES: Dict[str, List[IndexSpec]] = {
         _spec("event_id", unique=True, background=True, name="event_id_unique"),
     ],
 
-    # ── KPI ─────────────────────────────────────────────────────────────────
+    # ── KPI (Time Series collection) ─────────────────────────────────────────
+    # kpi_entries est une MongoDB Time Series collection (timeField=ts, metaField=store_id).
+    # ⚠️  Les collections Time Series n'acceptent PAS d'index secondaire unique.
+    #     L'index sur `id` est donc non-unique (collision uuid4 ≈ 0).
+    # ℹ️  L'index {store_id, ts} est créé automatiquement par MongoDB (compound clustered).
+    #     On conserve {store_id, date} pour les requêtes par date string.
     "kpi_entries": [
-        _spec("id", unique=True, background=True, name="id_unique"),
+        _spec("id", background=True, name="id_idx"),  # non-unique (TS limitation)
         _spec([("seller_id", 1), ("date", -1)],  background=True, name="seller_date_idx"),
         _spec([("store_id", 1),  ("date", -1)],  background=True, name="store_date_idx"),
         # Passport vendeur : agrégation par (seller_id, store_id, date)

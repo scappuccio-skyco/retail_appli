@@ -1,13 +1,37 @@
 """KPI Repository - Data access for KPI entries (kpi_entries) and manager KPIs (manager_kpis)."""
 from typing import Optional, List, Dict
 from repositories.base_repository import BaseRepository
+from utils.kpi_ts import date_str_to_ts
 
 
 class KPIRepository(BaseRepository):
-    """Repository for kpi_entries collection (seller KPIs)"""
-    
+    """Repository for kpi_entries collection (seller KPIs — MongoDB Time Series)."""
+
     def __init__(self, db):
         super().__init__(db, "kpi_entries")
+
+    # ------------------------------------------------------------------
+    # Time Series : injection automatique du champ `ts` (timeField)
+    # ------------------------------------------------------------------
+
+    async def insert_one(self, document: dict) -> str:
+        """Insert a KPI entry. Injects `ts` (datetime) from `date` (string) if absent."""
+        if "date" in document and "ts" not in document:
+            document["ts"] = date_str_to_ts(document["date"])
+        return await super().insert_one(document)
+
+    async def bulk_write(self, operations: list) -> dict:
+        """
+        Execute bulk KPI write. Injects `ts` into InsertOne documents that have a
+        `date` field but no `ts` field.
+        """
+        from pymongo import InsertOne
+        for op in operations:
+            if isinstance(op, InsertOne):
+                doc = op._doc
+                if "date" in doc and "ts" not in doc:
+                    doc["ts"] = date_str_to_ts(doc["date"])
+        return await super().bulk_write(operations)
     
     async def find_by_seller_and_date(self, seller_id: str, date: str) -> Optional[Dict]:
         """Find KPI entry for a seller on a specific date"""

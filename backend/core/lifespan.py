@@ -18,6 +18,34 @@ logger = logging.getLogger(__name__)
 _background_tasks = set()
 
 
+async def _ensure_timeseries_collections(db) -> None:
+    """
+    Crée les collections Time Series si elles n'existent pas encore.
+    Appelé avant apply_indexes car les TS collections doivent exister
+    avant la création de leurs index secondaires.
+    Idempotent : CollectionInvalid ignoré si la collection existe déjà.
+    """
+    from pymongo.errors import CollectionInvalid, OperationFailure
+    ts_collections = [
+        {
+            "name": "kpi_entries",
+            "timeseries": {
+                "timeField": "ts",
+                "metaField": "store_id",
+                "granularity": "hours",
+            },
+        },
+    ]
+    for spec in ts_collections:
+        try:
+            await db.create_collection(spec["name"], timeseries=spec["timeseries"])
+            logger.info("Time Series collection créée : %s", spec["name"])
+        except (CollectionInvalid, OperationFailure):
+            logger.debug("Collection %s existe déjà, skip création TS", spec["name"])
+        except Exception as e:
+            logger.warning("Impossible de créer la TS collection %s : %s", spec["name"], e)
+
+
 async def _create_indexes_background() -> None:
     """
     Create MongoDB indexes in background (called after delay).
@@ -33,6 +61,7 @@ async def _create_indexes_background() -> None:
             logger.warning("Database not connected, skipping index creation")
             return
 
+        await _ensure_timeseries_collections(db)
         created, skipped, errors = await apply_indexes(db, logger=logger)
         logger.info("Indexes: %s created, %s skipped, %s errors", created, skipped, len(errors))
 
