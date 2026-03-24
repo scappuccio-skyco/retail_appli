@@ -15,11 +15,12 @@ Env vars:
   TEST_PASSWORD   (default TestUserPassword123!)
 """
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse
 from uuid import uuid4
 
 import bcrypt
+import jwt
 import pytest
 import requests
 from pymongo import MongoClient
@@ -28,6 +29,7 @@ BASE_URL = os.environ.get("TEST_BASE_URL", "http://127.0.0.1:8001")
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://127.0.0.1:27017/")
 TEST_PASSWORD = os.environ.get("TEST_PASSWORD", "TestUserPassword123!")
 DB_NAME = os.environ.get("DB_NAME", "retail_coach")
+JWT_SECRET = os.environ.get("JWT_SECRET", "test-jwt-secret-not-real-32chars!!")
 
 _ALLOWED_TEST_HOSTS = ("localhost", "127.0.0.1")
 
@@ -99,14 +101,15 @@ def _insert_manager(db, gerant_id: str) -> str:
     return mid
 
 
-def _login(email: str) -> str:
-    url = f"{BASE_URL}/api/auth/login"
-    assert _safe(url)
-    r = requests.post(url, json={"email": email, "password": TEST_PASSWORD})
-    assert r.status_code == 200, f"Login failed: {r.text}"
-    token = r.json().get("token")
-    assert token
-    return token
+def _make_token(user_id: str, email: str, role: str) -> str:
+    """Generate a JWT directly — avoids hitting the login rate limiter."""
+    payload = {
+        "user_id": user_id,
+        "email": email,
+        "role": role,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=24),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 
 def _get_sellers(token: str, page: int = 1, size: int = 100) -> dict:
@@ -130,7 +133,7 @@ def test_gerant_sellers_response_shape():
 
     g = _build_gerant(db)
     _insert_seller(db, g["gerant_id"], "Alice")
-    token = _login(g["gerant_email"])
+    token = _make_token(g["gerant_id"], g["gerant_email"], "gerant")
 
     data = _get_sellers(token)
 
@@ -159,7 +162,7 @@ def test_gerant_sellers_only_sellers_returned():
     seller_id = _insert_seller(db, g["gerant_id"], "Bob Vendeur")
     _insert_manager(db, g["gerant_id"])  # must not appear
     deleted_id = _insert_seller(db, g["gerant_id"], "Charlie Supprimé", status="deleted")
-    token = _login(g["gerant_email"])
+    token = _make_token(g["gerant_id"], g["gerant_email"], "gerant")
 
     data = _get_sellers(token)
 
@@ -188,7 +191,7 @@ def test_gerant_sellers_pagination_page2():
     _insert_seller(db, g["gerant_id"], "Alice")
     _insert_seller(db, g["gerant_id"], "Bob")
     charlie_id = _insert_seller(db, g["gerant_id"], "Charlie")
-    token = _login(g["gerant_email"])
+    token = _make_token(g["gerant_id"], g["gerant_email"], "gerant")
 
     page1 = _get_sellers(token, page=1, size=2)
     page2 = _get_sellers(token, page=2, size=2)
@@ -220,7 +223,7 @@ def test_gerant_sellers_size1_pages_equals_total():
     g = _build_gerant(db)
     for name in ["Alice", "Bob", "Charlie"]:
         _insert_seller(db, g["gerant_id"], name)
-    token = _login(g["gerant_email"])
+    token = _make_token(g["gerant_id"], g["gerant_email"], "gerant")
 
     data = _get_sellers(token, page=1, size=1)
 
@@ -244,7 +247,7 @@ def test_gerant_sellers_empty_when_no_sellers():
     db = client[DB_NAME]
 
     g = _build_gerant(db)
-    token = _login(g["gerant_email"])
+    token = _make_token(g["gerant_id"], g["gerant_email"], "gerant")
 
     data = _get_sellers(token)
 

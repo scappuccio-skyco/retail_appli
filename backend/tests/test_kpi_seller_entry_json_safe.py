@@ -17,11 +17,12 @@ Env:
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 from urllib.parse import urlparse
 
 import bcrypt
+import jwt
 import pytest
 import requests
 from pymongo import MongoClient
@@ -29,6 +30,7 @@ from pymongo import MongoClient
 BASE_URL = os.environ.get("TEST_BASE_URL", "http://localhost:8001")
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017/")
 TEST_PASSWORD = os.environ.get("TEST_PASSWORD", "TestUserPassword123!")
+JWT_SECRET = os.environ.get("JWT_SECRET", "test-jwt-secret-not-real-32chars!!")
 
 _ALLOWED_TEST_HOSTS = ("localhost", "127.0.0.1")
 
@@ -120,14 +122,15 @@ def _build_test_graph(db):
     }
 
 
-def _login(seller_email: str) -> str:
-    login_url = f"{BASE_URL}/api/auth/login"
-    assert _is_safe_request_url(login_url)
-    r = requests.post(login_url, json={"email": seller_email, "password": TEST_PASSWORD})
-    assert r.status_code == 200, f"Login failed: {r.text}"
-    token = r.json().get("token")
-    assert token
-    return token
+def _make_token(user_id: str, email: str, role: str) -> str:
+    """Generate a JWT directly — avoids hitting the login rate limiter."""
+    payload = {
+        "user_id": user_id,
+        "email": email,
+        "role": role,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=24),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 
 _BASE_PAYLOAD = {
@@ -151,7 +154,7 @@ def test_kpi_seller_entry_scenario1_creation_authorized():
     db = client["retail_coach"]
 
     graph = _build_test_graph(db)
-    token = _login(graph["seller_email"])
+    token = _make_token(graph["seller_id"], graph["seller_email"], "seller")
     headers = {"Authorization": f"Bearer {token}"}
 
     date = "2026-03-01"
@@ -183,7 +186,7 @@ def test_kpi_seller_entry_scenario2_blocked_by_api_lock():
     db = client["retail_coach"]
 
     graph = _build_test_graph(db)
-    token = _login(graph["seller_email"])
+    token = _make_token(graph["seller_id"], graph["seller_email"], "seller")
     headers = {"Authorization": f"Bearer {token}"}
 
     date = "2026-03-02"
@@ -226,7 +229,7 @@ def test_kpi_seller_entry_scenario3_api_overwrites_seller():
     db = client["retail_coach"]
 
     graph = _build_test_graph(db)
-    token = _login(graph["seller_email"])
+    token = _make_token(graph["seller_id"], graph["seller_email"], "seller")
     headers = {"Authorization": f"Bearer {token}"}
 
     date = "2026-03-03"
