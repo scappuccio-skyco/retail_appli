@@ -65,7 +65,7 @@ export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection 
                     <span className="text-[#334155]">/vendeur/mois</span>
                   </div>
                   <p className="text-xs text-[#F97316] font-semibold mt-1">Tarif Fondateur</p>
-                  <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
+                  <p className="text-xs text-gray-500 mt-1">TTC</p>
                   <p className="text-sm text-green-600 font-semibold mt-2">
                     1 à 5 espaces vendeur
                   </p>
@@ -80,7 +80,7 @@ export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection 
                     <span className="text-5xl font-bold text-[#334155]">278€</span>
                     <span className="text-[#334155]">/vendeur/an</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
+                  <p className="text-xs text-gray-500 mt-1">TTC</p>
                   <p className="text-sm text-green-600 font-semibold mt-2">
                     1 à 5 espaces vendeur
                   </p>
@@ -142,7 +142,7 @@ export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection 
                     <span className="text-[#334155]">/vendeur/mois</span>
                   </div>
                   <p className="text-xs text-[#F97316] font-semibold mt-1">Tarif Fondateur</p>
-                  <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
+                  <p className="text-xs text-gray-500 mt-1">TTC</p>
                   <p className="text-sm text-green-600 font-semibold mt-2">
                     6 à 15 espaces vendeur
                   </p>
@@ -157,7 +157,7 @@ export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection 
                     <span className="text-5xl font-bold text-[#334155]">240€</span>
                     <span className="text-[#334155]">/vendeur/an</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
+                  <p className="text-xs text-gray-500 mt-1">TTC</p>
                   <p className="text-sm text-green-600 font-semibold mt-2">
                     6 à 15 espaces vendeur
                   </p>
