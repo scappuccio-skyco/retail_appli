@@ -1127,13 +1127,26 @@ La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé 
 - ✅ `cgu_accepted_at` (datetime UTC) stocké dans le document user MongoDB à l'inscription
 - ✅ `cgu_version` stocké dans le document user MongoDB (`"v1.0"` actuellement)
 - Constante `CGU_CURRENT_VERSION` dans `backend/config/limits.py` — **à incrémenter à chaque mise à jour des CGU ou de la politique de confidentialité**
-- **RÈGLE** : quand `CGU_CURRENT_VERSION` change → envoyer un email de notification à tous les users avec `cgu_version != nouvelle_version` (via Brevo / endpoint admin)
-- ⚠️ TODO : implémenter l'email de notification aux utilisateurs lors d'un changement de CGU (re-consentement explicite requis uniquement si changement majeur affectant les droits des données — sinon notification suffit légalement)
+- ✅ Email de notification CGU implémenté : `POST /api/superadmin/notify-cgu-update?dry_run=true|false`
+
+#### ⚠️ CHECKLIST — Procédure obligatoire lors d'une mise à jour des CGU
+
+Quand tu modifies les CGU ou la Politique de Confidentialité, faire dans l'ordre :
+
+1. **Mettre à jour les textes** dans le frontend :
+   - `frontend/src/pages/legal/TermsOfService.js` (date + contenu)
+   - `frontend/src/pages/legal/PrivacyPolicy.js` (date + contenu)
+2. **Incrémenter la version** dans `backend/config/limits.py` :
+   - `CGU_CURRENT_VERSION = "v1.0"` → `"v1.1"` (mineur) ou `"v2.0"` (majeur)
+3. **Déployer en prod** (merge develop → main)
+4. **Dry run** pour vérifier le nombre d'utilisateurs à notifier :
+   - `POST https://api.retailperformerai.com/api/superadmin/notify-cgu-update?dry_run=true`
+5. **Envoyer les emails** :
+   - `POST https://api.retailperformerai.com/api/superadmin/notify-cgu-update?dry_run=false`
+6. **Re-consentement explicite** (checkbox) requis uniquement si changement majeur affectant les droits des données (nouveau traitement, cession tiers...) — sinon notification suffit (RGPD/LCEN)
 
 #### TODOs pré-commercialisation restants
 - ⚠️ **SNYK_TOKEN** : récupérer sur snyk.io → Settings → Auth token → ajouter en secret GitHub
 - ⚠️ **Stripe live mode** : vérifier que les clés Railway prod sont `sk_live_*` et que le webhook prod `https://api.retailperformerai.com/webhooks/stripe` est enregistré en mode live dans Stripe Dashboard
-- ⚠️ **Suppression données RGPD** : implémenter endpoint/process de suppression de compte (droit à l'effacement RGPD — promis dans la privacy policy)
-- ⚠️ **Email CGU** : endpoint admin pour envoyer email de notification à tous les users quand CGU changent
 - ⚠️ **Emails Brevo en prod** : vérifier délivrabilité (SPF/DKIM configurés, pas en spam)
 - ⚠️ **Backup Atlas** : vérifier que le backup automatique est activé sur le cluster prod
