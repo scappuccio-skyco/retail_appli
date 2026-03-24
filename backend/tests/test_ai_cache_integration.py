@@ -35,13 +35,15 @@ def _safe(url: str) -> bool:
 
 
 def _build_gerant_graph(db):
-    """workspace → gerant → store; return ids + gerant credentials."""
+    """workspace → gerant → manager → store; return ids + credentials."""
     now = datetime.now(timezone.utc)
     workspace_id = str(uuid4())
     gerant_id = str(uuid4())
+    manager_id = str(uuid4())
     store_id = str(uuid4())
     gerant_email = f"test-gerant-{uuid4()}@example.com"
-    gerant_pw = bcrypt.hashpw(TEST_PASSWORD.encode(), bcrypt.gensalt()).decode()
+    manager_email = f"test-manager-{uuid4()}@example.com"
+    pw_hash = bcrypt.hashpw(TEST_PASSWORD.encode(), bcrypt.gensalt()).decode()
 
     db.workspaces.update_one(
         {"id": workspace_id},
@@ -55,9 +57,20 @@ def _build_gerant_graph(db):
     db.users.update_one(
         {"id": gerant_id},
         {"$set": {
-            "id": gerant_id, "email": gerant_email, "password": gerant_pw,
+            "id": gerant_id, "email": gerant_email, "password": pw_hash,
             "role": "gerant", "status": "active",
             "workspace_id": workspace_id, "name": "Test Gérant",
+            "created_at": now,
+        }},
+        upsert=True,
+    )
+    db.users.update_one(
+        {"id": manager_id},
+        {"$set": {
+            "id": manager_id, "email": manager_email, "password": pw_hash,
+            "role": "manager", "status": "active",
+            "workspace_id": workspace_id, "store_id": store_id,
+            "name": "Test Manager",
             "created_at": now,
         }},
         upsert=True,
@@ -74,8 +87,10 @@ def _build_gerant_graph(db):
     return {
         "workspace_id": workspace_id,
         "gerant_id": gerant_id,
+        "manager_id": manager_id,
         "store_id": store_id,
         "gerant_email": gerant_email,
+        "manager_email": manager_email,
     }
 
 
@@ -105,7 +120,7 @@ def test_team_analysis_cache_hit():
     db = client[DB_NAME]
 
     graph = _build_gerant_graph(db)
-    token = _login(graph["gerant_email"])
+    token = _login(graph["manager_email"])
     headers = {"Authorization": f"Bearer {token}"}
 
     store_id = graph["store_id"]
@@ -118,7 +133,7 @@ def test_team_analysis_cache_hit():
     db.team_analyses.insert_one({
         "id": str(uuid4()),
         "store_id": store_id,
-        "manager_id": graph["gerant_id"],
+        "manager_id": graph["manager_id"],
         "period_start": period_start,
         "period_end": period_end,
         "analysis": "Analyse test: bonne performance.",
@@ -160,7 +175,7 @@ def test_team_analysis_cache_miss_no_doc():
     db = client[DB_NAME]
 
     graph = _build_gerant_graph(db)
-    token = _login(graph["gerant_email"])
+    token = _login(graph["manager_email"])
     headers = {"Authorization": f"Bearer {token}"}
 
     store_id = graph["store_id"]

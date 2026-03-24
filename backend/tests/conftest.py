@@ -41,6 +41,6 @@ for key, value in _TEST_ENV.items():
 # anyio: utiliser uniquement asyncio (trio n'est pas dans les deps de prod)
 import pytest
 
-@pytest.fixture(params=["asyncio"])
-def anyio_backend(request):
-    return request.param
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
