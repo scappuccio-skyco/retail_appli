@@ -7,8 +7,8 @@ const faqs = [
     answer: "Notre approche est mathématique : en identifiant quotidiennement les écarts de Panier Moyen ou de Taux de Transformation, l'IA permet de corriger le tir immédiatement. L'objectif est de ne plus attendre la fin du mois pour constater les pertes, mais d'agir jour après jour pour sécuriser votre Chiffre d'Affaires."
   },
   {
-    question: "Comment fonctionne l'essai gratuit de 14 jours ?",
-    answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 14 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement."
+    question: "Comment fonctionne l'essai gratuit de 30 jours ?",
+    answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 30 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement."
   },
   {
     question: "Faut-il installer un logiciel ?",

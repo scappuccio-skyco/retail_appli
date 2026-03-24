@@ -121,7 +121,7 @@ export default function EarlyAccessSuccess() {
               className="w-full px-8 py-4 bg-white text-[#F97316] font-semibold rounded-xl border-2 border-[#F97316] hover:bg-orange-50 transition-all flex items-center justify-center gap-2"
             >
               Créer mon compte gérant maintenant
-              <span className="text-sm text-gray-600">(14 jours gratuits)</span>
+              <span className="text-sm text-gray-600">(30 jours gratuits)</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>

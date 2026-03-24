@@ -197,9 +197,8 @@ class AuthService:
         gerant_id = str(uuid4())
         workspace_id = str(uuid4())  # Generate workspace ID first
         now = datetime.now(timezone.utc)
-        trial_end = now + timedelta(days=14)  # 14 jours d'essai gratuit
-        
-        from config.limits import CGU_CURRENT_VERSION
+        from config.limits import CGU_CURRENT_VERSION, TRIAL_DAYS
+        trial_end = now + timedelta(days=TRIAL_DAYS)
         user = {
             "id": gerant_id,
             "name": name,

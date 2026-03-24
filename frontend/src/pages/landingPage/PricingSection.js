@@ -281,7 +281,7 @@ export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection 
           <div className="flex items-center justify-center gap-6 text-sm text-[#334155] flex-wrap">
             <div className="flex items-center gap-2">
               <Check className="w-5 h-5 text-[#10B981]" />
-              <span>14 jours d'essai gratuit</span>
+              <span>30 jours d'essai gratuit</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-5 h-5 text-[#10B981]" />

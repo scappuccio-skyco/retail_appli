@@ -96,7 +96,7 @@ export default function TermsOfService() {
               </h2>
               <div className="bg-gray-50 rounded-xl p-6 space-y-4">
                 <p>
-                  <strong>Période d&apos;essai :</strong> Une période d&apos;essai gratuite de 14 jours est proposée 
+                  <strong>Période d&apos;essai :</strong> Une période d&apos;essai gratuite de 30 jours est proposée 
                   à tout nouvel utilisateur. Aucune carte bancaire n&apos;est requise pour l&apos;essai.
                 </p>
                 <p>

@@ -1117,10 +1117,10 @@ La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé 
 - Service `retail_appli-staging` : branche `develop`, DB `Retail_Performer_staging`
 - Redis : `redis.railway.internal:6379`, variable `CACHE_REDIS_URL`
 
-#### Snyk (TODO)
-- ⚠️ Snyk CI intégré dans `backend-ci.yml` (job `snyk-security`) mais `SNYK_TOKEN` non encore configuré
-- TODO : récupérer le token Snyk (snyk.io → Settings → Service accounts ou Auth token) et l'ajouter en secret GitHub : `SNYK_TOKEN`
-- Sans ce token, le job Snyk sera skippé/en erreur (continue-on-error=true → ne bloque pas le CI)
+#### Sécurité dépendances (pip-audit + Dependabot)
+- Snyk remplacé par **pip-audit** (job CI `pip-audit`) + **Dependabot** (`.github/dependabot.yml`)
+- Aucun token requis — pip-audit utilise la base OSV/PyPI, Dependabot est natif GitHub
+- Dependabot crée des PRs automatiques chaque lundi pour pip (backend), npm (frontend) et GitHub Actions
 
 #### RGPD — CGU & consentement
 - ✅ Checkbox CGU obligatoire à l'inscription (Login.js + RegisterManager.js + RegisterSeller.js)
@@ -1146,7 +1146,34 @@ Quand tu modifies les CGU ou la Politique de Confidentialité, faire dans l'ordr
 6. **Re-consentement explicite** (checkbox) requis uniquement si changement majeur affectant les droits des données (nouveau traitement, cession tiers...) — sinon notification suffit (RGPD/LCEN)
 
 #### TODOs pré-commercialisation restants
-- ⚠️ **SNYK_TOKEN** : récupérer sur snyk.io → Settings → Auth token → ajouter en secret GitHub
-- ⚠️ **Stripe live mode** : vérifier que les clés Railway prod sont `sk_live_*` et que le webhook prod `https://api.retailperformerai.com/webhooks/stripe` est enregistré en mode live dans Stripe Dashboard
-- ⚠️ **Emails Brevo en prod** : vérifier délivrabilité (SPF/DKIM configurés, pas en spam)
-- ⚠️ **Backup Atlas** : vérifier que le backup automatique est activé sur le cluster prod
+- ✅ **Snyk** : remplacé par pip-audit + Dependabot (aucun token requis)
+- ✅ **Stripe live mode** : clés live configurées sur Railway, webhook prod enregistré
+- ✅ **Emails Brevo** : SPF ✅ DKIM ✅ (brevo1._domainkey + brevo2._domainkey) sur retailperformerai.com
+- ⚠️ **Backup Atlas** : cluster actuellement sur M0 (pas de backup disponible)
+  - **ACTION AU PREMIER CLIENT PAYANT** : migrer vers M10 (~57$/mois) le jour même
+  - Activer Continuous Cloud Backup dans Atlas après migration
+  - Configurer alerte email Atlas (Atlas → Alerts) si cluster down
+
+#### Checklist post-lancement (ne bloque pas le lancement)
+
+**Monitoring & Alertes**
+- [ ] **UptimeRobot** (gratuit) : surveiller `https://api.retailperformerai.com/health` — alerte email/SMS si down
+- [ ] **Sentry** : vérifier que les erreurs remontent bien en prod (déclencher une erreur test)
+- [ ] **Logs structurés** : exporter vers Logtail ou Datadog pour chercher dans les logs prod sans Railway
+
+**Base de données**
+- [ ] **Migration M10** au premier client payant (backup continu, 3 nœuds, SLA 99.95%)
+- [ ] **Index MongoDB** : vérifier que les requêtes fréquentes (KPI par vendeur/date) ont des index — `explain()` sur les requêtes lentes
+- [ ] **Test de restauration** : tester un restore depuis un snapshot après migration M10
+
+**Tests**
+- [ ] **Tests webhooks Stripe** : couvrir le flux paiement → activation workspace (cas le plus critique)
+
+**Fonctionnel**
+- [ ] **Page de statut publique** (statuspage.io gratuit ou similaire) — rassure les clients en cas de panne
+- [ ] **Analytics funnel** (Plausible ou Posthog) — comprendre où les utilisateurs décrochent
+- [ ] **CGU/Privacy Policy** : faire valider le contenu par un juriste
+
+**Business**
+- [ ] **Alertes Atlas** configurées (cluster down, connexions élevées)
+- [ ] **Rotation des secrets** : planifier une rotation annuelle JWT_SECRET + clés API
