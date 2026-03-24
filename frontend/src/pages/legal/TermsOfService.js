@@ -11,7 +11,7 @@ export default function TermsOfService() {
   return (
     <LegalPageLayout
       title="Conditions Générales d&apos;Utilisation et de Vente"
-      subtitle="Dernière mise à jour : Décembre 2025"
+      subtitle="Dernière mise à jour : Mars 2026"
       icon={Scale}
     >
       <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 mb-10">

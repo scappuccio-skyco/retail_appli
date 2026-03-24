@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
   return (
     <LegalPageLayout
       title="Politique de Confidentialité"
-      subtitle="Conforme au RGPD - Dernière mise à jour : Décembre 2025"
+      subtitle="Conforme au RGPD - Dernière mise à jour : Mars 2026"
       icon={Lock}
     >
       <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-10">
@@ -139,9 +139,14 @@ export default function PrivacyPolicy() {
                 <td className="border border-gray-200 px-4 py-3">UE (France)</td>
               </tr>
               <tr>
-                <td className="border border-gray-200 px-4 py-3 font-medium">Emergent / Cloudflare</td>
-                <td className="border border-gray-200 px-4 py-3">Hébergement et CDN</td>
-                <td className="border border-gray-200 px-4 py-3">UE / US</td>
+                <td className="border border-gray-200 px-4 py-3 font-medium">Railway (GCP)</td>
+                <td className="border border-gray-200 px-4 py-3">Hébergement infrastructure</td>
+                <td className="border border-gray-200 px-4 py-3">US (CCT)</td>
+              </tr>
+              <tr className="bg-gray-50">
+                <td className="border border-gray-200 px-4 py-3 font-medium">Sentry</td>
+                <td className="border border-gray-200 px-4 py-3">Monitoring des erreurs techniques</td>
+                <td className="border border-gray-200 px-4 py-3">US (DPA signé)</td>
               </tr>
             </tbody>
           </table>

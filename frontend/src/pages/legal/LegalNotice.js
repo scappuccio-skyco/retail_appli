@@ -11,7 +11,7 @@ export default function LegalNotice() {
   return (
     <LegalPageLayout
       title="Mentions Légales"
-      subtitle="Dernière mise à jour : Décembre 2025"
+      subtitle="Dernière mise à jour : Mars 2026"
       icon={FileText}
     >
       <section>
@@ -70,9 +70,8 @@ export default function LegalNotice() {
                 4. Hébergement
               </h2>
               <div className="bg-gray-50 rounded-xl p-6 space-y-3">
-                <p><strong>Plateforme d&apos;hébergement :</strong> Emergent (emergent.sh)</p>
-                <p><strong>CDN et sécurité :</strong> Cloudflare</p>
-                <p><strong>Infrastructure Cloud :</strong> Services Cloud distribués (AWS, GCP)</p>
+                <p><strong>Plateforme d&apos;hébergement :</strong> Railway (railway.app)</p>
+                <p><strong>Infrastructure Cloud :</strong> Google Cloud Platform (GCP)</p>
                 <p><strong>Base de données :</strong> MongoDB Atlas</p>
                 <p><strong>Localisation des données :</strong> Union Européenne et États-Unis</p>
                 <p className="text-sm text-gray-500 mt-2">
@@ -82,7 +81,7 @@ export default function LegalNotice() {
               </div>
               <p className="text-xs text-gray-400 mt-3">
                 Pour toute question relative à l&apos;hébergement, contactez{' '}
-                <a href="mailto:support@emergent.sh" className="text-[#F97316] hover:underline">support@emergent.sh</a>
+                <a href="mailto:hello@retailperformerai.com" className="text-[#F97316] hover:underline">hello@retailperformerai.com</a>
               </p>
             </section>
 
