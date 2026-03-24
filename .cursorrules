@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 23 Mars 2026 (session 5)
+**Dernière mise à jour**: 24 Mars 2026 (session 6)
 
 ---
 
@@ -1085,16 +1085,19 @@ La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé 
 - ✅ `utils/kpi_ts.py` — `date_str_to_ts()` → datetime UTC minuit
 - ✅ `repositories/kpi_repository.py` — override `insert_one` + `bulk_write` → injection automatique champ `ts`
 - ✅ `core/lifespan.py` — `_ensure_timeseries_collections()` au démarrage
-- Migration prod : 6 779 documents, backup dans `kpi_entries_legacy` (à supprimer manuellement sur Atlas quand validé)
+- Migration prod : 6 779 documents — ✅ `kpi_entries_legacy` supprimée sur Atlas (24 Mars 2026)
 
 #### Sécurité
 - ✅ CSP header : `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`
 - ✅ Bug CORS corrigé dans `main.py` + `build_cors_response_headers()` dans `core/startup_helpers.py`
 - ✅ Cache Redis : `CACHE_REDIS_URL` (pas `REDIS_URL` → conflit slowapi)
+- ✅ urllib3 contraint à `>=2.3.0` (vulnérabilités Snyk sur 2.0.7)
+- ✅ Limite de seats vendeur : `_check_seat_limit()` dans `services/gerant_service/_staff_mixin.py` — vérifie `active_sellers + pending_invitations < seats_purchased` pour abonnements active/past_due uniquement (trial = libre)
+- ✅ Sentry monitoring intégré dans `main.py` — activé si `SENTRY_DSN` défini en env var (optionnel, non bloquant)
 
 #### Index MongoDB — billing_profiles
 - ✅ `core/indexes.py` — index `gerant_id_unique` sur `gerant_id` (pas `user_id`)
-- ⚠️ Si l'ancien index `user_id_unique` existe encore sur Atlas prod : `db.billing_profiles.dropIndex("user_id_unique")`
+- ✅ Ancien index `user_id_unique` vérifié sur Atlas prod — n'existe plus (24 Mars 2026)
 
 #### CI GitHub Actions
 - ✅ `.github/workflows/backend-ci.yml` — tourne sur `main` ET `develop`
