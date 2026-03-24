@@ -184,6 +184,7 @@ async def create_billing_profile(
             logger.error(f"Erreur lors de la mise à jour Stripe Customer: {str(e)}")
             # Ne pas bloquer la création du profil si Stripe échoue
 
+        billing_profile.pop("_id", None)
         return {
             "success": True,
             "message": "Profil de facturation enregistré avec succès",
