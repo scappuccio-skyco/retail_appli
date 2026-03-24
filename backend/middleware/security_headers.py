@@ -25,7 +25,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
-        
+
         # ✅ SECURITY: Add security headers
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -33,6 +33,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
         
         # Remove server header (security through obscurity)
         if "server" in response.headers:

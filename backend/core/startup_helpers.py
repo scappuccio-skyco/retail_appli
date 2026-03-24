@@ -17,6 +17,21 @@ from core.rate_limiting import (
 logger = logging.getLogger(__name__)
 
 
+def build_cors_response_headers(origin: str | None, allowed_origins: list) -> dict:
+    """
+    Retourne les en-têtes CORS à inclure dans une réponse HTTP.
+
+    Règles :
+    - origin présente ET dans la liste autorisée → ACAO + credentials
+    - origin absente ou inconnue → dict vide (pas d'en-tête CORS)
+
+    Utilisée par les handlers d'erreur de main.py pour les réponses 4xx/5xx.
+    """
+    if origin and origin in allowed_origins:
+        return {"Access-Control-Allow-Origin": origin, "Access-Control-Allow-Credentials": "true"}
+    return {}
+
+
 def get_allowed_origins(settings) -> list:
     """Build CORS allowed origins list (always includes production domains)."""
     production_origins = [

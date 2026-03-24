@@ -18,7 +18,7 @@ from core.exceptions import AppException
 from core.startup_helpers import (
     SLOWAPI_AVAILABLE, Limiter, get_remote_address, RateLimitExceeded,
     get_allowed_origins, get_dummy_limiter,
-    SlowAPIMiddleware,
+    SlowAPIMiddleware, build_cors_response_headers,
 )
 
 try:
@@ -50,17 +50,11 @@ def _cors_headers_for_request(request) -> dict:
     """En-têtes CORS à ajouter aux réponses (y compris erreurs). Ne lève jamais."""
     try:
         origins = _cors_allowed_origins or _CORS_FALLBACK_ORIGINS
-        if not origins:
-            return {}
-        if request is None:
-            return {"Access-Control-Allow-Origin": origins[0], "Access-Control-Allow-Credentials": "true"}
-        origin = request.headers.get("origin") if hasattr(request, "headers") else None
-        if origin and origin in origins:
-            return {"Access-Control-Allow-Origin": origin, "Access-Control-Allow-Credentials": "true"}
-        return {"Access-Control-Allow-Origin": origins[0], "Access-Control-Allow-Credentials": "true"}
+        origin = request.headers.get("origin") if (request and hasattr(request, "headers")) else None
+        return build_cors_response_headers(origin, origins)
     except Exception as e:
         logger.warning("CORS headers fallback: %s", e)
-        return {"Access-Control-Allow-Origin": _CORS_FALLBACK_ORIGINS[0], "Access-Control-Allow-Credentials": "true"}
+        return {}
 
 
 # --- Phase 1: Error Handling - FastAPI Exception Handlers (single point of truth) ---
