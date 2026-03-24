@@ -86,9 +86,9 @@ class TestJwtAlgorithmPinning:
 
         payload = {"user_id": "u1", "email": "x@test.com", "role": "seller", "exp": int(time.time()) + 3600}
         token = pyjwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-        # Altère le dernier caractère de la signature
+        # Altère le premier caractère de la signature (jamais un bit de padding)
         parts = token.split(".")
-        parts[2] = parts[2][:-1] + ("A" if parts[2][-1] != "A" else "B")
+        parts[2] = ("B" if parts[2][0] != "B" else "C") + parts[2][1:]
         tampered = ".".join(parts)
         with pytest.raises(UnauthorizedError):
             decode_token(tampered)
