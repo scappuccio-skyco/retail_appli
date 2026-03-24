@@ -319,6 +319,61 @@ class StaffMixin:
 
         return sellers
 
+    async def _check_seat_limit(self, gerant_id: str) -> None:
+        """
+        Guard clause: vérifie que le gérant n'a pas atteint sa limite de sièges vendeur.
+        Appliqué uniquement pour les abonnements actifs/past_due (pas pendant le trial).
+        Raises ValueError si la limite est atteinte.
+        """
+        from core.exceptions import ForbiddenError
+
+        # Récupérer le workspace pour connaître le statut
+        gerant = await self.user_repo.find_one({"id": gerant_id}, {"_id": 0, "workspace_id": 1})
+        if not gerant or not gerant.get("workspace_id"):
+            return  # Pas de workspace → check_gerant_active_access a déjà levé
+
+        workspace = await self.workspace_repo.find_by_id(gerant["workspace_id"], projection={"_id": 0})
+        if not workspace:
+            return
+
+        subscription_status = workspace.get("subscription_status", "inactive")
+
+        # Pendant le trial : pas de limite de seats (exploration libre)
+        if subscription_status not in ("active", "past_due"):
+            return
+
+        # Récupérer les seats achetés depuis la subscription locale
+        db_sub = await self.subscription_repo.find_by_user_and_status(
+            gerant_id, ["active", "past_due"]
+        )
+        if not db_sub:
+            return  # Pas de subscription locale → Stripe gère, on ne bloque pas
+
+        seats_purchased = db_sub.get("seats", 0)
+        if not seats_purchased:
+            return  # Seats non renseignés → on ne bloque pas
+
+        # Compter vendeurs actifs + invitations vendeur en attente
+        active_sellers = await self.user_repo.count({
+            "gerant_id": gerant_id,
+            "role": "seller",
+            "status": "active"
+        })
+        pending_invitations = await self.gerant_invitation_repo.count({
+            "gerant_id": gerant_id,
+            "role": "seller",
+            "status": "pending"
+        })
+        total_used = active_sellers + pending_invitations
+
+        if total_used >= seats_purchased:
+            raise ForbiddenError(
+                f"Limite de sièges atteinte : {seats_purchased} siège{'s' if seats_purchased > 1 else ''} achetés, "
+                f"{active_sellers} vendeur{'s' if active_sellers > 1 else ''} actif{'s' if active_sellers > 1 else ''} "
+                f"et {pending_invitations} invitation{'s' if pending_invitations > 1 else ''} en attente. "
+                f"Augmentez votre abonnement pour inviter plus de vendeurs."
+            )
+
     async def send_invitation(self, invitation_data: Dict, gerant_id: str) -> Dict:
         """
         Send an invitation to a new manager or seller.
@@ -343,6 +398,10 @@ class StaffMixin:
 
         if role not in ['manager', 'seller']:
             raise ValueError("Le rôle doit être 'manager' ou 'seller'")
+
+        # === GUARD CLAUSE: Check seat limits for seller invitations ===
+        if role == 'seller':
+            await self._check_seat_limit(gerant_id)
 
         # Verify store belongs to this gérant
         store = await self.store_repo.find_one(
