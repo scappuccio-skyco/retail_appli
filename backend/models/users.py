@@ -42,6 +42,7 @@ class User(BaseModel):
     deleted_at: Optional[datetime] = None  # Date de suppression
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     cgu_accepted_at: Optional[datetime] = None  # Date d'acceptation des CGU (RGPD)
+    cgu_version: Optional[str] = None  # Version des CGU acceptées (ex: "v1.0")
 
 
 

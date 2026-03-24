@@ -45,3 +45,8 @@ JWT_EXPIRATION_HOURS: Final[int] = 24
 # ===== PASSWORD RESET =====
 PASSWORD_RESET_TOKEN_EXPIRATION_SECONDS: Final[int] = 600
 """Password reset token expiration (10 minutes)"""
+
+# ===== CGU / RGPD =====
+CGU_CURRENT_VERSION: Final[str] = "v1.0"
+"""Version actuelle des CGU acceptées à l'inscription. À incrémenter (v1.1, v2.0...) à chaque
+mise à jour des Conditions Générales d'Utilisation ou de la Politique de Confidentialité."""

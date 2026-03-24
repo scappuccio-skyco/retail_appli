@@ -196,6 +196,7 @@ class AuthService:
         now = datetime.now(timezone.utc)
         trial_end = now + timedelta(days=14)  # 14 jours d'essai gratuit
         
+        from config.limits import CGU_CURRENT_VERSION
         user = {
             "id": gerant_id,
             "name": name,
@@ -207,6 +208,7 @@ class AuthService:
             "created_at": now,
             "status": "active",
             "cgu_accepted_at": cgu_accepted_at or now,
+            "cgu_version": CGU_CURRENT_VERSION,
         }
         
         await self.user_repo.insert_one(user)
@@ -288,6 +290,7 @@ class AuthService:
         # Create user
         user_id = str(uuid4())
         now_inv = datetime.now(timezone.utc)
+        from config.limits import CGU_CURRENT_VERSION
         user = {
             "id": user_id,
             "name": name,
@@ -300,6 +303,7 @@ class AuthService:
             "created_at": now_inv.isoformat(),
             "status": "active",
             "cgu_accepted_at": (cgu_accepted_at or now_inv).isoformat(),
+            "cgu_version": CGU_CURRENT_VERSION,
         }
         
         await self.user_repo.insert_one(user)
