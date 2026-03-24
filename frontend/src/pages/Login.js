@@ -19,7 +19,8 @@ export default function Login({ onLogin }) {
     password: '',
     workspace_name: '',  // Nom de l'entreprise
     role: inviteToken ? 'seller' : 'gérant',  // Gérant pour inscription publique, Seller pour invitation
-    invitation_token: inviteToken || ''
+    invitation_token: inviteToken || '',
+    acceptCGU: false
   });
   const [loading, setLoading] = useState(false);
   const [inviteInfo, setInviteInfo] = useState(null);
@@ -254,6 +255,29 @@ export default function Login({ onLogin }) {
                 >
                   Mot de passe oublié ?
                 </Link>
+              </div>
+            )}
+
+            {isRegister && (
+              <div className="flex items-start gap-3 pt-1">
+                <input
+                  type="checkbox"
+                  id="acceptCGU"
+                  required
+                  checked={formData.acceptCGU}
+                  onChange={(e) => setFormData({ ...formData, acceptCGU: e.target.checked })}
+                  className="mt-0.5 h-4 w-4 text-[#1E40AF] border-gray-300 rounded focus:ring-[#1E40AF] cursor-pointer"
+                />
+                <label htmlFor="acceptCGU" className="text-sm text-gray-600 cursor-pointer">
+                  J'accepte les{' '}
+                  <Link to="/terms" target="_blank" className="text-[#1E40AF] hover:underline font-medium">
+                    Conditions Générales d'Utilisation
+                  </Link>{' '}
+                  et la{' '}
+                  <Link to="/privacy" target="_blank" className="text-[#1E40AF] hover:underline font-medium">
+                    Politique de Confidentialité
+                  </Link>{' '}*
+                </label>
               </div>
             )}
 
