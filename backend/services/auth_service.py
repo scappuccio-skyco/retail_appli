@@ -20,6 +20,7 @@ from repositories.store_repository import WorkspaceRepository
 from repositories.gerant_invitation_repository import GerantInvitationRepository
 from repositories.invitation_repository import InvitationRepository
 from repositories.password_reset_repository import PasswordResetRepository
+from repositories.subscription_repository import SubscriptionRepository
 from core.exceptions import UnauthorizedError, ValidationError, ConflictError
 
 logger = logging.getLogger(__name__)
@@ -35,12 +36,14 @@ class AuthService:
         gerant_invitation_repo: GerantInvitationRepository,
         invitation_repo: InvitationRepository,
         password_reset_repo: PasswordResetRepository,
+        subscription_repo: Optional[SubscriptionRepository] = None,
     ):
         self.user_repo = user_repo
         self.workspace_repo = workspace_repo
         self.gerant_invitation_repo = gerant_invitation_repo
         self.invitation_repo = invitation_repo
         self.password_reset_repo = password_reset_repo
+        self.subscription_repo = subscription_repo
 
     @staticmethod
     def _normalize_email(email: str) -> str:
@@ -529,6 +532,62 @@ class AuthService:
         if reset_entry.get("used"):
             raise ValueError("Ce lien a déjà été utilisé")
         return {"valid": True, "email": reset_entry.get("email", "")}
+
+    async def delete_own_account(self, current_user: Dict) -> Dict:
+        """
+        RGPD — Droit à l'effacement : suppression du compte par l'utilisateur lui-même.
+
+        - Soft delete + anonymisation email pour tous les rôles
+        - Pour gérant : annulation de l'abonnement Stripe (cancel_at_period_end) + workspace désactivé
+        """
+        user_id = current_user["id"]
+        role = current_user.get("role", "")
+        now = datetime.now(timezone.utc)
+
+        anonymized_email = f"deleted+{user_id}@example.invalid"
+
+        await self.user_repo.update_one(
+            {"id": user_id},
+            {"$set": {
+                "status": "deleted",
+                "email": anonymized_email,
+                "deleted_at": now.isoformat(),
+                "deleted_by": user_id,
+                "updated_at": now.isoformat(),
+            }}
+        )
+
+        from core.cache import invalidate_user_cache
+        await invalidate_user_cache(user_id)
+
+        # Pour le gérant : annuler l'abonnement Stripe + désactiver le workspace
+        if role == "gerant" and self.subscription_repo:
+            try:
+                subscription = await self.subscription_repo.find_by_user(user_id)
+                if subscription:
+                    stripe_sub_id = subscription.get("stripe_subscription_id")
+                    if stripe_sub_id:
+                        import stripe
+                        stripe.Subscription.modify(stripe_sub_id, cancel_at_period_end=True)
+                    await self.subscription_repo.update_by_user(
+                        user_id,
+                        {"subscription_status": "canceled", "updated_at": now.isoformat()}
+                    )
+            except Exception as e:
+                logger.warning("Impossible d'annuler l'abonnement Stripe pour %s : %s", user_id, e)
+
+            # Désactiver le workspace
+            try:
+                workspace_id = current_user.get("workspace_id")
+                if workspace_id:
+                    await self.workspace_repo.update_one(
+                        {"id": workspace_id},
+                        {"$set": {"status": "deleted", "deleted_at": now.isoformat()}}
+                    )
+            except Exception as e:
+                logger.warning("Impossible de désactiver le workspace pour %s : %s", user_id, e)
+
+        return {"message": "Votre compte a été supprimé conformément au RGPD."}
 
     async def get_me_enriched(self, current_user: Dict) -> Dict:
         """Add manager_name to current_user if seller (Phase 10: no db in auth routes)."""

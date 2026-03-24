@@ -130,6 +130,28 @@ async def register_with_invitation(
     return result
 
 
+@router.delete("/account", dependencies=[rate_limit("3/minute")])
+async def delete_own_account(
+    response: Response,
+    current_user: dict = Depends(get_current_user),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    """
+    RGPD — Droit à l'effacement : suppression du compte par l'utilisateur lui-même.
+    Soft delete + anonymisation email. Pour gérant : annulation abonnement Stripe.
+    """
+    result = await auth_service.delete_own_account(current_user)
+    # Supprimer le cookie de session
+    is_production = settings.ENVIRONMENT == "production"
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        secure=is_production,
+        samesite="none" if is_production else "lax",
+    )
+    return result
+
+
 @router.post("/logout")
 async def logout(response: Response):
     """Clear the httpOnly access_token cookie (browser clients)."""

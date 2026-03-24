@@ -81,6 +81,7 @@ def get_auth_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> AuthService:
         gerant_invitation_repo=GerantInvitationRepository(db),
         invitation_repo=InvitationRepository(db),
         password_reset_repo=PasswordResetRepository(db),
+        subscription_repo=SubscriptionRepository(db),
     )
 
 

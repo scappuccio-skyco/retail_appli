@@ -1,5 +1,8 @@
-import React from 'react';
-import { User, Mail, Phone, Building2, Save, Loader, Edit2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Mail, Phone, Building2, Save, Loader, Edit2, Trash2, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { api } from '../../lib/apiClient';
 import useGerantProfile from './gerantProfile/useGerantProfile';
 import PasswordSection from './gerantProfile/PasswordSection';
 
@@ -28,6 +31,26 @@ function ProfileField({ label, name, type = 'text', icon: Icon, value, onChange,
 
 export default function GerantProfile() {
   const s = useGerantProfile();
+  const navigate = useNavigate();
+  const [showDeleteZone, setShowDeleteZone] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== 'SUPPRIMER') return;
+    setDeleting(true);
+    try {
+      await api.delete('/auth/account');
+      toast.success('Compte supprimé. Vous allez être déconnecté.');
+      setTimeout(() => {
+        localStorage.clear();
+        navigate('/login');
+      }, 2000);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Erreur lors de la suppression');
+      setDeleting(false);
+    }
+  };
 
   if (s.loading) {
     return (
@@ -138,6 +161,53 @@ export default function GerantProfile() {
             onCancel={s.cancelPasswordChange}
             onSubmit={s.handlePasswordChange}
           />
+
+          {/* Zone de danger — RGPD droit à l'effacement */}
+          <div className="mt-8 border border-red-200 rounded-xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowDeleteZone(!showDeleteZone)}
+              className="w-full flex items-center justify-between px-5 py-4 bg-red-50 hover:bg-red-100 transition-colors text-left"
+            >
+              <div className="flex items-center gap-2 text-red-700 font-semibold">
+                <Trash2 className="w-5 h-5" />
+                Supprimer mon compte
+              </div>
+              <span className="text-xs text-red-500">{showDeleteZone ? '▲ Fermer' : '▼ Ouvrir'}</span>
+            </button>
+
+            {showDeleteZone && (
+              <div className="px-5 py-5 space-y-4 bg-white">
+                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-amber-800">
+                    <p className="font-semibold mb-1">Cette action est irréversible.</p>
+                    <p>Votre compte, vos données personnelles et votre abonnement seront supprimés conformément au RGPD. Les données historiques (KPI, performances) seront anonymisées.</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tapez <strong>SUPPRIMER</strong> pour confirmer
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteConfirm}
+                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                    placeholder="SUPPRIMER"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirm !== 'SUPPRIMER' || deleting}
+                  className="w-full py-2.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {deleting ? <><Loader className="w-4 h-4 animate-spin" />Suppression...</> : <><Trash2 className="w-4 h-4" />Supprimer définitivement mon compte</>}
+                </button>
+              </div>
+            )}
+          </div>
 
           {s.isEditing && (
             <div className="mt-6 flex justify-end gap-3">
