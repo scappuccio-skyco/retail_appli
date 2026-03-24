@@ -1113,3 +1113,8 @@ La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé 
 - Service `retail_appli` (prod) : branche `main`, DB `Retail_Performer`
 - Service `retail_appli-staging` : branche `develop`, DB `Retail_Performer_staging`
 - Redis : `redis.railway.internal:6379`, variable `CACHE_REDIS_URL`
+
+#### Snyk (TODO)
+- ⚠️ Snyk CI intégré dans `backend-ci.yml` (job `snyk-security`) mais `SNYK_TOKEN` non encore configuré
+- TODO : récupérer le token Snyk (snyk.io → Settings → Service accounts ou Auth token) et l'ajouter en secret GitHub : `SNYK_TOKEN`
+- Sans ce token, le job Snyk sera skippé/en erreur (continue-on-error=true → ne bloque pas le CI)
