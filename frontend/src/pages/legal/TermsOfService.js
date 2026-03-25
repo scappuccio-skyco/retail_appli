@@ -94,6 +94,7 @@ export default function TermsOfService() {
                     <li>Création et gestion de challenges d&apos;équipe</li>
                     <li>Génération automatisée de briefs matinaux personnalisés par IA</li>
                     <li>Bilan IA de l&apos;équipe (synthèse, points forts, axes d&apos;amélioration, recommandations)</li>
+                    <li>Préparation des entretiens annuels des vendeurs avec synthèse IA</li>
                     <li>Coaching relationnel IA adapté au profil DISC de chaque vendeur (situations difficiles et conflits)</li>
                     <li>Diagnostic de profil management (méthodologie DISC)</li>
                   </ul>
