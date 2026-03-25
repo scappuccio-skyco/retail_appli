@@ -84,7 +84,6 @@ export default function GerantDashboardView({
     return { ...store, stats, periodCA, periodVentes, periodProspects, periodEvolution };
   }).sort((a, b) => b.periodCA - a.periodCA);
 
-  const showConversionRate = rankedStores.some(s => s.periodProspects > 0);
 
 
   return (
@@ -273,29 +272,27 @@ export default function GerantDashboardView({
                   <th className="px-4 py-3 text-right">CA — {formatPeriod(periodType, periodOffset)}</th>
                   <th className="px-4 py-3 text-right hidden sm:table-cell">Ventes</th>
                   <th className="px-4 py-3 text-right hidden lg:table-cell">
-                    <span
-                      title="Panier moyen = CA ÷ Nombre de ventes. Montant moyen dépensé par transaction sur la période."
-                      className="cursor-help border-b border-dashed border-gray-400"
-                    >
-                      Panier moyen
+                    <span className="relative group inline-block">
+                      <span className="cursor-help border-b border-dashed border-gray-400">Panier moyen</span>
+                      <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 rounded-lg bg-gray-800 px-3 py-2 text-left text-xs font-normal normal-case text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+                        Panier moyen = CA ÷ Nombre de ventes. Montant moyen dépensé par transaction sur la période.
+                      </span>
                     </span>
                   </th>
-                  {showConversionRate && (
-                    <th className="px-4 py-3 text-right hidden lg:table-cell">
-                      <span
-                        title="Taux de transformation = Ventes ÷ Prospects. Indique la part des prospects convertis en achat."
-                        className="cursor-help border-b border-dashed border-gray-400"
-                      >
-                        Transformation
+                  <th className="px-4 py-3 text-right hidden lg:table-cell">
+                    <span className="relative group inline-block">
+                      <span className="cursor-help border-b border-dashed border-gray-400">Transformation</span>
+                      <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 rounded-lg bg-gray-800 px-3 py-2 text-left text-xs font-normal normal-case text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+                        Taux de transformation = Ventes ÷ Prospects. Indique la part des prospects convertis en achat.
                       </span>
-                    </th>
-                  )}
+                    </span>
+                  </th>
                   <th className="px-4 py-3 text-center hidden md:table-cell">
-                    <span
-                      title="Évolution du CA par rapport à la même période précédente (semaine / mois / année selon le filtre sélectionné)"
-                      className="cursor-help border-b border-dashed border-gray-400"
-                    >
-                      Évolution
+                    <span className="relative group inline-block">
+                      <span className="cursor-help border-b border-dashed border-gray-400">Évolution</span>
+                      <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-lg bg-gray-800 px-3 py-2 text-left text-xs font-normal normal-case text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+                        Évolution du CA par rapport à la même période précédente (semaine / mois / année selon le filtre sélectionné).
+                      </span>
                     </span>
                   </th>
                   <th className="px-4 py-3 text-center hidden md:table-cell">Équipe</th>
@@ -359,18 +356,16 @@ export default function GerantDashboardView({
                         )}
                       </td>
 
-                      {/* Taux de transformation (conditionnel) */}
-                      {showConversionRate && (
-                        <td className="px-4 py-4 text-right hidden lg:table-cell">
-                          {s.periodProspects > 0 && s.periodVentes > 0 ? (
-                            <p className="font-semibold text-gray-700">
-                              {Math.round((s.periodVentes / s.periodProspects) * 100)} %
-                            </p>
-                          ) : (
-                            <span className="text-gray-400 text-sm">—</span>
-                          )}
-                        </td>
-                      )}
+                      {/* Taux de transformation */}
+                      <td className="px-4 py-4 text-right hidden lg:table-cell">
+                        {s.periodProspects > 0 && s.periodVentes > 0 ? (
+                          <p className="font-semibold text-gray-700">
+                            {Math.round((s.periodVentes / s.periodProspects) * 100)} %
+                          </p>
+                        ) : (
+                          <span className="text-gray-400 text-sm">—</span>
+                        )}
+                      </td>
 
                       {/* Évolution */}
                       <td className="px-4 py-4 text-center hidden md:table-cell">
