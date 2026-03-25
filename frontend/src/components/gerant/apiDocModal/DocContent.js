@@ -36,10 +36,11 @@ export default function DocContent({ onContactSupport }) {
                   <li><strong>Nom</strong> : Donnez un nom à votre clé (ex: "Caisse Magasin Paris")</li>
                   <li><strong>Permissions</strong> : Cochez les permissions nécessaires :
                     <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                      <li><code className="bg-purple-200 px-1 rounded text-xs">stores:read</code> - Lire les magasins</li>
-                      <li><code className="bg-purple-200 px-1 rounded text-xs">stores:write</code> - Créer des magasins</li>
-                      <li><code className="bg-purple-200 px-1 rounded text-xs">users:write</code> - Créer/modifier des utilisateurs</li>
-                      <li><code className="bg-purple-200 px-1 rounded text-xs">kpi:write</code> - Synchroniser les KPI</li>
+                      <li><code className="bg-purple-200 px-1 rounded text-xs">write:kpi</code> - Synchroniser les KPI (usage le plus courant)</li>
+                      <li><code className="bg-purple-200 px-1 rounded text-xs">stores:read</code> - Lire les magasins et leur équipe</li>
+                      <li><code className="bg-purple-200 px-1 rounded text-xs">stores:write</code> - Créer/supprimer des magasins</li>
+                      <li><code className="bg-purple-200 px-1 rounded text-xs">users:write</code> - Créer/modifier/supprimer managers et vendeurs</li>
+                      <li><code className="bg-purple-200 px-1 rounded text-xs">read:stats</code> - Lire les statistiques (usage futur)</li>
                     </ul>
                   </li>
                   <li><strong>Expiration</strong> : Optionnel - définissez une date d'expiration pour plus de sécurité</li>
@@ -98,7 +99,7 @@ export default function DocContent({ onContactSupport }) {
             <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
               <pre className="text-green-300">{`{
   "store_id": "id-du-magasin",
-  "date": "2024-01-15",
+  "date": "2026-01-15",
   "kpi_entries": [
     {
       "seller_id": "id-du-vendeur",
@@ -117,7 +118,7 @@ export default function DocContent({ onContactSupport }) {
               <ul className="space-y-2 text-sm">
                 {[
                   ['store_id', "L'identifiant de votre magasin (vous le trouvez dans l'interface)"],
-                  ['date', 'La date au format AAAA-MM-JJ (ex: 2024-01-15)'],
+                  ['date', 'La date au format AAAA-MM-JJ (ex: 2026-01-15)'],
                   ['seller_id', "L'identifiant du vendeur (vous le trouvez dans l'interface)"],
                   ['ca_journalier', 'Le chiffre d\'affaires de la journée en euros (ex: 1250.50)'],
                   ['nb_ventes', 'Le nombre de ventes effectuées (ex: 12)'],
@@ -135,10 +136,9 @@ export default function DocContent({ onContactSupport }) {
           <div>
             <h4 className="font-semibold text-gray-900 mb-2">💡 Comment obtenir les IDs (store_id, seller_id) ?</h4>
             <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
-              <p className="text-purple-900 text-sm mb-2"><strong>Option 1 : Depuis l'interface web</strong></p>
-              <p className="text-purple-800 text-sm mb-3">Connectez-vous à l'interface gérant, allez dans "Mes magasins" et "Mon équipe". Les IDs sont visibles dans l'URL ou dans les détails de chaque magasin/vendeur.</p>
-              <p className="text-purple-900 text-sm mb-2"><strong>Option 2 : Via l'API App (JWT)</strong></p>
-              <p className="text-purple-800 text-sm">Utilisez <code className="bg-purple-200 px-1 rounded">GET /api/stores/my-stores</code> avec votre token JWT (depuis l'interface web) pour obtenir la liste des magasins et leurs vendeurs.</p>
+              <p className="text-purple-900 text-sm mb-2"><strong>Via l'API (recommandé) :</strong></p>
+              <p className="text-purple-800 text-sm mb-3">Appelez d'abord <code className="bg-purple-200 px-1 rounded">GET /api/integrations/stores</code> avec votre clé API pour récupérer la liste des magasins et leurs IDs. Ensuite, pour chaque magasin, appelez <code className="bg-purple-200 px-1 rounded">GET /api/integrations/stores/{`{store_id}`}/sellers</code> pour obtenir les IDs de vos vendeurs.</p>
+              <p className="text-purple-900 text-sm mb-2"><strong>Permission requise :</strong> <code className="bg-purple-200 px-1 rounded">stores:read</code></p>
             </div>
           </div>
           <div>
@@ -188,7 +188,9 @@ export default function DocContent({ onContactSupport }) {
     "name": "Magasin Lyon Centre",
     "location": "69001 Lyon",
     "address": "456 Rue de la République",
-    "phone": "0123456789"
+    "phone": "0123456789",
+    "opening_hours": "Lun-Sam 10h-19h",
+    "external_id": "MAG-042"
   }'`}</pre>
             </div>
             <p className="text-gray-600 text-sm mt-2"><strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">stores:write</code></p>
@@ -241,7 +243,9 @@ export default function DocContent({ onContactSupport }) {
   -d '{
     "name": "Jean Dupont",
     "email": "jean.dupont@example.com",
-    "phone": "0123456789"
+    "phone": "0123456789",
+    "external_id": "EMP-101",
+    "send_invitation": true
   }'`}</pre>
             </div>
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-3 rounded">
@@ -301,12 +305,20 @@ export default function DocContent({ onContactSupport }) {
     "name": "Marie Martin",
     "email": "marie.martin@example.com",
     "phone": "0123456789",
-    "manager_id": "manager-789"
+    "manager_id": "manager-789",
+    "external_id": "EMP-102",
+    "send_invitation": true
   }'`}</pre>
             </div>
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-3 rounded">
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-3 rounded space-y-2">
               <p className="text-yellow-900 text-sm">
-                <strong>💡 Note :</strong> Si vous ne spécifiez pas de <code className="bg-yellow-200 px-1 rounded">manager_id</code>, un manager actif du magasin sera assigné automatiquement.
+                <strong>💡 manager_id :</strong> Si non renseigné, un manager actif du magasin sera assigné automatiquement.
+              </p>
+              <p className="text-yellow-900 text-sm">
+                <strong>💡 send_invitation :</strong> Si <code className="bg-yellow-200 px-1 rounded">true</code> (défaut), un email d'invitation est envoyé automatiquement. Mettez <code className="bg-yellow-200 px-1 rounded">false</code> pour créer le compte sans envoyer d'email.
+              </p>
+              <p className="text-yellow-900 text-sm">
+                <strong>💡 external_id :</strong> Champ libre pour stocker l'identifiant de votre système (RH, caisse, ERP). Utile pour faire le lien entre vos systèmes et Retail Performer AI.
               </p>
             </div>
             <p className="text-gray-600 text-sm mt-2"><strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">users:write</code></p>
@@ -409,7 +421,7 @@ export default function DocContent({ onContactSupport }) {
   -H "Content-Type: application/json" \\
   -d '{
     "store_id": "votre-store-id",
-    "date": "2024-01-15",
+    "date": "2026-01-15",
     "kpi_entries": [
       {
         "seller_id": "votre-seller-id",
@@ -464,6 +476,47 @@ else:
     print(response.json())`}</pre>
             </div>
           </div>
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">Exemple avec JavaScript / Node.js</h4>
+            <p className="text-gray-600 text-sm mb-2">Code compatible navigateur et Node.js pour synchroniser les KPI :</p>
+            <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+              <pre className="text-green-300">{`const API_KEY = "sk_live_votre_cle_api_ici";
+const BASE_URL = "https://api.retailperformerai.com";
+
+async function syncKPI(storeId, sellerId, data) {
+  const response = await fetch(\`\${BASE_URL}/api/integrations/kpi/sync\`, {
+    method: "POST",
+    headers: {
+      "X-API-Key": API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      store_id: storeId,
+      date: new Date().toISOString().split("T")[0],
+      kpi_entries: [{
+        seller_id: sellerId,
+        ca_journalier: data.ca,
+        nb_ventes: data.ventes,
+        nb_articles: data.articles,
+        prospects: data.prospects ?? 0,
+      }],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(\`Erreur \${response.status}: \${err.detail}\`);
+  }
+
+  return response.json();
+}
+
+// Utilisation
+syncKPI("votre-store-id", "votre-seller-id", {
+  ca: 1250.50, ventes: 12, articles: 28, prospects: 35
+}).then(result => console.log("✅ Synchronisé :", result));`}</pre>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -473,7 +526,9 @@ else:
         <div className="space-y-4">
           {[
             { title: '❌ Erreur 401 : Clé API invalide', text: 'Vérifiez que vous avez bien copié la clé API complète (elle commence par ', code: 'sk_live_', suffix: '). Assurez-vous qu\'il n\'y a pas d\'espaces avant ou après la clé.' },
-            { title: '❌ Erreur 403 : Permissions insuffisantes', text: 'Vérifiez que votre clé API a bien la permission "Synchroniser les KPI" (permission ', code: 'write:kpi', suffix: '). Si ce n\'est pas le cas, créez une nouvelle clé avec cette permission.' },
+            { title: '❌ Erreur 403 : Permissions insuffisantes', text: 'Vérifiez que votre clé API a bien la permission requise (ex: ', code: 'write:kpi', suffix: ' pour les KPI). Si ce n\'est pas le cas, créez une nouvelle clé avec cette permission.' },
+            { title: '❌ Erreur 404 : Ressource introuvable', text: 'L\'identifiant utilisé (', code: 'store_id', suffix: ' ou seller_id) est incorrect ou n\'existe pas. Appelez d\'abord GET /api/integrations/stores pour récupérer les IDs valides.' },
+            { title: '❌ Erreur 429 : Trop de requêtes', text: 'Vous avez dépassé la limite de 60 requêtes/minute. Attendez quelques secondes avant de réessayer. Consultez le header ', code: 'Retry-After', suffix: ' de la réponse pour savoir combien de temps attendre.' },
           ].map(({ title, text, code, suffix }) => (
             <div key={title} className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
               <p className="text-red-900 font-semibold mb-2">{title}</p>
@@ -487,7 +542,7 @@ else:
             <p className="text-red-800 text-sm">
               <strong>Solution :</strong> Vérifiez que :
               <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-                <li>La date est au format AAAA-MM-JJ (ex: 2024-01-15)</li>
+                <li>La date est au format AAAA-MM-JJ (ex: 2026-01-15)</li>
                 <li>Vous n'envoyez pas plus de 100 vendeurs en une seule fois</li>
                 <li>Les IDs (store_id, seller_id) sont corrects</li>
                 <li>Les nombres (CA, ventes, articles) sont des nombres valides</li>
