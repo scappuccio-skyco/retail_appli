@@ -1146,7 +1146,41 @@ Quand tu modifies les CGU ou la Politique de Confidentialité, faire dans l'ordr
 6. **Re-consentement explicite** (checkbox) requis uniquement si changement majeur affectant les droits des données (nouveau traitement, cession tiers...) — sinon notification suffit (RGPD/LCEN)
 
 #### TODOs pré-commercialisation restants
-- ⚠️ **SNYK_TOKEN** : récupérer sur snyk.io → Settings → Auth token → ajouter en secret GitHub
-- ⚠️ **Stripe live mode** : vérifier que les clés Railway prod sont `sk_live_*` et que le webhook prod `https://api.retailperformerai.com/webhooks/stripe` est enregistré en mode live dans Stripe Dashboard
-- ⚠️ **Emails Brevo en prod** : vérifier délivrabilité (SPF/DKIM configurés, pas en spam)
-- ⚠️ **Backup Atlas** : vérifier que le backup automatique est activé sur le cluster prod
+- ✅ **Snyk** : remplacé par pip-audit + Dependabot
+- ✅ **Stripe live mode** : configuré
+- ✅ **Emails Brevo** : SPF + DKIM configurés
+- ⚠️ **Backup Atlas** : migrer vers M10 au premier client payant
+
+---
+
+## 🚀 Stratégie commerciale
+
+### Cible prioritaire
+Gérants retail spécialisé (mode, sport, luxe) — indépendants 1-5 magasins — France.
+
+### Problème central
+Les managers sont d'anciens vendeurs promus sans formation management. Ils ne savent pas faire progresser une équipe. Le gérant se retrouve à compenser.
+
+### Message de prospection LinkedIn (v1 — à affiner)
+```
+Bonjour [Prénom],
+
+Je travaille avec des gérants retail et j'entends souvent la même chose : les managers
+sont d'excellents anciens vendeurs, mais personne ne leur a appris à faire progresser
+une équipe.
+
+Résultat : les entretiens de suivi ne se font pas, les vendeurs stagnent, et le gérant
+se retrouve à gérer lui-même ce que le manager devrait faire.
+
+J'ai construit un outil qui aide les managers à structurer le suivi de leurs vendeurs
+au quotidien — sans formation management préalable.
+
+Est-ce que c'est quelque chose que vous reconnaissez dans votre magasin ?
+```
+
+### Séquence prospection
+1. Identifier 50-100 gérants ciblés sur LinkedIn
+2. Approcher avec le message ci-dessus (pas de pitch produit)
+3. Proposer une démo 20 min
+4. Offrir 30 jours gratuits aux participants à la démo
+5. Capitaliser sur les premiers clients satisfaits pour le bouche-à-oreille
