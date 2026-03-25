@@ -32,7 +32,7 @@ const faqs = [
   },
   {
     question: "Mes données sont-elles sécurisées ?",
-    answer: "Oui, toutes vos données sont hébergées en France, chiffrées et conformes au RGPD. Nous ne partageons jamais vos données avec des tiers. Pour l'IA de coaching, seuls les prénoms sont transmis (les noms de famille sont automatiquement anonymisés)."
+    answer: "Oui, toutes vos données sont hébergées en Europe (Amsterdam, Pays-Bas), chiffrées et conformes au RGPD. Nous ne partageons jamais vos données avec des tiers. Pour l'IA de coaching, seuls les prénoms sont transmis (les noms de famille sont automatiquement anonymisés)."
   },
   {
     question: "L'IA conserve-t-elle mes données commerciales ?",

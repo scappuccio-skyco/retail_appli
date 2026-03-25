@@ -146,7 +146,7 @@ export default function PrivacyPolicy() {
               <tr className="bg-gray-50">
                 <td className="border border-gray-200 px-4 py-3 font-medium">Railway (GCP)</td>
                 <td className="border border-gray-200 px-4 py-3">Hébergement backend</td>
-                <td className="border border-gray-200 px-4 py-3">US (CCT)</td>
+                <td className="border border-gray-200 px-4 py-3">UE — Amsterdam (Pays-Bas)</td>
               </tr>
               <tr className="bg-gray-50">
                 <td className="border border-gray-200 px-4 py-3 font-medium">Sentry</td>
