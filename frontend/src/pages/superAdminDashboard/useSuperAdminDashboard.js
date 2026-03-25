@@ -165,10 +165,10 @@ export default function useSuperAdminDashboard() {
   };
 
   const getSubscriptionStatusClasses = (s) => {
-    if (s === 'active') return 'bg-green-500/20 text-green-200';
-    if (s === 'trial') return 'bg-yellow-500/20 text-yellow-200';
-    if (s === 'payment_failed') return 'bg-red-500/20 text-red-200';
-    return 'bg-gray-500/20 text-gray-200';
+    if (s === 'active') return 'bg-green-100 text-green-700';
+    if (s === 'trial') return 'bg-yellow-100 text-yellow-700';
+    if (s === 'payment_failed') return 'bg-red-100 text-red-700';
+    return 'bg-gray-100 text-gray-600';
   };
 
   const toggleWorkspace = (id) => setExpandedWorkspaces(prev => ({ ...prev, [id]: !prev[id] }));
