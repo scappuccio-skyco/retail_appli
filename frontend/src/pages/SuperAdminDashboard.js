@@ -33,7 +33,7 @@ export default function SuperAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-orange-50 to-white p-6 sm:p-8">
+    <div className="min-h-screen bg-gray-100 p-6 sm:p-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
