@@ -155,6 +155,7 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
                     <li style="padding: 8px 0;">🏆 <strong>Lancer des challenges</strong> pour motiver votre équipe</li>
                     <li style="padding: 8px 0;">☀️ <strong>Générer votre brief matinal</strong> personnalisé par IA</li>
                     <li style="padding: 8px 0;">📋 <strong>Générer des bilans IA de votre équipe</strong> (points forts, axes d'amélioration, recommandations)</li>
+                    <li style="padding: 8px 0;">📝 <strong>Préparer les entretiens annuels</strong> de vos vendeurs avec synthèse IA</li>
                     <li style="padding: 8px 0;">🤝 <strong>Conseils relationnels et gestion de conflits</strong> adaptés au profil DISC de chaque vendeur</li>
                     <li style="padding: 8px 0;">🧠 <strong>Diagnostic de votre profil management</strong> (méthodologie DISC)</li>
                 </ul>
