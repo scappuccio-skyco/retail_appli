@@ -39,6 +39,11 @@ export default function APIKeyCard({ apiKey: key, formatDate, onDelete, onPerman
           {key.last_used_at && (
             <span title="Dernière utilisation">Utilisée: {formatDate(key.last_used_at)}</span>
           )}
+          {key.expires_at && (
+            <span title="Date d'expiration" className={`font-medium ${new Date(key.expires_at) < new Date() ? 'text-red-500' : 'text-amber-600'}`}>
+              {new Date(key.expires_at) < new Date() ? '⚠️ Expirée' : `Expire: ${formatDate(key.expires_at)}`}
+            </span>
+          )}
         </div>
 
         <div className="shrink-0">

@@ -49,21 +49,15 @@ const APIKeysManagement = () => {
             <button
               id="copy-btn"
               onClick={() => {
-                const textArea = document.createElement('textarea');
-                textArea.value = s.createdKey.key;
-                textArea.style.position = 'fixed';
-                textArea.style.left = '-999999px';
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                const btn = document.getElementById('copy-btn');
-                if (btn) {
-                  const orig = btn.innerHTML;
-                  btn.innerHTML = '✓ Copié !';
-                  btn.classList.add('bg-green-800');
-                  setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('bg-green-800'); }, 2000);
-                }
+                navigator.clipboard.writeText(s.createdKey.key).then(() => {
+                  const btn = document.getElementById('copy-btn');
+                  if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '✓ Copié !';
+                    btn.classList.add('bg-green-800');
+                    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('bg-green-800'); }, 2000);
+                  }
+                });
               }}
               className="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
