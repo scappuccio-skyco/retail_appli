@@ -81,7 +81,8 @@ export default function GerantDashboardView({
     const periodVentes = stats.period_ventes || 0;
     const periodProspects = stats.period_prospects || 0;
     const periodEvolution = prevPeriodCA > 0 ? ((periodCA - prevPeriodCA) / prevPeriodCA) * 100 : 0;
-    return { ...store, stats, periodCA, periodVentes, periodProspects, periodEvolution };
+    const isPartialComparison = stats.is_partial_comparison || false;
+    return { ...store, stats, periodCA, periodVentes, periodProspects, periodEvolution, isPartialComparison };
   }).sort((a, b) => b.periodCA - a.periodCA);
 
 
@@ -370,19 +371,24 @@ export default function GerantDashboardView({
                       {/* Évolution */}
                       <td className="px-4 py-4 text-center hidden md:table-cell">
                         {hasEvo ? (
-                          evo > 0 ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">
-                              <TrendingUp className="w-3 h-3" />+{Math.round(evo * 10) / 10}%
-                            </span>
-                          ) : evo < 0 ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full">
-                              <TrendingDown className="w-3 h-3" />{Math.round(evo * 10) / 10}%
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                              <Minus className="w-3 h-3" />0%
-                            </span>
-                          )
+                          <div className="flex flex-col items-center gap-0.5">
+                            {evo > 0 ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                                <TrendingUp className="w-3 h-3" />+{Math.round(evo * 10) / 10}%
+                              </span>
+                            ) : evo < 0 ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full">
+                                <TrendingDown className="w-3 h-3" />{Math.round(evo * 10) / 10}%
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                <Minus className="w-3 h-3" />0%
+                              </span>
+                            )}
+                            {s.isPartialComparison && (
+                              <span className="text-gray-400 text-xs italic">vs J identique</span>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-gray-300 text-xs">—</span>
                         )}

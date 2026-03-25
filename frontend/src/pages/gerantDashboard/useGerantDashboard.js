@@ -126,6 +126,7 @@ export default function useGerantDashboard({ user, onLogout }) {
           period_prospects: d.period?.prospects || 0,
           prev_period_ca: d.previous_period?.ca || 0,
           ca_evolution: d.period?.ca_evolution || 0,
+          is_partial_comparison: d.previous_period?.is_partial_comparison || false,
         };
       });
       setRankingStats(statsMap);

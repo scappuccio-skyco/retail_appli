@@ -1,4 +1,5 @@
 """KPI statistics and analytics methods for GerantService."""
+import calendar
 import logging
 from typing import Dict, Optional, List
 from datetime import datetime, timezone, timedelta
@@ -99,6 +100,8 @@ class KpiMixin:
         # Calculate period dates
         today_date = datetime.now(timezone.utc)
 
+        is_partial_comparison = False
+
         if period_type == 'week':
             days_since_monday = today_date.weekday()
             current_monday = today_date - timedelta(days=days_since_monday)
@@ -116,7 +119,15 @@ class KpiMixin:
             period_end = (next_month.replace(day=1) - timedelta(days=1)).strftime('%Y-%m-%d')
             prev_month = target_month - timedelta(days=1)
             prev_start = prev_month.replace(day=1).strftime('%Y-%m-%d')
-            prev_end = (target_month - timedelta(days=1)).strftime('%Y-%m-%d')
+            if period_offset == 0:
+                # Mois courant : comparaison à jour identique (ex : mars 1→25 vs fév 1→25)
+                last_day_prev = calendar.monthrange(prev_month.year, prev_month.month)[1]
+                same_day = min(today_date.day, last_day_prev)
+                prev_end = prev_month.replace(day=same_day).strftime('%Y-%m-%d')
+                is_partial_comparison = True
+            else:
+                # Mois passé : comparaison mois complet vs mois complet
+                prev_end = (target_month - timedelta(days=1)).strftime('%Y-%m-%d')
         elif period_type == 'year':
             target_year = today_date.year + period_offset
             period_start = f"{target_year}-01-01"
@@ -220,7 +231,8 @@ class KpiMixin:
             "previous_period": {
                 "start": prev_start,
                 "end": prev_end,
-                "ca": prev_ca
+                "ca": prev_ca,
+                "is_partial_comparison": is_partial_comparison
             }
         }
 
