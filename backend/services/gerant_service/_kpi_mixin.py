@@ -147,7 +147,8 @@ class KpiMixin:
             {"$group": {
                 "_id": None,
                 "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
-                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}}
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}}
             }}
         ], max_results=1)
 
@@ -156,7 +157,8 @@ class KpiMixin:
             {"$group": {
                 "_id": None,
                 "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
-                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}}
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}}
             }}
         ], max_results=1)
 
@@ -164,6 +166,8 @@ class KpiMixin:
                     (period_managers[0].get("total_ca", 0) if period_managers else 0)
         period_ventes = (period_sellers[0].get("total_ventes", 0) if period_sellers else 0) + \
                         (period_managers[0].get("total_ventes", 0) if period_managers else 0)
+        period_prospects = (period_sellers[0].get("total_prospects", 0) if period_sellers else 0) + \
+                           (period_managers[0].get("total_prospects", 0) if period_managers else 0)
 
         # Get previous period KPIs for evolution (same anti-doublon logic)
         prev_managers_with_kpis = await self.manager_kpi_repo.distinct(
@@ -210,6 +214,7 @@ class KpiMixin:
                 "end": period_end,
                 "ca": period_ca,
                 "ventes": period_ventes,
+                "prospects": period_prospects,
                 "ca_evolution": round(ca_evolution, 2)
             },
             "previous_period": {

@@ -123,6 +123,7 @@ export default function useGerantDashboard({ user, onLogout }) {
         statsMap[storesList[i].id] = {
           period_ca: d.period?.ca || 0,
           period_ventes: d.period?.ventes || 0,
+          period_prospects: d.period?.prospects || 0,
           prev_period_ca: d.previous_period?.ca || 0,
           ca_evolution: d.period?.ca_evolution || 0,
         };
