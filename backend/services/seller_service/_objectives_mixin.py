@@ -69,16 +69,32 @@ class ObjectivesMixin:
         """
         Get all pending tasks for a seller:
         - Diagnostic completion
-        - Pending manager requests
         - Debrief submission (if none in last 7 days)
         - Daily challenge not yet completed
         - Active objective expiring in ≤3 days
         - Weekly bilan missing for previous complete week
+        Jour 1 (compte < 24h) : seulement le diagnostic.
         """
         from datetime import date, timedelta
         tasks = []
         today = date.today()
         today_str = today.isoformat()
+
+        # --- Détection compte tout neuf (< 24h) ---
+        is_new_user = False
+        try:
+            user_doc = await self.user_repo.find_by_id(seller_id, projection={"_id": 0, "created_at": 1})
+            created_at = user_doc.get("created_at") if user_doc else None
+            if created_at:
+                if isinstance(created_at, str):
+                    created_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                else:
+                    created_dt = created_at
+                if created_dt.tzinfo is None:
+                    created_dt = created_dt.replace(tzinfo=timezone.utc)
+                is_new_user = (datetime.now(timezone.utc) - created_dt).total_seconds() < 86400
+        except Exception:
+            pass
 
         # --- Diagnostic ---
         diagnostic = await self.diagnostic_repo.find_by_seller(seller_id)
@@ -92,6 +108,10 @@ class ObjectivesMixin:
                 "priority": "high",
                 "icon": "📋"
             })
+
+        # Jour 1 : on s'arrête ici
+        if is_new_user:
+            return tasks
 
         # --- Debrief (none submitted in last 7 days) ---
         try:
