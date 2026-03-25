@@ -72,12 +72,12 @@ export default function TermsOfService() {
                   </h3>
                   <ul className="list-disc list-inside space-y-1.5 ml-2 text-gray-700 text-sm">
                     <li>Dashboard de performance global en temps réel</li>
-                    <li>Suivi des KPIs de chaque vendeur et magasin</li>
-                    <li>Accès au coach IA personnalisé par vendeur</li>
-                    <li>Analyses de performance par Intelligence Artificielle (GPT-4o)</li>
-                    <li>Gestion multi-magasins et supervision des managers</li>
-                    <li>Invitation et gestion des membres de l&apos;équipe</li>
-                    <li>Historique des performances et des consultations IA</li>
+                    <li>Suivi des KPIs de chaque magasin (CA, ventes, évolution par période)</li>
+                    <li>Classement et comparaison des performances entre magasins</li>
+                    <li>Invitation, gestion et supervision du personnel (managers et vendeurs)</li>
+                    <li>Transfert et réorganisation des équipes entre magasins</li>
+                    <li>Intégration API pour connecter les logiciels externes (caisse, ERP)</li>
+                    <li>Gestion de l&apos;abonnement et de la facturation</li>
                   </ul>
                 </div>
 
@@ -89,14 +89,13 @@ export default function TermsOfService() {
                   </h3>
                   <ul className="list-disc list-inside space-y-1.5 ml-2 text-gray-700 text-sm">
                     <li>Tableau de bord des performances de l&apos;équipe en temps réel</li>
-                    <li>Suivi des KPIs magasin (CA, ventes, panier moyen, taux de transformation)</li>
+                    <li>Suivi des KPIs magasin (CA, ventes, panier moyen, taux de transformation, indice de vente)</li>
                     <li>Définition et suivi des objectifs individuels et collectifs</li>
                     <li>Création et gestion de challenges d&apos;équipe</li>
                     <li>Génération automatisée de briefs matinaux personnalisés par IA</li>
-                    <li>Coaching IA individuel basé sur le profil psychologique (méthodologie DISC)</li>
-                    <li>Bilans de performance IA et aide à la préparation d&apos;entretiens annuels</li>
-                    <li>Conseils relationnels et managériaux adaptés au profil DISC de chaque vendeur</li>
-                    <li>Gestion de l&apos;équipe (invitation, suivi, suspension)</li>
+                    <li>Bilan IA de l&apos;équipe (synthèse, points forts, axes d&apos;amélioration, recommandations)</li>
+                    <li>Coaching relationnel IA adapté au profil DISC de chaque vendeur (situations difficiles et conflits)</li>
+                    <li>Diagnostic de profil management (méthodologie DISC)</li>
                   </ul>
                 </div>
 
@@ -107,12 +106,15 @@ export default function TermsOfService() {
                     Espace Vendeur
                   </h3>
                   <ul className="list-disc list-inside space-y-1.5 ml-2 text-gray-700 text-sm">
-                    <li>Tableau de bord des KPIs personnels en temps réel</li>
-                    <li>Suivi des objectifs individuels et challenges en cours</li>
-                    <li>Accès au coach IA personnel pour des défis et conseils personnalisés</li>
+                    <li>Tableau de bord des KPIs personnels en temps réel (CA, ventes, panier moyen, taux de transformation)</li>
+                    <li>Saisie quotidienne des chiffres de vente</li>
+                    <li>Bilan IA des performances par période (journée, semaine, mois, année)</li>
+                    <li>Défis quotidiens personnalisés par compétence avec coach IA</li>
                     <li>Analyse IA des ventes conclues (points forts, bonnes pratiques)</li>
                     <li>Analyse IA des opportunités manquées (axes d&apos;amélioration)</li>
-                    <li>Historique des performances et des consultations IA</li>
+                    <li>Suivi des objectifs individuels et challenges assignés par le manager</li>
+                    <li>Diagnostic de profil vendeur (style de vente, niveau, motivation, profil DISC)</li>
+                    <li>Préparation d&apos;entretien annuel avec bloc-notes et synthèse IA</li>
                   </ul>
                 </div>
               </div>

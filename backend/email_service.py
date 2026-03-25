@@ -57,11 +57,12 @@ def send_gerant_invitation_email(recipient_email: str, recipient_name: str, invi
             <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
                 <h3 style="margin-top: 0; color: #667eea;">✨ Ce qui vous attend :</h3>
                 <ul style="list-style: none; padding: 0;">
-                    <li style="padding: 8px 0;">📊 Dashboard de performance en temps réel</li>
-                    <li style="padding: 8px 0;">🤖 Coach IA personnalisé pour chaque vendeur</li>
-                    <li style="padding: 8px 0;">📈 Suivi des KPIs et analyses détaillées</li>
-                    <li style="padding: 8px 0;">👥 Gestion multi-magasins simplifiée</li>
-                    <li style="padding: 8px 0;">🎯 14 jours d'essai gratuit</li>
+                    <li style="padding: 8px 0;">📊 Dashboard de performance global en temps réel</li>
+                    <li style="padding: 8px 0;">📈 Suivi des KPIs de chaque magasin (CA, ventes, évolution)</li>
+                    <li style="padding: 8px 0;">🏆 Classement et comparaison des performances entre magasins</li>
+                    <li style="padding: 8px 0;">👥 Gestion multi-magasins et supervision du personnel</li>
+                    <li style="padding: 8px 0;">🔌 Intégration API pour connecter vos logiciels externes (caisse, ERP)</li>
+                    <li style="padding: 8px 0;">🎯 30 jours d'essai gratuit</li>
                 </ul>
             </div>
             
@@ -148,13 +149,14 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
             <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea;">
                 <h3 style="margin-top: 0; color: #9333ea;">🎯 En tant que Manager, vous pourrez :</h3>
                 <ul style="list-style: none; padding: 0;">
-                    <li style="padding: 8px 0;">👥 <strong>Consulter les performances</strong> de chaque membre de votre équipe</li>
-                    <li style="padding: 8px 0;">📊 <strong>Suivre les KPI</strong> de votre magasin en temps réel</li>
+                    <li style="padding: 8px 0;">👥 <strong>Consulter les performances</strong> de chaque membre de votre équipe en temps réel</li>
+                    <li style="padding: 8px 0;">📊 <strong>Suivre les KPI magasin</strong> (CA, ventes, panier moyen, taux de transformation)</li>
                     <li style="padding: 8px 0;">🎯 <strong>Créer et suivre des objectifs</strong> individuels et collectifs</li>
                     <li style="padding: 8px 0;">🏆 <strong>Lancer des challenges</strong> pour motiver votre équipe</li>
-                    <li style="padding: 8px 0;">🤖 <strong>Coaching IA personnalisé</strong> pour booster les performances</li>
-                    <li style="padding: 8px 0;">📋 <strong>Générer des bilans et entretiens annuels</strong> en 1 clic avec l'IA</li>
-                    <li style="padding: 8px 0;">🤝 <strong>Conseils IA relationnels</strong> adaptés à chaque profil DISC de vos vendeurs</li>
+                    <li style="padding: 8px 0;">☀️ <strong>Générer votre brief matinal</strong> personnalisé par IA</li>
+                    <li style="padding: 8px 0;">📋 <strong>Générer des bilans IA de votre équipe</strong> (points forts, axes d'amélioration, recommandations)</li>
+                    <li style="padding: 8px 0;">🤝 <strong>Conseils relationnels et gestion de conflits</strong> adaptés au profil DISC de chaque vendeur</li>
+                    <li style="padding: 8px 0;">🧠 <strong>Diagnostic de votre profil management</strong> (méthodologie DISC)</li>
                 </ul>
             </div>
             
@@ -238,11 +240,14 @@ def send_seller_invitation_email(recipient_email: str, recipient_name: str, invi
             <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea;">
                 <h3 style="margin-top: 0; color: #9333ea;">🚀 Votre espace personnel :</h3>
                 <ul style="list-style: none; padding: 0;">
-                    <li style="padding: 8px 0;">📊 Suivre vos KPI et performances en temps réel</li>
-                    <li style="padding: 8px 0;">🎯 Consulter vos objectifs et challenges</li>
-                    <li style="padding: 8px 0;">🤖 Créer vos défis personnels avec votre coach IA</li>
-                    <li style="padding: 8px 0;">✅ Analyser vos ventes conclues avec l'IA</li>
-                    <li style="padding: 8px 0;">❌ Analyser vos opportunités manquées avec l'IA</li>
+                    <li style="padding: 8px 0;">📊 <strong>Suivre vos KPI personnels</strong> en temps réel (CA, ventes, panier moyen, taux de transformation)</li>
+                    <li style="padding: 8px 0;">✍️ <strong>Saisir vos chiffres</strong> quotidiennement et consulter vos bilans IA (semaine, mois, année)</li>
+                    <li style="padding: 8px 0;">🤖 <strong>Défis quotidiens personnalisés</strong> par compétence avec votre coach IA</li>
+                    <li style="padding: 8px 0;">✅ <strong>Analyser vos ventes conclues</strong> avec l'IA (points forts, bonnes pratiques)</li>
+                    <li style="padding: 8px 0;">🔍 <strong>Analyser vos opportunités manquées</strong> avec l'IA (axes d'amélioration)</li>
+                    <li style="padding: 8px 0;">🎯 <strong>Suivre vos objectifs</strong> individuels et challenges assignés par votre manager</li>
+                    <li style="padding: 8px 0;">🧠 <strong>Diagnostic de votre profil vendeur</strong> (style, niveau, motivation, profil DISC)</li>
+                    <li style="padding: 8px 0;">📝 <strong>Préparer votre entretien annuel</strong> avec bloc-notes et synthèse IA</li>
                 </ul>
             </div>
             
