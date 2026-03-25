@@ -4,11 +4,7 @@ import { ChevronDown } from 'lucide-react';
 const faqs = [
   {
     question: "Comment fonctionne l'essai gratuit de 30 jours ?",
-    answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 30 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement."
-  },
-  {
-    question: "Y a-t-il un engagement ? Puis-je résilier à tout moment ?",
-    answer: "Aucun engagement. Vous pouvez résilier votre abonnement à tout moment depuis votre espace client. La résiliation prend effet à la fin de la période en cours déjà payée, sans frais ni pénalité."
+    answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 30 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement — sans engagement."
   },
   {
     question: "Combien de personnes peuvent utiliser le service ?",
@@ -20,7 +16,15 @@ const faqs = [
   },
   {
     question: "Est-ce compatible avec mon logiciel de caisse ou mon ERP ?",
-    answer: "Oui. Retail Performer AI propose une intégration API pour connecter vos logiciels existants (caisse, ERP, etc.) et alimenter automatiquement les données de vente. Cette fonctionnalité est disponible dès la création de votre compte Gérant."
+    answer: "Oui. Retail Performer AI propose une intégration API pour connecter vos logiciels existants (caisse, ERP, etc.) et alimenter automatiquement les données de vente. Sans intégration, les vendeurs saisissent eux-mêmes leurs chiffres quotidiens en moins d'une minute."
+  },
+  {
+    question: "Qui saisit les données de vente ?",
+    answer: "Par défaut, chaque vendeur saisit ses propres chiffres quotidiens (CA, ventes, clients) directement depuis son espace personnel — cela prend moins d'une minute. Si vous connectez votre logiciel de caisse via l'API, la saisie est automatique."
+  },
+  {
+    question: "Combien de temps avant de voir des résultats ?",
+    answer: "Les premiers insights apparaissent dès les premiers jours de saisie. Les managers voient immédiatement les KPI de leur équipe et peuvent générer un brief IA dès le lendemain. Les progrès mesurables sur les performances commerciales se constatent généralement sur 4 à 6 semaines d'utilisation régulière."
   },
   {
     question: "Quel impact réel sur mes KPI (transformation, panier moyen, etc.) ?",
@@ -35,16 +39,16 @@ const faqs = [
     answer: "Oui, toutes vos données sont hébergées en Europe (Amsterdam, Pays-Bas), chiffrées et conformes au RGPD. Nous ne partageons jamais vos données avec des tiers. Pour l'IA de coaching, seuls les prénoms sont transmis (les noms de famille sont automatiquement anonymisés)."
   },
   {
-    question: "L'IA conserve-t-elle mes données commerciales ?",
-    answer: "Non. Nous utilisons des technologies LLM (Large Language Models) via des protocoles sécurisés 'Entreprise'. Vos données sont anonymisées avant traitement et ne sont jamais utilisées pour entraîner les modèles publics. Une fois l'analyse générée, les données brutes ne sont pas conservées par le fournisseur d'IA."
+    question: "L'IA utilise-t-elle mes données commerciales pour s'entraîner ?",
+    answer: "Non. Vos données sont anonymisées avant toute analyse et ne sont jamais utilisées pour entraîner les modèles d'IA. Une fois l'analyse générée, les données brutes ne sont pas conservées par notre fournisseur IA."
   },
   {
-    question: "Puis-je changer de formule à tout moment ?",
-    answer: "Oui, absolument. Vous pouvez passer d'une formule à l'autre à tout moment selon l'évolution de votre équipe. Le changement est instantané."
+    question: "Puis-je changer de formule ou résilier à tout moment ?",
+    answer: "Oui, sans engagement. Vous pouvez changer de formule ou résilier à tout moment depuis votre espace client. Le changement de formule est instantané, la résiliation prend effet à la fin de la période en cours déjà payée."
   },
   {
     question: "Proposez-vous une formation ?",
-    answer: "L'outil est conçu pour être 'Plug & Play'. Pas besoin de formation lourde : des guides interactifs sont intégrés directement dans chaque écran pour vous accompagner pas à pas. Pour les réseaux (Plans Large Team), nous proposons un onboarding personnalisé."
+    answer: "L'outil est conçu pour être Plug & Play. Des guides interactifs sont intégrés directement dans chaque écran pour vous accompagner pas à pas. Pour les équipes importantes (plan Large Team), nous proposons un onboarding personnalisé."
   }
 ];
 
