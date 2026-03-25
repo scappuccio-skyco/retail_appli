@@ -231,7 +231,7 @@ const InvitationPage = () => {
               <label htmlFor="acceptCGU" className="text-sm text-gray-600 cursor-pointer">
                 J'accepte les{' '}
                 <a
-                  href="/conditions-generales"
+                  href="/terms"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#1E40AF] hover:text-[#1E3A8A] underline font-medium"
