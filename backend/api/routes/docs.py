@@ -37,9 +37,9 @@ async def get_integrations_pdf(
         )
     
     try:
-        # Get the markdown file path - use ROOT_DIR from config
+        # Get the markdown file path - docs/ is at project root, one level above backend/
         from core.config import ROOT_DIR
-        md_path = ROOT_DIR / "docs" / "NOTICE_API_INTEGRATIONS.md"
+        md_path = ROOT_DIR.parent / "docs" / "NOTICE_API_INTEGRATIONS.md"
         
         if not md_path.exists():
             raise NotFoundError(f"Documentation file not found at {md_path}")
