@@ -136,7 +136,7 @@ export default function SuperAdminDashboard() {
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex flex-wrap gap-2 bg-white rounded-xl p-2 border border-gray-300 shadow-md">
+        <div className="flex flex-wrap gap-2 bg-slate-700 rounded-xl p-2 shadow-md">
           {[
             { id: 'overview', label: "Vue d'ensemble" },
             { id: 'workspaces', label: 'Workspaces' },
@@ -148,7 +148,7 @@ export default function SuperAdminDashboard() {
               key={id}
               onClick={() => s.setActiveTab(id)}
               className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                s.activeTab === id ? 'bg-[#1E40AF] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+                s.activeTab === id ? 'bg-white text-[#1E40AF] shadow-sm' : 'text-slate-300 hover:bg-slate-600 hover:text-white'
               }`}
             >
               {label}
@@ -157,7 +157,7 @@ export default function SuperAdminDashboard() {
           <button
             onClick={() => s.setActiveTab('system-logs')}
             className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
-              s.activeTab === 'system-logs' ? 'bg-[#1E40AF] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              s.activeTab === 'system-logs' ? 'bg-white text-[#1E40AF] shadow-sm' : 'text-slate-300 hover:bg-slate-600 hover:text-white'
             }`}
           >
             Logs Système
@@ -168,7 +168,7 @@ export default function SuperAdminDashboard() {
           <button
             onClick={() => s.setActiveTab('ai-assistant')}
             className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
-              s.activeTab === 'ai-assistant' ? 'bg-gradient-to-r from-[#1E40AF] to-purple-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              s.activeTab === 'ai-assistant' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-300 hover:bg-slate-600 hover:text-white'
             }`}
           >
             <Sparkles className="w-4 h-4" />
@@ -177,7 +177,7 @@ export default function SuperAdminDashboard() {
           <button
             onClick={() => s.setActiveTab('trials')}
             className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
-              s.activeTab === 'trials' ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              s.activeTab === 'trials' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-300 hover:bg-slate-600 hover:text-white'
             }`}
           >
             <Clock className="w-4 h-4" />
@@ -186,7 +186,7 @@ export default function SuperAdminDashboard() {
           <button
             onClick={() => s.setActiveTab('subscriptions')}
             className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
-              s.activeTab === 'subscriptions' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              s.activeTab === 'subscriptions' ? 'bg-white text-green-700 shadow-sm' : 'text-slate-300 hover:bg-slate-600 hover:text-white'
             }`}
           >
             <TrendingUp className="w-4 h-4" />
@@ -195,7 +195,7 @@ export default function SuperAdminDashboard() {
           <button
             onClick={() => s.setActiveTab('users')}
             className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
-              s.activeTab === 'users' ? 'bg-[#1E40AF] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              s.activeTab === 'users' ? 'bg-white text-[#1E40AF] shadow-sm' : 'text-slate-300 hover:bg-slate-600 hover:text-white'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -204,7 +204,7 @@ export default function SuperAdminDashboard() {
           <button
             onClick={() => s.setActiveTab('tools')}
             className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
-              s.activeTab === 'tools' ? 'bg-[#1E40AF] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+              s.activeTab === 'tools' ? 'bg-white text-[#1E40AF] shadow-sm' : 'text-slate-300 hover:bg-slate-600 hover:text-white'
             }`}
           >
             <Wrench className="w-4 h-4" />
