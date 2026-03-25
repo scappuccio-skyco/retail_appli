@@ -61,15 +61,61 @@ export default function TermsOfService() {
               <h2 className="text-xl font-bold text-[#1E40AF] mb-4">
                 Article 3 - Description du service
               </h2>
-              <p className="mb-4">Retail Performer AI propose les fonctionnalités suivantes :</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Tableau de bord de suivi des KPI vendeurs en temps réel</li>
-                <li>Génération automatisée de briefs matinaux personnalisés</li>
-                <li>Analyse de performance par Intelligence Artificielle (GPT-4o)</li>
-                <li>Coaching individuel basé sur le profil psychologique (méthodologie DISC)</li>
-                <li>Gestion des équipes (invitation, suivi, suspension)</li>
-                <li>Historique des performances et des consultations IA</li>
-              </ul>
+              <p className="mb-6">Retail Performer AI propose un ensemble de fonctionnalités adaptées à chaque rôle au sein de l&apos;organisation Retail :</p>
+
+              <div className="space-y-6">
+                {/* Gérant */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+                  <h3 className="font-bold text-[#1E40AF] mb-3 flex items-center gap-2">
+                    <span className="bg-[#1E40AF] text-white text-xs px-2 py-0.5 rounded-full">Gérant</span>
+                    Espace Gérant
+                  </h3>
+                  <ul className="list-disc list-inside space-y-1.5 ml-2 text-gray-700 text-sm">
+                    <li>Dashboard de performance global en temps réel</li>
+                    <li>Suivi des KPIs de chaque vendeur et magasin</li>
+                    <li>Accès au coach IA personnalisé par vendeur</li>
+                    <li>Analyses de performance par Intelligence Artificielle (GPT-4o)</li>
+                    <li>Gestion multi-magasins et supervision des managers</li>
+                    <li>Invitation et gestion des membres de l&apos;équipe</li>
+                    <li>Historique des performances et des consultations IA</li>
+                  </ul>
+                </div>
+
+                {/* Manager */}
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-5">
+                  <h3 className="font-bold text-[#F97316] mb-3 flex items-center gap-2">
+                    <span className="bg-[#F97316] text-white text-xs px-2 py-0.5 rounded-full">Manager</span>
+                    Espace Manager
+                  </h3>
+                  <ul className="list-disc list-inside space-y-1.5 ml-2 text-gray-700 text-sm">
+                    <li>Tableau de bord des performances de l&apos;équipe en temps réel</li>
+                    <li>Suivi des KPIs magasin (CA, ventes, panier moyen, taux de transformation)</li>
+                    <li>Définition et suivi des objectifs individuels et collectifs</li>
+                    <li>Création et gestion de challenges d&apos;équipe</li>
+                    <li>Génération automatisée de briefs matinaux personnalisés par IA</li>
+                    <li>Coaching IA individuel basé sur le profil psychologique (méthodologie DISC)</li>
+                    <li>Bilans de performance IA et aide à la préparation d&apos;entretiens annuels</li>
+                    <li>Conseils relationnels et managériaux adaptés au profil DISC de chaque vendeur</li>
+                    <li>Gestion de l&apos;équipe (invitation, suivi, suspension)</li>
+                  </ul>
+                </div>
+
+                {/* Vendeur */}
+                <div className="bg-green-50 border border-green-200 rounded-xl p-5">
+                  <h3 className="font-bold text-green-700 mb-3 flex items-center gap-2">
+                    <span className="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">Vendeur</span>
+                    Espace Vendeur
+                  </h3>
+                  <ul className="list-disc list-inside space-y-1.5 ml-2 text-gray-700 text-sm">
+                    <li>Tableau de bord des KPIs personnels en temps réel</li>
+                    <li>Suivi des objectifs individuels et challenges en cours</li>
+                    <li>Accès au coach IA personnel pour des défis et conseils personnalisés</li>
+                    <li>Analyse IA des ventes conclues (points forts, bonnes pratiques)</li>
+                    <li>Analyse IA des opportunités manquées (axes d&apos;amélioration)</li>
+                    <li>Historique des performances et des consultations IA</li>
+                  </ul>
+                </div>
+              </div>
             </section>
 
             {/* Article 4 - Inscription */}
