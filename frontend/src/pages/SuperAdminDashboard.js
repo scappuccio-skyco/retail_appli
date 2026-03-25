@@ -33,7 +33,7 @@ export default function SuperAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 sm:p-8">
+    <div className="min-h-screen bg-slate-200 p-6 sm:p-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -93,7 +93,7 @@ export default function SuperAdminDashboard() {
       {/* Stats Cards */}
       {s.stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-gray-300 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <Building2 className="w-8 h-8 text-[#1E40AF]" />
               <span className="text-xs text-gray-400 font-medium">Entreprises</span>
@@ -102,7 +102,7 @@ export default function SuperAdminDashboard() {
             <div className="text-sm text-gray-500">{s.stats.workspaces.total} total · {s.stats.workspaces.trial} en essai</div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-gray-300 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <Users className="w-8 h-8 text-green-600" />
               <span className="text-xs text-gray-400 font-medium">Utilisateurs actifs</span>
@@ -114,7 +114,7 @@ export default function SuperAdminDashboard() {
             )}
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-gray-300 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <Activity className="w-8 h-8 text-orange-500" />
               <span className="text-xs text-gray-400 font-medium">Opérations IA</span>
@@ -123,7 +123,7 @@ export default function SuperAdminDashboard() {
             <div className="text-sm text-gray-500">{s.stats.usage.analyses_ventes} analyses · {s.stats.usage.diagnostics} diagnostics</div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-gray-300 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="w-8 h-8 text-purple-600" />
               <span className="text-xs text-gray-400 font-medium">MRR</span>
@@ -136,7 +136,7 @@ export default function SuperAdminDashboard() {
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex flex-wrap gap-2 bg-white rounded-xl p-2 border border-gray-200 shadow-sm">
+        <div className="flex flex-wrap gap-2 bg-white rounded-xl p-2 border border-gray-300 shadow-md">
           {[
             { id: 'overview', label: "Vue d'ensemble" },
             { id: 'workspaces', label: 'Workspaces' },
@@ -214,7 +214,7 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+      <div className="bg-white rounded-xl p-6 border border-gray-300 shadow-md">
         {s.activeTab === 'overview' && <OverviewTab stats={s.stats} />}
 
         {s.activeTab === 'workspaces' && (
