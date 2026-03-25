@@ -164,6 +164,25 @@ async def resolve_duplicates(
     )
 
 
+@router.patch("/workspaces/bulk/status")
+async def bulk_update_workspace_status(
+    bulk_data: BulkStatusUpdate = Body(...),
+    admin_service: AdminService = Depends(get_admin_service),
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Mettre à jour le statut de plusieurs workspaces en masse"""
+    try:
+        if not bulk_data.workspace_ids:
+            raise ValidationError("No workspace IDs provided")
+        return await admin_service.bulk_update_workspace_status(
+            workspace_ids=bulk_data.workspace_ids,
+            status=bulk_data.status,
+            current_admin=current_admin
+        )
+    except ValueError as e:
+        raise ValidationError(str(e))
+
+
 @router.patch("/workspaces/{workspace_id}/status")
 async def update_workspace_status(
     workspace_id: str,
@@ -207,25 +226,6 @@ async def update_workspace_plan(
         if "not found" in err.lower():
             raise NotFoundError(err)
         raise ValidationError(err)
-
-
-@router.patch("/workspaces/bulk/status")
-async def bulk_update_workspace_status(
-    bulk_data: BulkStatusUpdate = Body(...),
-    admin_service: AdminService = Depends(get_admin_service),
-    current_admin: dict = Depends(get_super_admin)
-):
-    """Mettre à jour le statut de plusieurs workspaces en masse"""
-    try:
-        if not bulk_data.workspace_ids:
-            raise ValidationError("No workspace IDs provided")
-        return await admin_service.bulk_update_workspace_status(
-            workspace_ids=bulk_data.workspace_ids,
-            status=bulk_data.status,
-            current_admin=current_admin
-        )
-    except ValueError as e:
-        raise ValidationError(str(e))
 
 
 @router.get("/admins")
