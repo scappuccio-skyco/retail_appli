@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, Clock, Coffee, Sparkles, Copy, Check, RefreshCw, Download } from 'lucide-react';
 import { renderBriefContent } from './briefRenderers';
+import AIDataSources from '../shared/AIDataSources';
 
 const NewBriefTab = ({
   // Store info
@@ -160,6 +161,11 @@ const NewBriefTab = ({
             className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 space-y-4"
           >
             {renderBriefContent(brief)}
+            <AIDataSources sources={[
+              'KPIs de la veille (J-1)',
+              'Objectif CA du jour',
+              ...(brief?.has_context ? ['Consigne manager'] : []),
+            ]} />
           </div>
 
           <div className="flex justify-center gap-3 flex-wrap">

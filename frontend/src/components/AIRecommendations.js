@@ -1,6 +1,9 @@
 import React from 'react';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
+import AIDataSources from './shared/AIDataSources';
+
+const RECOMMENDATIONS_SOURCES = ['Historique des débriefs', 'Scores de compétences', 'Performances récentes', 'Statut du vendeur'];
 
 export default function AIRecommendations({ recommendations }) {
   if (!recommendations) return null;
@@ -69,6 +72,8 @@ export default function AIRecommendations({ recommendations }) {
             </ul>
           </div>
         )}
+
+        <AIDataSources sources={RECOMMENDATIONS_SOURCES} />
 
         {/* Metadata */}
         <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-600">

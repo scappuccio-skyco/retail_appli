@@ -224,7 +224,12 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                   </div>
                 )}
                 {aiAnalysis && !aiGenerating && (
-                  <ManagerAIAnalysisDisplay analysis={aiAnalysis} onRegenerate={generateTeamAnalysis} title="Analyse IA — Équipe" />
+                  <ManagerAIAnalysisDisplay
+                    analysis={aiAnalysis}
+                    onRegenerate={generateTeamAnalysis}
+                    title="Analyse IA — Équipe"
+                    sources={['Effectif présent', 'CA équipe', 'Ventes équipe', 'Panier moyen', 'Taux de transformation', 'Compétences (5 axes)']}
+                  />
                 )}
               </div>
             </div>

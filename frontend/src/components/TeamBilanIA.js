@@ -2,6 +2,9 @@ import React from 'react';
 import { Sparkles, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 import useTeamBilanIA from './teamBilanIA/useTeamBilanIA';
+import AIDataSources from './shared/AIDataSources';
+
+const TEAM_BILAN_SOURCES = ['CA équipe', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Données par vendeur', 'Scores de compétences'];
 
 export default function TeamBilanIA() {
   const { bilan, loading, expanded, setExpanded, showDataSources, setShowDataSources, generateNewBilan } = useTeamBilanIA();
@@ -184,6 +187,8 @@ export default function TeamBilanIA() {
               </div>
             </div>
           )}
+
+          <AIDataSources sources={TEAM_BILAN_SOURCES} />
         </div>
       )}
     </div>

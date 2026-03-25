@@ -1,5 +1,8 @@
 import React from 'react';
 import { TrendingUp, Target, AlertTriangle, Sparkles } from 'lucide-react';
+import AIDataSources from '../../shared/AIDataSources';
+
+const BILAN_SOURCES = ['CA', 'Ventes', 'Panier moyen', 'Taux de transformation', 'Compétences (5 axes)', 'Période analysée'];
 
 /**
  * Reusable AI bilan display for all period views.
@@ -110,6 +113,8 @@ export default function AIBilanSection({ bilan, generating, onGenerate, periodLa
             </ol>
           </div>
         )}
+
+        <AIDataSources sources={BILAN_SOURCES} />
       </div>
     );
   }

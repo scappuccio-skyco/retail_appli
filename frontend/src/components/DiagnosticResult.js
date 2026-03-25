@@ -1,5 +1,8 @@
 import React from 'react';
 import { Award, TrendingUp, Heart, Sparkles } from 'lucide-react';
+import AIDataSources from './shared/AIDataSources';
+
+const DIAGNOSTIC_SOURCES = ['Réponses au questionnaire', 'Style de vente identifié', 'Niveau déclaré', 'Motivation principale'];
 import { LABEL_DECOUVERTE, LABEL_STRATEGE } from '../lib/constants';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 import Logo from './shared/Logo';
@@ -70,6 +73,8 @@ export default function DiagnosticResult({ diagnostic, onContinue }) {
               {renderMarkdownBold(diagnostic.ai_profile_summary)}
             </div>
           </div>
+
+          <AIDataSources sources={DIAGNOSTIC_SOURCES} />
 
           {/* Action Button */}
           <div className="text-center">

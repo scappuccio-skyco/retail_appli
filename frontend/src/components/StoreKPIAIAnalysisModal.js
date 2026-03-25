@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
+import AIDataSources from './shared/AIDataSources';
+
+const SOURCES_DAILY = ['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente'];
+const SOURCES_OVERVIEW = ['CA cumulé', 'Ventes cumulées', 'Clients', 'Panier moyen', 'Taux de transformation', 'Tendances (5 derniers jours)'];
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
@@ -255,6 +259,8 @@ export default function StoreKPIAIAnalysisModal({
                   </div>
                 ));
               })()}
+
+              <AIDataSources sources={analysisType === 'daily' ? SOURCES_DAILY : SOURCES_OVERVIEW} />
 
               <div className="flex justify-center gap-3 mt-4">
                 <button
