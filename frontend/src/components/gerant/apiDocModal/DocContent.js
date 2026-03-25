@@ -50,9 +50,12 @@ export default function DocContent({ onContactSupport }) {
               <li className="text-red-600 font-semibold">⚠️ IMPORTANT : Copiez immédiatement la clé générée - elle ne sera plus affichée après</li>
             </ol>
           </div>
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded space-y-2">
             <p className="text-yellow-900 text-sm">
               <strong>💡 Conseil :</strong> Donnez un nom clair à votre clé (ex: "Caisse Magasin Paris") pour savoir facilement quelle clé utilise quel système.
+            </p>
+            <p className="text-yellow-900 text-sm">
+              <strong>🔄 Réactivation :</strong> Si vous désactivez une clé par erreur, vous pouvez la réactiver depuis la liste en cliquant sur "Réactiver". Une clé supprimée définitivement ne peut pas être récupérée.
             </p>
           </div>
         </div>

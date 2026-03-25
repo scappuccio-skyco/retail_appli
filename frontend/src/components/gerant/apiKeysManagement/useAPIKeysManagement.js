@@ -77,6 +77,16 @@ export default function useAPIKeysManagement() {
     }
   };
 
+  const reactivateAPIKey = async (keyId) => {
+    if (!globalThis.confirm('Voulez-vous réactiver cette clé API ?')) return;
+    try {
+      await api.patch(`/gerant/api-keys/${keyId}/reactivate`);
+      fetchAPIKeys();
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message);
+    }
+  };
+
   const toggleKeyVisibility = (keyId) => {
     setVisibleKeys(prev => ({ ...prev, [keyId]: !prev[keyId] }));
   };
@@ -110,7 +120,7 @@ export default function useAPIKeysManagement() {
     visibleKeys,
     showInactive, setShowInactive,
     showDocModal, setShowDocModal,
-    createAPIKey, deleteAPIKey, permanentDeleteAPIKey,
+    createAPIKey, deleteAPIKey, permanentDeleteAPIKey, reactivateAPIKey,
     toggleKeyVisibility, togglePermission,
     formatDate, maskKey,
   };

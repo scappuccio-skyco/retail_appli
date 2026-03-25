@@ -72,6 +72,19 @@ async def gerant_deactivate_api_key(
         raise NotFoundError(str(e))
 
 
+@router.patch("/api-keys/{key_id}/reactivate")
+async def gerant_reactivate_api_key(
+    key_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service),
+):
+    """Réactiver une clé API désactivée (gérant propriétaire)."""
+    try:
+        return await api_key_service.reactivate_api_key(key_id, current_user["id"])
+    except ValueError as e:
+        raise NotFoundError(str(e))
+
+
 @router.post("/api-keys/{key_id}/regenerate")
 async def gerant_regenerate_api_key(
     key_id: str,
