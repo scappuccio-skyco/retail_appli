@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Building2, Users, TrendingUp, BarChart3, Lock, TrendingDown, Minus, MapPin, Eye } from 'lucide-react';
+import { Plus, Building2, Users, TrendingUp, BarChart3, Lock, TrendingDown, Minus, MapPin } from 'lucide-react';
 
 /**
  * Vue principale du dashboard gérant (onglet "Vue d'ensemble").
@@ -18,7 +18,6 @@ export default function GerantDashboardView({
   isReadOnly,
   onOpenCreateStore,
   onOpenInviteStaff,
-  onStoreClick,
 }) {
   // ── Period helpers ─────────────────────────────────────────
   const getPeriodDates = (type, offset) => {
@@ -84,20 +83,6 @@ export default function GerantDashboardView({
     return { ...store, stats, periodCA, periodVentes, periodEvolution };
   }).sort((a, b) => b.periodCA - a.periodCA);
 
-  const getPerformanceBadge = (store) => {
-    const storeData = rankedStores.find(s => s.id === store.id);
-    if (!storeData) return null;
-    const active = rankedStores.filter(s => s.periodCA >= 100);
-    const pool = active.length >= 2 ? active : rankedStores;
-    if (pool.length === 0) return { type: 'weak', bgClass: 'bg-gray-500', icon: '⚪', label: 'Aucune donnée' };
-    const avg = pool.reduce((s, x) => s + x.periodCA, 0) / pool.length;
-    const rel = avg > 0 ? ((storeData.periodCA - avg) / avg) * 100 : 0;
-    if (storeData.periodCA < 100) return { type: 'weak', bgClass: 'bg-gray-500', icon: '⚪', label: 'Inactif' };
-    if (rel > 20 || storeData.periodEvolution > 15) return { type: 'excellent', bgClass: 'bg-green-500', icon: '🔥', label: 'Excellent' };
-    if (rel > 0 || storeData.periodEvolution > 5) return { type: 'good', bgClass: 'bg-blue-500', icon: '👍', label: 'Bon' };
-    if (rel > -20 && storeData.periodEvolution > -10) return { type: 'average', bgClass: 'bg-orange-500', icon: '⚡', label: 'Moyen' };
-    return { type: 'weak', bgClass: 'bg-red-500', icon: '⚠️', label: 'À améliorer' };
-  };
 
   return (
     <>
@@ -285,15 +270,12 @@ export default function GerantDashboardView({
                   <th className="px-4 py-3 text-right">CA — {formatPeriod(periodType, periodOffset)}</th>
                   <th className="px-4 py-3 text-right hidden sm:table-cell">Ventes</th>
                   <th className="px-4 py-3 text-center hidden md:table-cell">Évolution</th>
-                  <th className="px-4 py-3 text-center hidden lg:table-cell">Performance</th>
                   <th className="px-4 py-3 text-center hidden md:table-cell">Équipe</th>
-                  <th className="px-4 py-3 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {rankedStores.map((s, index) => {
                   const originalIndex = stores.findIndex(st => st.id === s.id);
-                  const badge = getPerformanceBadge(s);
                   const rankIcons = ['🥇', '🥈', '🥉', '🏅', '⭐', '✨'];
                   const rankIcon = index < rankIcons.length ? rankIcons[index] : `${index + 1}`;
                   const evo = s.periodEvolution;
@@ -359,17 +341,6 @@ export default function GerantDashboardView({
                         )}
                       </td>
 
-                      {/* Badge performance */}
-                      <td className="px-4 py-4 text-center hidden lg:table-cell">
-                        {badge ? (
-                          <span className={`inline-flex items-center gap-1 text-xs font-bold text-white px-2 py-1 rounded-full ${badge.bgClass}`}>
-                            {badge.icon} {badge.label}
-                          </span>
-                        ) : (
-                          <span className="text-gray-300 text-xs">—</span>
-                        )}
-                      </td>
-
                       {/* Équipe (masquée sur md, visible lg) */}
                       <td className="px-4 py-4 text-center hidden md:table-cell">
                         <div className="flex items-center justify-center gap-3 text-xs text-gray-600">
@@ -385,16 +356,6 @@ export default function GerantDashboardView({
                         </div>
                       </td>
 
-                      {/* Action */}
-                      <td className="px-4 py-4 text-center">
-                        <button
-                          onClick={() => onStoreClick(s, originalIndex >= 0 ? originalIndex : index)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-100 hover:bg-orange-200 rounded-lg transition-colors"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Équipe</span>
-                        </button>
-                      </td>
                     </tr>
                   );
                 })}
