@@ -274,7 +274,7 @@ export default function GerantDashboardView({
                   <th className="px-4 py-3 text-right hidden lg:table-cell">
                     <span className="relative group inline-block">
                       <span className="cursor-help border-b border-dashed border-gray-400">Panier moyen</span>
-                      <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 rounded-lg bg-gray-800 px-3 py-2 text-left text-xs font-normal normal-case text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+                      <span className="pointer-events-none absolute top-full right-0 mt-2 w-64 rounded-lg bg-gray-800 px-3 py-2 text-left text-xs font-normal normal-case text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
                         Panier moyen = CA ÷ Nombre de ventes. Montant moyen dépensé par transaction sur la période.
                       </span>
                     </span>
@@ -282,7 +282,7 @@ export default function GerantDashboardView({
                   <th className="px-4 py-3 text-right hidden lg:table-cell">
                     <span className="relative group inline-block">
                       <span className="cursor-help border-b border-dashed border-gray-400">Transformation</span>
-                      <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 rounded-lg bg-gray-800 px-3 py-2 text-left text-xs font-normal normal-case text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+                      <span className="pointer-events-none absolute top-full right-0 mt-2 w-64 rounded-lg bg-gray-800 px-3 py-2 text-left text-xs font-normal normal-case text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
                         Taux de transformation = Ventes ÷ Prospects. Indique la part des prospects convertis en achat.
                       </span>
                     </span>
@@ -290,7 +290,7 @@ export default function GerantDashboardView({
                   <th className="px-4 py-3 text-center hidden md:table-cell">
                     <span className="relative group inline-block">
                       <span className="cursor-help border-b border-dashed border-gray-400">Évolution</span>
-                      <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-lg bg-gray-800 px-3 py-2 text-left text-xs font-normal normal-case text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+                      <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 rounded-lg bg-gray-800 px-3 py-2 text-left text-xs font-normal normal-case text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
                         Évolution du CA par rapport à la même période précédente (semaine / mois / année selon le filtre sélectionné).
                       </span>
                     </span>
