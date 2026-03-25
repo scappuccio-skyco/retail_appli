@@ -1,22 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { X, Book, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { logger } from '../../utils/logger';
 import SupportModal from '../SupportModal';
-import { apiDownloadPdf } from '../../utils/pdfDownload';
+import { generatePdfFromDom } from '../../utils/pdfDownload';
 import DocContent from './apiDocModal/DocContent';
 
 export default function APIDocModal({ isOpen, onClose }) {
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const contentRef = useRef(null);
 
   if (!isOpen) return null;
 
   const handleDownloadPDF = async () => {
+    if (!contentRef.current) return;
+    setIsGeneratingPdf(true);
     try {
-      await apiDownloadPdf('/api/docs/integrations.pdf', 'NOTICE_API_INTEGRATIONS.pdf');
+      await generatePdfFromDom(contentRef.current, 'NOTICE_API_INTEGRATIONS.pdf');
     } catch (error) {
       logger.error('Erreur lors du téléchargement du PDF:', error);
       toast.error(`Erreur lors du téléchargement du PDF: ${error.message || 'Veuillez réessayer.'}`);
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -36,17 +42,20 @@ export default function APIDocModal({ isOpen, onClose }) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          <DocContent onContactSupport={() => setShowSupportModal(true)} />
+          <div ref={contentRef}>
+            <DocContent onContactSupport={() => setShowSupportModal(true)} />
+          </div>
         </div>
 
         {/* Footer */}
         <div className="p-4 border-t bg-gray-50 flex justify-between items-center">
           <button
             onClick={handleDownloadPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1E40AF] text-white rounded-lg hover:bg-[#1E3A8A] transition-colors text-sm font-medium"
+            disabled={isGeneratingPdf}
+            className="flex items-center gap-2 px-4 py-2 bg-[#1E40AF] text-white rounded-lg hover:bg-[#1E3A8A] transition-colors text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
-            Télécharger PDF
+            {isGeneratingPdf ? 'Génération...' : 'Télécharger PDF'}
           </button>
           <button
             onClick={onClose}
