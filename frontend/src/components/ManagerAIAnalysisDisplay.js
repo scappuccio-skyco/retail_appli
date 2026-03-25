@@ -1,10 +1,11 @@
 import React from 'react';
+import AIDataSources from './shared/AIDataSources';
 
 /**
  * Displays a structured AI analysis for manager (team or store KPI).
  * Expects analysis: { synthese, action_prioritaire, points_forts[], points_attention[], recommandations[] }
  */
-export default function ManagerAIAnalysisDisplay({ analysis, onRegenerate, title = "Analyse IA" }) {
+export default function ManagerAIAnalysisDisplay({ analysis, onRegenerate, title = "Analyse IA", sources }) {
   if (!analysis) return null;
 
   // Backward compatibility: old string analyses
@@ -121,6 +122,8 @@ export default function ManagerAIAnalysisDisplay({ analysis, onRegenerate, title
           </ol>
         </div>
       )}
+
+      <AIDataSources sources={sources} />
     </div>
   );
 }

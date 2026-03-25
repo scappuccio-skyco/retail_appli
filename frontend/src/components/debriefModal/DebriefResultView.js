@@ -1,6 +1,9 @@
 import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 import { renderMarkdownBold } from '../../utils/markdownRenderer';
+import AIDataSources from '../shared/AIDataSources';
+
+const DEBRIEF_SOURCES = ['Fiche de vente', 'Type de vente', 'Compétences évaluées (5 axes)', 'Contexte du magasin'];
 
 export default function DebriefResultView({ aiAnalysis, onClose, onDismiss }) {
   return (
@@ -79,6 +82,8 @@ export default function DebriefResultView({ aiAnalysis, onClose, onDismiss }) {
               </div>
             </div>
           )}
+
+          <AIDataSources sources={DEBRIEF_SOURCES} />
 
           <button
             onClick={onDismiss}

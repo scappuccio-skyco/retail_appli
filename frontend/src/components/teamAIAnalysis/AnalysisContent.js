@@ -1,5 +1,15 @@
 import React from 'react';
 import { Calendar, Clock } from 'lucide-react';
+import AIDataSources from '../shared/AIDataSources';
+
+const TEAM_ANALYSIS_SOURCES = [
+  'Effectif équipe',
+  'CA par vendeur',
+  'Ventes par vendeur',
+  'Panier moyen',
+  'Compétences (5 axes)',
+  'Période analysée',
+];
 
 const COLOR_PALETTE = [
   {
@@ -148,6 +158,7 @@ export default function AnalysisContent({ analysisText, metadata }) {
         {sections.map((section, idx) => (
           <AnalysisSection key={idx} section={section} sectionIdx={idx} />
         ))}
+        <AIDataSources sources={TEAM_ANALYSIS_SOURCES} />
       </div>
     </div>
   );

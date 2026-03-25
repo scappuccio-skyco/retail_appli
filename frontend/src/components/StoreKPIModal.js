@@ -298,6 +298,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                     analysis={aiAnalysis}
                     onRegenerate={generateAnalysis}
                     title="Analyse IA — KPIs Magasin"
+                    sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
                   />
                 )}
               </div>
