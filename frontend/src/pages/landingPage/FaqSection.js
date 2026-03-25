@@ -3,24 +3,32 @@ import { ChevronDown } from 'lucide-react';
 
 const faqs = [
   {
-    question: "Quel impact réel sur mes KPI (transformation, panier moyen, etc.) ?",
-    answer: "Notre approche est mathématique : en identifiant quotidiennement les écarts de Panier Moyen ou de Taux de Transformation, l'IA permet de corriger le tir immédiatement. L'objectif est de ne plus attendre la fin du mois pour constater les pertes, mais d'agir jour après jour pour sécuriser votre Chiffre d'Affaires."
+    question: "Comment fonctionne l'essai gratuit de 30 jours ?",
+    answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 30 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement."
   },
   {
-    question: "Comment fonctionne l'essai gratuit de 14 jours ?",
-    answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 14 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement."
+    question: "Y a-t-il un engagement ? Puis-je résilier à tout moment ?",
+    answer: "Aucun engagement. Vous pouvez résilier votre abonnement à tout moment depuis votre espace client. La résiliation prend effet à la fin de la période en cours déjà payée, sans frais ni pénalité."
+  },
+  {
+    question: "Combien de personnes peuvent utiliser le service ?",
+    answer: "Le service est conçu pour toute votre organisation : le Gérant supervise l'ensemble des magasins, les Managers pilotent leur équipe, et chaque Vendeur accède à son espace personnel. Le nombre d'utilisateurs dépend de votre formule — consultez notre page Tarifs pour les détails."
   },
   {
     question: "Faut-il installer un logiciel ?",
     answer: "Non, Retail Performer AI est 100% web. Accessible depuis n'importe quel navigateur, sur ordinateur, tablette ou smartphone."
   },
   {
-    question: "L'IA peut-elle juger mes vendeurs ?",
-    answer: "Absolument pas. Retail Performer AI est un outil de développement. Notre IA est configurée pour utiliser un vocabulaire constructif (axes de progrès) et pour valoriser le potentiel de chaque collaborateur, garantissant une acceptation totale par vos équipes."
+    question: "Est-ce compatible avec mon logiciel de caisse ou mon ERP ?",
+    answer: "Oui. Retail Performer AI propose une intégration API pour connecter vos logiciels existants (caisse, ERP, etc.) et alimenter automatiquement les données de vente. Cette fonctionnalité est disponible dès la création de votre compte Gérant."
   },
   {
-    question: "Comment l'IA analyse-t-elle les performances ?",
-    answer: "Notre IA analyse vos KPI (CA, ventes, panier moyen), les compare aux objectifs et à l'équipe, puis génère des recommandations personnalisées pour chaque vendeur."
+    question: "Quel impact réel sur mes KPI (transformation, panier moyen, etc.) ?",
+    answer: "En identifiant quotidiennement les écarts de Panier Moyen ou de Taux de Transformation, l'IA permet de corriger le tir immédiatement. L'objectif est de ne plus attendre la fin du mois pour constater les pertes, mais d'agir jour après jour pour sécuriser votre Chiffre d'Affaires."
+  },
+  {
+    question: "L'IA peut-elle juger mes vendeurs ?",
+    answer: "Absolument pas. Retail Performer AI est un outil de développement. Notre IA est configurée pour utiliser un vocabulaire constructif (axes de progrès) et pour valoriser le potentiel de chaque collaborateur, garantissant une acceptation totale par vos équipes."
   },
   {
     question: "Mes données sont-elles sécurisées ?",
