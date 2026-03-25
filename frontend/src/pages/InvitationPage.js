@@ -73,7 +73,7 @@ const InvitationPage = () => {
       });
       
       toast.success("Compte créé avec succès ! Vous pouvez maintenant vous connecter.");
-      navigate('/login');
+      window.location.href = '/login';
     } catch (err) {
       toast.error(err.response?.data?.detail || "Erreur lors de la création du compte");
     } finally {
