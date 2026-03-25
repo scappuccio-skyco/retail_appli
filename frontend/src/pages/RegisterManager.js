@@ -65,7 +65,7 @@ export default function RegisterManager() {
       });
 
       toast.success('Compte créé avec succès ! Redirection...');
-      setTimeout(() => navigate('/login'), 2000);
+      setTimeout(() => { window.location.href = '/login'; }, 2000);
     } catch (error) {
       logger.error('Registration error:', error);
       let errorMessage = 'Erreur lors de l\'inscription';
