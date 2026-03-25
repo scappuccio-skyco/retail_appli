@@ -122,6 +122,7 @@ const APIKeysManagement = () => {
               formatDate={s.formatDate}
               onDelete={s.deleteAPIKey}
               onPermanentDelete={s.permanentDeleteAPIKey}
+              onReactivate={s.reactivateAPIKey}
             />
           ))
         )}

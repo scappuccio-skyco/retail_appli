@@ -996,7 +996,33 @@ class APIKeyService:
         )
         
         return {"message": "API key deactivated successfully"}
-    
+
+    async def reactivate_api_key(self, key_id: str, user_id: str) -> Dict:
+        """
+        Reactivate a previously deactivated API key.
+
+        Args:
+            key_id: API key ID
+            user_id: User ID for ownership verification
+
+        Returns:
+            Success message
+
+        Raises:
+            ValueError: If key not found
+        """
+        key = await self.api_key_repo.find_by_id(key_id, user_id=user_id)
+        if not key:
+            raise ValueError("API key not found")
+
+        await self.api_key_repo.update_key(
+            key_id,
+            {"active": True, "deleted_at": None, "deactivated_at": None},
+            user_id=user_id
+        )
+
+        return {"message": "API key reactivated successfully"}
+
     async def regenerate_api_key(self, key_id: str, user_id: str) -> Dict:
         """
         Regenerate an API key (creates new key, deactivates old)

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, RotateCcw } from 'lucide-react';
 
 const PERM_LABELS = {
   'write:kpi': '📝 Écriture KPI',
@@ -17,7 +17,7 @@ const PERM_TITLES = {
   'users:write': 'Permet de gérer les utilisateurs',
 };
 
-export default function APIKeyCard({ apiKey: key, formatDate, onDelete, onPermanentDelete }) {
+export default function APIKeyCard({ apiKey: key, formatDate, onDelete, onPermanentDelete, onReactivate }) {
   return (
     <div className={`border rounded-lg p-4 transition-all ${
       key.active
@@ -56,14 +56,24 @@ export default function APIKeyCard({ apiKey: key, formatDate, onDelete, onPerman
               <Trash2 className="h-4 w-4" />
             </button>
           ) : (
-            <button
-              onClick={() => onPermanentDelete(key.id)}
-              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5"
-              title="Supprimer définitivement"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Supprimer
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onReactivate(key.id)}
+                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5"
+                title="Réactiver la clé"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Réactiver
+              </button>
+              <button
+                onClick={() => onPermanentDelete(key.id)}
+                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5"
+                title="Supprimer définitivement"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Supprimer
+              </button>
+            </div>
           )}
         </div>
       </div>
