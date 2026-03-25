@@ -203,7 +203,7 @@ function StripeSyncSection() {
 export default function ToolsTab() {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-white mb-2">Outils d'administration</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-2">Outils d'administration</h2>
       <CguNotificationSection />
       <StripeSyncSection />
     </div>
