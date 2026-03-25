@@ -22,25 +22,25 @@ export default function AIAssistant() {
         onDelete={deleteConversation}
       />
 
-      <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-lg rounded-lg border border-white/20 overflow-hidden">
+      <div className="flex-1 flex flex-col bg-white rounded-lg border border-gray-200 overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-white/20 bg-gradient-to-r from-purple-600/20 to-pink-600/20">
+        <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-600 rounded-lg">
+              <div className="p-2 bg-[#1E40AF] rounded-lg">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">Assistant IA SuperAdmin</h2>
-                <p className="text-sm text-purple-200">Posez vos questions sur l'application, les logs, ou les problèmes</p>
+                <h2 className="text-xl font-bold text-gray-800">Assistant IA SuperAdmin</h2>
+                <p className="text-sm text-gray-500">Posez vos questions sur l'application, les logs, ou les problèmes</p>
               </div>
             </div>
             {appContext && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded-lg">
+              <div className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg">
                 {appContext.health_status === 'healthy'
-                  ? <CheckCircle className="w-5 h-5 text-green-400" />
-                  : <AlertCircle className="w-5 h-5 text-orange-400" />}
-                <span className="text-sm text-white">{appContext.errors_count || 0} erreurs détectées</span>
+                  ? <CheckCircle className="w-5 h-5 text-green-500" />
+                  : <AlertCircle className="w-5 h-5 text-orange-500" />}
+                <span className="text-sm text-gray-700">{appContext.errors_count || 0} erreurs détectées</span>
               </div>
             )}
           </div>
@@ -57,7 +57,7 @@ export default function AIAssistant() {
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-white/20 bg-white/5">
+        <div className="p-4 border-t border-gray-200 bg-gray-50">
           <div className="flex gap-2">
             <textarea
               value={input}
@@ -66,17 +66,17 @@ export default function AIAssistant() {
               placeholder="Posez votre question à l'assistant IA..."
               rows="2"
               disabled={loading}
-              className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300 resize-none focus:outline-none focus:border-purple-500 transition-all"
+              className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim() || loading}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-[#1E40AF] hover:bg-[#1E3A8A] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-all flex items-center gap-2"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </button>
           </div>
-          <p className="text-xs text-purple-300 mt-2">
+          <p className="text-xs text-gray-400 mt-2">
             💡 Appuyez sur Entrée pour envoyer, Shift+Entrée pour une nouvelle ligne
           </p>
         </div>
