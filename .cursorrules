@@ -1117,10 +1117,10 @@ La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé 
 - Service `retail_appli-staging` : branche `develop`, DB `Retail_Performer_staging`
 - Redis : `redis.railway.internal:6379`, variable `CACHE_REDIS_URL`
 
-#### Sécurité dépendances (pip-audit + Dependabot)
-- Snyk remplacé par **pip-audit** (job CI `pip-audit`) + **Dependabot** (`.github/dependabot.yml`)
-- Aucun token requis — pip-audit utilise la base OSV/PyPI, Dependabot est natif GitHub
-- Dependabot crée des PRs automatiques chaque lundi pour pip (backend), npm (frontend) et GitHub Actions
+#### Snyk (TODO)
+- ⚠️ Snyk CI intégré dans `backend-ci.yml` (job `snyk-security`) mais `SNYK_TOKEN` non encore configuré
+- TODO : récupérer le token Snyk (snyk.io → Settings → Service accounts ou Auth token) et l'ajouter en secret GitHub : `SNYK_TOKEN`
+- Sans ce token, le job Snyk sera skippé/en erreur (continue-on-error=true → ne bloque pas le CI)
 
 #### RGPD — CGU & consentement
 - ✅ Checkbox CGU obligatoire à l'inscription (Login.js + RegisterManager.js + RegisterSeller.js)
@@ -1146,34 +1146,41 @@ Quand tu modifies les CGU ou la Politique de Confidentialité, faire dans l'ordr
 6. **Re-consentement explicite** (checkbox) requis uniquement si changement majeur affectant les droits des données (nouveau traitement, cession tiers...) — sinon notification suffit (RGPD/LCEN)
 
 #### TODOs pré-commercialisation restants
-- ✅ **Snyk** : remplacé par pip-audit + Dependabot (aucun token requis)
-- ✅ **Stripe live mode** : clés live configurées sur Railway, webhook prod enregistré
-- ✅ **Emails Brevo** : SPF ✅ DKIM ✅ (brevo1._domainkey + brevo2._domainkey) sur retailperformerai.com
-- ⚠️ **Backup Atlas** : cluster actuellement sur M0 (pas de backup disponible)
-  - **ACTION AU PREMIER CLIENT PAYANT** : migrer vers M10 (~57$/mois) le jour même
-  - Activer Continuous Cloud Backup dans Atlas après migration
-  - Configurer alerte email Atlas (Atlas → Alerts) si cluster down
+- ✅ **Snyk** : remplacé par pip-audit + Dependabot
+- ✅ **Stripe live mode** : configuré
+- ✅ **Emails Brevo** : SPF + DKIM configurés
+- ⚠️ **Backup Atlas** : migrer vers M10 au premier client payant
 
-#### Checklist post-lancement (ne bloque pas le lancement)
+---
 
-**Monitoring & Alertes**
-- [ ] **UptimeRobot** (gratuit) : surveiller `https://api.retailperformerai.com/health` — alerte email/SMS si down
-- [ ] **Sentry** : vérifier que les erreurs remontent bien en prod (déclencher une erreur test)
-- [ ] **Logs structurés** : exporter vers Logtail ou Datadog pour chercher dans les logs prod sans Railway
+## 🚀 Stratégie commerciale
 
-**Base de données**
-- [ ] **Migration M10** au premier client payant (backup continu, 3 nœuds, SLA 99.95%)
-- [ ] **Index MongoDB** : vérifier que les requêtes fréquentes (KPI par vendeur/date) ont des index — `explain()` sur les requêtes lentes
-- [ ] **Test de restauration** : tester un restore depuis un snapshot après migration M10
+### Cible prioritaire
+Gérants retail spécialisé (mode, sport, luxe) — indépendants 1-5 magasins — France.
 
-**Tests**
-- [ ] **Tests webhooks Stripe** : couvrir le flux paiement → activation workspace (cas le plus critique)
+### Problème central
+Les managers sont d'anciens vendeurs promus sans formation management. Ils ne savent pas faire progresser une équipe. Le gérant se retrouve à compenser.
 
-**Fonctionnel**
-- [ ] **Page de statut publique** (statuspage.io gratuit ou similaire) — rassure les clients en cas de panne
-- [ ] **Analytics funnel** (Plausible ou Posthog) — comprendre où les utilisateurs décrochent
-- [ ] **CGU/Privacy Policy** : faire valider le contenu par un juriste
+### Message de prospection LinkedIn (v1 — à affiner)
+```
+Bonjour [Prénom],
 
-**Business**
-- [ ] **Alertes Atlas** configurées (cluster down, connexions élevées)
-- [ ] **Rotation des secrets** : planifier une rotation annuelle JWT_SECRET + clés API
+Je travaille avec des gérants retail et j'entends souvent la même chose : les managers
+sont d'excellents anciens vendeurs, mais personne ne leur a appris à faire progresser
+une équipe.
+
+Résultat : les entretiens de suivi ne se font pas, les vendeurs stagnent, et le gérant
+se retrouve à gérer lui-même ce que le manager devrait faire.
+
+J'ai construit un outil qui aide les managers à structurer le suivi de leurs vendeurs
+au quotidien — sans formation management préalable.
+
+Est-ce que c'est quelque chose que vous reconnaissez dans votre magasin ?
+```
+
+### Séquence prospection
+1. Identifier 50-100 gérants ciblés sur LinkedIn
+2. Approcher avec le message ci-dessus (pas de pitch produit)
+3. Proposer une démo 20 min
+4. Offrir 30 jours gratuits aux participants à la démo
+5. Capitaliser sur les premiers clients satisfaits pour le bouche-à-oreille
