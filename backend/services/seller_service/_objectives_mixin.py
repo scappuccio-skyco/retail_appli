@@ -203,27 +203,36 @@ class ObjectivesMixin:
             pass
 
         # --- Weekly bilan missing for previous complete week ---
+        # Only suggest if the seller actually has KPI data for that week
         try:
             weekday = today.weekday()  # 0 = Monday
             current_week_monday = today - timedelta(days=weekday)
             prev_week_monday = current_week_monday - timedelta(days=7)
             prev_week_sunday = current_week_monday - timedelta(days=1)
+            prev_week_monday_str = prev_week_monday.isoformat()
+            prev_week_sunday_str = prev_week_sunday.isoformat()
             recent_bilans = await self.seller_bilan_repo.find_by_seller(seller_id, limit=5)
             has_prev_week_bilan = any(
-                b.get("period_start", "") <= prev_week_sunday.isoformat()
-                and b.get("period_end", "") >= prev_week_monday.isoformat()
+                b.get("period_start", "") <= prev_week_sunday_str
+                and b.get("period_end", "") >= prev_week_monday_str
                 for b in recent_bilans
             )
             if not has_prev_week_bilan:
-                tasks.append({
-                    "id": "weekly-bilan",
-                    "type": "bilan",
-                    "category": "action",
-                    "title": "Bilan de la semaine passée",
-                    "description": f"Semaine du {prev_week_monday.strftime('%d/%m')} au {prev_week_sunday.strftime('%d/%m')} — génère ton analyse",
-                    "priority": "normal",
-                    "icon": "📊",
+                # Vérifier qu'il y a des KPIs sur la semaine précédente avant de proposer le bilan
+                kpis_prev_week = await self.kpi_repo.count({
+                    "seller_id": seller_id,
+                    "date": {"$gte": prev_week_monday_str, "$lte": prev_week_sunday_str}
                 })
+                if kpis_prev_week > 0:
+                    tasks.append({
+                        "id": "weekly-bilan",
+                        "type": "bilan",
+                        "category": "action",
+                        "title": "Bilan de la semaine passée",
+                        "description": f"Semaine du {prev_week_monday.strftime('%d/%m')} au {prev_week_sunday.strftime('%d/%m')} — génère ton analyse",
+                        "priority": "normal",
+                        "icon": "📊",
+                    })
         except Exception:
             pass
 
