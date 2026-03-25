@@ -3,28 +3,20 @@ import { ChevronDown } from 'lucide-react';
 
 const faqs = [
   {
-    question: "Comment fonctionne l'essai gratuit de 30 jours ?",
-    answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 30 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement — sans engagement."
+    question: "Comment fonctionne l'essai gratuit ? Y a-t-il un engagement ?",
+    answer: "30 jours d'essai gratuit, sans carte bancaire. À la fin, vous choisissez votre formule ou arrêtez simplement. Aucun engagement : vous pouvez changer de formule ou résilier à tout moment depuis votre espace client."
   },
   {
     question: "Combien de personnes peuvent utiliser le service ?",
     answer: "Le service est conçu pour toute votre organisation : le Gérant supervise l'ensemble des magasins, les Managers pilotent leur équipe, et chaque Vendeur accède à son espace personnel. Le nombre d'utilisateurs dépend de votre formule — consultez notre page Tarifs pour les détails."
   },
   {
-    question: "Faut-il installer un logiciel ?",
-    answer: "Non, Retail Performer AI est 100% web. Accessible depuis n'importe quel navigateur, sur ordinateur, tablette ou smartphone."
-  },
-  {
-    question: "Est-ce compatible avec mon logiciel de caisse ou mon ERP ?",
-    answer: "Oui. Retail Performer AI propose une intégration API pour connecter vos logiciels existants (caisse, ERP, etc.) et alimenter automatiquement les données de vente. Sans intégration, les vendeurs saisissent eux-mêmes leurs chiffres quotidiens en moins d'une minute."
-  },
-  {
-    question: "Qui saisit les données de vente ?",
-    answer: "Par défaut, chaque vendeur saisit ses propres chiffres quotidiens (CA, ventes, clients) directement depuis son espace personnel — cela prend moins d'une minute. Si vous connectez votre logiciel de caisse via l'API, la saisie est automatique."
+    question: "Faut-il installer un logiciel ? Est-ce compatible avec ma caisse ou mon ERP ?",
+    answer: "Aucune installation requise, c'est 100% web. Si vous disposez d'un logiciel de caisse ou d'un ERP, notre API permet de connecter vos données automatiquement. Sans intégration, chaque vendeur saisit ses chiffres du jour en moins d'une minute depuis son espace."
   },
   {
     question: "Combien de temps avant de voir des résultats ?",
-    answer: "Les premiers insights apparaissent dès les premiers jours de saisie. Les managers voient immédiatement les KPI de leur équipe et peuvent générer un brief IA dès le lendemain. Les progrès mesurables sur les performances commerciales se constatent généralement sur 4 à 6 semaines d'utilisation régulière."
+    answer: "Les premiers insights apparaissent dès les premiers jours. Les managers voient immédiatement les KPI de leur équipe et peuvent générer un brief IA dès le lendemain. Des progrès mesurables sur les performances commerciales se constatent généralement après 4 à 6 semaines d'utilisation régulière."
   },
   {
     question: "Quel impact réel sur mes KPI (transformation, panier moyen, etc.) ?",
@@ -35,20 +27,12 @@ const faqs = [
     answer: "Absolument pas. Retail Performer AI est un outil de développement. Notre IA est configurée pour utiliser un vocabulaire constructif (axes de progrès) et pour valoriser le potentiel de chaque collaborateur, garantissant une acceptation totale par vos équipes."
   },
   {
-    question: "Mes données sont-elles sécurisées ?",
-    answer: "Oui, toutes vos données sont hébergées en Europe (Amsterdam, Pays-Bas), chiffrées et conformes au RGPD. Nous ne partageons jamais vos données avec des tiers. Pour l'IA de coaching, seuls les prénoms sont transmis (les noms de famille sont automatiquement anonymisés)."
-  },
-  {
-    question: "L'IA utilise-t-elle mes données commerciales pour s'entraîner ?",
-    answer: "Non. Vos données sont anonymisées avant toute analyse et ne sont jamais utilisées pour entraîner les modèles d'IA. Une fois l'analyse générée, les données brutes ne sont pas conservées par notre fournisseur IA."
-  },
-  {
-    question: "Puis-je changer de formule ou résilier à tout moment ?",
-    answer: "Oui, sans engagement. Vous pouvez changer de formule ou résilier à tout moment depuis votre espace client. Le changement de formule est instantané, la résiliation prend effet à la fin de la période en cours déjà payée."
+    question: "Mes données sont-elles sécurisées ? L'IA s'entraîne-t-elle dessus ?",
+    answer: "Vos données sont hébergées en Europe (Amsterdam, Pays-Bas), chiffrées et conformes au RGPD. Elles ne sont jamais partagées ni utilisées pour entraîner les modèles d'IA. Pour le coaching, seuls les prénoms sont transmis — les noms de famille sont automatiquement anonymisés."
   },
   {
     question: "Proposez-vous une formation ?",
-    answer: "L'outil est conçu pour être Plug & Play. Des guides interactifs sont intégrés directement dans chaque écran pour vous accompagner pas à pas. Pour les équipes importantes (plan Large Team), nous proposons un onboarding personnalisé."
+    answer: "L'outil est conçu pour être Plug & Play. Des guides interactifs sont intégrés dans chaque écran pour accompagner vos équipes pas à pas. Pour les équipes importantes (plan Large Team), nous proposons un onboarding personnalisé."
   }
 ];
 
