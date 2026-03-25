@@ -19,7 +19,8 @@ const InvitationPage = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    acceptCGU: false
   });
 
   useEffect(() => {
@@ -56,13 +57,19 @@ const InvitationPage = () => {
       return;
     }
 
+    if (!formData.acceptCGU) {
+      toast.error("Vous devez accepter les conditions générales d'utilisation");
+      return;
+    }
+
     try {
       setSubmitting(true);
       await api.post('/auth/register/invitation', {
         email: formData.email,
         password: formData.password,
         name: formData.name,
-        invitation_token: token
+        invitation_token: token,
+        cgu_accepted_at: new Date().toISOString()
       });
       
       toast.success("Compte créé avec succès ! Vous pouvez maintenant vous connecter.");
@@ -211,6 +218,27 @@ const InvitationPage = () => {
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="acceptCGU"
+                checked={formData.acceptCGU}
+                onChange={(e) => setFormData({...formData, acceptCGU: e.target.checked})}
+                className="mt-1 w-4 h-4 text-[#1E40AF] border-gray-300 rounded focus:ring-[#1E40AF] cursor-pointer"
+              />
+              <label htmlFor="acceptCGU" className="text-sm text-gray-600 cursor-pointer">
+                J'accepte les{' '}
+                <a
+                  href="/conditions-generales"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#1E40AF] hover:text-[#1E3A8A] underline font-medium"
+                >
+                  conditions générales d'utilisation
+                </a>
+              </label>
             </div>
 
             <button
