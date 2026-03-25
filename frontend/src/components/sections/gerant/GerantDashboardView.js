@@ -272,7 +272,14 @@ export default function GerantDashboardView({
                   <th className="px-4 py-3 text-left">Magasin</th>
                   <th className="px-4 py-3 text-right">CA — {formatPeriod(periodType, periodOffset)}</th>
                   <th className="px-4 py-3 text-right hidden sm:table-cell">Ventes</th>
-                  <th className="px-4 py-3 text-right hidden lg:table-cell">Panier moyen</th>
+                  <th className="px-4 py-3 text-right hidden lg:table-cell">
+                    <span
+                      title="Panier moyen = CA ÷ Nombre de ventes. Montant moyen dépensé par transaction sur la période."
+                      className="cursor-help border-b border-dashed border-gray-400"
+                    >
+                      Panier moyen
+                    </span>
+                  </th>
                   {showConversionRate && (
                     <th className="px-4 py-3 text-right hidden lg:table-cell">
                       <span
