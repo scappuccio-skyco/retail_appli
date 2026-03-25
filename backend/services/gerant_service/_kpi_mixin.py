@@ -133,7 +133,13 @@ class KpiMixin:
             period_start = f"{target_year}-01-01"
             period_end = f"{target_year}-12-31"
             prev_start = f"{target_year-1}-01-01"
-            prev_end = f"{target_year-1}-12-31"
+            if period_offset == 0:
+                # Année courante : comparaison à jour identique (ex : jan→25 mars 2026 vs jan→25 mars 2025)
+                prev_end = f"{target_year - 1}-{today_date.month:02d}-{today_date.day:02d}"
+                is_partial_comparison = True
+            else:
+                # Année passée : comparaison année complète vs année complète
+                prev_end = f"{target_year-1}-12-31"
         else:
             raise ValueError("Invalid period_type. Must be 'week', 'month', or 'year'")
 
