@@ -109,8 +109,15 @@ class KpiMixin:
             target_sunday = target_monday + timedelta(days=6)
             period_start = target_monday.strftime('%Y-%m-%d')
             period_end = target_sunday.strftime('%Y-%m-%d')
-            prev_start = (target_monday - timedelta(weeks=1)).strftime('%Y-%m-%d')
-            prev_end = (target_monday - timedelta(days=1)).strftime('%Y-%m-%d')
+            prev_monday = target_monday - timedelta(weeks=1)
+            prev_start = prev_monday.strftime('%Y-%m-%d')
+            if period_offset == 0:
+                # Semaine courante : comparaison à jour identique (ex : lun→mer vs lun→mer semaine préc.)
+                prev_end = (prev_monday + timedelta(days=days_since_monday)).strftime('%Y-%m-%d')
+                is_partial_comparison = True
+            else:
+                # Semaine passée : comparaison semaine complète vs semaine complète
+                prev_end = (target_monday - timedelta(days=1)).strftime('%Y-%m-%d')
         elif period_type == 'month':
             target_month = today_date.replace(day=1) + timedelta(days=32 * period_offset)
             target_month = target_month.replace(day=1)
