@@ -190,8 +190,11 @@ export function useSellerDashboardData({ user, initialDiagnostic, isReadOnly, is
         const kpiDates = datesRes.data?.dates ?? [];
         const hasTodayKPI = kpiDates.includes(today);
 
+        const isNewUser = user?.created_at
+          ? (Date.now() - new Date(user.created_at).getTime()) < 86400000
+          : false;
         let newTasks = [...tasksRes.data];
-        if (!hasTodayKPI && !tasksRes.data.find(t => t.id === 'daily-kpi')) {
+        if (!isNewUser && !hasTodayKPI && !tasksRes.data.find(t => t.id === 'daily-kpi')) {
           newTasks = [{
             id: 'daily-kpi',
             type: 'kpi',
@@ -251,8 +254,11 @@ export function useSellerDashboardData({ user, initialDiagnostic, isReadOnly, is
         const datesRes = await api.get('/seller/dates-with-data');
         const kpiDates = datesRes.data?.dates ?? [];
         const hasTodayKPI = kpiDates.includes(today);
+        const isNewUser = user?.created_at
+          ? (Date.now() - new Date(user.created_at).getTime()) < 86400000
+          : false;
         let newTasks = [...tasksRes.data];
-        if (!hasTodayKPI && !tasksRes.data.find(t => t.id === 'daily-kpi')) {
+        if (!isNewUser && !hasTodayKPI && !tasksRes.data.find(t => t.id === 'daily-kpi')) {
           newTasks = [{
             id: 'daily-kpi', type: 'kpi', icon: '📊',
             title: 'Saisir mes chiffres du jour',

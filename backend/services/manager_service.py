@@ -638,11 +638,46 @@ class ManagerService:
         - Objectifs expirant dans ≤ 3 jours
         - Challenges terminés (period_end < aujourd'hui, status active)
         - Aucun objectif ni challenge dans les 7 prochains jours
+        Jour 1 (compte < 24h) : seulement le diagnostic manager.
         """
         from datetime import date
         tasks: List[Dict] = []
         today = date.today()
         today_str = today.isoformat()
+
+        # --- Détection compte tout neuf (< 24h) ---
+        is_new_user = False
+        try:
+            manager_doc = await self.user_repo.find_by_id(manager_id, projection={"_id": 0, "created_at": 1})
+            created_at = manager_doc.get("created_at") if manager_doc else None
+            if created_at:
+                if isinstance(created_at, str):
+                    created_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                else:
+                    created_dt = created_at
+                if created_dt.tzinfo is None:
+                    created_dt = created_dt.replace(tzinfo=timezone.utc)
+                is_new_user = (datetime.now(timezone.utc) - created_dt).total_seconds() < 86400
+        except Exception:
+            pass
+
+        # --- Diagnostic manager (jour 1 uniquement) ---
+        if is_new_user:
+            try:
+                mgr_diag = await self.manager_diagnostic_repo.find_latest_by_manager(manager_id)
+                if not mgr_diag:
+                    tasks.append({
+                        "id": "manager-diagnostic",
+                        "type": "manager_diagnostic",
+                        "category": "action",
+                        "title": "Complète ton diagnostic manager",
+                        "description": "Évalue ton style de management en 10 minutes",
+                        "priority": "high",
+                        "icon": "📋",
+                    })
+            except Exception:
+                pass
+            return tasks
 
         # Liste des vendeurs du magasin
         sellers: List[Dict] = []
