@@ -269,7 +269,15 @@ export default function GerantDashboardView({
                   <th className="px-4 py-3 text-left">Magasin</th>
                   <th className="px-4 py-3 text-right">CA — {formatPeriod(periodType, periodOffset)}</th>
                   <th className="px-4 py-3 text-right hidden sm:table-cell">Ventes</th>
-                  <th className="px-4 py-3 text-center hidden md:table-cell">Évolution</th>
+                  <th className="px-4 py-3 text-right hidden lg:table-cell">Panier moyen</th>
+                  <th className="px-4 py-3 text-center hidden md:table-cell">
+                    <span
+                      title="Évolution du CA par rapport à la même période précédente (semaine / mois / année selon le filtre sélectionné)"
+                      className="cursor-help border-b border-dashed border-gray-400"
+                    >
+                      Évolution
+                    </span>
+                  </th>
                   <th className="px-4 py-3 text-center hidden md:table-cell">Équipe</th>
                 </tr>
               </thead>
@@ -318,6 +326,17 @@ export default function GerantDashboardView({
                         <p className="font-semibold text-gray-700">
                           {s.periodVentes > 0 ? s.periodVentes : <span className="text-gray-400 font-normal text-sm">—</span>}
                         </p>
+                      </td>
+
+                      {/* Panier moyen */}
+                      <td className="px-4 py-4 text-right hidden lg:table-cell">
+                        {s.periodVentes > 0 && s.periodCA > 0 ? (
+                          <p className="font-semibold text-gray-700">
+                            {Math.round(s.periodCA / s.periodVentes).toLocaleString('fr-FR')} €
+                          </p>
+                        ) : (
+                          <span className="text-gray-400 text-sm">—</span>
+                        )}
                       </td>
 
                       {/* Évolution */}
