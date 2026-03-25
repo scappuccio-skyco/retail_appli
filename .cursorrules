@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 24 Mars 2026 (session 6)
+**Dernière mise à jour**: 25 Mars 2026 (session 7)
 
 ---
 
@@ -1065,6 +1065,57 @@ La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé 
 
 ---
 
+### [25 Mars 2026 — session 8] - Tableau gérant, évolution, onboarding, session fantôme
+
+#### Tooltips tableau gérant
+- ✅ `GerantDashboardView.js` — `bottom-full` → `top-full` : tooltips s'affichent vers le bas (le `overflow-hidden` parent les coupait vers le haut)
+
+#### Évolution — comparaison à jour identique pour la période courante
+- ✅ `gerant_service/_kpi_mixin.py` — période courante (offset=0) : `prev_end` = même jour du mois/année précédent(e) au lieu de la fin de période complète
+  - Semaine courante : lun→aujourd'hui vs lun→même jour semaine préc.
+  - Mois courant : mars 1→25 vs fév 1→25
+  - Année courante : jan→25 mars 2026 vs jan→25 mars 2025
+  - Périodes passées (offset<0) : comportement inchangé (période complète vs période complète)
+- ✅ Backend retourne `is_partial_comparison: True` dans `previous_period` pour offset=0
+- ✅ `useGerantDashboard.js` — `is_partial_comparison` transmis dans `rankingStats`
+- ✅ `GerantDashboardView.js` — badge "vs J identique" affiché sous l'évolution si comparaison partielle
+
+#### Onboarding jour 1 — uniquement le diagnostic
+- ✅ `seller_service/_objectives_mixin.py` — si compte < 24h : retourne seulement la tâche diagnostic DISC
+- ✅ `manager_service.py` — si compte < 24h : retourne seulement la tâche diagnostic manager
+- ✅ `useSellerDashboardData.js` — tâche "Saisir mes chiffres du jour" masquée le premier jour
+- ✅ Tâche "bilan semaine passée" masquée si aucun KPI sur la semaine précédente (nouveau vendeur)
+
+#### Fix session fantôme après inscription
+- **Bug** : `navigate('/login')` (React Router SPA) gardait l'ancien `user` en mémoire React → l'app redirigeait vers le dashboard de l'ancien compte
+- ✅ `RegisterSeller.js`, `RegisterManager.js`, `InvitationPage.js` — `navigate('/login')` → `window.location.href = '/login'` (rechargement complet, `checkAuth()` relit le bon cookie)
+
+---
+
+### [25 Mars 2026 — session 7] - Espace API gérant : corrections, documentation, réactivation clé, fix PDF
+
+#### Corrections espace API gérant (`cbbdedef`)
+- ✅ `APIDocModal.js` — header et bouton PDF : violet → bleu brand `#1E40AF`
+- ✅ `APIKeysManagement.js` — copie clé : `document.execCommand` (déprécié) → `navigator.clipboard`
+- ✅ `APIKeyCard.js` — affichage date d'expiration + alerte visuelle si expirée
+- ✅ `DocContent.js` — permission `kpi:write` → `write:kpi` (nom réel backend)
+- ✅ `DocContent.js` — section IDs : utiliser `GET /api/integrations/stores` (pas l'URL)
+- ✅ `DocContent.js` — erreurs 404 et 429 (rate limit 60 req/min + `Retry-After`)
+- ✅ `DocContent.js` — dates 2024 → 2026, champs `send_invitation`, `external_id`, `opening_hours`
+- ✅ `DocContent.js` — exemple JavaScript/Node.js (fetch) + toutes les permissions avec descriptions
+
+#### Réactivation clé API désactivée (`6c696bac`)
+- ✅ `manager_service.py` — `APIKeyService.reactivate_api_key()` : remet `active=True`, efface `deleted_at`/`deactivated_at`
+- ✅ `gerant/profile.py` — `PATCH /api/gerant/api-keys/{key_id}/reactivate`
+- ✅ `useAPIKeysManagement.js` — `reactivateAPIKey()` → PATCH reactivate
+- ✅ `APIKeyCard.js` — bouton "Réactiver" (vert) pour clés désactivées, avant suppression définitive
+
+#### Fix PDF documentation API (`72d35027`)
+- ✅ `api/routes/docs.py` — correction chemin markdown : `ROOT_DIR / "docs"` → `ROOT_DIR.parent / "docs"`
+- **Cause** : `ROOT_DIR = Path(__file__).parent.parent` pointe sur `backend/`, pas la racine du projet
+- **Symptôme** : bouton "Télécharger PDF" → 404 (fichier non trouvé → `NotFoundError`)
+- **Règle à retenir** : le dossier `docs/` est à la **racine du projet**, pas dans `backend/`
+
 ### [24 Mars 2026] - Infrastructure : WebSocket, Time-series, Cache IA, Sécurité, CI, Staging
 
 #### WebSocket temps réel KPIs
@@ -1112,7 +1163,7 @@ La feature "manager envoie une demande textuelle au vendeur" n'a jamais existé 
 - Stripe test mode configuré sur staging : clés `sk_test_*` + webhook `https://retailappli-staging.up.railway.app/stripe/webhook`
 - Script de test Stripe : `python test_stripe_staging.py` (à la racine du repo)
 
-#### État Railway (à jour 24 Mars 2026)
+#### État Railway (à jour 25 Mars 2026)
 - Service `retail_appli` (prod) : branche `main`, DB `Retail_Performer`
 - Service `retail_appli-staging` : branche `develop`, DB `Retail_Performer_staging`
 - Redis : `redis.railway.internal:6379`, variable `CACHE_REDIS_URL`
