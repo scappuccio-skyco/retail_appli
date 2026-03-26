@@ -6,13 +6,22 @@ import {
   managementStyles, compatibilityGuide,
 } from '../guideProfilsData';
 
-export default function useGuideProfilsModal({ userRole, storeIdParam }) {
+export default function useGuideProfilsModal({ userRole, storeIdParam, userProfileName = null }) {
   const allSections = userRole === 'seller'
     ? ['style_vente', 'niveau', 'motivation', 'disc']
     : ['management', 'style_vente', 'niveau', 'motivation', 'disc', 'compatibilite'];
 
   const [activeSection, setActiveSection] = useState(allSections[0]);
-  const [currentProfile, setCurrentProfile] = useState(0);
+
+  // Auto-navigate to the user's own profile on open
+  const getInitialProfileIndex = () => {
+    if (!userProfileName) return 0;
+    const initialProfiles = userRole === 'seller' ? stylesVente : managementStyles;
+    const idx = initialProfiles.findIndex(p => p.name === userProfileName);
+    return idx >= 0 ? idx : 0;
+  };
+
+  const [currentProfile, setCurrentProfile] = useState(getInitialProfileIndex);
   const [managerProfile, setManagerProfile] = useState(null);
   const [teamSellers, setTeamSellers] = useState([]);
   const [loadingCompatibility, setLoadingCompatibility] = useState(false);

@@ -4,14 +4,14 @@ import useGuideProfilsModal from './guideProfilsModal/useGuideProfilsModal';
 import CompatibiliteSection from './guideProfilsModal/CompatibiliteSection';
 import ProfileSection from './guideProfilsModal/ProfileSection';
 
-export default function GuideProfilsModal({ onClose, userRole = 'manager', storeIdParam = null }) {
+export default function GuideProfilsModal({ onClose, userRole = 'manager', storeIdParam = null, userProfileName = null }) {
   const {
     allSections, activeSection, currentProfile,
     managerProfile, teamSellers, loadingCompatibility,
     profiles, profile,
     handleSectionChange, handleNext, handlePrevious,
     getColorClasses,
-  } = useGuideProfilsModal({ userRole, storeIdParam });
+  } = useGuideProfilsModal({ userRole, storeIdParam, userProfileName });
 
   const sectionLabels = {
     management: '👔 Type de management',

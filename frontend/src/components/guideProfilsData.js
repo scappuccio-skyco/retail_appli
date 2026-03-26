@@ -502,7 +502,7 @@ export const managementStyles = [
     ]
   },
   {
-    name: 'Le Leader Inspirant',
+    name: 'Le Dynamiseur',
     icon: '⚡',
     color: 'yellow',
     description: 'Énergise et mobilise par l\'exemple et la vision',
@@ -673,7 +673,7 @@ export const compatibilityGuide = [
     ]
   },
   {
-    name: 'Manager Leader Inspirant × Tous profils',
+    name: 'Manager Dynamiseur × Tous profils',
     icon: '⚡✨',
     color: 'yellow',
     description: 'Catalyseur universel de performance',
@@ -1114,10 +1114,10 @@ export const getCompatibilityResult = (managementType, sellingStyle) => {
         ]
       }
     },
-    'Leader Inspirant': {
+    'Dynamiseur': {
       'Convivial': {
         score: '⭐⭐⭐⭐⭐',
-        title: 'Manager Leader Inspirant × Vendeur Convivial',
+        title: 'Manager Dynamiseur × Vendeur Convivial',
         description: 'Synergie humaine exceptionnelle',
         caracteristiques: [
           'Énergie positive et chaleur',
@@ -1139,7 +1139,7 @@ export const getCompatibilityResult = (managementType, sellingStyle) => {
       },
       'Dynamique': {
         score: '⭐⭐⭐⭐⭐',
-        title: 'Manager Leader Inspirant × Vendeur Dynamique',
+        title: 'Manager Dynamiseur × Vendeur Dynamique',
         description: 'Duo d\'action et d\'énergie',
         caracteristiques: [
           'Énergie décuplée',
@@ -1161,7 +1161,7 @@ export const getCompatibilityResult = (managementType, sellingStyle) => {
       },
       'Explorateur': {
         score: '⭐⭐⭐⭐⭐',
-        title: 'Manager Leader Inspirant × Vendeur Explorateur',
+        title: 'Manager Dynamiseur × Vendeur Explorateur',
         description: 'Innovation inspirée',
         caracteristiques: [
           'Vision inspirante',
@@ -1183,7 +1183,7 @@ export const getCompatibilityResult = (managementType, sellingStyle) => {
       },
       'Technique': {
         score: '⭐⭐⭐⭐',
-        title: 'Manager Leader Inspirant × Vendeur Technique',
+        title: 'Manager Dynamiseur × Vendeur Technique',
         description: 'Excellence inspirée',
         caracteristiques: [
           'Expertise valorisée et inspirée',
@@ -1205,7 +1205,7 @@ export const getCompatibilityResult = (managementType, sellingStyle) => {
       },
       'Challenger': {
         score: '⭐⭐⭐⭐⭐',
-        title: 'Manager Leader Inspirant × Vendeur Challenger',
+        title: 'Manager Dynamiseur × Vendeur Challenger',
         description: 'Champions ensemble',
         caracteristiques: [
           'Culture de champion',
