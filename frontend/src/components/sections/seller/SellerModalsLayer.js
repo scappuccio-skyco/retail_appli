@@ -314,10 +314,10 @@ export default function SellerModalsLayer({
         <DiagnosticFormScrollable
           isModal={true}
           onClose={() => setShowDiagnosticFormModal(false)}
-          onComplete={() => {
+          onComplete={async () => {
             setShowDiagnosticFormModal(false);
-            fetchData();
-            setTimeout(() => setShowProfileModal(true), 500);
+            await fetchData();
+            setShowProfileModal(true);
           }}
         />
       )}

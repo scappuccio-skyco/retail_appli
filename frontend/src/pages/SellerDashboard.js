@@ -99,7 +99,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     if (forceForm || !data.diagnostic) {
       setShowDiagnosticFormModal(true);
     } else {
-      setShowDiagnosticModal(true);
+      setShowProfileModal(true);
     }
   };
 
