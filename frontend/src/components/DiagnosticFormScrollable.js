@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { ChevronLeft, Sparkles, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, X } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import questions from './diagnosticForm/questions';
@@ -40,12 +40,11 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
     if (currentIdx > 0) setCurrentIdx(i => i - 1);
   };
 
-  const handleSubmit = async () => {
-    if (Object.keys(responses).length < totalQuestions) {
-      toast.error('Merci de répondre à toutes les questions');
-      return;
-    }
+  const handleNext = () => {
+    if (currentIdx < totalQuestions - 1) setCurrentIdx(i => i + 1);
+  };
 
+  const handleSubmit = async () => {
     setLoading(true);
     try {
       const responsesList = allQuestions.map(q => ({
@@ -162,10 +161,17 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
           </button>
         )}
 
-        {!isLastQuestion && (
-          <span className="text-xs text-gray-400">
-            {currentAnswer ? 'Sélection auto-avancée' : 'Sélectionne une réponse'}
-          </span>
+        {!isLastQuestion && currentAnswer && (
+          <button
+            onClick={handleNext}
+            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+          >
+            Suivant
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
+        {!isLastQuestion && !currentAnswer && (
+          <span className="text-xs text-gray-400">Sélectionne une réponse</span>
         )}
       </div>
     </div>
