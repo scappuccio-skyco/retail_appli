@@ -1314,3 +1314,18 @@ Est-ce que c'est quelque chose que vous reconnaissez dans votre magasin ?
 - ✅ `frontend/src/components/teamModal/useTeamModal.js` — mappe `profileData.style` → `style_vente` sur chaque vendeur dans `teamData`
 
 **Pattern à retenir** : ne jamais re-fetcher dans une modale enfant des données déjà disponibles dans le parent. Passer en props.
+
+---
+
+## 📅 Session 13 — 26 Mars 2026
+
+### Fix compatibilité — styles vendeur jamais chargés + mismatch matrice
+
+**Bug 1 — `style_vente` toujours null** : `CompatibiliteModal` avait les vendeurs en prop mais pas leurs styles (champ absent du document user, vient du diagnostic). Fix : appel batch `/manager/team/seller-profiles` au chargement de la modale → enrichit chaque vendeur avec `style_vente` indépendamment de `useTeamModal`.
+- ✅ `CompatibiliteModal.js` — ajout appel `seller-profiles` + enrichissement `enrichedSellers`
+
+**Bug 2 — mismatch styles diagnostic vs matrice de compatibilité** :
+- Diagnostic stocke : `'Convivial'`, `'Dynamique'`, `'Discret'`, `'Stratège'`
+- Matrice attend : `'Convivial'`, `'Dynamique'`, `'Explorateur'`, `'Technique'`, `'Challenger'`
+- `'Discret'` et `'Stratège'` n'existaient pas dans la matrice → `getCompatibilityResult` retournait `null` → vendeur disparaissait silencieusement
+- ✅ `CompatibiliteSection.js` — `STYLE_TO_COMPAT` map : Discret → Explorateur, Stratège → Technique
