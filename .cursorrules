@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 26 Mars 2026 (session 10)
+**Dernière mise à jour**: 26 Mars 2026 (session 11)
 
 ---
 
@@ -1284,3 +1284,17 @@ Est-ce que c'est quelque chose que vous reconnaissez dans votre magasin ?
 - ✅ `frontend/src/hooks/useNotifications.js` (NEW) — polling toutes les 60s, `markRead()`, `markAllRead()`
 - ✅ `frontend/src/components/notifications/NotificationBell.js` (NEW) — icône cloche + badge rouge compteur, dropdown panel, icônes et couleurs par type de notification
 - ✅ Intégré dans `GerantHeader.js`, `ManagerHeader.js`, `SellerHeader.js`
+
+---
+
+## 📅 Session 11 — 26 Mars 2026
+
+### Fix bilan IA vendeur — tutoiement strict + nuance DISC
+
+- ✅ `backend/api/routes/sellers/bilans.py` — accès `disc_style` corrigé (était `diagnostic.get('profile', {}).get('style')` → `diagnostic.get('style')` direct)
+- ✅ `backend/api/routes/sellers/bilans.py` — recalcul des percentages DISC depuis les réponses brutes stockées (`calculate_disc_profile`), passés au prompt : `D=x%, I=x%, S=x%, C=x%`
+- ✅ `backend/api/routes/sellers/bilans.py` — prompt bilan V7 : règles de nuance DISC (interdit "Tu possèdes le style X", tutoiement strict, jamais 3e personne)
+- ✅ `backend/services/ai_service/_prompts.py` — `DISC_ADAPTATION_INSTRUCTIONS` renforcé :
+  - Règle 1 : tutoiement strict, jamais 3e personne
+  - Règle 2 : nuance obligatoire — formulations autorisées ("D'après tes réponses, tu as tendance à...") vs interdites ("Ton profil est I", "Tu possèdes le style X")
+  - Règle 3 : ne jamais commencer par le prénom/nom du vendeur
