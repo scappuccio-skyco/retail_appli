@@ -466,6 +466,7 @@ async def get_team_seller_profiles(
             "avg_radar_scores": avg_radar_scores,
             "niveau": diagnostic.get("level") if diagnostic else None,
             "has_diagnostic": bool(diagnostic),
+            "style": diagnostic.get("style") if diagnostic else None,
         }
 
     results = await _asyncio.gather(*[get_profile(sid) for sid in valid_ids])

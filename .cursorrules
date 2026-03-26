@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 26 Mars 2026 (session 9)
+**Dernière mise à jour**: 26 Mars 2026 (session 11)
 
 ---
 
@@ -1257,3 +1257,75 @@ Est-ce que c'est quelque chose que vous reconnaissez dans votre magasin ?
 - APScheduler utilisé à la place de Railway Cron (plus simple, tout dans le code, instance unique)
 - Les endpoints `/internal/jobs/*` sont conservés pour les tests manuels
 - `INTERNAL_JOB_KEY` à définir sur Railway prod ET staging (déjà fait)
+
+---
+
+## 📅 Session 10 — 26 Mars 2026
+
+### Export PDF dashboard gérant
+- ✅ `frontend/src/components/sections/gerant/gerantDashboardPdfExport.js` (NEW) — html2canvas + jsPDF, header bleu, pagination auto
+- ✅ `GerantDashboardView.js` — bouton "Exporter PDF" ajouté, attribut `data-pdf-ignore` sur les boutons action pour les exclure du rendu PDF
+
+### Amélioration graphiques vendeur
+- ✅ `usePerformanceModal.js` — champs dérivés calculés dans `chartData` : **Panier Moyen** (`ca_journalier / nb_ventes`) + **Taux Transfo** (`nb_ventes / nb_prospects * 100`)
+- ✅ `MonthYearView.js` — vue annuelle utilise `yearMonthlyData` (12 points mensuels) au lieu des entrées journalières (365 pts) — moins de bruit, courbe plus lisible
+- ✅ `KPICharts.js` — 2 nouveaux `LineChart` ajoutés : Panier Moyen (fond indigo, stroke `#6366f1`) + Taux de Transformation (fond pink, stroke `#ec4899`)
+- ✅ `frontend/src/components/sections/seller/SellerCompetencesRadar.js` (NEW) — `RadarChart` recharts sur 5 axes compétences DISC + barres de progression sous le radar
+- ✅ `SellerDashboard.js` — intégration de `SellerCompetencesRadar` sous les 4 cards KPI
+
+### Notifications in-app (tous rôles)
+- ✅ `backend/repositories/notification_repository.py` (NEW) — collection MongoDB `notifications`, `find_for_user()` / `mark_read()` / `mark_all_read()`
+- ✅ `core/indexes.py` — index composé `user_read_created_idx` (`user_id, read, created_at`) + TTL 90j sur `created_at`
+- ✅ `backend/services/notification_service.py` — étendu avec méthodes CRUD notifications
+- ✅ `backend/api/routes/notifications.py` (NEW) — `GET /api/notifications`, `PATCH /api/notifications/read-all`, `PATCH /api/notifications/{id}/read`
+- ✅ `backend/api/routes/__init__.py` — router notifications enregistré via `safe_import`
+- ✅ `seller_service/_kpi_mixin.py` — fire-and-forget `_notify_manager_kpi_saved()` déclenché après chaque save KPI (vérifie `kpi_config.enabled` pour ne notifier que si les KPIs sont actifs)
+- ✅ `jobs_service.py` — notif in-app créée pour chaque manager dont un vendeur est silencieux (en plus de l'email)
+- ✅ `frontend/src/hooks/useNotifications.js` (NEW) — polling toutes les 60s, `markRead()`, `markAllRead()`
+- ✅ `frontend/src/components/notifications/NotificationBell.js` (NEW) — icône cloche + badge rouge compteur, dropdown panel, icônes et couleurs par type de notification
+- ✅ Intégré dans `GerantHeader.js`, `ManagerHeader.js`, `SellerHeader.js`
+
+---
+
+## 📅 Session 11 — 26 Mars 2026
+
+### Fix bilan IA vendeur — tutoiement strict + nuance DISC
+
+- ✅ `backend/api/routes/sellers/bilans.py` — accès `disc_style` corrigé (était `diagnostic.get('profile', {}).get('style')` → `diagnostic.get('style')` direct)
+- ✅ `backend/api/routes/sellers/bilans.py` — recalcul des percentages DISC depuis les réponses brutes stockées (`calculate_disc_profile`), passés au prompt : `D=x%, I=x%, S=x%, C=x%`
+- ✅ `backend/api/routes/sellers/bilans.py` — prompt bilan V7 : règles de nuance DISC (interdit "Tu possèdes le style X", tutoiement strict, jamais 3e personne)
+- ✅ `backend/services/ai_service/_prompts.py` — `DISC_ADAPTATION_INSTRUCTIONS` renforcé :
+  - Règle 1 : tutoiement strict, jamais 3e personne
+  - Règle 2 : nuance obligatoire — formulations autorisées ("D'après tes réponses, tu as tendance à...") vs interdites ("Ton profil est I", "Tu possèdes le style X")
+  - Règle 3 : ne jamais commencer par le prénom/nom du vendeur
+
+---
+
+## 📅 Session 12 — 26 Mars 2026
+
+### Fix compatibilité manager — 0 vendeur + style_vente manquant
+
+**Racine du bug 1 — "0 vendeur"** : `CompatibiliteModal` refetchait `/manager/sellers` indépendamment via un `Promise.all`. Si l'un des 3 appels échouait silencieusement, `teamSellers` restait à `[]`.
+- ✅ `CompatibiliteModal.js` — suppression du fetch `/manager/sellers` ; les vendeurs sont maintenant reçus en prop `sellers` (déjà chargés dans `TeamModal` via `teamData`)
+- ✅ `TeamModal.js` — passage de `sellers={teamData}` à `CompatibiliteModal`
+
+**Racine du bug 2 — `style_vente` jamais affiché** : `style_vente` n'existe pas sur le document user en MongoDB. Il vient du diagnostic (collection séparée), mais le batch `/manager/team/seller-profiles` ne le retournait pas.
+- ✅ `backend/api/routes/manager/kpi.py` — `get_team_seller_profiles` retourne maintenant `style: diagnostic.get("style")`
+- ✅ `frontend/src/components/teamModal/useTeamModal.js` — mappe `profileData.style` → `style_vente` sur chaque vendeur dans `teamData`
+
+**Pattern à retenir** : ne jamais re-fetcher dans une modale enfant des données déjà disponibles dans le parent. Passer en props.
+
+---
+
+## 📅 Session 13 — 26 Mars 2026
+
+### Fix compatibilité — styles vendeur jamais chargés + mismatch matrice
+
+**Bug 1 — `style_vente` toujours null** : `CompatibiliteModal` avait les vendeurs en prop mais pas leurs styles (champ absent du document user, vient du diagnostic). Fix : appel batch `/manager/team/seller-profiles` au chargement de la modale → enrichit chaque vendeur avec `style_vente` indépendamment de `useTeamModal`.
+- ✅ `CompatibiliteModal.js` — ajout appel `seller-profiles` + enrichissement `enrichedSellers`
+
+**Bug 2 — mismatch styles diagnostic vs matrice de compatibilité** :
+- Diagnostic stocke : `'Convivial'`, `'Dynamique'`, `'Discret'`, `'Stratège'`
+- Matrice attend : `'Convivial'`, `'Dynamique'`, `'Explorateur'`, `'Technique'`, `'Challenger'`
+- `'Discret'` et `'Stratège'` n'existaient pas dans la matrice → `getCompatibilityResult` retournait `null` → vendeur disparaissait silencieusement
+- ✅ `CompatibiliteSection.js` — `STYLE_TO_COMPAT` map : Discret → Explorateur, Stratège → Technique

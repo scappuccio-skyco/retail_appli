@@ -156,6 +156,7 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
             scoreSource: profileData.has_diagnostic ? 'diagnostic' : 'none',
             hasDiagnostic: profileData.has_diagnostic ?? false,
             niveau: profileData.niveau || seller.niveau || 'Non défini',
+            style_vente: profileData.style || null,
             _kpiEntries: kpiEntries,
           };
         } catch (err) {
