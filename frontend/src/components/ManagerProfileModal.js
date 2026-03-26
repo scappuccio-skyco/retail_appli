@@ -41,12 +41,12 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
               </h3>
               <p className="text-gray-700 mb-6 text-lg">{diagnostic.profil_description}</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-4 mb-6">
                 <div className="bg-green-50 rounded-xl p-5">
                   <p className="text-sm font-semibold text-green-700 mb-3">💪 Tes Forces :</p>
-                  <ul className="list-disc list-inside space-y-2 text-green-800">
-                    <li>{diagnostic.force_1}</li>
-                    <li>{diagnostic.force_2}</li>
+                  <ul className="space-y-2 text-green-800">
+                    <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>{diagnostic.force_1}</li>
+                    <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>{diagnostic.force_2}</li>
                   </ul>
                 </div>
                 <div className="bg-orange-50 rounded-xl p-5">

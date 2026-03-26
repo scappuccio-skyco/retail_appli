@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts';
 import { toast } from 'sonner';
-import { X, Users, TrendingUp, RefreshCw, Coffee } from 'lucide-react';
+import { X, Users, TrendingUp, RefreshCw, Coffee, Heart } from 'lucide-react';
+import CompatibiliteModal from './CompatibiliteModal';
 import ManagerAIAnalysisDisplay from './ManagerAIAnalysisDisplay';
 import EvaluationGenerator from './EvaluationGenerator';
 import MorningBriefModal from './MorningBriefModal';
@@ -14,6 +15,7 @@ import SellerPassportModal from './gerant/SellerPassportModal';
 export default function TeamModal({ sellers, storeIdParam, onClose, onViewSellerDetail, onDataUpdate, storeName, managerName, userRole }) {
   const { user } = useAuth();
   const [passportSeller, setPassportSeller] = useState(null);
+  const [showCompatibilite, setShowCompatibilite] = useState(false);
   const {
     teamData, loading,
     showMorningBriefModal, setShowMorningBriefModal,
@@ -72,14 +74,23 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                   <Users className="w-4 h-4 text-cyan-600" />
                   <h3 className="text-lg font-semibold text-gray-800">Vendeurs actifs</h3>
                 </div>
-                <button
-                  onClick={async () => { setIsUpdating(true); await fetchTeamData(sellers); setIsUpdating(false); toast.success('Données actualisées !'); }}
-                  disabled={isUpdating}
-                  className="px-3 py-1.5 text-sm bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-all disabled:opacity-50 flex items-center gap-2"
-                >
-                  <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
-                  <span className="hidden sm:inline">Actualiser</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowCompatibilite(true)}
+                    className="px-3 py-1.5 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all flex items-center gap-2"
+                  >
+                    <Heart className="w-4 h-4" />
+                    <span className="hidden sm:inline">Compatibilité</span>
+                  </button>
+                  <button
+                    onClick={async () => { setIsUpdating(true); await fetchTeamData(sellers); setIsUpdating(false); toast.success('Données actualisées !'); }}
+                    disabled={isUpdating}
+                    className="px-3 py-1.5 text-sm bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-all disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
+                    <span className="hidden sm:inline">Actualiser</span>
+                  </button>
+                </div>
               </div>
 
               {/* Period Filter */}
@@ -260,6 +271,13 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           seller={passportSeller}
           apiPath={userRole === 'manager' ? `/manager/sellers/${passportSeller.id}/passport` : `/gerant/sellers/${passportSeller.id}/passport`}
           onClose={() => setPassportSeller(null)}
+        />
+      )}
+
+      {showCompatibilite && (
+        <CompatibiliteModal
+          storeIdParam={storeIdParam}
+          onClose={() => setShowCompatibilite(false)}
         />
       )}
     </div>

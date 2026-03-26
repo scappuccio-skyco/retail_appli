@@ -9,7 +9,7 @@ import {
 export default function useGuideProfilsModal({ userRole, storeIdParam, userProfileName = null }) {
   const allSections = userRole === 'seller'
     ? ['mon_profil', 'les_styles']
-    : ['mon_profil', 'mon_equipe'];
+    : ['mon_profil'];
 
   const [activeSection, setActiveSection] = useState(allSections[0]);
   const [currentProfile, setCurrentProfile] = useState(0);
