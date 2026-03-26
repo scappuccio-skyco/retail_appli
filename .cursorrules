@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 25 Mars 2026 (session 7)
+**Dernière mise à jour**: 26 Mars 2026 (session 9)
 
 ---
 
@@ -1235,3 +1235,25 @@ Est-ce que c'est quelque chose que vous reconnaissez dans votre magasin ?
 3. Proposer une démo 20 min
 4. Offrir 30 jours gratuits aux participants à la démo
 5. Capitaliser sur les premiers clients satisfaits pour le bouche-à-oreille
+
+---
+
+## 📅 Session 9 — 26 Mars 2026
+
+### Emails automatiques (APScheduler)
+- ✅ `backend/services/jobs_service.py` (NEW) — `JobsService` : `compute_weekly_gerant_recaps()` + `compute_silent_seller_alerts()`
+- ✅ `backend/services/email_jobs.py` (NEW) — templates HTML Brevo : récap gérant + alerte vendeurs silencieux
+- ✅ `backend/api/routes/jobs.py` (NEW) — endpoints internes `/internal/jobs/*` sécurisés par `X-Internal-Key`
+- ✅ `backend/core/config.py` — ajout `INTERNAL_JOB_KEY`
+- ✅ `backend/api/routes/__init__.py` — enregistrement du router jobs
+- ✅ `backend/core/lifespan.py` — `_start_scheduler()` : APScheduler AsyncIO au démarrage de l'app
+  - Récap gérant : chaque lundi 08:00 Europe/Paris
+  - Alertes vendeurs silencieux : lun-ven 08:00 Europe/Paris
+  - Désactivé si `INTERNAL_JOB_KEY` vide
+- ✅ `requirements.txt` (racine ET backend) — `apscheduler==3.10.4`
+- ✅ Guards anti-spam : compte gérant < 7j ignoré pour le récap ; compte manager < 3j ignoré pour les alertes
+
+### Notes techniques importantes
+- APScheduler utilisé à la place de Railway Cron (plus simple, tout dans le code, instance unique)
+- Les endpoints `/internal/jobs/*` sont conservés pour les tests manuels
+- `INTERNAL_JOB_KEY` à définir sur Railway prod ET staging (déjà fait)
