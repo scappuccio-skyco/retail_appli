@@ -54,6 +54,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showNotesNotebook, setShowNotesNotebook] = useState(false);
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showManagerCompatModal, setShowManagerCompatModal] = useState(false);
 
   // ── Onboarding ─────────────────────────────────────────────
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
@@ -131,6 +132,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(f => !f)}
         onOpenSupport={() => setShowSupportModal(true)}
+        onOpenManagerCompat={() => setShowManagerCompatModal(true)}
       />
 
       <SellerPersonalizationBar
@@ -211,6 +213,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         showNotesNotebook={showNotesNotebook}
         showEvaluationModal={showEvaluationModal}
         showSupportModal={showSupportModal}
+        showManagerCompatModal={showManagerCompatModal}
         // Modal setters
         setShowEvalModal={setShowEvalModal}
         setShowDebriefModal={setShowDebriefModal}
@@ -232,6 +235,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         setShowNotesNotebook={setShowNotesNotebook}
         setShowEvaluationModal={setShowEvaluationModal}
         setShowSupportModal={setShowSupportModal}
+        setShowManagerCompatModal={setShowManagerCompatModal}
         // KPI edit
         editingKPI={editingKPI}
         setEditingKPI={setEditingKPI}

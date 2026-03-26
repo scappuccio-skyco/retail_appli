@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, User, Headphones } from 'lucide-react';
+import { LogOut, User, Headphones, Heart } from 'lucide-react';
 import Logo from '../../shared/Logo';
 import TutorialButton from '../../onboarding/TutorialButton';
 import NotificationBell from '../../notifications/NotificationBell';
@@ -21,6 +21,7 @@ export default function SellerHeader({
   showFilters,
   onToggleFilters,
   onOpenSupport,
+  onOpenManagerCompat,
 }) {
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
 
@@ -89,6 +90,17 @@ export default function SellerHeader({
             </svg>
             <span className="hidden sm:inline">Personnaliser</span>
           </button>
+
+          {onOpenManagerCompat && (
+            <button
+              onClick={onOpenManagerCompat}
+              className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all text-sm sm:text-base"
+              title="Comprendre mon manager"
+            >
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Mon manager</span>
+            </button>
+          )}
 
           <button
             onClick={onOpenSupport}

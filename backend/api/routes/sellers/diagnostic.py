@@ -14,7 +14,8 @@ from pydantic import BaseModel, Field
 from uuid import uuid4
 
 from services.seller_service import SellerService
-from api.dependencies import get_seller_service
+from services.manager_service import DiagnosticService
+from api.dependencies import get_seller_service, get_diagnostic_service
 from core.security import get_current_seller, get_current_user
 from core.exceptions import ForbiddenError
 
@@ -639,6 +640,36 @@ async def create_diagnostic(
 ):
     """Create seller diagnostic - endpoint at /diagnostic"""
     return await _create_diagnostic_impl(diagnostic_data, current_user, seller_service)
+
+
+@router.get("/manager-diagnostic")
+async def get_my_manager_diagnostic(
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service),
+    diagnostic_service: DiagnosticService = Depends(get_diagnostic_service),
+):
+    """Get the DISC diagnostic of the seller's manager (for compatibility display)."""
+    seller = await seller_service.get_seller_profile(current_user['id'])
+    manager_id = seller.get('manager_id') if seller else None
+    if not manager_id:
+        return {"has_diagnostic": False, "message": "Aucun manager assigné"}
+    diagnostic = await diagnostic_service.get_latest_manager_diagnostic(
+        manager_id, projection={"_id": 0}
+    )
+    if not diagnostic:
+        return {"has_diagnostic": False, "message": "Ton manager n'a pas encore complété son diagnostic"}
+    return {
+        "has_diagnostic": True,
+        "profil_nom": diagnostic.get("profil_nom"),
+        "disc_style": diagnostic.get("disc_style") or diagnostic.get("disc_dominant"),
+        "disc_percentages": diagnostic.get("disc_percentages"),
+        "profil_description": diagnostic.get("profil_description"),
+        "force_1": diagnostic.get("force_1"),
+        "force_2": diagnostic.get("force_2"),
+        "axe_progression": diagnostic.get("axe_progression"),
+        "recommandation": diagnostic.get("recommandation"),
+        "exemple_concret": diagnostic.get("exemple_concret"),
+    }
 
 
 @diag_router.delete("/me")
