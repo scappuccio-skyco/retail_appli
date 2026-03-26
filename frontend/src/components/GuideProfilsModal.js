@@ -3,23 +3,25 @@ import { X } from 'lucide-react';
 import useGuideProfilsModal from './guideProfilsModal/useGuideProfilsModal';
 import CompatibiliteSection from './guideProfilsModal/CompatibiliteSection';
 import ProfileSection from './guideProfilsModal/ProfileSection';
+import MonProfilSection from './guideProfilsModal/MonProfilSection';
 
 export default function GuideProfilsModal({ onClose, userRole = 'manager', storeIdParam = null, userProfileName = null }) {
   const {
-    allSections, activeSection, currentProfile,
+    allSections, activeSection,
+    currentProfile, profiles, profile,
     managerProfile, teamSellers, loadingCompatibility,
-    profiles, profile,
+    ownProfile,
     handleSectionChange, handleNext, handlePrevious,
     getColorClasses,
   } = useGuideProfilsModal({ userRole, storeIdParam, userProfileName });
 
   const sectionLabels = {
-    management: '👔 Type de management',
+    mon_profil: '🎯 Mon Profil',
+    mon_equipe: '👥 Mon Équipe',
     style_vente: '🎨 Styles de Vente',
     niveau: '⭐ Niveaux',
     motivation: '⚡ Motivations',
     disc: '🎭 DISC',
-    compatibilite: '🤝 Compatibilité',
   };
 
   return (
@@ -27,27 +29,33 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-6 rounded-t-2xl relative">
+        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-5 rounded-t-2xl relative">
           <button onClick={onClose} className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors">
             <X className="w-6 h-6" />
           </button>
-          <h2 className="text-2xl font-bold text-white mb-2">📚 Guide des Profils</h2>
-          <p className="text-white text-opacity-90">Comprends les différents profils pour mieux adapter ta communication</p>
+          <h2 className="text-xl font-bold text-white">
+            {userRole === 'manager' ? '📚 Guide des Profils' : '📚 Guide des Profils Vendeur'}
+          </h2>
+          <p className="text-white opacity-80 text-sm mt-1">
+            {userRole === 'manager'
+              ? 'Comprends ton profil et adapte ton management à chaque vendeur'
+              : 'Comprends les différents profils pour mieux adapter ta communication'}
+          </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 bg-gray-50 px-6 py-4 mb-4 flex-wrap">
+        <div className="flex border-b border-gray-200 bg-gray-50 px-4">
           {allSections.map((section) => (
             <button
               key={section}
               onClick={() => handleSectionChange(section)}
-              className={`px-6 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
+              className={`px-5 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeSection === section
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'text-[#1E40AF] border-b-2 border-[#1E40AF]'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               {sectionLabels[section]}
@@ -56,14 +64,21 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {activeSection === 'compatibilite' ? (
+        <div className="flex-1 overflow-y-auto p-5">
+          {activeSection === 'mon_profil' && (
+            <MonProfilSection
+              profile={ownProfile}
+              getColorClasses={getColorClasses}
+            />
+          )}
+          {activeSection === 'mon_equipe' && (
             <CompatibiliteSection
               managerProfile={managerProfile}
               teamSellers={teamSellers}
               loadingCompatibility={loadingCompatibility}
             />
-          ) : (
+          )}
+          {activeSection !== 'mon_profil' && activeSection !== 'mon_equipe' && (
             <ProfileSection
               profile={profile}
               currentProfile={currentProfile}
@@ -73,11 +88,6 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
               handlePrevious={handlePrevious}
             />
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 bg-gray-50 rounded-b-2xl text-center text-sm text-gray-600">
-          Retail Performer - Guide des Profils
         </div>
       </div>
     </div>

@@ -9,19 +9,10 @@ import {
 export default function useGuideProfilsModal({ userRole, storeIdParam, userProfileName = null }) {
   const allSections = userRole === 'seller'
     ? ['style_vente', 'niveau', 'motivation', 'disc']
-    : ['management', 'style_vente', 'niveau', 'motivation', 'disc', 'compatibilite'];
+    : ['mon_profil', 'mon_equipe'];
 
   const [activeSection, setActiveSection] = useState(allSections[0]);
-
-  // Auto-navigate to the user's own profile on open
-  const getInitialProfileIndex = () => {
-    if (!userProfileName) return 0;
-    const initialProfiles = userRole === 'seller' ? stylesVente : managementStyles;
-    const idx = initialProfiles.findIndex(p => p.name === userProfileName);
-    return idx >= 0 ? idx : 0;
-  };
-
-  const [currentProfile, setCurrentProfile] = useState(getInitialProfileIndex);
+  const [currentProfile, setCurrentProfile] = useState(0);
   const [managerProfile, setManagerProfile] = useState(null);
   const [teamSellers, setTeamSellers] = useState([]);
   const [loadingCompatibility, setLoadingCompatibility] = useState(false);
@@ -31,12 +22,7 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
   const effectiveStoreId = storeIdParam || urlStoreId;
   const storeParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';
 
-  useEffect(() => {
-    if (activeSection === 'compatibilite' && userRole === 'manager') {
-      fetchCompatibilityData();
-    }
-  }, [activeSection, storeParam]);
-
+  // Pour le manager : charger les données équipe dès l'ouverture
   useEffect(() => {
     if (userRole === 'manager') fetchCompatibilityData();
   }, [storeParam]);
@@ -78,12 +64,10 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
   };
 
   const getCurrentProfiles = () => {
-    if (activeSection === 'management') return managementStyles;
     if (activeSection === 'style_vente') return stylesVente;
     if (activeSection === 'niveau') return niveaux;
     if (activeSection === 'motivation') return motivations;
     if (activeSection === 'disc') return discProfiles;
-    if (activeSection === 'compatibilite') return compatibilityGuide;
     return [];
   };
 
@@ -97,23 +81,17 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
     if (currentProfile > 0) setCurrentProfile(currentProfile - 1);
   };
 
-  const getSectionTitle = () => {
-    const titles = {
-      style_vente: '🎨 Styles de Vente',
-      niveau: "⭐ Niveaux d'Expérience",
-      motivation: '⚡ Leviers de Motivation',
-      disc: '🎭 Profils DISC',
-      management: '👔 Type de Management',
-      compatibilite: '🤝 Compatibilité',
-    };
-    return titles[activeSection] || '';
-  };
+  // Profil propre du manager (pour l'onglet "Mon profil")
+  const ownProfile = userProfileName
+    ? managementStyles.find(p => p.name === userProfileName) || managementStyles[0]
+    : managementStyles[0];
 
   return {
     allSections, activeSection, currentProfile,
     managerProfile, teamSellers, loadingCompatibility,
     profiles, profile: profiles[currentProfile],
+    ownProfile,
     handleSectionChange, handleNext, handlePrevious,
-    getSectionTitle, getColorClasses,
+    getColorClasses,
   };
 }
