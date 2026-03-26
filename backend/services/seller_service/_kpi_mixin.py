@@ -83,6 +83,7 @@ class KpiMixin:
         """Create KPI entry. Used by routes instead of kpi_repo.insert_one."""
         result = await self.kpi_repo.insert_one(entry_data)
         asyncio.create_task(_emit_kpi_event(entry_data))
+        asyncio.create_task(_notify_manager_kpi_saved(entry_data))
         return result
 
     async def get_kpis_for_period_paginated(
@@ -114,6 +115,49 @@ class KpiMixin:
 _KPI_EVENT_FIELDS = (
     "ca_journalier", "nb_ventes", "nb_articles", "nb_clients", "nb_prospects"
 )
+
+
+async def _notify_manager_kpi_saved(entry: dict) -> None:
+    """
+    Fire-and-forget : notifie le manager quand un vendeur sauvegarde ses KPI.
+    Uniquement si kpi_config.enabled=True (vendeur saisit lui-même).
+    """
+    try:
+        from core.database import database
+        from repositories.user_repository import UserRepository
+        from repositories.kpi_config_repository import KPIConfigRepository
+        from repositories.notification_repository import NotificationRepository
+
+        db = database.db
+        if db is None:
+            return
+
+        store_id = entry.get("store_id")
+        seller_id = entry.get("seller_id")
+        if not store_id or not seller_id:
+            return
+
+        # Seulement si le vendeur saisit lui-même (enabled=True)
+        config = await KPIConfigRepository(db).find_by_store(store_id)
+        if not config or not config.get("enabled", True):
+            return
+
+        seller = await UserRepository(db).find_by_id(
+            seller_id, projection={"_id": 0, "name": 1, "manager_id": 1}
+        )
+        if not seller or not seller.get("manager_id"):
+            return
+
+        kpi_date = entry.get("date", "")
+        await NotificationRepository(db).create(
+            user_id=seller["manager_id"],
+            notif_type="kpi_saved",
+            title="KPI saisi ✅",
+            message=f"{seller.get('name', 'Un vendeur')} a saisi ses KPI du {kpi_date}",
+            data={"seller_id": seller_id, "store_id": store_id, "date": kpi_date},
+        )
+    except Exception as e:
+        logger.warning("KPI notification failed (non-critical): %s", e)
 
 
 async def _emit_kpi_event(entry: dict) -> None:

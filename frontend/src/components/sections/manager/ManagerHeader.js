@@ -3,6 +3,8 @@ import { LogOut, Sparkles, Headphones } from 'lucide-react';
 import Logo from '../../shared/Logo';
 import SyncModeBadge from '../../SyncModeBadge';
 import TutorialButton from '../../onboarding/TutorialButton';
+import NotificationBell from '../../notifications/NotificationBell';
+import { useNotifications } from '../../../hooks/useNotifications';
 
 /**
  * Header du dashboard manager.
@@ -22,6 +24,8 @@ export default function ManagerHeader({
   spaceLabel,
   isGerantSpace,
 }) {
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+
   return (
     <div className="max-w-7xl mx-auto mb-8">
       <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -92,6 +96,13 @@ export default function ManagerHeader({
           </button>
 
           <TutorialButton onClick={onboarding.open} />
+
+          <NotificationBell
+            notifications={notifications}
+            unreadCount={unreadCount}
+            onMarkRead={markRead}
+            onMarkAllRead={markAllRead}
+          />
 
           <button
             data-testid="logout-button"

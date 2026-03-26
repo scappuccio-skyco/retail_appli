@@ -231,6 +231,10 @@ INDEXES: Dict[str, List[IndexSpec]] = {
         _spec([("user_id", 1), ("created_at", -1)], background=True, name="user_created_idx"),
         _spec("created_at", expireAfterSeconds=_TTL_90D, background=True, name="ttl_90d"),
     ],
+    "notifications": [
+        _spec([("user_id", 1), ("read", 1), ("created_at", -1)], background=True, name="user_read_created_idx"),
+        _spec("created_at", expireAfterSeconds=_TTL_90D, background=True, name="ttl_90d"),
+    ],
 
     # ── Manager Metadata / Requests ──────────────────────────────────────────
     "manager_requests": [

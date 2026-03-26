@@ -1,6 +1,8 @@
 import React from 'react';
 import { LogOut, Settings, Headphones, BarChart3, Store, UserCog, Key, FileText, User } from 'lucide-react';
 import TutorialButton from '../../onboarding/TutorialButton';
+import NotificationBell from '../../notifications/NotificationBell';
+import { useNotifications } from '../../../hooks/useNotifications';
 
 /**
  * Header du dashboard gérant : titre, welcome, badges, onglets, actions.
@@ -16,6 +18,8 @@ export default function GerantHeader({
   onOpenSupport,
   onOpenBillingProfile,
 }) {
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+
   return (
     <div className="bg-white shadow-md border-b-4 border-orange-500">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
@@ -73,6 +77,12 @@ export default function GerantHeader({
               <span className="hidden md:inline">Support</span>
             </button>
             <TutorialButton onClick={onboarding.open} />
+            <NotificationBell
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onMarkRead={markRead}
+              onMarkAllRead={markAllRead}
+            />
             <button
               onClick={onLogout}
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2.5 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow-md transition-all text-xs sm:text-base"
