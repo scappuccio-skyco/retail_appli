@@ -1298,3 +1298,19 @@ Est-ce que c'est quelque chose que vous reconnaissez dans votre magasin ?
   - Règle 1 : tutoiement strict, jamais 3e personne
   - Règle 2 : nuance obligatoire — formulations autorisées ("D'après tes réponses, tu as tendance à...") vs interdites ("Ton profil est I", "Tu possèdes le style X")
   - Règle 3 : ne jamais commencer par le prénom/nom du vendeur
+
+---
+
+## 📅 Session 12 — 26 Mars 2026
+
+### Fix compatibilité manager — 0 vendeur + style_vente manquant
+
+**Racine du bug 1 — "0 vendeur"** : `CompatibiliteModal` refetchait `/manager/sellers` indépendamment via un `Promise.all`. Si l'un des 3 appels échouait silencieusement, `teamSellers` restait à `[]`.
+- ✅ `CompatibiliteModal.js` — suppression du fetch `/manager/sellers` ; les vendeurs sont maintenant reçus en prop `sellers` (déjà chargés dans `TeamModal` via `teamData`)
+- ✅ `TeamModal.js` — passage de `sellers={teamData}` à `CompatibiliteModal`
+
+**Racine du bug 2 — `style_vente` jamais affiché** : `style_vente` n'existe pas sur le document user en MongoDB. Il vient du diagnostic (collection séparée), mais le batch `/manager/team/seller-profiles` ne le retournait pas.
+- ✅ `backend/api/routes/manager/kpi.py` — `get_team_seller_profiles` retourne maintenant `style: diagnostic.get("style")`
+- ✅ `frontend/src/components/teamModal/useTeamModal.js` — mappe `profileData.style` → `style_vente` sur chaque vendeur dans `teamData`
+
+**Pattern à retenir** : ne jamais re-fetcher dans une modale enfant des données déjà disponibles dans le parent. Passer en props.
