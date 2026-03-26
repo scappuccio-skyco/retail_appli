@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = Field(..., description="Frontend application URL")
     BACKEND_URL: Optional[str] = Field(default=None, description="Backend URL (optional)")
     
+    # Internal jobs (cron)
+    INTERNAL_JOB_KEY: str = Field(default="", description="Secret key for internal cron job endpoints")
+
     # Admin Configuration
     ADMIN_CREATION_SECRET: str = Field(..., description="Secret for admin creation")
     DEFAULT_ADMIN_EMAIL: str = Field(..., description="Default admin email")
