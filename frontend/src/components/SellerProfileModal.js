@@ -9,7 +9,7 @@ const styleDescriptions = {
   'Convivial':   'Tu crées du lien et tu fidélises par la relation. La confiance que tu inspires est ton principal atout.',
   'Discret':     'Tu écoutes, tu observes et tu construis une confiance durable. Tu vends mieux que tu ne le montres.',
   'Stratège':    'Tu analyses, tu argumentes avec précision et tu gères les objections. Tes conseils sont toujours fondés.',
-  'Explorateur': 'Tu es curieux, adaptable et à l'aise dans l'imprévu. Tu sais trouver l'angle qui fait mouche.',
+  'Explorateur': "Tu es curieux, adaptable et à l'aise dans l'imprévu. Tu sais trouver l'angle qui fait mouche.",
 };
 
 const competences = [
