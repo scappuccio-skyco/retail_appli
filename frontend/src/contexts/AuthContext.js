@@ -86,10 +86,6 @@ export function AuthProvider({ children }) {
       globalThis.location.href = '/gerant-dashboard';
       return;
     }
-    if (role === 'it_admin') {
-      globalThis.location.href = '/it-admin';
-      return;
-    }
     if (role === 'superadmin' || role === 'super_admin') {
       globalThis.location.href = '/superadmin';
       return;
