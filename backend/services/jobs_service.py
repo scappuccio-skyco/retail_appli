@@ -55,10 +55,12 @@ class JobsService:
         prev_week_end = prev_sunday.isoformat()
 
         recaps = []
+        new_gerant_cutoff = (today - timedelta(days=7)).isoformat()
+
         try:
             gerants = await self.user_repo.find_many(
                 {"role": {"$in": ["gerant", "gérant"]}, "status": "active"},
-                projection={"_id": 0, "id": 1, "name": 1, "email": 1}
+                projection={"_id": 0, "id": 1, "name": 1, "email": 1, "created_at": 1}
             )
         except Exception:
             logger.exception("weekly_gerant_recap: cannot fetch gérants")
@@ -67,6 +69,15 @@ class JobsService:
         for gerant in gerants:
             gerant_id = gerant.get("id")
             if not gerant_id:
+                continue
+
+            # Skip gérants whose account was created less than 7 days ago
+            created = (gerant.get("created_at") or "")
+            if isinstance(created, str):
+                created_str = created[:10]
+            else:
+                created_str = created.date().isoformat() if hasattr(created, "date") else ""
+            if created_str and created_str >= new_gerant_cutoff:
                 continue
 
             # Check workspace is billable (active or trial)
@@ -194,11 +205,13 @@ class JobsService:
         cutoff = _two_business_days_ago(today).isoformat()
         new_account_cutoff = (today - timedelta(days=3)).isoformat()
 
+        new_manager_cutoff = (today - timedelta(days=3)).isoformat()
+
         alerts = []
         try:
             managers = await self.user_repo.find_many(
                 {"role": "manager", "status": "active"},
-                projection={"_id": 0, "id": 1, "name": 1, "email": 1, "store_id": 1}
+                projection={"_id": 0, "id": 1, "name": 1, "email": 1, "store_id": 1, "created_at": 1}
             )
         except Exception:
             logger.exception("silent_seller_alerts: cannot fetch managers")
@@ -208,6 +221,15 @@ class JobsService:
             manager_id = manager.get("id")
             store_id = manager.get("store_id")
             if not manager_id or not store_id:
+                continue
+
+            # Skip managers whose account was created less than 3 days ago
+            m_created = (manager.get("created_at") or "")
+            if isinstance(m_created, str):
+                m_created_str = m_created[:10]
+            else:
+                m_created_str = m_created.date().isoformat() if hasattr(m_created, "date") else ""
+            if m_created_str and m_created_str >= new_manager_cutoff:
                 continue
 
             try:
