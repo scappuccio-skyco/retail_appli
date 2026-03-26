@@ -17,22 +17,27 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animating, setAnimating] = useState(false);
 
-  // Shuffle options once at mount (stable order across re-renders)
+  // Shuffle options once at mount — Fisher-Yates (uniform) + originalIdx préservé
   const shuffledOptionsRef = useRef(
     allQuestions.reduce((acc, q) => {
-      acc[q.id] = [...q.options].sort(() => Math.random() - 0.5);
+      const indexed = q.options.map((text, i) => ({ text, originalIdx: i }));
+      for (let i = indexed.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+      }
+      acc[q.id] = indexed;
       return acc;
     }, {})
   );
 
   const question = allQuestions[currentIdx];
   const isLastQuestion = currentIdx === totalQuestions - 1;
-  const currentAnswer = responses[question.id];
+  const currentAnswer = responses[question.id]; // stores originalIdx (integer)
   const progress = ((currentIdx) / totalQuestions) * 100;
 
   // Auto-advance after selection (small delay for visual feedback)
-  const handleAnswer = (answer) => {
-    const updated = { ...responses, [question.id]: answer };
+  const handleAnswer = (originalIdx) => {
+    const updated = { ...responses, [question.id]: originalIdx };
     setResponses(updated);
 
     if (!isLastQuestion) {
@@ -55,20 +60,21 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Pour l'IA : texte de la réponse (depuis l'index original stocké)
       const responsesList = allQuestions.map(q => ({
         question_id: Number(q.id),
         question: q.text,
-        answer: String(responses[q.id] ?? "")
+        answer: q.options[responses[q.id]] ?? ""
       }));
 
       const aiResponse = await api.post('/ai/diagnostic', responsesList);
 
+      // Pour le backend DISC : index original directement (plus de indexOf fragile)
       const responsesDict = {};
       allQuestions.forEach(q => {
-        const answerText = responses[q.id];
-        if (answerText !== undefined && answerText !== null) {
-          const idx = q.options.indexOf(answerText);
-          responsesDict[q.id] = idx >= 0 ? idx : answerText;
+        const idx = responses[q.id];
+        if (idx !== undefined && idx !== null) {
+          responsesDict[q.id] = idx;
         }
       });
 
@@ -129,12 +135,12 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
         </p>
 
         <div className="space-y-3">
-          {shuffledOptionsRef.current[question.id].map((option, idx) => {
-            const isSelected = currentAnswer === option;
+          {shuffledOptionsRef.current[question.id].map(({ text, originalIdx }) => {
+            const isSelected = currentAnswer === originalIdx;
             return (
               <button
-                key={idx}
-                onClick={() => handleAnswer(option)}
+                key={originalIdx}
+                onClick={() => handleAnswer(originalIdx)}
                 disabled={animating}
                 className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all text-sm font-medium ${
                   isSelected
@@ -142,7 +148,7 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
                     : 'border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-gray-50'
                 }`}
               >
-                {option}
+                {text}
               </button>
             );
           })}
@@ -160,7 +166,7 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
           Précédent
         </button>
 
-        {isLastQuestion && currentAnswer && (
+        {isLastQuestion && currentAnswer !== undefined && (
           <button
             onClick={handleSubmit}
             disabled={loading}
@@ -170,7 +176,7 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
           </button>
         )}
 
-        {!isLastQuestion && currentAnswer && (
+        {!isLastQuestion && currentAnswer !== undefined && (
           <button
             onClick={handleNext}
             disabled={animating}
@@ -180,7 +186,7 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
             <ChevronRight className="w-4 h-4" />
           </button>
         )}
-        {!isLastQuestion && !currentAnswer && (
+        {!isLastQuestion && currentAnswer === undefined && (
           <span className="text-xs text-gray-400">Sélectionne une réponse</span>
         )}
       </div>
