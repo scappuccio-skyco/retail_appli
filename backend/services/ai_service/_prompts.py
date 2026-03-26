@@ -153,9 +153,10 @@ FORMAT JSON ATTENDU :
   "strengths": ["Force commerciale 1 liée au style DISC", "Force commerciale 2"],
   "axes_de_developpement": ["Axe de progrès 1 adapté au profil", "Axe 2"],
   "motivation": "Un seul mot parmi : Relation, Reconnaissance, Performance, Découverte",
-  "ai_profile_summary": "2-3 phrases personnalisées qui résument le profil du vendeur de façon positive et actionnable. Cite son style DISC, ses points forts terrain, et un conseil concret."
+  "ai_profile_summary": "2-3 phrases en TUTOIEMENT qui s'adressent directement au vendeur. Commence par 'Tu as...' ou 'Ton profil...'. Cite son style DISC, ses points forts terrain, et un conseil concret. INTERDIT : parler du vendeur à la 3e personne (ne jamais écrire 'Le vendeur', 'Il', 'Ce profil')."
 }
 Note : Le champ 'axes_de_developpement' remplace l'ancien champ 'weaknesses'.
+RÈGLE ABSOLUE : Tout le texte doit être en tutoiement, en s'adressant directement au vendeur (tu/ton/ta/tes).
 """
 
 # Daily Challenge
