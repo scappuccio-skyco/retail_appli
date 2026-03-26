@@ -27,11 +27,13 @@ class JobsService:
         from repositories.store_repository import StoreRepository
         from repositories.kpi_repository import KPIRepository
         from repositories.workspace_repository import WorkspaceRepository
+        from repositories.notification_repository import NotificationRepository
 
         self.user_repo = UserRepository(db)
         self.store_repo = StoreRepository(db)
         self.kpi_repo = KPIRepository(db)
         self.workspace_repo = WorkspaceRepository(db)
+        self.notification_repo = NotificationRepository(db)
 
     # ── Weekly gérant recap ────────────────────────────────────────────────
 
@@ -271,6 +273,17 @@ class JobsService:
                     last_date = date.fromisoformat(last[0]["date"])
                     days_ago = (today - last_date).days
                     silent.append({"name": seller.get("name", "—"), "days_ago": days_ago})
+                    # Notif in-app pour le manager
+                    try:
+                        await self.notification_repo.create(
+                            user_id=manager_id,
+                            notif_type="silent_seller",
+                            title="Vendeur silencieux ⚠️",
+                            message=f"{seller.get('name', '—')} n'a pas saisi ses KPI depuis {days_ago} jour{'s' if days_ago > 1 else ''}",
+                            data={"seller_id": seller_id, "days_ago": days_ago},
+                        )
+                    except Exception:
+                        pass
                 except Exception:
                     continue
 
