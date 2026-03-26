@@ -36,6 +36,7 @@ class DiagnosticCreate(BaseModel):
     motivation: Optional[str] = None
     strengths: Optional[List[str]] = None
     axes_de_developpement: Optional[List[str]] = None
+    ai_profile_summary: Optional[str] = None
 
 
 # ===== HELPER FUNCTIONS =====
@@ -259,7 +260,11 @@ async def _create_diagnostic_impl(
             return motivation_str
         return "Relation"
 
-    if ai_service.available:
+    # Si le frontend a déjà fourni un résumé IA (généré par /ai/diagnostic avec le texte complet
+    # des questions), on l'utilise directement et on saute le second appel IA bas de gamme.
+    precomputed_summary = diagnostic_data.ai_profile_summary or ''
+
+    if not precomputed_summary and ai_service.available:
         try:
             responses_text = "\n".join([f"Question {k}: {v}" for k, v in responses.items()])
             prompt = f"""Voici les réponses d'un vendeur à un test comportemental :
@@ -298,21 +303,24 @@ Réponds au format JSON:
     strengths = diagnostic_data.dict().get('strengths') or ai_analysis.get('strengths', [])
     axes_de_developpement = diagnostic_data.dict().get('axes_de_developpement') or ai_analysis.get('axes_de_developpement', [])
 
-    ai_summary = ai_analysis.get('summary', '')
-    if ai_summary == "Profil en cours d'analyse.":
-        ai_summary = ''
-    if not ai_summary and (strengths or axes_de_developpement):
-        summary_parts = []
-        if strengths:
-            summary_parts.append("💪 Tes forces :")
-            for strength in strengths[:3]:
-                summary_parts.append(f"• {strength}")
-        if axes_de_developpement:
-            summary_parts.append("\n🎯 Axes de développement :")
-            for axe in axes_de_developpement[:3]:
-                summary_parts.append(f"• {axe}")
-        if summary_parts:
-            ai_summary = "\n".join(summary_parts)
+    if precomputed_summary:
+        ai_summary = precomputed_summary
+    else:
+        ai_summary = ai_analysis.get('summary', '')
+        if ai_summary == "Profil en cours d'analyse.":
+            ai_summary = ''
+        if not ai_summary and (strengths or axes_de_developpement):
+            summary_parts = []
+            if strengths:
+                summary_parts.append("💪 Tes forces :")
+                for strength in strengths[:3]:
+                    summary_parts.append(f"• {strength}")
+            if axes_de_developpement:
+                summary_parts.append("\n🎯 Axes de développement :")
+                for axe in axes_de_developpement[:3]:
+                    summary_parts.append(f"• {axe}")
+            if summary_parts:
+                ai_summary = "\n".join(summary_parts)
 
     final_style = map_style(diagnostic_data.dict().get('style') or ai_analysis.get('style', 'Convivial'))
     final_level = map_level(diagnostic_data.dict().get('level') or ai_analysis.get('level', 'Challenger'))

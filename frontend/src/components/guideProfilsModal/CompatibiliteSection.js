@@ -35,8 +35,20 @@ export default function CompatibiliteSection({ managerProfile, teamSellers, load
             ) : (
               <div className="space-y-4">
                 {teamSellers.map((seller) => {
+                  if (!seller.style_vente) {
+                    return (
+                      <div key={seller.id} className="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 p-5 flex items-center gap-4">
+                        <div className="bg-gray-100 rounded-full w-12 h-12 flex items-center justify-center text-xl flex-shrink-0">👤</div>
+                        <div>
+                          <p className="font-bold text-gray-700">{seller.name}</p>
+                          <p className="text-sm text-gray-400 mt-1">Pas encore de diagnostic — la compatibilité sera affichée une fois le profil complété.</p>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const managementType = (managerProfile?.management_style || 'Pilote').replace(/^Le\s+/i, '');
-                  const sellingStyle = (seller.style_vente || 'Dynamique').replace(/^(Le|L')\s+/i, '');
+                  const sellingStyle = seller.style_vente.replace(/^(Le|La|L')\s+/i, '');
                   const compatibilityResult = getCompatibilityResult(managementType, sellingStyle);
                   if (!compatibilityResult) return null;
 
@@ -48,7 +60,7 @@ export default function CompatibiliteSection({ managerProfile, teamSellers, load
                             <div className="bg-purple-100 rounded-full w-12 h-12 flex items-center justify-center text-xl">👤</div>
                             <div>
                               <p className="font-bold text-gray-800 text-lg">{seller.name}</p>
-                              <p className="text-sm text-gray-600">Style : {sellingStyle}</p>
+                              <p className="text-sm text-gray-600">Style : {seller.style_vente}</p>
                             </div>
                           </div>
                           <div className="text-right">

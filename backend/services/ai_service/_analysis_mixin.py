@@ -460,7 +460,9 @@ FORMAT JSON UNIQUEMENT :
                 "style": "Adaptateur",
                 "level": 50,
                 "strengths": ["Polyvalence", "Adaptabilité"],
-                "axes_de_developpement": ["À explorer avec ton manager"]
+                "axes_de_developpement": ["À explorer avec ton manager"],
+                "motivation": "Relation",
+                "ai_profile_summary": ""
             }
 
         # Construire le texte des réponses en utilisant question_id comme référence principale
@@ -482,7 +484,9 @@ RAPPELS CRITIQUES :
 - Questions 1-15 → compétences de vente terrain (forces/axes) UNIQUEMENT, PAS pour le DISC
 - Questions 16+ → UNIQUEMENT ces réponses déterminent le style D/I/S/C
 - Utilise un vocabulaire de développement, jamais de jugement négatif
-- Réponds UNIQUEMENT avec le JSON attendu (style, level, strengths, axes_de_developpement)"""
+- Réponds UNIQUEMENT avec le JSON attendu (style, level, strengths, axes_de_developpement, motivation, ai_profile_summary)
+- motivation doit être exactement l'un de : Relation, Reconnaissance, Performance, Découverte
+- ai_profile_summary : 2-3 phrases personnalisées, positives et actionnables sur le profil de {seller_name}"""
 
         response = await self._send_message(
             system_message=DIAGNOSTIC_SYSTEM_PROMPT,
@@ -507,5 +511,7 @@ RAPPELS CRITIQUES :
             "style": "Adaptateur",
             "level": 50,
             "strengths": ["Polyvalence", "Adaptabilité"],
-            "axes_de_developpement": ["À explorer avec ton manager"]
+            "axes_de_developpement": ["À explorer avec ton manager"],
+            "motivation": "Relation",
+            "ai_profile_summary": ""
         }
