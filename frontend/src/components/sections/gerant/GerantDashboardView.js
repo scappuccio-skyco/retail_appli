@@ -1,5 +1,6 @@
-import React from 'react';
-import { Plus, Building2, Users, TrendingUp, BarChart3, Lock, TrendingDown, Minus, MapPin } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Plus, Building2, Users, TrendingUp, BarChart3, Lock, TrendingDown, Minus, MapPin, Download, Loader2 } from 'lucide-react';
+import { exportGerantDashboardPdf } from './gerantDashboardPdfExport';
 
 /**
  * Vue principale du dashboard gérant (onglet "Vue d'ensemble").
@@ -73,6 +74,13 @@ export default function GerantDashboardView({
     return date.getFullYear();
   };
 
+  const contentRef = useRef(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPdf = () => {
+    exportGerantDashboardPdf(contentRef, formatPeriod(periodType, periodOffset), setExporting);
+  };
+
   // ── Rankings ───────────────────────────────────────────────
   const rankedStores = stores.map(store => {
     const stats = rankingStats[store.id] || {};
@@ -88,7 +96,7 @@ export default function GerantDashboardView({
 
 
   return (
-    <>
+    <div ref={contentRef}>
       {/* Stats Globales */}
       <div className="mb-8">
         <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
@@ -169,6 +177,7 @@ export default function GerantDashboardView({
               onClick={() => !isReadOnly && onOpenInviteStaff()}
               disabled={isReadOnly}
               title={isReadOnly ? "Période d'essai terminée" : 'Inviter du personnel'}
+              data-pdf-ignore="true"
               className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl transition-all ${
                 isReadOnly ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg'
               }`}
@@ -181,6 +190,7 @@ export default function GerantDashboardView({
               onClick={() => !isReadOnly && onOpenCreateStore()}
               disabled={isReadOnly}
               title={isReadOnly ? "Période d'essai terminée" : 'Créer un nouveau magasin'}
+              data-pdf-ignore="true"
               className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl transition-all ${
                 isReadOnly ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg'
               }`}
@@ -188,6 +198,16 @@ export default function GerantDashboardView({
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Nouveau</span> Magasin
               {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
+            </button>
+            <button
+              onClick={handleExportPdf}
+              disabled={exporting}
+              title="Exporter en PDF"
+              data-pdf-ignore="true"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl transition-all bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span className="hidden sm:inline">Exporter PDF</span>
             </button>
           </div>
         </div>
@@ -417,6 +437,6 @@ export default function GerantDashboardView({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
