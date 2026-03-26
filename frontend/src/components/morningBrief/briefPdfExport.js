@@ -26,6 +26,8 @@ export async function exportBriefToPDF(briefData, { storeName, briefContentRef, 
     clonedElement.style.left = '-9999px';
     clonedElement.style.top = '0';
     clonedElement.style.width = briefElement.offsetWidth + 'px';
+    // Masquer les éléments data-pdf-ignore dans le clone
+    clonedElement.querySelectorAll('[data-pdf-ignore="true"]').forEach(el => { el.style.display = 'none'; });
     document.body.appendChild(clonedElement);
 
     try {
@@ -40,24 +42,67 @@ export async function exportBriefToPDF(briefData, { storeName, briefContentRef, 
 
       document.body.removeChild(clonedElement);
 
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 0.95);
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15;
-      const imgWidth = pageWidth - 2 * margin;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const headerHeight = 12;
 
-      let heightLeft = imgHeight;
-      let position = margin;
-      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight - 2 * margin;
+      const dateLabel = briefData.date || new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+      const storeLine = briefData.store_name || storeName || '';
 
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight + margin;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight - 2 * margin;
+      const drawHeader = () => {
+        pdf.setFillColor(30, 64, 175);
+        pdf.rect(0, 0, pdfWidth, headerHeight, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Retail Performer AI — Brief Matinal', margin, 8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        const rightLabel = storeLine ? `${storeLine} • ${dateLabel}` : dateLabel;
+        pdf.text(rightLabel, pdfWidth - margin, 8, { align: 'right' });
+      };
+
+      drawHeader();
+
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const contentWidth = pdfWidth - 2 * margin;
+      const ratio = contentWidth / imgWidth;
+      const contentHeight = imgHeight * ratio;
+      const startY = headerHeight + 4;
+      const availableHeight = pdfHeight - startY - margin;
+
+      if (contentHeight <= availableHeight) {
+        pdf.addImage(imgData, 'PNG', margin, startY, contentWidth, contentHeight);
+      } else {
+        let remainingHeight = contentHeight;
+        let currentY = 0;
+        let pageNum = 0;
+
+        while (remainingHeight > 0) {
+          if (pageNum > 0) {
+            pdf.addPage();
+            drawHeader();
+          }
+
+          const sliceHeight = Math.min(availableHeight, remainingHeight);
+          const sy = (currentY / contentHeight) * imgHeight;
+          const sh = (sliceHeight / contentHeight) * imgHeight;
+          const shInt = Math.max(1, Math.round(sh));
+
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = imgWidth;
+          tempCanvas.height = shInt;
+          tempCanvas.getContext('2d').drawImage(canvas, 0, sy, imgWidth, sh, 0, 0, imgWidth, shInt);
+
+          pdf.addImage(tempCanvas.toDataURL('image/png', 1.0), 'PNG', margin, startY, contentWidth, sliceHeight);
+          currentY += sliceHeight;
+          remainingHeight -= sliceHeight;
+          pageNum++;
+        }
       }
 
       const fileName = `brief_matinal_${(briefData.store_name || storeName || 'store').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
