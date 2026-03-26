@@ -5,10 +5,29 @@ import React from 'react';
  */
 
 export const gerantSteps = [
-  // Étape 1 : Bienvenue
+  // Étape 1 : Bienvenue (vrai accueil, pas une tâche)
   {
     icon: '👋',
     title: 'Bienvenue dans votre espace Gérant',
+    description: (
+      <>
+        <p className="text-blue-600 font-semibold">Vous pilotez votre entreprise depuis cet espace.</p>
+        <p className="mt-3 font-semibold">En tant que gérant, vous pouvez :</p>
+        <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+          <li>Créer et gérer vos magasins</li>
+          <li>Inviter et gérer votre équipe</li>
+          <li>Suivre les performances globales</li>
+          <li>Gérer votre abonnement</li>
+        </ul>
+      </>
+    ),
+    tips: 'Ce tutoriel vous guide étape par étape. Vous pourrez le relancer à tout moment.'
+  },
+
+  // Étape 2 : Créer et gérer les magasins
+  {
+    icon: '🏪',
+    title: 'Créez vos magasins',
     description: (
       <>
         <p className="text-orange-600 font-semibold">Première étape : créez vos magasins.</p>
@@ -24,10 +43,10 @@ export const gerantSteps = [
     tips: 'Vous pourrez ajouter, modifier ou supprimer des magasins à tout moment.'
   },
 
-  // Étape 2 : Gérer comme manager
+  // Étape 3 : Accéder à l'espace manager
   {
     icon: '🎯',
-    title: 'Gérez vos magasins',
+    title: 'Gérez vos magasins au quotidien',
     description: (
       <>
         <p className="text-blue-600 font-semibold">Deuxième étape : accédez à l'espace manager de vos magasins.</p>
@@ -40,16 +59,16 @@ export const gerantSteps = [
         </ul>
       </>
     ),
-    tips: 'Vous pouvez être à la fois gérant ET manager d\'un ou plusieurs magasins. Cliquez sur "Accéder à l\'espace Manager" dans le détail du magasin.'
+    tips: "Vous pouvez être à la fois gérant ET manager d'un ou plusieurs magasins. Cliquez sur \"Accéder à l'espace Manager\" dans le détail du magasin."
   },
 
-  // Étape 3 : Inviter du personnel
+  // Étape 4 : Inviter du personnel
   {
     icon: '👥',
     title: 'Invitez et gérez votre équipe',
     description: (
       <>
-        <p className="text-blue-600 font-semibold">Deuxième étape : constituez votre équipe et gérez le personnel.</p>
+        <p className="text-blue-600 font-semibold">Troisième étape : constituez votre équipe.</p>
         <p className="mt-3 font-semibold">Vos actions en tant que gérant :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
           <li><strong>Inviter</strong> des managers et vendeurs par email</li>
@@ -59,16 +78,16 @@ export const gerantSteps = [
         </ul>
       </>
     ),
-    tips: 'Chaque invitation génère un lien unique envoyé par email. Seul le gérant peut inviter et gérer le statut du personnel.'
+    tips: "Chaque invitation génère un lien unique envoyé par email. Seul le gérant peut inviter et gérer le statut du personnel."
   },
 
-  // Étape 4 : Statistiques globales
+  // Étape 5 : Statistiques globales
   {
     icon: '📊',
     title: 'Suivez vos performances',
     description: (
       <>
-        <p className="text-purple-600 font-semibold">Troisième étape : analysez les performances de votre entreprise.</p>
+        <p className="text-purple-600 font-semibold">Quatrième étape : analysez les performances de votre entreprise.</p>
         <p className="mt-3 font-semibold">Consultez les statistiques de toute votre entreprise :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
           <li>CA global et par magasin</li>
@@ -81,7 +100,7 @@ export const gerantSteps = [
     tips: 'Utilisez les filtres par période pour analyser les tendances. Les KPI sont saisis par les managers de chaque magasin.'
   },
 
-  // Étape 5 : Abonnement
+  // Étape 6 : Abonnement
   {
     icon: '💳',
     title: 'Gérez votre abonnement',
@@ -96,6 +115,6 @@ export const gerantSteps = [
         </ul>
       </>
     ),
-    tips: 'Les sièges s\'ajustent automatiquement selon votre équipe. Les crédits IA sont maintenant illimités !'
+    tips: 'Les sièges s\'ajustent automatiquement selon la taille de votre équipe.'
   }
 ];

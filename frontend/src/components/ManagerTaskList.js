@@ -15,7 +15,7 @@ function snoozeTask(taskId) {
   localStorage.setItem(SNOOZE_KEY, JSON.stringify(snoozed));
 }
 
-export default function ManagerTaskList({ tasks, onViewSellerNotes, onViewSellerDetail, onCreateGoal, onSendReminder }) {
+export default function ManagerTaskList({ tasks, onViewSellerNotes, onViewSellerDetail, onCreateGoal, onSendReminder, onOpenDiagnostic }) {
   const [snoozedIds, setSnoozedIds] = useState(() => {
     const s = getSnoozed();
     return new Set(Object.keys(s).filter(id => s[id] > Date.now()));
@@ -29,6 +29,9 @@ export default function ManagerTaskList({ tasks, onViewSellerNotes, onViewSeller
 
   const handleClick = (task) => {
     switch (task.type) {
+      case 'manager_diagnostic':
+        onOpenDiagnostic?.();
+        break;
       case 'notes':
         onViewSellerNotes?.(task.seller_id, task.seller_name);
         break;

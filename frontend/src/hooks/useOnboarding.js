@@ -21,8 +21,14 @@ export const useOnboarding = (totalSteps) => {
         const response = await api.get('/onboarding/progress');
 
         if (response.data && !response.data.is_completed) {
-          setCurrentStep(response.data.current_step || 0);
-          setCompletedSteps(response.data.completed_steps || []);
+          const step = response.data.current_step || 0;
+          const completed = response.data.completed_steps || [];
+          setCurrentStep(step);
+          setCompletedSteps(completed);
+          // Premier login : jamais démarré → ouvrir automatiquement
+          if (step === 0 && completed.length === 0) {
+            setIsOpen(true);
+          }
         }
         setIsLoaded(true);
       } catch (error) {
@@ -61,7 +67,7 @@ export const useOnboarding = (totalSteps) => {
     setIsOpen(true);
   };
 
-  // Fermer le modal et sauvegarder
+  // Fermer le modal et sauvegarder la progression (sans toucher is_completed)
   const close = () => {
     setIsOpen(false);
     if (isLoaded) {
@@ -72,30 +78,31 @@ export const useOnboarding = (totalSteps) => {
   // Étape suivante
   const next = () => {
     if (currentStep < totalSteps - 1) {
-      const newCompleted = !completedSteps.includes(currentStep) 
-        ? [...completedSteps, currentStep] 
+      const newCompleted = !completedSteps.includes(currentStep)
+        ? [...completedSteps, currentStep]
         : completedSteps;
       const newStep = currentStep + 1;
-      
+
       setCompletedSteps(newCompleted);
       setCurrentStep(newStep);
-      
+
       if (isLoaded) {
         saveProgress(newStep, newCompleted);
       }
     } else {
-      // Dernière étape, marquer comme complété et fermer
-      const newCompleted = !completedSteps.includes(currentStep) 
-        ? [...completedSteps, currentStep] 
+      // Dernière étape : marquer complet et fermer SANS repasser par close()
+      // (évite la race condition close() → saveProgress(is_completed:false) après markAsComplete)
+      const newCompleted = !completedSteps.includes(currentStep)
+        ? [...completedSteps, currentStep]
         : completedSteps;
-      
+
       setCompletedSteps(newCompleted);
-      
+
       if (isLoaded) {
         markAsComplete();
       }
-      
-      close();
+
+      setIsOpen(false); // pas close() — ne re-sauvegarde pas avec is_completed:false
     }
   };
 
@@ -122,9 +129,12 @@ export const useOnboarding = (totalSteps) => {
     }
   };
 
-  // Passer l'étape courante (même comportement que next)
+  // Passer tout le tutoriel (ferme + marque complet)
   const skip = () => {
-    next();
+    if (isLoaded) {
+      markAsComplete();
+    }
+    setIsOpen(false);
   };
 
   return {
