@@ -151,7 +151,9 @@ FORMAT JSON ATTENDU :
   "style": "D, I, S, ou C",
   "level": "Score de confiance sur 100 (ex: 75 si profil clair, 55 si mixte)",
   "strengths": ["Force commerciale 1 liée au style DISC", "Force commerciale 2"],
-  "axes_de_developpement": ["Axe de progrès 1 adapté au profil", "Axe 2"]
+  "axes_de_developpement": ["Axe de progrès 1 adapté au profil", "Axe 2"],
+  "motivation": "Un seul mot parmi : Relation, Reconnaissance, Performance, Découverte",
+  "ai_profile_summary": "2-3 phrases personnalisées qui résument le profil du vendeur de façon positive et actionnable. Cite son style DISC, ses points forts terrain, et un conseil concret."
 }
 Note : Le champ 'axes_de_developpement' remplace l'ancien champ 'weaknesses'.
 """

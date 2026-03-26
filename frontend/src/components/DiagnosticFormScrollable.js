@@ -69,7 +69,8 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
           level: aiResponse.data?.level,
           motivation: aiResponse.data?.motivation,
           strengths: aiResponse.data?.strengths,
-          axes_de_developpement: aiResponse.data?.axes_de_developpement
+          axes_de_developpement: aiResponse.data?.axes_de_developpement,
+          ai_profile_summary: aiResponse.data?.ai_profile_summary
         });
       } catch (saveErr) {
         logger.error('Error saving diagnostic:', saveErr);

@@ -8,11 +8,12 @@ import { logger } from '../utils/logger';
  * @param {number} totalSteps - Nombre total d'étapes
  * @returns {Object} État et fonctions de navigation
  */
-export const useOnboarding = (totalSteps) => {
+export const useOnboarding = (totalSteps, { readyToAutoOpen = true } = {}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [pendingAutoOpen, setPendingAutoOpen] = useState(false);
 
   // Charger la progression depuis le backend
   useEffect(() => {
@@ -25,9 +26,10 @@ export const useOnboarding = (totalSteps) => {
           const completed = response.data.completed_steps || [];
           setCurrentStep(step);
           setCompletedSteps(completed);
-          // Premier login : jamais démarré → ouvrir automatiquement
+          // Premier login : jamais démarré → ouvrir automatiquement (si prêt)
           if (step === 0 && completed.length === 0) {
-            setIsOpen(true);
+            if (readyToAutoOpen) setIsOpen(true);
+            else setPendingAutoOpen(true);
           }
         }
         setIsLoaded(true);
@@ -38,7 +40,15 @@ export const useOnboarding = (totalSteps) => {
     };
 
     loadProgress();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Déclenche l'auto-open dès que readyToAutoOpen devient true (si en attente)
+  useEffect(() => {
+    if (readyToAutoOpen && pendingAutoOpen) {
+      setIsOpen(true);
+      setPendingAutoOpen(false);
+    }
+  }, [readyToAutoOpen, pendingAutoOpen]);
 
   // Sauvegarder la progression dans le backend
   const saveProgress = useCallback(async (step, completed) => {

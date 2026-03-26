@@ -57,8 +57,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
   // ── Onboarding ─────────────────────────────────────────────
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
+  const [kpiModeReady, setKpiModeReady] = useState(false);
   const sellerSteps = useMemo(() => getSellerSteps(kpiMode), [kpiMode]);
-  const onboarding = useOnboarding(sellerSteps.length);
+  const onboarding = useOnboarding(sellerSteps.length, { readyToAutoOpen: kpiModeReady });
 
   // ── Detect KPI mode for adaptive onboarding ────────────────
   useEffect(() => {
@@ -69,7 +70,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         if (isReadOnly) setKpiMode('API_SYNC');
         else if (!res.data.enabled) setKpiMode('MANAGER_SAISIT');
         else setKpiMode('VENDEUR_SAISIT');
-      } catch { /* keep default */ }
+      } catch { /* keep default VENDEUR_SAISIT */ }
+      setKpiModeReady(true); // toujours signaler que le mode est résolu (succès ou erreur)
     };
     detectKpiMode();
   }, [isReadOnly]);
