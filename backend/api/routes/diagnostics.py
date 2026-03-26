@@ -140,12 +140,30 @@ async def create_manager_diagnostic(
     if existing:
         await diagnostic_service.delete_manager_diagnostic_by_manager(current_user["id"])
     ai_analysis = await analyze_manager_diagnostic_with_ai(diagnostic_data.responses)
+
+    # Calcul DISC depuis les questions 16-35 (idx=0→D, 1→I, 2→S, 3→C)
+    disc_counts = {'D': 0, 'I': 0, 'S': 0, 'C': 0}
+    disc_letters = ['D', 'I', 'S', 'C']
+    for q_num, answer in diagnostic_data.responses.items():
+        try:
+            if int(q_num) >= 16:
+                idx = answer.get('idx') if isinstance(answer, dict) else None
+                if idx is not None and 0 <= int(idx) <= 3:
+                    disc_counts[disc_letters[int(idx)]] += 1
+        except (ValueError, TypeError):
+            pass
+    disc_total = sum(disc_counts.values()) or 1
+    disc_percentages = {k: round(v / disc_total * 100) for k, v in disc_counts.items()}
+    disc_dominant = ai_analysis.get("disc_style", "") or max(disc_counts, key=disc_counts.get)
+
     diagnostic_doc = {
         "id": str(uuid4()),
         "manager_id": current_user["id"],
         "responses": diagnostic_data.responses,
         "profil_nom": ai_analysis.get("profil_nom", PROFIL_DEFAULT),
-        "disc_style": ai_analysis.get("disc_style", ""),
+        "disc_style": disc_dominant,
+        "disc_dominant": disc_dominant,
+        "disc_percentages": disc_percentages,
         "profil_description": ai_analysis.get("profil_description", ""),
         "force_1": ai_analysis.get("force_1", ""),
         "force_2": ai_analysis.get("force_2", ""),
