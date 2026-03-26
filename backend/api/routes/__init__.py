@@ -78,6 +78,7 @@ safe_import('api.routes.briefs', 'router')
 safe_import('api.routes.docs', 'router')
 safe_import('api.routes.early_access', 'router')
 safe_import('api.routes.ws', 'router')
+safe_import('api.routes.jobs', 'router')
 
 logger.info("Loaded %s routers total", len(routers))
 
