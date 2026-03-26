@@ -1,24 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { ChevronLeft, Sparkles, X } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import questions from './diagnosticForm/questions';
-import DiagnosticHeader from './diagnosticForm/DiagnosticHeader';
-import DiagnosticQuestions from './diagnosticForm/DiagnosticQuestions';
-import DiagnosticFooter from './diagnosticForm/DiagnosticFooter';
 
-const totalQuestions = questions.reduce((sum, section) => sum + section.items.length, 0);
+// Flatten all questions into a single ordered list, keeping section info
+const allQuestions = questions.flatMap((section, sectionIdx) =>
+  section.items.map(q => ({ ...q, section: section.section, sectionIdx }))
+);
+const totalQuestions = allQuestions.length;
 
 export default function DiagnosticFormScrollable({ onComplete, onClose, isModal = false }) {
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [animating, setAnimating] = useState(false);
 
-  const handleAnswer = (questionId, answer) => {
-    setResponses(prev => {
-      const updated = { ...prev, [questionId]: answer };
-      logger.log('Updated responses:', updated);
-      return updated;
-    });
+  const question = allQuestions[currentIdx];
+  const isLastQuestion = currentIdx === totalQuestions - 1;
+  const currentAnswer = responses[question.id];
+  const progress = ((currentIdx) / totalQuestions) * 100;
+
+  // Auto-advance after selection (small delay for visual feedback)
+  const handleAnswer = (answer) => {
+    const updated = { ...responses, [question.id]: answer };
+    setResponses(updated);
+
+    if (!isLastQuestion) {
+      setAnimating(true);
+      setTimeout(() => {
+        setCurrentIdx(i => i + 1);
+        setAnimating(false);
+      }, 300);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIdx > 0) setCurrentIdx(i => i - 1);
   };
 
   const handleSubmit = async () => {
@@ -29,39 +48,23 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
 
     setLoading(true);
     try {
-      // Convert responses object to list format expected by backend
-      // Backend expects: List[Dict] with { question_id: Number, answer: String, question?: String }
-      const responsesList = [];
-      questions.forEach(section => {
-        section.items.forEach(question => {
-          const answer = responses[question.id];
-          if (answer !== undefined && answer !== null) {
-            responsesList.push({
-              question_id: Number(question.id),
-              question: question.text,
-              answer: String(answer ?? "")
-            });
-          }
-        });
-      });
+      const responsesList = allQuestions.map(q => ({
+        question_id: Number(q.id),
+        question: q.text,
+        answer: String(responses[q.id] ?? "")
+      }));
 
-      // Backend expects the list directly, not wrapped in { responses: [...] }
       const aiResponse = await api.post('/ai/diagnostic', responsesList);
 
-      // Save the diagnostic to database with the AI results
-      // Backend scoring functions expect 0-based option INDEX (not text) for competence + DISC calculation
       const responsesDict = {};
-      questions.forEach(section => {
-        section.items.forEach(question => {
-          const answerText = responses[question.id];
-          if (answerText !== undefined && answerText !== null) {
-            const idx = question.options.indexOf(answerText);
-            responsesDict[question.id] = idx >= 0 ? idx : answerText;
-          }
-        });
+      allQuestions.forEach(q => {
+        const answerText = responses[q.id];
+        if (answerText !== undefined && answerText !== null) {
+          const idx = q.options.indexOf(answerText);
+          responsesDict[q.id] = idx >= 0 ? idx : answerText;
+        }
       });
 
-      // Save diagnostic with AI results included
       try {
         await api.post('/seller/diagnostic', {
           responses: responsesDict,
@@ -74,59 +77,116 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
         });
       } catch (saveErr) {
         logger.error('Error saving diagnostic:', saveErr);
-        // Continue anyway - the AI analysis was successful
       }
 
       toast.success('Ton profil vendeur est prêt ! 🔥');
-      if (onComplete) {
-        onComplete(aiResponse.data);
-      }
+      if (onComplete) onComplete(aiResponse.data);
     } catch (err) {
       logger.error('Error submitting diagnostic:', err);
-      logger.error('Error status:', err.response?.status);
-      logger.error('Error data:', err.response?.data);
-      toast.error(err.response?.data?.detail || 'Erreur lors de l\'analyse du profil');
+      toast.error(err.response?.data?.detail || "Erreur lors de l'analyse du profil");
     } finally {
       setLoading(false);
     }
   };
 
-  const containerContent = (
-    <>
-      <DiagnosticHeader isModal={isModal} onClose={onClose} />
-      <DiagnosticQuestions
-        questions={questions}
-        responses={responses}
-        onAnswer={handleAnswer}
-        isModal={isModal}
-      />
-      <DiagnosticFooter
-        answeredCount={Object.keys(responses).length}
-        totalCount={totalQuestions}
-        loading={loading}
-        onSubmit={handleSubmit}
-      />
-    </>
+  const inner = (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] px-6 py-4 rounded-t-2xl relative flex-shrink-0">
+        {isModal && onClose && (
+          <button onClick={onClose} className="absolute top-4 right-4 text-white hover:text-gray-200">
+            <X className="w-5 h-5" />
+          </button>
+        )}
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles className="w-5 h-5 text-white" />
+          <span className="text-white font-bold text-base">Identifier mon profil vendeur</span>
+        </div>
+        {/* Progress bar */}
+        <div className="w-full bg-white bg-opacity-30 rounded-full h-1.5 mt-2">
+          <div
+            className="bg-white h-1.5 rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-white text-opacity-80 text-xs">{question.section}</span>
+          <span className="text-white text-opacity-70 text-xs">{currentIdx + 1} / {totalQuestions}</span>
+        </div>
+      </div>
+
+      {/* Question */}
+      <div className={`flex-1 p-6 flex flex-col justify-center transition-opacity duration-200 ${animating ? 'opacity-0' : 'opacity-100'}`}>
+        <p className="text-gray-800 font-semibold text-lg mb-6 leading-relaxed">
+          {question.text}
+        </p>
+
+        <div className="space-y-3">
+          {question.options.map((option, idx) => {
+            const isSelected = currentAnswer === option;
+            return (
+              <button
+                key={idx}
+                onClick={() => handleAnswer(option)}
+                className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all text-sm font-medium ${
+                  isSelected
+                    ? 'border-[#1E40AF] bg-blue-50 text-[#1E40AF]'
+                    : 'border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-gray-50'
+                }`}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between flex-shrink-0">
+        <button
+          onClick={handlePrev}
+          disabled={currentIdx === 0}
+          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Précédent
+        </button>
+
+        {isLastQuestion && currentAnswer && (
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed px-6"
+          >
+            {loading ? 'Analyse en cours...' : '🔍 Analyser mon profil'}
+          </button>
+        )}
+
+        {!isLastQuestion && (
+          <span className="text-xs text-gray-400">
+            {currentAnswer ? 'Sélection auto-avancée' : 'Sélectionne une réponse'}
+          </span>
+        )}
+      </div>
+    </div>
   );
 
   if (isModal) {
     return (
       <div
-        onClick={(e) => { if (e.target === e.currentTarget && onClose) { onClose(); } }}
-        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto"
+        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+        onClick={(e) => { if (e.target === e.currentTarget && onClose) onClose(); }}
       >
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
-          {containerContent}
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg h-[85vh] max-h-[680px] flex flex-col">
+          {inner}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        {containerContent}
-      </div>
+    <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-lg min-h-[500px] flex flex-col">
+      {inner}
     </div>
   );
 }
