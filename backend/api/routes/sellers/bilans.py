@@ -107,8 +107,18 @@ async def generate_bilan_individuel(
     seller_name = seller_data.get('name', 'Vendeur') if seller_data else 'Vendeur'
     # Retrieve seller DISC profile for personalization
     diagnostic = await seller_service.get_diagnostic_for_seller(seller_id)
-    disc_profile = diagnostic.get('profile', {}) if diagnostic else {}
-    disc_style = disc_profile.get('style', '') if disc_profile else ''
+    disc_style = diagnostic.get('style', '') if diagnostic else ''
+    # Recalculate DISC percentages from stored responses for nuance
+    disc_percentages = {}
+    if diagnostic and diagnostic.get('responses'):
+        try:
+            from api.routes.sellers.diagnostic import calculate_disc_profile
+            _disc_resp = {k: v for k, v in diagnostic['responses'].items() if k.isdigit() and int(k) >= 16}
+            if _disc_resp:
+                _dp = calculate_disc_profile(_disc_resp)
+                disc_percentages = _dp.get('percentages', {})
+        except Exception:
+            pass
     synthese = ""
     points_forts = []
     points_attention = []
@@ -246,7 +256,15 @@ async def generate_bilan_individuel(
                 # --- DISC block ---
                 disc_block = ""
                 if disc_style:
-                    disc_block = f"\n🎭 PROFIL DISC : {disc_style} — adapte ton ton (D=direct/résultats, I=enthousiaste, S=rassurant, C=factuel/chiffres).\n"
+                    _pct_str = ""
+                    if disc_percentages:
+                        _pct_str = f" (D={disc_percentages.get('D',0)}%, I={disc_percentages.get('I',0)}%, S={disc_percentages.get('S',0)}%, C={disc_percentages.get('C',0)}%)"
+                    disc_block = (
+                        f"\n🎭 PROFIL DISC : {disc_style}{_pct_str} — adapte ton ton (D=direct/résultats, I=enthousiaste, S=rassurant, C=factuel/chiffres).\n"
+                        "→ NUANCE OBLIGATOIRE : le profil n'est jamais absolu. Exprime-le avec nuance : "
+                        "'D'après tes réponses, tu as tendance à...' ou 'Tu es plutôt...' — JAMAIS 'Tu possèdes le style X' ou 'ton profil est X'.\n"
+                        "→ TUTOIEMENT STRICT : adresse-toi toujours au vendeur en 'tu'. Ne parle JAMAIS de lui à la 3e personne.\n"
+                    )
 
                 # --- Scores de compétences (avec fiabilité selon nb debriefs) ---
                 scores_block = ""
@@ -419,8 +437,9 @@ async def generate_bilan_individuel(
                     period_context = "C'est une analyse ANNUELLE. 3-4 points par section. Analyse les grandes tendances, les mois forts/faibles, et la progression globale."
                     min_points = 3
 
-                # SELLER PROMPT V6 — Context-rich, team-benchmarked, period-aware
-                prompt = f"""Tu es un coach de vente retail expert. Génère un bilan PERSONNALISÉ pour {seller_name}.
+                # SELLER PROMPT V7 — Context-rich, team-benchmarked, period-aware, tutoiement strict
+                prompt = f"""Tu es un coach de vente retail expert. Génère un bilan PERSONNALISÉ en tutoiement direct (tu/toi).
+⚠️ TUTOIEMENT STRICT : adresse-toi TOUJOURS au vendeur en "tu". Ne cite jamais son prénom ni son nom. Ne parle JAMAIS de lui à la 3e personne.
 {disc_block}
 ⏱️ TYPE D'ANALYSE : {period_context}
 
