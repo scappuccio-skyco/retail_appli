@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BarChart3 } from 'lucide-react';
 import KPITable from './KPITable';
 import KPICharts from './KPICharts';
@@ -9,6 +9,27 @@ export default function MonthYearView({
   periodAggregates, periodEntries, yearMonthlyData, periodChartData,
   kpiConfig, periodRange, periodBilan, periodGenerating, generatePeriodBilan,
 }) {
+  // Pour la vue année : regrouper par mois (plus lisible que 365 points)
+  const yearChartData = useMemo(() => {
+    if (viewMode !== 'annee' || !yearMonthlyData?.length) return [];
+    return yearMonthlyData.map(m => {
+      const [y, mo] = m.month.split('-');
+      const label = new Date(parseInt(y), parseInt(mo) - 1, 1)
+        .toLocaleDateString('fr-FR', { month: 'short' });
+      return {
+        date: label,
+        CA: m.ca,
+        Ventes: m.ventes,
+        Articles: m.articles,
+        Prospects: m.prospects,
+        'Panier Moyen': m.ventes > 0 ? Math.round(m.ca / m.ventes) : 0,
+        'Taux Transfo': m.prospects > 0 ? Math.round((m.ventes / m.prospects) * 100) : 0,
+      };
+    });
+  }, [viewMode, yearMonthlyData]);
+
+  const chartData = viewMode === 'annee' ? yearChartData : periodChartData;
+
   if (periodLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-500">
@@ -92,8 +113,8 @@ export default function MonthYearView({
       />
 
       {/* Charts */}
-      {periodChartData.length > 0 && (
-        <KPICharts data={periodChartData} kpiConfig={kpiConfig} />
+      {chartData.length > 0 && (
+        <KPICharts data={chartData} kpiConfig={kpiConfig} />
       )}
 
       {/* AI Section */}
