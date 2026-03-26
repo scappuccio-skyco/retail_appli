@@ -133,3 +133,4 @@ zipp>=3.19.2
 slowapi==0.1.9
 redis[asyncio]==5.0.1
 sentry-sdk[fastapi]==2.25.1
+apscheduler==3.10.4
