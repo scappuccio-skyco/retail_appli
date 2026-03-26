@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Sparkles, X } from 'lucide-react';
 import { api } from '../lib/apiClient';
@@ -16,6 +16,14 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
   const [loading, setLoading] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animating, setAnimating] = useState(false);
+
+  // Shuffle options once at mount (stable order across re-renders)
+  const shuffledOptionsRef = useRef(
+    allQuestions.reduce((acc, q) => {
+      acc[q.id] = [...q.options].sort(() => Math.random() - 0.5);
+      return acc;
+    }, {})
+  );
 
   const question = allQuestions[currentIdx];
   const isLastQuestion = currentIdx === totalQuestions - 1;
@@ -121,12 +129,13 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
         </p>
 
         <div className="space-y-3">
-          {question.options.map((option, idx) => {
+          {shuffledOptionsRef.current[question.id].map((option, idx) => {
             const isSelected = currentAnswer === option;
             return (
               <button
                 key={idx}
                 onClick={() => handleAnswer(option)}
+                disabled={animating}
                 className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all text-sm font-medium ${
                   isSelected
                     ? 'border-[#1E40AF] bg-blue-50 text-[#1E40AF]'
@@ -164,7 +173,8 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
         {!isLastQuestion && currentAnswer && (
           <button
             onClick={handleNext}
-            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            disabled={animating}
+            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:opacity-40"
           >
             Suivant
             <ChevronRight className="w-4 h-4" />
