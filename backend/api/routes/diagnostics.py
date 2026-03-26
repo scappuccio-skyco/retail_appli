@@ -73,7 +73,7 @@ async def analyze_manager_diagnostic_with_ai(responses: dict) -> dict:
 🔑 CLÉ D'INTERPRÉTATION DISC :
 Les réponses de type "Action rapide / Résultats / Décision ferme / Assertif" → Dominant (D) → Profil Le Pilote
 Les réponses de type "Énergie / Enthousiasme / Ambiance / Motiver / Inspirer" → Influent (I) → Profil Le Dynamiseur
-Les réponses de type "Écoute / Empathie / Patience / Accompagnement / Confiance" → Stable (S) → Profil Le Coach ou L'Inspire
+Les réponses de type "Écoute / Empathie / Patience / Accompagnement / Confiance" → Stable (S) → Profil Le Coach ou Le Facilitateur
 Les réponses de type "Précision / Analyse / Méthode / Process / Rigueur" → Consciencieux (C) → Profil Le Stratège
 
 Voici les réponses du manager :
@@ -81,7 +81,7 @@ Voici les réponses du manager :
 
 Réponds UNIQUEMENT au format JSON suivant (sans markdown, sans ```json) :
 {{
-  "profil_nom": "Le Pilote/Le Coach/Le Dynamiseur/Le Stratège/L'Inspire",
+  "profil_nom": "Le Pilote/Le Coach/Le Dynamiseur/Le Stratège/Le Facilitateur",
   "disc_style": "D, I, S, ou C",
   "profil_description": "2 phrases synthétiques pour décrire ce style de management",
   "force_1": "Premier point fort managérial concret",

@@ -128,10 +128,11 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
       </div>
 
       {showGuide && (
-        <GuideProfilsModal 
-          onClose={() => setShowGuide(false)} 
+        <GuideProfilsModal
+          onClose={() => setShowGuide(false)}
           userRole="manager"
-          storeIdParam={null} // Will be extracted from URL if needed
+          storeIdParam={null}
+          userProfileName={diagnostic.profil_nom}
         />
       )}
     </>
