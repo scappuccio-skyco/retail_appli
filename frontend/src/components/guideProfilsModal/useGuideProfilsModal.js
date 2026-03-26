@@ -8,7 +8,7 @@ import {
 
 export default function useGuideProfilsModal({ userRole, storeIdParam, userProfileName = null }) {
   const allSections = userRole === 'seller'
-    ? ['style_vente', 'niveau', 'motivation', 'disc']
+    ? ['mon_profil', 'les_styles']
     : ['mon_profil', 'mon_equipe'];
 
   const [activeSection, setActiveSection] = useState(allSections[0]);
@@ -64,10 +64,7 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
   };
 
   const getCurrentProfiles = () => {
-    if (activeSection === 'style_vente') return stylesVente;
-    if (activeSection === 'niveau') return niveaux;
-    if (activeSection === 'motivation') return motivations;
-    if (activeSection === 'disc') return discProfiles;
+    if (activeSection === 'les_styles') return stylesVente;
     return [];
   };
 
@@ -81,10 +78,15 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
     if (currentProfile > 0) setCurrentProfile(currentProfile - 1);
   };
 
-  // Profil propre du manager (pour l'onglet "Mon profil")
+  // Normalise un nom de profil en retirant l'article (Le / La / L')
+  const normalizeName = (name) =>
+    (name || '').replace(/^(Le |La |L')/i, '').trim().toLowerCase();
+
+  // Profil propre de l'utilisateur pour l'onglet "Mon Profil"
+  const profilePool = userRole === 'seller' ? stylesVente : managementStyles;
   const ownProfile = userProfileName
-    ? managementStyles.find(p => p.name === userProfileName) || managementStyles[0]
-    : managementStyles[0];
+    ? profilePool.find(p => normalizeName(p.name) === normalizeName(userProfileName)) || profilePool[0]
+    : profilePool[0];
 
   return {
     allSections, activeSection, currentProfile,

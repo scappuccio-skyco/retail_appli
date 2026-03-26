@@ -212,12 +212,12 @@ async def _create_diagnostic_impl(
         disc_to_style = {
             'D': 'Dynamique',
             'I': 'Convivial',
-            'S': 'Empathique',
+            'S': 'Discret',
             'C': 'Stratège'
         }
         if style_str in disc_to_style:
             return disc_to_style[style_str]
-        valid_styles = ['Convivial', 'Explorateur', 'Dynamique', 'Discret', 'Stratège', 'Empathique', 'Relationnel']
+        valid_styles = ['Convivial', 'Explorateur', 'Dynamique', 'Discret', 'Stratège']
         if style_value in valid_styles:
             return style_value
         return "Convivial"
@@ -254,7 +254,7 @@ async def _create_diagnostic_impl(
         if not motivation_value:
             return "Relation"
         motivation_str = str(motivation_value).strip()
-        valid_motivations = ['Relation', 'Reconnaissance', 'Performance', 'Découverte', 'Équipe', 'Résultats', 'Dépassement', 'Apprentissage', 'Progression', 'Stabilité', 'Polyvalence', 'Contribution']
+        valid_motivations = ['Relation', 'Reconnaissance', 'Performance', 'Découverte']
         if motivation_str in valid_motivations:
             return motivation_str
         return "Relation"
@@ -430,7 +430,7 @@ async def get_my_diagnostic(
         if not motivation_value:
             return "Relation"
         motivation_str = str(motivation_value).strip()
-        valid_motivations = ['Relation', 'Reconnaissance', 'Performance', 'Découverte', 'Équipe', 'Résultats', 'Dépassement', 'Apprentissage', 'Progression', 'Stabilité', 'Polyvalence', 'Contribution']
+        valid_motivations = ['Relation', 'Reconnaissance', 'Performance', 'Découverte']
         if motivation_str in valid_motivations:
             return motivation_str
         return "Relation"  # Default

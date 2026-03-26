@@ -18,10 +18,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
   const sectionLabels = {
     mon_profil: '🎯 Mon Profil',
     mon_equipe: '👥 Mon Équipe',
-    style_vente: '🎨 Styles de Vente',
-    niveau: '⭐ Niveaux',
-    motivation: '⚡ Motivations',
-    disc: '🎭 DISC',
+    les_styles: '🎨 Les autres styles',
   };
 
   return (
@@ -78,7 +75,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
               loadingCompatibility={loadingCompatibility}
             />
           )}
-          {activeSection !== 'mon_profil' && activeSection !== 'mon_equipe' && (
+          {activeSection === 'les_styles' && (
             <ProfileSection
               profile={profile}
               currentProfile={currentProfile}
