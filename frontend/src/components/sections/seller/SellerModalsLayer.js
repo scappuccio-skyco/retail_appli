@@ -20,6 +20,7 @@ import ChallengeHistoryModal from '../../ChallengeHistoryModal';
 import DailyChallengeModal from '../../DailyChallengeModal';
 import CoachingModal from '../../CoachingModal';
 import SupportModal from '../../SupportModal';
+import SellerManagerCompatibiliteModal from '../../SellerManagerCompatibiliteModal';
 import EvaluationGenerator from '../../EvaluationGenerator';
 import EvaluationNotesNotebook from '../../EvaluationNotesNotebook';
 import OnboardingModal from '../../onboarding/OnboardingModal';
@@ -62,6 +63,7 @@ export default function SellerModalsLayer({
   showNotesNotebook,
   showEvaluationModal,
   showSupportModal,
+  showManagerCompatModal,
 
   // Modal setters
   setShowEvalModal,
@@ -84,6 +86,7 @@ export default function SellerModalsLayer({
   setShowNotesNotebook,
   setShowEvaluationModal,
   setShowSupportModal,
+  setShowManagerCompatModal,
 
   // KPI edit state
   editingKPI,
@@ -401,6 +404,13 @@ export default function SellerModalsLayer({
         isOpen={showSupportModal}
         onClose={() => setShowSupportModal(false)}
       />
+
+      {showManagerCompatModal && (
+        <SellerManagerCompatibiliteModal
+          diagnostic={diagnostic}
+          onClose={() => setShowManagerCompatModal(false)}
+        />
+      )}
     </>
   );
 }
