@@ -78,6 +78,42 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
           </ResponsiveContainer>
         </div>
       )}
+
+      {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && (
+        <div className="bg-indigo-50 rounded-xl p-4">
+          <h4 className="text-sm font-semibold text-indigo-900 mb-3">💳 Panier moyen (€)</h4>
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#3730a3' }} stroke="#6366f1" />
+              <YAxis tick={{ fontSize: fs, fill: '#3730a3' }} stroke="#6366f1" />
+              <Tooltip
+                formatter={(v) => [`${v} €`, 'Panier moyen']}
+                contentStyle={{ backgroundColor: '#eef2ff', border: '2px solid #6366f1', borderRadius: '8px' }}
+              />
+              <Line type="monotone" dataKey="Panier Moyen" stroke="#6366f1" strokeWidth={sw} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {(kpiConfig?.track_ventes ?? true) && (kpiConfig?.track_prospects ?? true) && (
+        <div className="bg-pink-50 rounded-xl p-4">
+          <h4 className="text-sm font-semibold text-pink-900 mb-3">📈 Taux de transformation (%)</h4>
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#fce7f3" />
+              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#9d174d' }} stroke="#ec4899" />
+              <YAxis tick={{ fontSize: fs, fill: '#9d174d' }} stroke="#ec4899" domain={[0, 100]} />
+              <Tooltip
+                formatter={(v) => [`${v} %`, 'Taux transfo']}
+                contentStyle={{ backgroundColor: '#fdf2f8', border: '2px solid #ec4899', borderRadius: '8px' }}
+              />
+              <Line type="monotone" dataKey="Taux Transfo" stroke="#ec4899" strokeWidth={sw} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }

@@ -239,6 +239,8 @@ export default function usePerformanceModal({
       Ventes: entry.nb_ventes || 0,
       Articles: entry.nb_articles || 0,
       Prospects: entry.nb_prospects || 0,
+      'Panier Moyen': (entry.ca_journalier && entry.nb_ventes) ? Math.round(entry.ca_journalier / entry.nb_ventes) : 0,
+      'Taux Transfo': (entry.nb_ventes && entry.nb_prospects) ? Math.round((entry.nb_ventes / entry.nb_prospects) * 100) : 0,
     }));
   }, [periodEntries]);
 

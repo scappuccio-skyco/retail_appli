@@ -11,6 +11,7 @@ import SellerPersonalizationBar from '../components/sections/seller/SellerPerson
 import SellerTaskList from '../components/sections/seller/SellerTaskList';
 import SellerDashboardGrid from '../components/sections/seller/SellerDashboardGrid';
 import SellerModalsLayer from '../components/sections/seller/SellerModalsLayer';
+import SellerCompetencesRadar from '../components/sections/seller/SellerCompetencesRadar';
 
 // Dashboard-scoped hooks
 import { useSellerDashboardData } from './sellerDashboard/useSellerDashboardData';
@@ -171,6 +172,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onOpenCoaching={() => setShowCoachingModal(true)}
           onOpenNotes={() => setShowNotesNotebook(true)}
         />
+
+        <SellerCompetencesRadar competencesHistory={data.competencesHistory} />
       </div>
 
       <SellerModalsLayer
