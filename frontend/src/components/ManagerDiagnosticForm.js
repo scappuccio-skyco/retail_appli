@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
@@ -16,6 +16,16 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animating, setAnimating] = useState(false);
+
+  // Shuffle options once at mount, tracking original index for DISC scoring
+  const shuffledOptionsRef = useRef(
+    allQuestions.reduce((acc, q) => {
+      acc[q.id] = q.options
+        .map((text, i) => ({ text, originalIdx: i }))
+        .sort(() => Math.random() - 0.5);
+      return acc;
+    }, {})
+  );
 
   const question = allQuestions[currentIdx];
   const isLastQuestion = currentIdx === totalQuestions - 1;
@@ -101,19 +111,20 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
           </p>
 
           <div className="space-y-3">
-            {question.options.map((option, optionIdx) => {
-              const isSelected = currentAnswer === optionIdx;
+            {shuffledOptionsRef.current[question.id].map(({ text, originalIdx }) => {
+              const isSelected = currentAnswer === originalIdx;
               return (
                 <button
-                  key={optionIdx}
-                  onClick={() => handleSelectOption(optionIdx)}
+                  key={originalIdx}
+                  onClick={() => handleSelectOption(originalIdx)}
+                  disabled={animating}
                   className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all text-sm font-medium ${
                     isSelected
                       ? 'border-[#1E40AF] bg-blue-50 text-[#1E40AF]'
                       : 'border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-gray-50'
                   }`}
                 >
-                  {option}
+                  {text}
                 </button>
               );
             })}
@@ -142,7 +153,8 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
           ) : currentAnswer !== undefined ? (
             <button
               onClick={handleNext}
-              className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              disabled={animating}
+              className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors disabled:opacity-40"
             >
               Suivant
               <ChevronRight className="w-4 h-4" />
