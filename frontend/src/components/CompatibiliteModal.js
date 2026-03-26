@@ -4,9 +4,8 @@ import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import CompatibiliteSection from './guideProfilsModal/CompatibiliteSection';
 
-export default function CompatibiliteModal({ storeIdParam, onClose }) {
+export default function CompatibiliteModal({ storeIdParam, sellers = [], onClose }) {
   const [managerProfile, setManagerProfile] = useState(null);
-  const [teamSellers, setTeamSellers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
@@ -14,10 +13,9 @@ export default function CompatibiliteModal({ storeIdParam, onClose }) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [managerRes, diagRes, sellersRes] = await Promise.all([
+      const [managerRes, diagRes] = await Promise.all([
         api.get('/auth/me'),
-        api.get('/manager-diagnostic/me'),
-        api.get(`/manager/sellers${storeParam}`),
+        api.get(`/manager-diagnostic/me${storeParam}`),
       ]);
       setManagerProfile({
         ...managerRes.data,
@@ -26,8 +24,6 @@ export default function CompatibiliteModal({ storeIdParam, onClose }) {
           managerRes.data.management_style ||
           'Pilote',
       });
-      const raw = sellersRes.data;
-      setTeamSellers(Array.isArray(raw) ? raw : raw?.sellers || raw || []);
     } catch (err) {
       logger.error('CompatibiliteModal fetch error:', err);
     } finally {
@@ -74,7 +70,7 @@ export default function CompatibiliteModal({ storeIdParam, onClose }) {
         <div className="flex-1 overflow-y-auto p-5">
           <CompatibiliteSection
             managerProfile={managerProfile}
-            teamSellers={teamSellers}
+            teamSellers={sellers}
             loadingCompatibility={loading}
           />
         </div>

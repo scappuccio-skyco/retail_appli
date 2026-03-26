@@ -277,6 +277,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
       {showCompatibilite && (
         <CompatibiliteModal
           storeIdParam={storeIdParam}
+          sellers={teamData}
           onClose={() => setShowCompatibilite(false)}
         />
       )}
