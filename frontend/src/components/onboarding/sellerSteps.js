@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * Contenu des étapes d'onboarding pour le VENDEUR
- * Présentation alignée avec le tutoriel Gérant
+ * Adaptatif selon le mode de saisie KPI
  */
 
 export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
@@ -43,24 +43,8 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       tips: 'Soyez honnête dans vos réponses, personne ne vous jugera !'
     },
 
-    // Étape 3 : Performances
-    {
-      icon: '📊',
-      title: 'Suivez vos performances terrain',
-      description: (
-        <>
-          <p className="text-purple-600 font-semibold">Analysez vos indicateurs clés chaque jour.</p>
-          <p className="mt-3 font-semibold">Consultez vos KPIs :</p>
-          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li><strong>Panier Moyen</strong> : montant moyen par vente</li>
-            <li><strong>Indice de Vente</strong> : articles par transaction</li>
-            <li><strong>Taux de Transformation</strong> : visiteurs → acheteurs</li>
-          </ul>
-          <p className="mt-3">Progressez jour après jour en analysant vos résultats !</p>
-        </>
-      ),
-      tips: 'Utilisez les graphiques pour identifier vos points forts !'
-    },
+    // Étape 3 : Saisie KPI (ADAPTATIF selon le mode)
+    getSellerKpiStep(kpiMode),
 
     // Étape 4 : Coaching IA
     {
@@ -78,7 +62,7 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
           </ul>
         </>
       ),
-      tips: 'Plus vous avez de données saisies, meilleurs sont les conseils !'
+      tips: 'Plus vous avez de données enregistrées, meilleurs sont les conseils !'
     },
 
     // Étape 5 : Challenges
@@ -100,25 +84,101 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       tips: 'Les challenges rendent le travail plus motivant !'
     },
 
-    // Étape 6 : Finir
-    {
-      icon: '🎉',
-      title: 'C\'est parti !',
-      description: (
-        <>
-          <p className="text-green-600 font-semibold">Vous êtes prêt à utiliser Retail Performer AI !</p>
-          <p className="mt-3 font-semibold">À faire maintenant :</p>
-          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li><strong>1.</strong> Complétez votre diagnostic vendeur</li>
-            <li><strong>2.</strong> Consultez vos performances</li>
-            <li><strong>3.</strong> Découvrez vos conseils IA</li>
-          </ul>
-          <p className="mt-3">Relancez ce tutoriel via le bouton <strong>Tutoriel</strong> en haut.</p>
-        </>
-      ),
-      tips: 'Bon courage et excellentes ventes ! 💪'
-    }
+    // Étape 6 : Finir (ADAPTATIF)
+    getSellerFinalStep(kpiMode)
   ];
 
   return steps;
 };
+
+/**
+ * Étape KPI adaptée selon le mode de saisie
+ */
+function getSellerKpiStep(mode) {
+  switch (mode) {
+    case 'MANAGER_SAISIT':
+      return {
+        icon: '📊',
+        title: 'Suivez vos performances',
+        description: (
+          <>
+            <p className="text-purple-600 font-semibold">Votre manager saisit les chiffres pour vous.</p>
+            <p className="mt-3 font-semibold">Consultez vos KPIs :</p>
+            <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+              <li><strong>Panier Moyen</strong> : montant moyen par vente</li>
+              <li><strong>Indice de Vente</strong> : articles par transaction</li>
+              <li><strong>Taux de Transformation</strong> : visiteurs → acheteurs</li>
+            </ul>
+            <p className="mt-3">Analysez vos résultats et progressez !</p>
+          </>
+        ),
+        tips: 'Utilisez les graphiques pour identifier vos points forts !'
+      };
+
+    case 'API_SYNC':
+      return {
+        icon: '🔄',
+        title: 'Vos données sont synchronisées',
+        description: (
+          <>
+            <p className="text-blue-600 font-semibold">Vos KPI sont mis à jour automatiquement.</p>
+            <p className="mt-3 font-semibold">Consultez vos indicateurs en temps réel :</p>
+            <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+              <li><strong>Panier Moyen</strong> : montant moyen par vente</li>
+              <li><strong>Indice de Vente</strong> : articles par transaction</li>
+              <li><strong>Taux de Transformation</strong> : visiteurs → acheteurs</li>
+            </ul>
+            <p className="mt-3">Pas de saisie manuelle — concentrez-vous sur la performance !</p>
+          </>
+        ),
+        tips: 'Vos données se mettent à jour automatiquement depuis votre caisse.'
+      };
+
+    case 'VENDEUR_SAISIT':
+    default:
+      return {
+        icon: '📊',
+        title: 'Suivez vos performances terrain',
+        description: (
+          <>
+            <p className="text-purple-600 font-semibold">Saisissez vos chiffres chaque jour.</p>
+            <p className="mt-3 font-semibold">Consultez et saisissez vos KPIs :</p>
+            <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+              <li><strong>Panier Moyen</strong> : montant moyen par vente</li>
+              <li><strong>Indice de Vente</strong> : articles par transaction</li>
+              <li><strong>Taux de Transformation</strong> : visiteurs → acheteurs</li>
+            </ul>
+            <p className="mt-3">La régularité de saisie garantit des analyses IA précises !</p>
+          </>
+        ),
+        tips: 'Saisissez vos chiffres chaque jour pour un suivi optimal !'
+      };
+  }
+}
+
+/**
+ * Étape finale adaptée selon le mode de saisie
+ */
+function getSellerFinalStep(mode) {
+  const kpiAction = mode === 'VENDEUR_SAISIT'
+    ? <li><strong>2.</strong> Saisissez vos chiffres du jour</li>
+    : <li><strong>2.</strong> Consultez vos performances</li>;
+
+  return {
+    icon: '🎉',
+    title: "C'est parti !",
+    description: (
+      <>
+        <p className="text-green-600 font-semibold">Vous êtes prêt à utiliser Retail Performer AI !</p>
+        <p className="mt-3 font-semibold">À faire maintenant :</p>
+        <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+          <li><strong>1.</strong> Complétez votre diagnostic vendeur</li>
+          {kpiAction}
+          <li><strong>3.</strong> Découvrez vos conseils IA</li>
+        </ul>
+        <p className="mt-3">Relancez ce tutoriel via le bouton <strong>Tutoriel</strong> en haut.</p>
+      </>
+    ),
+    tips: 'Bon courage et excellentes ventes ! 💪'
+  };
+}

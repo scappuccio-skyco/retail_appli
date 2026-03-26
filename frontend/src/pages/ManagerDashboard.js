@@ -64,6 +64,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         )}
         <ManagerTaskList
           tasks={s.managerTasks}
+          onOpenDiagnostic={() => s.setShowManagerDiagnostic(true)}
           onViewSellerNotes={(sellerId) => {
             const seller = s.sellers.find(sel => sel.id === sellerId);
             if (seller) { s.setSelectedSeller({ ...seller, _openTab: 'notes' }); s.setShowDetailView(true); }
