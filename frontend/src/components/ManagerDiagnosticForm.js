@@ -50,7 +50,7 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
       allQuestions.forEach(q => {
         const answerIdx = responses[q.id];
         if (answerIdx !== undefined && answerIdx !== null) {
-          richResponses[q.id] = { q: q.text, a: q.options[answerIdx] };
+          richResponses[q.id] = { q: q.text, a: q.options[answerIdx], idx: answerIdx };
         }
       });
       await api.post('/manager-diagnostic', { responses: richResponses });

@@ -111,16 +111,8 @@ def calculate_disc_profile(disc_responses: dict) -> dict:
     s_score = 0
     c_score = 0
 
-    disc_mapping = {
-        '16': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
-        '17': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
-        '18': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
-        '19': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
-        '20': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
-        '21': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
-        '22': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
-        '23': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
-    }
+    # Questions 16-39 : toutes au format D=0, I=1, S=2, C=3
+    disc_mapping = {str(q): {'D': [0], 'I': [1], 'S': [2], 'C': [3]} for q in range(16, 40)}
 
     for q_key, response in disc_responses.items():
         if q_key in disc_mapping:
