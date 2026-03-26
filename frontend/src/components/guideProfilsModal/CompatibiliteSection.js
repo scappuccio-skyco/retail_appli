@@ -1,6 +1,13 @@
 import React from 'react';
 import { getCompatibilityResult } from '../guideProfilsData';
 
+// Normalise les styles du diagnostic vers les clés de la matrice de compatibilité
+const STYLE_TO_COMPAT = {
+  'Discret':  'Explorateur',
+  'Stratège': 'Technique',
+};
+const normalizeSellingStyle = (style) => STYLE_TO_COMPAT[style] || style;
+
 export default function CompatibiliteSection({ managerProfile, teamSellers, loadingCompatibility }) {
   return (
     <div className="space-y-6">
@@ -48,7 +55,7 @@ export default function CompatibiliteSection({ managerProfile, teamSellers, load
                   }
 
                   const managementType = (managerProfile?.management_style || 'Pilote').replace(/^Le\s+/i, '');
-                  const sellingStyle = seller.style_vente.replace(/^(Le|La|L')\s+/i, '');
+                  const sellingStyle = normalizeSellingStyle(seller.style_vente.replace(/^(Le|La|L')\s+/i, ''));
                   const compatibilityResult = getCompatibilityResult(managementType, sellingStyle);
                   if (!compatibilityResult) return null;
 
