@@ -7,7 +7,7 @@ export default function HeaderSection({ mobileMenuOpen, setMobileMenuOpen, scrol
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed top-[60px] sm:top-[52px] w-full bg-white/5 backdrop-blur-md z-50 border-b border-white/10">
+    <nav className="fixed top-[60px] sm:top-[52px] w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20 sm:h-24">
           {/* Logo rond + texte */}
@@ -15,21 +15,21 @@ export default function HeaderSection({ mobileMenuOpen, setMobileMenuOpen, scrol
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => scrollToSection('features')} className="text-white/90 hover:text-[#F97316] transition-colors font-medium">
+            <button onClick={() => scrollToSection('features')} className="text-[#334155] hover:text-[#F97316] transition-colors font-medium">
               Fonctionnalités
             </button>
-            <button onClick={() => scrollToSection('pricing')} className="text-white/90 hover:text-[#F97316] transition-colors font-medium">
+            <button onClick={() => scrollToSection('pricing')} className="text-[#334155] hover:text-[#F97316] transition-colors font-medium">
               Tarifs
             </button>
-            <button onClick={() => scrollToSection('faq')} className="text-white/90 hover:text-[#F97316] transition-colors font-medium">
+            <button onClick={() => scrollToSection('faq')} className="text-[#334155] hover:text-[#F97316] transition-colors font-medium">
               FAQ
             </button>
-            <button onClick={() => scrollToSection('contact')} className="text-white/90 hover:text-[#F97316] transition-colors font-medium">
+            <button onClick={() => scrollToSection('contact')} className="text-[#334155] hover:text-[#F97316] transition-colors font-medium">
               Contact
             </button>
             <button
               onClick={() => navigate('/login')}
-              className="px-4 py-2 text-white border border-white/40 rounded-lg hover:bg-white/15 transition-colors font-medium"
+              className="px-4 py-2 text-[#F97316] border-2 border-[#F97316] rounded-lg hover:bg-orange-50 transition-colors font-medium"
             >
               Connexion
             </button>
