@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { Zap, RefreshCw, TrendingUp, TrendingDown, Eye, EyeOff } from 'lucide-react';
 import {
-  LineChart, Line, BarChart, Bar,
+  BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { formatChartDate, computePeriodTotals } from './storeKPIUtils';
@@ -153,13 +153,13 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
             <span className="text-sm font-semibold text-gray-700">Nombre de Ventes</span>
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={historicalData}>
+            <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
               <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip formatter={(v) => [v, 'Ventes']} labelFormatter={formatChartDate} />
-              <Line type="monotone" dataKey="total_ventes" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3, fill: '#10B981' }} />
-            </LineChart>
+              <Bar dataKey="total_ventes" fill="#10B981" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}
@@ -171,13 +171,13 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
             <span className="text-sm font-semibold text-gray-700">Taux de Transformation</span>
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={historicalData}>
+            <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
               <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10 }} unit="%" axisLine={false} tickLine={false} />
               <Tooltip formatter={(v) => [`${v}%`, 'Transfo']} labelFormatter={formatChartDate} />
-              <Line type="monotone" dataKey="taux_transformation" stroke="#8B5CF6" strokeWidth={2.5} dot={{ r: 3, fill: '#8B5CF6' }} />
-            </LineChart>
+              <Bar dataKey="taux_transformation" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}

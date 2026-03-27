@@ -91,9 +91,9 @@ export default function ManagerDashboard({ user, onLogout }) {
         sellers={s.sellers}
         isSubscriptionExpired={s.isSubscriptionExpired}
         onOpenKPI={(variant = 'A') => { s.setKpiModalVariant(variant); s.setShowStoreKPIModal(true); }}
-        onOpenTeam={() => s.setShowTeamModal(true)}
-        onOpenObjectives={() => { s.setSettingsModalType('objectives'); s.setShowSettingsModal(true); }}
-        onOpenRelationship={() => s.setShowRelationshipModal(true)}
+        onOpenTeam={(variant = 'A') => { s.setTeamModalVariant(variant); s.setShowTeamModal(true); }}
+        onOpenObjectives={(variant = 'A') => { s.setSettingsVariant(variant); s.setSettingsModalType('objectives'); s.setShowSettingsModal(true); }}
+        onOpenRelationship={(variant = 'A') => { s.setRelationshipVariant(variant); s.setShowRelationshipModal(true); }}
       />
 
       <ManagerModalsLayer
@@ -117,6 +117,9 @@ export default function ManagerDashboard({ user, onLogout }) {
         showSettingsModal={s.showSettingsModal}
         showStoreKPIModal={s.showStoreKPIModal}
         kpiModalVariant={s.kpiModalVariant}
+        teamModalVariant={s.teamModalVariant}
+        settingsVariant={s.settingsVariant}
+        relationshipVariant={s.relationshipVariant}
         showRelationshipModal={s.showRelationshipModal}
         showTeamModal={s.showTeamModal}
         showDetailView={s.showDetailView}
@@ -129,6 +132,9 @@ export default function ManagerDashboard({ user, onLogout }) {
         setShowSettingsModal={s.setShowSettingsModal}
         setShowStoreKPIModal={s.setShowStoreKPIModal}
         setKpiModalVariant={s.setKpiModalVariant}
+        setTeamModalVariant={s.setTeamModalVariant}
+        setSettingsVariant={s.setSettingsVariant}
+        setRelationshipVariant={s.setRelationshipVariant}
         setShowRelationshipModal={s.setShowRelationshipModal}
         setShowTeamModal={s.setShowTeamModal}
         setShowDetailView={s.setShowDetailView}

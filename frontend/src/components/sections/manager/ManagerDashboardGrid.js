@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Users, Target } from 'lucide-react';
+import { BarChart3, Users, Target, MessageCircle } from 'lucide-react';
 
 /**
  * Grille des 5 cartes du dashboard manager.
@@ -15,6 +15,43 @@ export default function ManagerDashboardGrid({
   onOpenObjectives,
   onOpenRelationship,
 }) {
+  /* Composant de grille de comparaison réutilisable */
+  function StagingCompare({ show, label, color, icon: Icon, imgSrc, imgAlt, onOpenA, onOpenB, onOpenC, borderHover }) {
+    if (!show) return null;
+    return (
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-3">
+          <span className="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300 uppercase tracking-wide">
+            🎨 Staging — {label}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { label: 'Style A — Actuel', fn: onOpenA },
+            { label: 'Style B — Nouveau', fn: onOpenB },
+            { label: 'Style C — Nouveau', fn: onOpenC },
+          ].map(({ label: sl, fn }) => (
+            <div key={sl}>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 text-center">{sl}</p>
+              <div onClick={fn} className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-xl transition-all duration-300 border-2 border-transparent ${borderHover}`}>
+                <div className="relative h-40 overflow-hidden">
+                  <img src={imgSrc} alt={imgAlt} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className={`absolute inset-0 ${color}`} />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-full mb-2 flex items-center justify-center backdrop-blur-sm">
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="text-sm font-bold text-white text-center">{imgAlt}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <hr className="mt-6 border-gray-200" />
+      </div>
+    );
+  }
   const activeSellers = sellers.filter(s => s.status === 'active').length;
 
   const cards = {
@@ -129,45 +166,55 @@ export default function ManagerDashboardGrid({
   return (
     <div className="max-w-7xl mx-auto">
 
-      {/* ── STAGING ONLY : comparaison modales Mon Magasin ── */}
-      {dashboardFilters.showKPI && (
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300 uppercase tracking-wide">
-              🎨 Staging — Comparaison de styles de modal
-            </span>
-            <p className="text-sm text-gray-500">Même carte, même données — seul le design du modal change</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { label: 'Style A — Actuel (orange)', fn: () => onOpenKPI('A') },
-              { label: 'Style B — Modern Light', fn: () => onOpenKPI('B') },
-              { label: 'Style C — Dark Premium', fn: () => onOpenKPI('C') },
-            ].map(({ label, fn }) => (
-              <div key={label}>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 text-center">{label}</p>
-                <div
-                  onClick={fn}
-                  className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400 ${isSubscriptionExpired ? 'opacity-80' : ''}`}
-                >
-                  <div className="relative h-56 overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop" alt="Mon Magasin" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/80 via-orange-600/80 to-orange-500/80" />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-                      <div className="w-16 h-16 bg-white/20 rounded-full mb-3 flex items-center justify-center backdrop-blur-sm">
-                        <BarChart3 className="w-8 h-8 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white text-center mb-1">🏪 Mon Magasin</h3>
-                      <p className="text-xs text-white/80 text-center">Cliquer pour voir ce style →</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <hr className="mt-8 border-gray-200" />
-        </div>
-      )}
+      {/* ── STAGING ONLY ── */}
+      <StagingCompare
+        show={dashboardFilters.showKPI}
+        label="Mon Magasin — Comparaison de styles"
+        color="bg-gradient-to-r from-orange-500/80 via-orange-600/80 to-orange-500/80"
+        icon={BarChart3}
+        imgSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop"
+        imgAlt="🏪 Mon Magasin"
+        onOpenA={() => onOpenKPI('A')}
+        onOpenB={() => onOpenKPI('B')}
+        onOpenC={() => onOpenKPI('C')}
+        borderHover="hover:border-orange-400"
+      />
+      <StagingCompare
+        show={dashboardFilters.showTeam}
+        label="Mon Équipe — Comparaison de styles"
+        color="bg-gradient-to-r from-blue-900/80 via-cyan-900/80 to-blue-900/80"
+        icon={Users}
+        imgSrc="https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?w=800&h=400&fit=crop"
+        imgAlt="👥 Mon Équipe"
+        onOpenA={() => onOpenTeam('A')}
+        onOpenB={() => onOpenTeam('B')}
+        onOpenC={() => onOpenTeam('C')}
+        borderHover="hover:border-cyan-400"
+      />
+      <StagingCompare
+        show={dashboardFilters.showObjectives}
+        label="Objectifs — Comparaison de styles"
+        color="bg-gradient-to-r from-blue-900/80 via-blue-800/80 to-blue-900/80"
+        icon={Target}
+        imgSrc="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=400&fit=crop"
+        imgAlt="🎯 Objectifs"
+        onOpenA={() => onOpenObjectives('A')}
+        onOpenB={() => onOpenObjectives('B')}
+        onOpenC={() => onOpenObjectives('C')}
+        borderHover="hover:border-blue-400"
+      />
+      <StagingCompare
+        show={dashboardFilters.showRelationship !== false}
+        label="Gestion relationnelle — Comparaison de styles"
+        color="bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-purple-900/80"
+        icon={Users}
+        imgSrc="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=400&fit=crop"
+        imgAlt="🤝 Gestion relationnelle"
+        onOpenA={() => onOpenRelationship('A')}
+        onOpenB={() => onOpenRelationship('B')}
+        onOpenC={() => onOpenRelationship('C')}
+        borderHover="hover:border-purple-400"
+      />
       {/* ── FIN STAGING ── */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
