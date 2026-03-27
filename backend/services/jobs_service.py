@@ -26,13 +26,13 @@ class JobsService:
         from repositories.user_repository import UserRepository
         from repositories.store_repository import StoreRepository
         from repositories.kpi_repository import KPIRepository
-        from repositories.workspace_repository import WorkspaceRepository
+        from repositories.billing_repository import BillingProfileRepository
         from repositories.notification_repository import NotificationRepository
 
         self.user_repo = UserRepository(db)
         self.store_repo = StoreRepository(db)
         self.kpi_repo = KPIRepository(db)
-        self.workspace_repo = WorkspaceRepository(db)
+        self.billing_repo = BillingProfileRepository(db)
         self.notification_repo = NotificationRepository(db)
 
     # ── Weekly gérant recap ────────────────────────────────────────────────
@@ -84,11 +84,8 @@ class JobsService:
 
             # Check workspace is billable (active or trial)
             try:
-                workspace = await self.workspace_repo.find_one(
-                    {"gerant_id": gerant_id},
-                    projection={"_id": 0, "subscription_status": 1}
-                )
-                status = (workspace or {}).get("subscription_status", "")
+                billing = await self.billing_repo.find_by_gerant(gerant_id)
+                status = (billing or {}).get("subscription_status", "")
                 if status not in ("active", "trialing", "trial", "past_due"):
                     continue
             except Exception:

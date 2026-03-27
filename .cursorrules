@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 26 Mars 2026 (session 13 — en prod)
+**Dernière mise à jour**: 26 Mars 2026 (session 14 — en prod)
 
 ---
 
@@ -1329,3 +1329,19 @@ Est-ce que c'est quelque chose que vous reconnaissez dans votre magasin ?
 - Matrice attend : `'Convivial'`, `'Dynamique'`, `'Explorateur'`, `'Technique'`, `'Challenger'`
 - `'Discret'` et `'Stratège'` n'existaient pas dans la matrice → `getCompatibilityResult` retournait `null` → vendeur disparaissait silencieusement
 - ✅ `CompatibiliteSection.js` — `STYLE_TO_COMPAT` map : Discret → Explorateur, Stratège → Technique
+
+---
+
+## 📅 Session 14 — 26 Mars 2026
+
+### Feature : compatibilité vendeur-manager dans l'espace vendeur
+
+**Contexte** : le vendeur ne pouvait pas voir comment s'adapter à son manager. `/manager-diagnostic/me` est protégé par `verify_manager_or_gerant` → impossible d'appeler depuis l'espace vendeur.
+
+**Solution** : endpoint dédié côté seller + modale dédiée.
+
+- ✅ `backend/api/routes/sellers/diagnostic.py` — `GET /seller/manager-diagnostic` : lit le `manager_id` du vendeur → récupère le diagnostic via `DiagnosticService.get_latest_manager_diagnostic` → renvoie `{has_diagnostic, profil_nom, disc_style, profil_description, force_1, force_2, ...}`
+- ✅ `frontend/src/components/SellerManagerCompatibiliteModal.js` — modale complète vendeur : profils côte à côte (manager + vendeur), description style manager, score compatibilité, recommandations `vendeur` uniquement
+- ✅ `frontend/src/components/sections/seller/SellerHeader.js` — bouton "Mon manager" (purple→pink, icône Heart), conditionnel `onOpenManagerCompat`
+- ✅ `frontend/src/pages/SellerDashboard.js` — état `showManagerCompatModal` + passage prop à SellerHeader et SellerModalsLayer
+- ✅ `frontend/src/components/sections/seller/SellerModalsLayer.js` — import + rendu conditionnel `SellerManagerCompatibiliteModal` avec `diagnostic` prop
