@@ -22,14 +22,8 @@ export default function ManagerDashboardGrid({
     kpi: dashboardFilters.showKPI && (
       <div
         key="kpi"
-        onClick={() => {
-          if (isSubscriptionExpired) {
-            toast.error('Abonnement magasin suspendu. Contactez votre gérant.', { duration: 4000, icon: '🔒' });
-            return;
-          }
-          onOpenKPI();
-        }}
-        className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400 ${isSubscriptionExpired ? 'opacity-60' : ''}`}
+        onClick={() => onOpenKPI()}
+        className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400 ${isSubscriptionExpired ? 'opacity-80' : ''}`}
       >
         <div className="relative h-56 overflow-hidden">
           <img
@@ -55,14 +49,8 @@ export default function ManagerDashboardGrid({
     team: dashboardFilters.showTeam && (
       <div
         key="team"
-        onClick={() => {
-          if (isSubscriptionExpired) {
-            toast.error('Abonnement magasin suspendu. Contactez votre gérant.', { duration: 4000, icon: '🔒' });
-            return;
-          }
-          onOpenTeam();
-        }}
-        className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-cyan-400 ${isSubscriptionExpired ? 'opacity-60' : ''}`}
+        onClick={() => onOpenTeam()}
+        className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-cyan-400 ${isSubscriptionExpired ? 'opacity-80' : ''}`}
       >
         <div className="relative h-56 overflow-hidden">
           <img
