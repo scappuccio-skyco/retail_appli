@@ -90,7 +90,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         dashboardFilters={s.dashboardFilters}
         sellers={s.sellers}
         isSubscriptionExpired={s.isSubscriptionExpired}
-        onOpenKPI={() => s.setShowStoreKPIModal(true)}
+        onOpenKPI={(variant = 'A') => { s.setKpiModalVariant(variant); s.setShowStoreKPIModal(true); }}
         onOpenTeam={() => s.setShowTeamModal(true)}
         onOpenObjectives={() => { s.setSettingsModalType('objectives'); s.setShowSettingsModal(true); }}
         onOpenRelationship={() => s.setShowRelationshipModal(true)}
@@ -116,6 +116,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         showTeamBilanModal={s.showTeamBilanModal}
         showSettingsModal={s.showSettingsModal}
         showStoreKPIModal={s.showStoreKPIModal}
+        kpiModalVariant={s.kpiModalVariant}
         showRelationshipModal={s.showRelationshipModal}
         showTeamModal={s.showTeamModal}
         showDetailView={s.showDetailView}
@@ -127,6 +128,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         setShowTeamBilanModal={s.setShowTeamBilanModal}
         setShowSettingsModal={s.setShowSettingsModal}
         setShowStoreKPIModal={s.setShowStoreKPIModal}
+        setKpiModalVariant={s.setKpiModalVariant}
         setShowRelationshipModal={s.setShowRelationshipModal}
         setShowTeamModal={s.setShowTeamModal}
         setShowDetailView={s.setShowDetailView}

@@ -11,6 +11,7 @@ import ManagerProfileModal from '../../ManagerProfileModal';
 import TeamBilanModal from '../../TeamBilanModal';
 import ManagerSettingsModal from '../../ManagerSettingsModal';
 import StoreKPIModal from '../../StoreKPIModal';
+import StoreKPIModalVariant from '../../StoreKPIModalVariant';
 import RelationshipManagementModal from '../../RelationshipManagementModal';
 import TeamModal from '../../TeamModal';
 import SellerDetailView from '../../SellerDetailView';
@@ -44,6 +45,7 @@ export default function ManagerModalsLayer({
   showTeamBilanModal,
   showSettingsModal,
   showStoreKPIModal,
+  kpiModalVariant,
   showRelationshipModal,
   showTeamModal,
   showDetailView,
@@ -57,6 +59,7 @@ export default function ManagerModalsLayer({
   setShowTeamBilanModal,
   setShowSettingsModal,
   setShowStoreKPIModal,
+  setKpiModalVariant,
   setShowRelationshipModal,
   setShowTeamModal,
   setShowDetailView,
@@ -138,7 +141,16 @@ export default function ManagerModalsLayer({
         />
       )}
 
-      {showStoreKPIModal && (
+      {showStoreKPIModal && (kpiModalVariant === 'B' || kpiModalVariant === 'C') && (
+        <StoreKPIModalVariant
+          variant={kpiModalVariant}
+          storeId={effectiveStoreId}
+          isManager
+          onClose={() => setShowStoreKPIModal(false)}
+          onSuccess={() => fetchStoreKPIStats()}
+        />
+      )}
+      {showStoreKPIModal && (!kpiModalVariant || kpiModalVariant === 'A') && (
         <StoreKPIModal
           storeId={effectiveStoreId}
           isManager
