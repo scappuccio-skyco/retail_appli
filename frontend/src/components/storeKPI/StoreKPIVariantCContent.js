@@ -9,6 +9,7 @@
  */
 import React, { useState } from 'react';
 import { Zap, RefreshCw, TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import ManagerAIAnalysisDisplay from '../ManagerAIAnalysisDisplay';
 import {
   BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -254,20 +255,12 @@ export default function StoreKPIVariantCContent({
           </div>
         )}
         {aiAnalysis && !aiGenerating && (
-          <div className="rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-indigo-500" />
-                <p className="text-sm font-semibold text-indigo-800">Insight IA</p>
-              </div>
-              <button onClick={generateAnalysis} className="text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-1">
-                <RefreshCw className="w-3 h-3" /> Regénérer
-              </button>
-            </div>
-            <p className="text-sm text-indigo-900 leading-relaxed">
-              {typeof aiAnalysis === 'string' ? aiAnalysis : aiAnalysis?.summary || aiAnalysis?.content || 'Analyse disponible'}
-            </p>
-          </div>
+          <ManagerAIAnalysisDisplay
+            analysis={aiAnalysis}
+            onRegenerate={generateAnalysis}
+            title="Analyse IA — KPIs Magasin"
+            sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
+          />
         )}
       </div>
 
