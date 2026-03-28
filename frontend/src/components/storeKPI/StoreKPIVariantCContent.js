@@ -212,7 +212,7 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
                     </td>
                     <td className="px-4 py-2 text-right text-gray-700">{d.total_ventes || 0}</td>
                     <td className="px-4 py-2 text-right text-gray-700">{panier} {panier !== '—' ? '€' : ''}</td>
-                    <td className="px-4 py-2 text-right text-gray-700">{d.taux_transformation > 0 ? `${d.taux_transformation}%` : '—'}</td>
+                    <td className="px-4 py-2 text-right text-gray-700">{d.taux_transformation > 0 ? `${parseFloat(d.taux_transformation).toFixed(2)}%` : '—'}</td>
                   </tr>
                 );
               })}

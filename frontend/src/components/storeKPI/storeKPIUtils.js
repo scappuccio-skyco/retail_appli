@@ -128,11 +128,11 @@ export function addDerivedMetrics(aggregatedData) {
     total_clients: period.seller_clients,
     total_articles: period.seller_articles,
     total_prospects: period.seller_prospects,
-    panier_moyen: period.seller_ventes > 0 ? period.seller_ca / period.seller_ventes : 0,
+    panier_moyen: period.seller_ventes > 0 ? parseFloat((period.seller_ca / period.seller_ventes).toFixed(2)) : 0,
     taux_transformation: period.seller_prospects > 0
-      ? (period.seller_ventes / period.seller_prospects) * 100
+      ? parseFloat(((period.seller_ventes / period.seller_prospects) * 100).toFixed(2))
       : 0,
-    indice_vente: period.seller_ventes > 0 ? period.seller_articles / period.seller_ventes : 0
+    indice_vente: period.seller_ventes > 0 ? parseFloat((period.seller_articles / period.seller_ventes).toFixed(2)) : 0
   }));
 }
 
