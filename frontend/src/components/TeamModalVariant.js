@@ -125,40 +125,6 @@ function ModalVariantB({ sellers, storeIdParam, onClose, storeName, managerName,
             <div className="text-center py-16"><div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-500" /></div>
           ) : (
             <>
-              {/* IA — amber card */}
-              <div ref={s.aiSectionRef}>
-                {!s.aiAnalysis && !s.aiGenerating && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🤖</span>
-                      <p className="text-sm font-medium text-amber-800">Analyse IA disponible pour cette période</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => s.setShowMorningBriefModal(true)} className="text-xs px-3 py-1.5 bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors flex items-center gap-1">
-                        <Coffee className="w-3 h-3" /> Brief
-                      </button>
-                      <button onClick={s.generateTeamAnalysis} disabled={s.aiGenerating || s.teamData.length === 0} className="text-xs px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50">
-                        ✨ Analyser
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {s.aiGenerating && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                    <RefreshCw className="w-4 h-4 text-amber-500 animate-spin" />
-                    <p className="text-sm font-medium text-amber-800">Analyse en cours...</p>
-                  </div>
-                )}
-                {s.aiAnalysis && !s.aiGenerating && (
-                  <ManagerAIAnalysisDisplay
-                    analysis={s.aiAnalysis}
-                    onRegenerate={s.generateTeamAnalysis}
-                    title="Analyse IA — Équipe"
-                    sources={['Effectif présent', 'CA équipe', 'Ventes équipe', 'Panier moyen', 'Taux de transformation', 'Compétences (5 axes)']}
-                  />
-                )}
-              </div>
-
               {/* Vendeurs */}
               <SellersTableSection
                 teamData={s.teamData} sellers={sellers}
@@ -199,6 +165,40 @@ function ModalVariantB({ sellers, storeIdParam, onClose, storeName, managerName,
                   </div>
                 )}
               </div>
+
+              {/* IA — amber card — sous les données */}
+              {!s.aiAnalysis && !s.aiGenerating && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🤖</span>
+                    <p className="text-sm font-medium text-amber-800">Analyse IA disponible pour cette période</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => s.setShowMorningBriefModal(true)} className="text-xs px-3 py-1.5 bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors flex items-center gap-1">
+                      <Coffee className="w-3 h-3" /> Brief
+                    </button>
+                    <button onClick={s.generateTeamAnalysis} disabled={s.aiGenerating || s.teamData.length === 0} className="text-xs px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50">
+                      ✨ Analyser
+                    </button>
+                  </div>
+                </div>
+              )}
+              {s.aiGenerating && (
+                <div ref={s.aiSectionRef} className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                  <RefreshCw className="w-4 h-4 text-amber-500 animate-spin" />
+                  <p className="text-sm font-medium text-amber-800">Analyse en cours...</p>
+                </div>
+              )}
+              {s.aiAnalysis && !s.aiGenerating && (
+                <div ref={s.aiSectionRef}>
+                  <ManagerAIAnalysisDisplay
+                    analysis={s.aiAnalysis}
+                    onRegenerate={s.generateTeamAnalysis}
+                    title="Analyse IA — Équipe"
+                    sources={['Effectif présent', 'CA équipe', 'Ventes équipe', 'Panier moyen', 'Taux de transformation', 'Compétences (5 axes)']}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
