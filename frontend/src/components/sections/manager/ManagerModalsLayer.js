@@ -11,8 +11,12 @@ import ManagerProfileModal from '../../ManagerProfileModal';
 import TeamBilanModal from '../../TeamBilanModal';
 import ManagerSettingsModal from '../../ManagerSettingsModal';
 import StoreKPIModal from '../../StoreKPIModal';
+import StoreKPIModalVariant from '../../StoreKPIModalVariant';
 import RelationshipManagementModal from '../../RelationshipManagementModal';
+import RelationshipModalVariant from '../../RelationshipModalVariant';
 import TeamModal from '../../TeamModal';
+import TeamModalVariant from '../../TeamModalVariant';
+import SettingsModalVariant from '../../SettingsModalVariant';
 import SellerDetailView from '../../SellerDetailView';
 import SupportModal from '../../SupportModal';
 import MorningBriefModal from '../../MorningBriefModal';
@@ -44,6 +48,10 @@ export default function ManagerModalsLayer({
   showTeamBilanModal,
   showSettingsModal,
   showStoreKPIModal,
+  kpiModalVariant,
+  teamModalVariant,
+  settingsVariant,
+  relationshipVariant,
   showRelationshipModal,
   showTeamModal,
   showDetailView,
@@ -57,6 +65,10 @@ export default function ManagerModalsLayer({
   setShowTeamBilanModal,
   setShowSettingsModal,
   setShowStoreKPIModal,
+  setKpiModalVariant,
+  setTeamModalVariant,
+  setSettingsVariant,
+  setRelationshipVariant,
   setShowRelationshipModal,
   setShowTeamModal,
   setShowDetailView,
@@ -124,7 +136,18 @@ export default function ManagerModalsLayer({
         />
       )}
 
-      {showSettingsModal && (
+      {showSettingsModal && (settingsVariant === 'B' || settingsVariant === 'C') && (
+        <SettingsModalVariant
+          variant={settingsVariant}
+          isOpen={showSettingsModal}
+          onClose={() => { setShowSettingsModal(false); setInitialObjectiveId?.(null); }}
+          modalType={settingsModalType}
+          storeIdParam={urlStoreId}
+          initialObjectiveId={initialObjectiveId}
+          onUpdate={() => { fetchActiveObjectives(); fetchKpiConfig(); }}
+        />
+      )}
+      {showSettingsModal && (!settingsVariant || settingsVariant === 'A') && (
         <ManagerSettingsModal
           isOpen={showSettingsModal}
           onClose={() => { setShowSettingsModal(false); setInitialObjectiveId?.(null); }}
@@ -138,7 +161,16 @@ export default function ManagerModalsLayer({
         />
       )}
 
-      {showStoreKPIModal && (
+      {showStoreKPIModal && (kpiModalVariant === 'B' || kpiModalVariant === 'C') && (
+        <StoreKPIModalVariant
+          variant={kpiModalVariant}
+          storeId={effectiveStoreId}
+          isManager
+          onClose={() => setShowStoreKPIModal(false)}
+          onSuccess={() => fetchStoreKPIStats()}
+        />
+      )}
+      {showStoreKPIModal && (!kpiModalVariant || kpiModalVariant === 'A') && (
         <StoreKPIModal
           storeId={effectiveStoreId}
           isManager
@@ -147,7 +179,31 @@ export default function ManagerModalsLayer({
         />
       )}
 
-      {showRelationshipModal && (
+      {showRelationshipModal && (relationshipVariant === 'B' || relationshipVariant === 'C') && (
+        <RelationshipModalVariant
+          variant={relationshipVariant}
+          onClose={() => { setShowRelationshipModal(false); setAutoShowRelationshipResult(false); }}
+          onSuccess={async (formData) => {
+            setShowRelationshipModal(false);
+            setGeneratingAIAdvice(true);
+            try {
+              await api.post(`/manager/relationship-advice${apiStoreIdParam}`, formData);
+              setGeneratingAIAdvice(false);
+              toast.success('Recommandation générée avec succès !');
+              await fetchData();
+              setTimeout(() => { setAutoShowRelationshipResult(true); setShowRelationshipModal(true); }, 500);
+            } catch (error) {
+              setGeneratingAIAdvice(false);
+              logger.error('Error generating advice:', error);
+              toast.error(getSubscriptionErrorMessage(error, user?.role) || 'Erreur lors de la génération des recommandations');
+            }
+          }}
+          sellers={sellers}
+          autoShowResult={autoShowRelationshipResult}
+          storeId={urlStoreId}
+        />
+      )}
+      {showRelationshipModal && (!relationshipVariant || relationshipVariant === 'A') && (
         <RelationshipManagementModal
           onClose={() => {
             setShowRelationshipModal(false);
@@ -177,7 +233,18 @@ export default function ManagerModalsLayer({
         />
       )}
 
-      {showTeamModal && (
+      {showTeamModal && (teamModalVariant === 'B' || teamModalVariant === 'C') && (
+        <TeamModalVariant
+          variant={teamModalVariant}
+          sellers={sellers}
+          storeIdParam={urlStoreId}
+          onClose={() => setShowTeamModal(false)}
+          storeName={storeName}
+          managerName={user?.name}
+          userRole={user?.role}
+        />
+      )}
+      {showTeamModal && (!teamModalVariant || teamModalVariant === 'A') && (
         <TeamModal
           sellers={sellers}
           storeIdParam={urlStoreId}

@@ -456,17 +456,21 @@ async def get_team_seller_profiles(
     )
     valid_ids = {s["id"] for s in valid_sellers}
 
+    _DISC_TO_STYLE = {'D': 'Dynamique', 'I': 'Convivial', 'S': 'Empathique', 'C': 'Stratège'}
+
     async def get_profile(sid: str):
         diagnostic = await manager_service.get_diagnostic_by_seller(sid)
         debriefs = await manager_service.get_debriefs_by_seller(sid, limit=5)
         avg_radar_scores = await competence_service.calculate_seller_performance_scores(
             seller_id=sid, diagnostic=diagnostic, debriefs=debriefs
         )
+        raw_style = diagnostic.get("style") if diagnostic else None
+        normalized_style = _DISC_TO_STYLE.get(str(raw_style).upper(), raw_style) if raw_style else None
         return sid, {
             "avg_radar_scores": avg_radar_scores,
             "niveau": diagnostic.get("level") if diagnostic else None,
             "has_diagnostic": bool(diagnostic),
-            "style": diagnostic.get("style") if diagnostic else None,
+            "style": normalized_style,
         }
 
     results = await _asyncio.gather(*[get_profile(sid) for sid in valid_ids])

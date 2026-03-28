@@ -52,6 +52,10 @@ export default function useManagerDashboard({ user }) {
   const [settingsModalType, setSettingsModalType] = useState('objectives');
   const [initialObjectiveId, setInitialObjectiveId] = useState(null);
   const [showStoreKPIModal, setShowStoreKPIModal] = useState(false);
+  const [kpiModalVariant, setKpiModalVariant] = useState('A');
+  const [teamModalVariant, setTeamModalVariant] = useState('A');
+  const [settingsVariant, setSettingsVariant] = useState('A');
+  const [relationshipVariant, setRelationshipVariant] = useState('A');
   const [showRelationshipModal, setShowRelationshipModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showMorningBriefModal, setShowMorningBriefModal] = useState(false);
@@ -335,6 +339,10 @@ export default function useManagerDashboard({ user }) {
     settingsModalType, setSettingsModalType,
     initialObjectiveId, setInitialObjectiveId,
     showStoreKPIModal, setShowStoreKPIModal,
+    kpiModalVariant, setKpiModalVariant,
+    teamModalVariant, setTeamModalVariant,
+    settingsVariant, setSettingsVariant,
+    relationshipVariant, setRelationshipVariant,
     showRelationshipModal, setShowRelationshipModal,
     showSupportModal, setShowSupportModal,
     showMorningBriefModal, setShowMorningBriefModal,
