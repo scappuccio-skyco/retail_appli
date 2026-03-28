@@ -11,6 +11,7 @@ import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Users, ShoppingBag, BarChart2, Zap, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { formatChartDate, computePeriodTotals } from './storeKPIUtils';
+import ManagerAIAnalysisDisplay from '../ManagerAIAnalysisDisplay';
 
 /* ─── Helpers ─── */
 function Badge({ value, suffix = '' }) {
@@ -217,17 +218,13 @@ export default function StoreKPIVariantBContent({
         </div>
       )}
       {aiAnalysis && !aiGenerating && (
-        <div ref={aiSectionRef} className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-600" />
-              <p className="text-sm font-semibold text-amber-800">Insight IA</p>
-            </div>
-            <button onClick={generateAnalysis} className="text-xs text-amber-600 hover:text-amber-800">Regénérer</button>
-          </div>
-          <p className="text-sm text-amber-900 leading-relaxed line-clamp-4">
-            {typeof aiAnalysis === 'string' ? aiAnalysis : aiAnalysis?.summary || aiAnalysis?.content || 'Analyse disponible'}
-          </p>
+        <div ref={aiSectionRef}>
+          <ManagerAIAnalysisDisplay
+            analysis={aiAnalysis}
+            onRegenerate={generateAnalysis}
+            title="Analyse IA — KPIs Magasin"
+            sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
+          />
         </div>
       )}
 
