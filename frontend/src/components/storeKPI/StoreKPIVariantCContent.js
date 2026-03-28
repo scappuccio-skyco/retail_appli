@@ -198,13 +198,16 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
             <tbody className="divide-y divide-gray-50">
               {historicalData.slice().reverse().map((d, i) => {
                 const panier = d.total_ventes > 0 ? (d.total_ca / d.total_ventes).toFixed(0) : '—';
-                const isUp = i < historicalData.length - 1 && d.total_ca > historicalData[historicalData.length - 2 - i]?.total_ca;
+                const prevCa = i < historicalData.length - 1 ? historicalData[historicalData.length - 2 - i]?.total_ca : null;
+                const isUp = prevCa !== null && d.total_ca > prevCa;
+                const isDown = prevCa !== null && d.total_ca < prevCa;
                 return (
                   <tr key={i} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-2 text-gray-600">{formatChartDate(d.date)}</td>
                     <td className="px-4 py-2 text-right">
                       <span className="font-semibold text-gray-900">{(d.total_ca || 0).toFixed(0)} €</span>
                       {isUp && <TrendingUp className="inline-block w-3 h-3 text-emerald-500 ml-1" />}
+                      {isDown && <TrendingDown className="inline-block w-3 h-3 text-red-400 ml-1" />}
                     </td>
                     <td className="px-4 py-2 text-right text-gray-700">{d.total_ventes || 0}</td>
                     <td className="px-4 py-2 text-right text-gray-700">{panier} {panier !== '—' ? '€' : ''}</td>
@@ -214,6 +217,10 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
               })}
             </tbody>
           </table>
+        </div>
+        <div className="px-4 py-2 border-t border-gray-50 flex items-center gap-4 text-[11px] text-gray-400">
+          <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3 text-emerald-500" /> CA en hausse vs veille</span>
+          <span className="flex items-center gap-1"><TrendingDown className="w-3 h-3 text-red-400" /> CA en baisse vs veille</span>
         </div>
       </div>
     </div>
