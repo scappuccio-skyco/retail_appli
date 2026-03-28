@@ -112,7 +112,11 @@ function ModalVariantB({ onClose, storeId, storeName, isManager, onSuccess }) {
     setAiGenerating(true);
     try {
       const { start, end } = getStartEndForView(state.viewMode, state);
-      const endpoint = storeId ? `/gerant/stores/${storeId}/analyze-store-kpis` : '/manager/analyze-store-kpis';
+      const isGerantContext = !isManager && Boolean(storeId);
+      const storeParam = storeId ? `?store_id=${storeId}` : '';
+      const endpoint = isGerantContext
+        ? `/gerant/stores/${storeId}/analyze-store-kpis`
+        : `/manager/analyze-store-kpis${storeParam}`;
       const res = await api.post(endpoint, { start_date: start, end_date: end });
       const analysis = res.data.analysis;
       setAiAnalysis(analysis);
@@ -248,7 +252,11 @@ function ModalVariantC({ onClose, storeId, storeName, isManager, onSuccess }) {
     setAiGenerating(true);
     try {
       const { start, end } = getStartEndForView(state.viewMode, state);
-      const endpoint = storeId ? `/gerant/stores/${storeId}/analyze-store-kpis` : '/manager/analyze-store-kpis';
+      const isGerantContext = !isManager && Boolean(storeId);
+      const storeParam = storeId ? `?store_id=${storeId}` : '';
+      const endpoint = isGerantContext
+        ? `/gerant/stores/${storeId}/analyze-store-kpis`
+        : `/manager/analyze-store-kpis${storeParam}`;
       const res = await api.post(endpoint, { start_date: start, end_date: end });
       const analysis = res.data.analysis;
       setAiAnalysis(analysis);
