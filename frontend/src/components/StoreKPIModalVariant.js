@@ -109,6 +109,7 @@ function ModalVariantB({ onClose, storeId, storeName, isManager, onSuccess }) {
   }, [lsKey]);
 
   const generateAnalysis = async () => {
+    if (!canLaunchAI && !aiAnalysis) return;
     setAiGenerating(true);
     try {
       const { start, end } = getStartEndForView(state.viewMode, state);
@@ -249,6 +250,7 @@ function ModalVariantC({ onClose, storeId, storeName, isManager, onSuccess }) {
   }, [lsKey]);
 
   const generateAnalysis = async () => {
+    if (!canLaunchAI && !aiAnalysis) return;
     setAiGenerating(true);
     try {
       const { start, end } = getStartEndForView(state.viewMode, state);
