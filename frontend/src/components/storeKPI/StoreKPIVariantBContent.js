@@ -128,10 +128,10 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
       {/* Totaux */}
       <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">CA Total Période</p>
-        <p className="text-5xl font-bold text-gray-900 tracking-tight mb-3">{(totals.ca || 0).toFixed(0)} €</p>
+        <p className="text-5xl font-bold text-gray-900 tracking-tight mb-3">{(totals.total_ca || 0).toFixed(0)} €</p>
         <div className="grid grid-cols-3 gap-4 pt-3 border-t border-gray-100">
           <div>
-            <p className="text-lg font-bold text-gray-800">{totals.ventes || 0}</p>
+            <p className="text-lg font-bold text-gray-800">{totals.total_ventes || 0}</p>
             <p className="text-xs text-gray-400">Ventes totales</p>
           </div>
           <div>
@@ -139,7 +139,7 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
             <p className="text-xs text-gray-400">Taux transfo moy.</p>
           </div>
           <div>
-            <p className="text-lg font-bold text-gray-800">{totals.ventes > 0 && totals.ca > 0 ? `${(totals.ca / totals.ventes).toFixed(0)} €` : '—'}</p>
+            <p className="text-lg font-bold text-gray-800">{totals.total_ventes > 0 && totals.total_ca > 0 ? `${(totals.total_ca / totals.total_ventes).toFixed(0)} €` : '—'}</p>
             <p className="text-xs text-gray-400">Panier moyen</p>
           </div>
         </div>
