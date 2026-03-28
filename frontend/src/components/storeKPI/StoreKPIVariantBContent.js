@@ -192,7 +192,16 @@ export default function StoreKPIVariantBContent({
 }) {
   return (
     <div className="space-y-6">
-      {/* Insight IA — toujours visible en haut */}
+      {/* Contenu données */}
+      {viewMode === 'day' ? (
+        overviewData ? <DailyView overviewData={overviewData} /> : (
+          <div className="text-center py-12 text-gray-400">⏳ Chargement...</div>
+        )
+      ) : (
+        <PeriodView historicalData={historicalData} viewMode={viewMode} loadingHistorical={loadingHistorical} />
+      )}
+
+      {/* Insight IA — sous les données */}
       {!aiAnalysis && !aiGenerating && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
           <div className="w-8 h-8 rounded-lg bg-amber-200 flex items-center justify-center flex-shrink-0">
@@ -212,7 +221,7 @@ export default function StoreKPIVariantBContent({
         </div>
       )}
       {aiGenerating && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
+        <div ref={aiSectionRef} className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
           <RefreshCw className="w-5 h-5 text-amber-600 animate-spin" />
           <p className="text-sm font-semibold text-amber-800">Analyse en cours...</p>
         </div>
@@ -226,15 +235,6 @@ export default function StoreKPIVariantBContent({
             sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
           />
         </div>
-      )}
-
-      {/* Contenu données */}
-      {viewMode === 'day' ? (
-        overviewData ? <DailyView overviewData={overviewData} /> : (
-          <div className="text-center py-12 text-gray-400">⏳ Chargement...</div>
-        )
-      ) : (
-        <PeriodView historicalData={historicalData} viewMode={viewMode} loadingHistorical={loadingHistorical} />
       )}
     </div>
   );
