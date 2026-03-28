@@ -1,14 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 
-/**
- * 4-chart grid for CA, Ventes, Articles, Prospects.
- * showDots=true for semaine view (larger dots/bars).
- */
 export default function KPICharts({ data, kpiConfig, showDots = false }) {
+  const [activeChart, setActiveChart] = useState(0);
+
   if (!data || data.length === 0) return null;
 
   const fs = showDots ? 11 : 10;
@@ -17,11 +16,11 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
   const dot = showDots ? { fill: '#1e40af', r: 4 } : false;
   const prospDot = showDots ? { fill: '#7c3aed', r: 4 } : false;
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {(kpiConfig?.track_ca ?? true) && (
+  const chartDefs = [
+    (kpiConfig?.track_ca ?? true) && {
+      label: '💰 Évolution du CA',
+      content: (
         <div className="bg-blue-50 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-blue-900 mb-3">💰 Évolution du CA</h4>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
@@ -32,11 +31,12 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      )}
-
-      {(kpiConfig?.track_ventes ?? true) && (
+      ),
+    },
+    (kpiConfig?.track_ventes ?? true) && {
+      label: '🛒 Évolution des Ventes',
+      content: (
         <div className="bg-green-50 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-green-900 mb-3">🛒 Évolution des Ventes</h4>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#d1fae5" />
@@ -47,11 +47,12 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      )}
-
-      {(kpiConfig?.track_articles ?? true) && (
+      ),
+    },
+    (kpiConfig?.track_articles ?? true) && {
+      label: '📦 Évolution des Articles',
+      content: (
         <div className="bg-orange-50 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-orange-900 mb-3">📦 Évolution des Articles</h4>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#fed7aa" />
@@ -62,11 +63,12 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      )}
-
-      {(kpiConfig?.track_prospects ?? true) && (
+      ),
+    },
+    (kpiConfig?.track_prospects ?? true) && {
+      label: '🚶 Évolution des Prospects',
+      content: (
         <div className="bg-purple-50 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-purple-900 mb-3">🚶 Évolution des Prospects</h4>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e9d5ff" />
@@ -77,11 +79,12 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      )}
-
-      {(kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true) && (
+      ),
+    },
+    ((kpiConfig?.track_ca ?? true) && (kpiConfig?.track_ventes ?? true)) && {
+      label: '💳 Panier moyen (€)',
+      content: (
         <div className="bg-indigo-50 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-indigo-900 mb-3">💳 Panier moyen (€)</h4>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
@@ -95,11 +98,12 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      )}
-
-      {(kpiConfig?.track_ventes ?? true) && (kpiConfig?.track_prospects ?? true) && (
+      ),
+    },
+    ((kpiConfig?.track_ventes ?? true) && (kpiConfig?.track_prospects ?? true)) && {
+      label: '📈 Taux de transformation (%)',
+      content: (
         <div className="bg-pink-50 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-pink-900 mb-3">📈 Taux de transformation (%)</h4>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#fce7f3" />
@@ -113,7 +117,33 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      )}
+      ),
+    },
+  ].filter(Boolean);
+
+  if (chartDefs.length === 0) return null;
+
+  const active = chartDefs[activeChart % chartDefs.length];
+  const prev = () => setActiveChart(i => (i - 1 + chartDefs.length) % chartDefs.length);
+  const next = () => setActiveChart(i => (i + 1) % chartDefs.length);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-semibold text-gray-700">{active.label}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            {chartDefs.map((_, i) => (
+              <button key={i} onClick={() => setActiveChart(i)}
+                className={`h-2 rounded-full transition-all ${i === activeChart ? 'bg-gray-600 w-4' : 'bg-gray-200 w-2 hover:bg-gray-300'}`}
+              />
+            ))}
+          </div>
+          <button onClick={prev} className="p-1 rounded-lg hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4 text-gray-500" /></button>
+          <button onClick={next} className="p-1 rounded-lg hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
+        </div>
+      </div>
+      {active.content}
     </div>
   );
 }
