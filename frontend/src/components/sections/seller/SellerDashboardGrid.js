@@ -14,6 +14,44 @@ export default function SellerDashboardGrid({
   onOpenCoaching,
   onOpenNotes,
 }) {
+  /* Composant de comparaison staging réutilisable */
+  function StagingCompare({ show, label, color, icon: Icon, imgSrc, imgAlt, onOpenA, onOpenB, onOpenC, borderHover }) {
+    if (!show) return null;
+    return (
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-3">
+          <span className="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300 uppercase tracking-wide">
+            🎨 Staging — {label}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { label: 'Style A — Actuel', fn: onOpenA },
+            { label: 'Style B — Nouveau', fn: onOpenB },
+            { label: 'Style C — Nouveau', fn: onOpenC },
+          ].map(({ label: sl, fn }) => (
+            <div key={sl}>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 text-center">{sl}</p>
+              <div onClick={fn} className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-xl transition-all duration-300 border-2 border-transparent ${borderHover}`}>
+                <div className="relative h-40 overflow-hidden">
+                  <img src={imgSrc} alt={imgAlt} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className={`absolute inset-0 ${color}`} />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-full mb-2 flex items-center justify-center backdrop-blur-sm">
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="text-sm font-bold text-white text-center">{imgAlt}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <hr className="mt-6 border-gray-200" />
+      </div>
+    );
+  }
+
   const filterKeyById = {
     performances: 'showPerformances',
     objectives:   'showObjectives',
@@ -134,12 +172,66 @@ export default function SellerDashboardGrid({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-      {finalOrder.map((sectionId) => {
-        const filterKey = filterKeyById[sectionId];
-        if (filterKey && dashboardFilters[filterKey] === false) return null;
-        return cards[sectionId] ?? null;
-      })}
+    <div className="max-w-7xl mx-auto">
+
+      {/* ── STAGING ONLY ── */}
+      <StagingCompare
+        show={dashboardFilters.showPerformances !== false}
+        label="Mes Performances — Comparaison de styles"
+        color="bg-gradient-to-r from-orange-500/80 via-orange-600/80 to-orange-500/80"
+        icon={BarChart3}
+        imgSrc="https://images.unsplash.com/photo-1608222351212-18fe0ec7b13b?w=800&h=400&fit=crop"
+        imgAlt="📊 Mes Performances"
+        onOpenA={() => onOpenPerformance('A')}
+        onOpenB={() => onOpenPerformance('B')}
+        onOpenC={() => onOpenPerformance('C')}
+        borderHover="hover:border-orange-400"
+      />
+      <StagingCompare
+        show={dashboardFilters.showObjectives !== false}
+        label="Mes Objectifs — Comparaison de styles"
+        color="bg-gradient-to-r from-blue-900/70 via-teal-800/70 to-green-800/70"
+        icon={Award}
+        imgSrc="https://images.unsplash.com/photo-1753161617988-c5f43e441621?w=800&h=400&fit=crop"
+        imgAlt="🎯 Mes Objectifs"
+        onOpenA={() => onOpenObjectives('A')}
+        onOpenB={() => onOpenObjectives('B')}
+        onOpenC={() => onOpenObjectives('C')}
+        borderHover="hover:border-teal-400"
+      />
+      <StagingCompare
+        show={dashboardFilters.showCoaching !== false}
+        label="Mon Coach IA — Comparaison de styles"
+        color="bg-gradient-to-r from-purple-900/70 via-indigo-800/70 to-teal-800/70"
+        icon={Sparkles}
+        imgSrc="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop"
+        imgAlt="🤖 Mon Coach IA"
+        onOpenA={() => onOpenCoaching('A')}
+        onOpenB={() => onOpenCoaching('B')}
+        onOpenC={() => onOpenCoaching('C')}
+        borderHover="hover:border-purple-400"
+      />
+      <StagingCompare
+        show={dashboardFilters.showPreparation !== false}
+        label="Préparer mon Entretien — Comparaison de styles"
+        color="bg-gradient-to-r from-pink-700/70 via-rose-600/70 to-red-600/70"
+        icon={FileText}
+        imgSrc="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop"
+        imgAlt="📝 Préparer mon Entretien"
+        onOpenA={() => onOpenNotes('A')}
+        onOpenB={() => onOpenNotes('B')}
+        onOpenC={() => onOpenNotes('C')}
+        borderHover="hover:border-pink-400"
+      />
+      {/* ── FIN STAGING ── */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {finalOrder.map((sectionId) => {
+          const filterKey = filterKeyById[sectionId];
+          if (filterKey && dashboardFilters[filterKey] === false) return null;
+          return cards[sectionId] ?? null;
+        })}
+      </div>
     </div>
   );
 }

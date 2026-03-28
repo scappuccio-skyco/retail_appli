@@ -114,9 +114,9 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
     <div className="space-y-5">
       {/* KPIs compacts */}
       <div className="flex gap-3 flex-wrap">
-        <KpiPill label="CA total" value={`${(totals.ca || 0).toFixed(0)} €`} color="text-blue-600" />
-        <KpiPill label="Ventes" value={totals.ventes || 0} color="text-emerald-600" />
-        <KpiPill label="Panier moy." value={totals.ventes > 0 && totals.ca > 0 ? `${(totals.ca / totals.ventes).toFixed(0)} €` : '—'} color="text-orange-600" />
+        <KpiPill label="CA total" value={`${(totals.total_ca || 0).toFixed(0)} €`} color="text-blue-600" />
+        <KpiPill label="Ventes" value={totals.total_ventes || 0} color="text-emerald-600" />
+        <KpiPill label="Panier moy." value={totals.total_ventes > 0 && totals.total_ca > 0 ? `${(totals.total_ca / totals.total_ventes).toFixed(0)} €` : '—'} color="text-orange-600" />
       </div>
 
       {/* Filtres graphiques */}

@@ -31,6 +31,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showFilters, setShowFilters] = useState(false);
   const [initialTab, setInitialTab] = useState('bilan');
 
+  // ── Staging variant state ──────────────────────────────────
+  const [performanceVariant, setPerformanceVariant] = useState('A');
+  const [objectivesVariant, setObjectivesVariant] = useState('A');
+  const [coachingVariant, setCoachingVariant] = useState('A');
+  const [notesVariant, setNotesVariant] = useState('A');
+
   // ── Modal state ────────────────────────────────────────────
   const [showEvalModal, setShowEvalModal] = useState(false);
   const [showDebriefModal, setShowDebriefModal] = useState(false);
@@ -171,10 +177,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           finalOrder={finalOrder}
           dashboardFilters={dashboardFilters}
           activeObjectives={data.activeObjectives}
-          onOpenPerformance={() => setShowPerformanceModal(true)}
-          onOpenObjectives={() => setShowObjectivesModal(true)}
-          onOpenCoaching={() => setShowCoachingModal(true)}
-          onOpenNotes={() => setShowNotesNotebook(true)}
+          onOpenPerformance={(variant = 'A') => { setPerformanceVariant(variant); setShowPerformanceModal(true); }}
+          onOpenObjectives={(variant = 'A') => { setObjectivesVariant(variant); setShowObjectivesModal(true); }}
+          onOpenCoaching={(variant = 'A') => { setCoachingVariant(variant); setShowCoachingModal(true); }}
+          onOpenNotes={(variant = 'A') => { setNotesVariant(variant); setShowNotesNotebook(true); }}
         />
 
         <SellerCompetencesRadar competencesHistory={data.competencesHistory} />
@@ -214,6 +220,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         showEvaluationModal={showEvaluationModal}
         showSupportModal={showSupportModal}
         showManagerCompatModal={showManagerCompatModal}
+        performanceVariant={performanceVariant}
+        objectivesVariant={objectivesVariant}
+        coachingVariant={coachingVariant}
+        notesVariant={notesVariant}
         // Modal setters
         setShowEvalModal={setShowEvalModal}
         setShowDebriefModal={setShowDebriefModal}
