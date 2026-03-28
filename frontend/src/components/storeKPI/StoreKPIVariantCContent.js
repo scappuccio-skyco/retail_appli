@@ -235,35 +235,6 @@ export default function StoreKPIVariantCContent({
 }) {
   return (
     <div className="space-y-5">
-      {/* Insight IA épinglé en haut */}
-      <div ref={aiSectionRef}>
-        {!aiAnalysis && !aiGenerating && (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-gray-400" />
-              <p className="text-sm text-gray-500">Aucune analyse IA générée pour cette période</p>
-            </div>
-            <button onClick={generateAnalysis} disabled={!canLaunchAI} className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium">
-              ✨ Analyser
-            </button>
-          </div>
-        )}
-        {aiGenerating && (
-          <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 flex items-center gap-3">
-            <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />
-            <p className="text-sm text-blue-700 font-medium">Analyse IA en cours...</p>
-          </div>
-        )}
-        {aiAnalysis && !aiGenerating && (
-          <ManagerAIAnalysisDisplay
-            analysis={aiAnalysis}
-            onRegenerate={generateAnalysis}
-            title="Analyse IA — KPIs Magasin"
-            sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
-          />
-        )}
-      </div>
-
       {/* Données */}
       {viewMode === 'day' ? (
         overviewData ? <DailyView overviewData={overviewData} /> : (
@@ -271,6 +242,35 @@ export default function StoreKPIVariantCContent({
         )
       ) : (
         <PeriodView historicalData={historicalData} viewMode={viewMode} loadingHistorical={loadingHistorical} />
+      )}
+
+      {/* Insight IA — sous les données */}
+      {!aiAnalysis && !aiGenerating && (
+        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-gray-400" />
+            <p className="text-sm text-gray-500">Aucune analyse IA générée pour cette période</p>
+          </div>
+          <button onClick={generateAnalysis} disabled={!canLaunchAI} className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium">
+            ✨ Analyser
+          </button>
+        </div>
+      )}
+      {aiGenerating && (
+        <div ref={aiSectionRef} className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 flex items-center gap-3">
+          <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />
+          <p className="text-sm text-blue-700 font-medium">Analyse IA en cours...</p>
+        </div>
+      )}
+      {aiAnalysis && !aiGenerating && (
+        <div ref={aiSectionRef}>
+          <ManagerAIAnalysisDisplay
+            analysis={aiAnalysis}
+            onRegenerate={generateAnalysis}
+            title="Analyse IA — KPIs Magasin"
+            sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
+          />
+        </div>
       )}
     </div>
   );
