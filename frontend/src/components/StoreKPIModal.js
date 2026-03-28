@@ -246,26 +246,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 </div>
               </div>
 
-              {/* Contenu */}
-              {state.viewMode === 'day' ? (
-                <StoreKPIModalDailyTab overviewData={state.overviewData} storeId={storeId} />
-              ) : (
-                <StoreKPIModalOverviewTab
-                  viewMode={state.viewMode}
-                  displayMode={state.displayMode}
-                  setDisplayMode={state.setDisplayMode}
-                  displayedListItems={state.displayedListItems}
-                  setDisplayedListItems={state.setDisplayedListItems}
-                  visibleCharts={state.visibleCharts}
-                  toggleChart={state.toggleChart}
-                  setVisibleCharts={state.setVisibleCharts}
-                  historicalData={state.historicalData}
-                  loadingHistorical={state.loadingHistorical}
-                />
-              )}
-
-              {/* IA Analysis Section */}
-              <div ref={aiSectionRef} className="mt-6">
+              {/* IA Analysis Section — épinglée en haut */}
+              <div ref={aiSectionRef} className="mb-4">
                 {!aiAnalysis && !aiGenerating && (
                   <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
                     <span className="text-4xl mb-3 block">🤖</span>
@@ -302,6 +284,24 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   />
                 )}
               </div>
+
+              {/* Contenu */}
+              {state.viewMode === 'day' ? (
+                <StoreKPIModalDailyTab overviewData={state.overviewData} storeId={storeId} />
+              ) : (
+                <StoreKPIModalOverviewTab
+                  viewMode={state.viewMode}
+                  displayMode={state.displayMode}
+                  setDisplayMode={state.setDisplayMode}
+                  displayedListItems={state.displayedListItems}
+                  setDisplayedListItems={state.setDisplayedListItems}
+                  visibleCharts={state.visibleCharts}
+                  toggleChart={state.toggleChart}
+                  setVisibleCharts={state.setVisibleCharts}
+                  historicalData={state.historicalData}
+                  loadingHistorical={state.loadingHistorical}
+                />
+              )}
             </div>
           )}
 
