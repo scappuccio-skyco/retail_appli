@@ -68,11 +68,11 @@ function DailyView({ overviewData }) {
             <span className="text-xs text-gray-400">{sellerEntries.length} vendeurs</span>
           </div>
           <div className="divide-y divide-gray-50">
-            {[...sellerEntries]
-              .sort((a, b) => (b.seller_ca || b.ca_journalier || 0) - (a.seller_ca || a.ca_journalier || 0))
-              .map((entry, idx) => {
+            {(() => {
+              const sorted = [...sellerEntries].sort((a, b) => (b.seller_ca || b.ca_journalier || 0) - (a.seller_ca || a.ca_journalier || 0));
+              const maxCa = sorted[0]?.seller_ca || sorted[0]?.ca_journalier || 1;
+              return sorted.map((entry, idx) => {
                 const sellerCa = entry.seller_ca || entry.ca_journalier || 0;
-                const maxCa = (sellerEntries[0]?.seller_ca || sellerEntries[0]?.ca_journalier || 1);
                 const pct = maxCa > 0 ? Math.round((sellerCa / maxCa) * 100) : 0;
                 const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-orange-400', 'bg-pink-400'];
                 return (
@@ -92,7 +92,8 @@ function DailyView({ overviewData }) {
                     </div>
                   </div>
                 );
-              })}
+              });
+            })()}
           </div>
         </div>
       )}
