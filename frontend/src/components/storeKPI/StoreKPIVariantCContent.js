@@ -55,9 +55,9 @@ function DailyView({ overviewData }) {
       <div className="flex gap-3 flex-wrap">
         <KpiPill label="CA" value={`${ca.toFixed(0)} €`} color="text-blue-600" />
         <KpiPill label="Ventes" value={ventes} color="text-emerald-600" />
-        <KpiPill label="Transfo" value={tauxTransfo !== null ? `${tauxTransfo}%` : '—'} color="text-purple-600" />
-        <KpiPill label="Panier" value={panierMoyen !== null ? `${panierMoyen} €` : '—'} color="text-orange-600" />
-        <KpiPill label="UPT" value={indiceVente !== null ? indiceVente : '—'} color="text-pink-600" />
+        <KpiPill label="Transfo" value={tauxTransfo !== null ? `${parseFloat(tauxTransfo).toFixed(2)}%` : '—'} color="text-purple-600" />
+        <KpiPill label="Panier" value={panierMoyen !== null ? `${parseFloat(panierMoyen).toFixed(2)} €` : '—'} color="text-orange-600" />
+        <KpiPill label="UPT" value={indiceVente !== null ? parseFloat(indiceVente).toFixed(2) : '—'} color="text-pink-600" />
       </div>
 
       {/* Tableau vendeurs — version analytics (barres de progression + ranking) */}

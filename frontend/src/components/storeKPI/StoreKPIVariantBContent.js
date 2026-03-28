@@ -68,12 +68,12 @@ function DailyView({ overviewData }) {
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
           <BarChart2 className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">{tauxTransfo !== null ? `${tauxTransfo}%` : '—'}</p>
+          <p className="text-2xl font-bold text-gray-900">{tauxTransfo !== null ? `${parseFloat(tauxTransfo).toFixed(2)}%` : '—'}</p>
           <p className="text-xs text-gray-400 mt-0.5">Transfo</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
           <TrendingUp className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-          <p className="text-2xl font-bold text-gray-900">{panierMoyen !== null ? `${panierMoyen} €` : '—'}</p>
+          <p className="text-2xl font-bold text-gray-900">{panierMoyen !== null ? `${parseFloat(panierMoyen).toFixed(2)} €` : '—'}</p>
           <p className="text-xs text-gray-400 mt-0.5">Panier Moy.</p>
         </div>
       </div>
