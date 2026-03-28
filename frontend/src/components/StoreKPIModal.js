@@ -65,6 +65,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiGenerating, setAiGenerating] = useState(false);
   const aiSectionRef = useRef(null);
+  const aiJustGenerated = useRef(false);
 
   const tabClass = (id) =>
     state.activeTab === id
@@ -106,9 +107,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     }
   }, [lsKey]);
 
-  // Auto-scroll when analysis becomes available
+  // Auto-scroll uniquement lors d'une génération fraîche (pas au chargement depuis localStorage)
   useEffect(() => {
-    if (aiAnalysis && aiSectionRef.current) {
+    if (aiAnalysis && aiSectionRef.current && aiJustGenerated.current) {
+      aiJustGenerated.current = false;
       aiSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [aiAnalysis]);
@@ -131,6 +133,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
       const res = await api.post(endpoint, payload);
       const analysis = res.data.analysis;
+      aiJustGenerated.current = true;
       setAiAnalysis(analysis);
       try {
         localStorage.setItem(lsKey, JSON.stringify(analysis));

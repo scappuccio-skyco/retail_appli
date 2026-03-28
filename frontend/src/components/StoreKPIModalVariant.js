@@ -98,6 +98,7 @@ function ModalVariantB({ onClose, storeId, storeName, isManager, onSuccess }) {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiGenerating, setAiGenerating] = useState(false);
   const aiSectionRef = useRef(null);
+  const aiJustGenerated = useRef(false);
 
   const canLaunchAI = state.viewMode === 'day'
     ? Boolean(state.overviewData) && !(state.overviewData?.totals?.ca === 0 && state.overviewData?.totals?.ventes === 0)
@@ -107,6 +108,12 @@ function ModalVariantB({ onClose, storeId, storeName, isManager, onSuccess }) {
   useEffect(() => {
     try { const s = localStorage.getItem(lsKey); setAiAnalysis(s ? JSON.parse(s) : null); } catch { setAiAnalysis(null); }
   }, [lsKey]);
+  useEffect(() => {
+    if (aiAnalysis && aiSectionRef.current && aiJustGenerated.current) {
+      aiJustGenerated.current = false;
+      aiSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [aiAnalysis]);
 
   const generateAnalysis = async () => {
     if (!canLaunchAI && !aiAnalysis) return;
@@ -120,6 +127,7 @@ function ModalVariantB({ onClose, storeId, storeName, isManager, onSuccess }) {
         : `/manager/analyze-store-kpis${storeParam}`;
       const res = await api.post(endpoint, { start_date: start, end_date: end });
       const analysis = res.data.analysis;
+      aiJustGenerated.current = true;
       setAiAnalysis(analysis);
       try { localStorage.setItem(lsKey, JSON.stringify(analysis)); } catch {}
       toast.success('Analyse IA générée !');
@@ -239,6 +247,7 @@ function ModalVariantC({ onClose, storeId, storeName, isManager, onSuccess }) {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiGenerating, setAiGenerating] = useState(false);
   const aiSectionRef = useRef(null);
+  const aiJustGenerated = useRef(false);
 
   const canLaunchAI = state.viewMode === 'day'
     ? Boolean(state.overviewData) && !(state.overviewData?.totals?.ca === 0 && state.overviewData?.totals?.ventes === 0)
@@ -248,6 +257,12 @@ function ModalVariantC({ onClose, storeId, storeName, isManager, onSuccess }) {
   useEffect(() => {
     try { const s = localStorage.getItem(lsKey); setAiAnalysis(s ? JSON.parse(s) : null); } catch { setAiAnalysis(null); }
   }, [lsKey]);
+  useEffect(() => {
+    if (aiAnalysis && aiSectionRef.current && aiJustGenerated.current) {
+      aiJustGenerated.current = false;
+      aiSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [aiAnalysis]);
 
   const generateAnalysis = async () => {
     if (!canLaunchAI && !aiAnalysis) return;
@@ -261,6 +276,7 @@ function ModalVariantC({ onClose, storeId, storeName, isManager, onSuccess }) {
         : `/manager/analyze-store-kpis${storeParam}`;
       const res = await api.post(endpoint, { start_date: start, end_date: end });
       const analysis = res.data.analysis;
+      aiJustGenerated.current = true;
       setAiAnalysis(analysis);
       try { localStorage.setItem(lsKey, JSON.stringify(analysis)); } catch {}
       toast.success('Analyse IA générée !');
