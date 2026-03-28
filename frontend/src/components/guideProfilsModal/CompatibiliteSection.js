@@ -3,8 +3,10 @@ import { getCompatibilityResult } from '../guideProfilsData';
 
 // Normalise les styles du diagnostic vers les clés de la matrice de compatibilité
 const STYLE_TO_COMPAT = {
-  'Discret':  'Explorateur',
-  'Stratège': 'Technique',
+  'Discret':    'Explorateur',
+  'Empathique': 'Explorateur',
+  'Relationnel':'Convivial',
+  'Stratège':   'Technique',
 };
 const normalizeSellingStyle = (style) => STYLE_TO_COMPAT[style] || style;
 

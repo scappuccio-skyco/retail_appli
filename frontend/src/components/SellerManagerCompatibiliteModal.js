@@ -5,7 +5,12 @@ import { logger } from '../utils/logger';
 import { getCompatibilityResult } from './guideProfilsData';
 
 // Normalise les styles du diagnostic vendeur vers les clés de la matrice
-const STYLE_TO_COMPAT = { 'Discret': 'Explorateur', 'Stratège': 'Technique' };
+const STYLE_TO_COMPAT = {
+  'Discret':    'Explorateur',
+  'Empathique': 'Explorateur',
+  'Relationnel':'Convivial',
+  'Stratège':   'Technique',
+};
 const normalizeStyle = (s) => STYLE_TO_COMPAT[s] || s;
 
 export default function SellerManagerCompatibiliteModal({ diagnostic, onClose }) {
