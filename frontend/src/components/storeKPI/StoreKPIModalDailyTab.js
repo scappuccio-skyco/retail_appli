@@ -11,10 +11,10 @@ function DailyKPICards({ overviewData }) {
   const hasIndiceVente = typeof kpis.indice_vente === 'number';
   const caStr = hasCa ? `${totals.ca.toFixed(2)} €` : '0 €';
   const ventesStr = hasVentes ? totals.ventes : '0';
-  const panierStr = hasPanierMoyen ? `PM: ${kpis.panier_moyen} €` : 'Panier Moyen: N/A';
-  const tauxStr = hasTauxTransformation ? `${kpis.taux_transformation} %` : 'N/A';
+  const panierStr = hasPanierMoyen ? `PM: ${parseFloat(kpis.panier_moyen).toFixed(2)} €` : 'Panier Moyen: N/A';
+  const tauxStr = hasTauxTransformation ? `${parseFloat(kpis.taux_transformation).toFixed(2)} %` : 'N/A';
   const tauxSub = hasTauxTransformation ? 'Ventes / Prospects' : 'Données manquantes';
-  const indiceStr = hasIndiceVente ? kpis.indice_vente : 'N/A';
+  const indiceStr = hasIndiceVente ? parseFloat(kpis.indice_vente).toFixed(2) : 'N/A';
   const indiceSub = hasIndiceVente ? 'Articles / Ventes' : 'Données manquantes';
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
