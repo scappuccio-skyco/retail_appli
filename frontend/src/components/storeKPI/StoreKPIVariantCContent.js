@@ -8,7 +8,7 @@
  * - Tableau de données condensé en bas
  */
 import React, { useState } from 'react';
-import { Zap, RefreshCw, TrendingUp, TrendingDown, Eye, EyeOff } from 'lucide-react';
+import { Zap, RefreshCw, TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -25,18 +25,6 @@ function KpiPill({ label, value, color = 'text-gray-900' }) {
   );
 }
 
-/* ─── Chart toggle chip ─── */
-function ChipToggle({ label, active, color, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${active ? `${color} border-current` : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100'}`}
-    >
-      {active ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-      {label}
-    </button>
-  );
-}
 
 /* ─── Vue Journalière ─── */
 function DailyView({ overviewData }) {
@@ -103,13 +91,55 @@ function DailyView({ overviewData }) {
 
 /* ─── Vue Période ─── */
 function PeriodView({ historicalData, viewMode, loadingHistorical }) {
-  const [charts, setCharts] = useState({ ca: true, ventes: true, transfo: false });
+  const [activeChart, setActiveChart] = useState(0);
 
   if (loadingHistorical) return <div className="text-center py-12 text-gray-400">⏳ Chargement...</div>;
   if (!historicalData.length) return <div className="text-center py-12 text-gray-400">📭 Aucune donnée pour cette période</div>;
 
   const totals = computePeriodTotals(historicalData);
-  const toggle = (k) => setCharts(prev => ({ ...prev, [k]: !prev[k] }));
+
+  const chartDefs = [
+    {
+      label: 'Chiffre d\'Affaires', dot: 'bg-blue-500',
+      chart: (
+        <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+          <Tooltip formatter={(v) => [`${v} €`, 'CA']} labelFormatter={formatChartDate} />
+          <Bar dataKey="total_ca" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      ),
+    },
+    {
+      label: 'Nombre de Ventes', dot: 'bg-emerald-500',
+      chart: (
+        <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+          <Tooltip formatter={(v) => [v, 'Ventes']} labelFormatter={formatChartDate} />
+          <Bar dataKey="total_ventes" fill="#10B981" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      ),
+    },
+    {
+      label: 'Taux de Transformation', dot: 'bg-purple-500',
+      chart: (
+        <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 10 }} unit="%" axisLine={false} tickLine={false} />
+          <Tooltip formatter={(v) => [`${v}%`, 'Transfo']} labelFormatter={formatChartDate} />
+          <Bar dataKey="taux_transformation" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      ),
+    },
+  ];
+
+  const current = chartDefs[activeChart];
+  const prev = () => setActiveChart(i => (i - 1 + chartDefs.length) % chartDefs.length);
+  const next = () => setActiveChart(i => (i + 1) % chartDefs.length);
 
   return (
     <div className="space-y-5">
@@ -120,68 +150,34 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
         <KpiPill label="Panier moy." value={totals.total_ventes > 0 && totals.total_ca > 0 ? `${(totals.total_ca / totals.total_ventes).toFixed(0)} €` : '—'} color="text-orange-600" />
       </div>
 
-      {/* Filtres graphiques */}
-      <div className="flex gap-2 flex-wrap">
-        <span className="text-xs text-gray-400 self-center mr-1">Graphiques :</span>
-        <ChipToggle label="CA" active={charts.ca} color="bg-blue-100 text-blue-600" onClick={() => toggle('ca')} />
-        <ChipToggle label="Ventes" active={charts.ventes} color="bg-emerald-100 text-emerald-600" onClick={() => toggle('ventes')} />
-        <ChipToggle label="Transfo" active={charts.transfo} color="bg-purple-100 text-purple-600" onClick={() => toggle('transfo')} />
+      {/* Carrousel graphique */}
+      <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className={`w-3 h-3 rounded-full ${current.dot} inline-block`} />
+            <span className="text-sm font-semibold text-gray-700">{current.label}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Dots */}
+            <div className="flex gap-1.5 mr-1">
+              {chartDefs.map((_, i) => (
+                <button key={i} onClick={() => setActiveChart(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${i === activeChart ? 'bg-gray-600 w-4' : 'bg-gray-200 hover:bg-gray-300'}`}
+                />
+              ))}
+            </div>
+            <button onClick={prev} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
+              <ChevronLeft className="w-4 h-4 text-gray-500" />
+            </button>
+            <button onClick={next} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
+              <ChevronRight className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={180}>
+          {current.chart}
+        </ResponsiveContainer>
       </div>
-
-      {/* Graphiques */}
-      {charts.ca && (
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-3 h-3 rounded-full bg-blue-500 inline-block" />
-            <span className="text-sm font-semibold text-gray-700">Chiffre d'Affaires</span>
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-              <Tooltip formatter={(v) => [`${v} €`, 'CA']} labelFormatter={formatChartDate} />
-              <Bar dataKey="total_ca" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {charts.ventes && (
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />
-            <span className="text-sm font-semibold text-gray-700">Nombre de Ventes</span>
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-              <Tooltip formatter={(v) => [v, 'Ventes']} labelFormatter={formatChartDate} />
-              <Bar dataKey="total_ventes" fill="#10B981" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {charts.transfo && (
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-3 h-3 rounded-full bg-purple-500 inline-block" />
-            <span className="text-sm font-semibold text-gray-700">Taux de Transformation</span>
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10 }} unit="%" axisLine={false} tickLine={false} />
-              <Tooltip formatter={(v) => [`${v}%`, 'Transfo']} labelFormatter={formatChartDate} />
-              <Bar dataKey="taux_transformation" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
 
       {/* Table condensée */}
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
