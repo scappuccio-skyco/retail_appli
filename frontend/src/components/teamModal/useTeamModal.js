@@ -14,6 +14,7 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiGenerating, setAiGenerating] = useState(false);
   const aiSectionRef = useRef(null);
+  const aiJustGenerated = useRef(false);
   const [periodFilter, setPeriodFilter] = useState('30');
   const [showNiveauTooltip, setShowNiveauTooltip] = useState(false);
   const [customDateRange, setCustomDateRange] = useState({ start: '', end: '' });
@@ -46,7 +47,7 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
 
   useEffect(() => {
     if (Object.keys(visibleSellers).length > 0) prepareChartData();
-  }, [periodFilter, visibleSellers, customDateRange, teamKpiEntriesBySeller]);
+  }, [periodFilter, visibleSellers, customDateRange.start, customDateRange.end, teamKpiEntriesBySeller]);
 
   const teamAnalysisLsKey = `mgr_team_analysis_${storeIdParam || 'default'}_${periodFilter}_${
     periodFilter === 'custom' ? `${customDateRange.start}_${customDateRange.end}` : ''
@@ -62,7 +63,8 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
   }, [teamAnalysisLsKey]);
 
   useEffect(() => {
-    if (aiAnalysis && aiSectionRef.current) {
+    if (aiAnalysis && aiSectionRef.current && aiJustGenerated.current) {
+      aiJustGenerated.current = false;
       aiSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [aiAnalysis]);
@@ -170,7 +172,6 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
       sellersData.forEach((row) => { if (row._kpiEntries) kpiBySeller[row.id] = row._kpiEntries; });
       setTeamKpiEntriesBySeller(kpiBySeller);
       setTeamData(sellersData.map(({ _kpiEntries, ...rest }) => rest));
-      if (Object.keys(visibleSellers).length > 0) prepareChartData();
     } catch (err) {
       logger.error('Error fetching team data:', err);
       toast.error("Erreur lors du chargement des données d'équipe");
@@ -349,6 +350,7 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
       }
       const res = await api.post(`/manager/analyze-team${storeQueryParam}`, requestBody);
       const analysis = res.data.analysis;
+      aiJustGenerated.current = true;
       setAiAnalysis(analysis);
       try { localStorage.setItem(teamAnalysisLsKey, JSON.stringify(analysis)); } catch { /* localStorage full */ }
       toast.success('Analyse IA générée !');
