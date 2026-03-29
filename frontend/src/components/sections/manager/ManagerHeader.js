@@ -73,7 +73,7 @@ export default function ManagerHeader({
             className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
           >
             <Sparkles className="w-4 h-4" />
-            Profil
+            <span className="hidden sm:inline">Profil</span>
           </button>
 
           <button
@@ -83,7 +83,7 @@ export default function ManagerHeader({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
             </svg>
-            Config
+            <span className="hidden sm:inline">Config</span>
           </button>
 
           <button
