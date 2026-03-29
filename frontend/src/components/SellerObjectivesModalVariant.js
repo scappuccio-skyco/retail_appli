@@ -1,14 +1,13 @@
 /**
  * SellerObjectivesModalVariant — STAGING UNIQUEMENT
  *
- * B — "Goal Board" : header dark emerald, objectifs en grand cards,
- *     compteur d'objectifs actifs en hero, onglets en pills.
+ * Dupliqué depuis ObjectivesModal.js — mêmes fonctionnalités, présentation différente.
  *
- * C — "Progress View" : header dégradé vert-teal, stats en ligne,
- *     onglets icônes minimalistes, fond très clair.
+ * variant='B' → Sans onglets : objectifs visibles + historique en section expansible en bas
+ * variant='C' → Panneau latéral : sidebar de stats + contenu principal à droite
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Target, History, Award, CheckCircle } from 'lucide-react';
+import { X, Target, History, Award, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
@@ -78,82 +77,105 @@ function useObjectivesState({ isOpen, initialObjectives, onUpdate, initialObject
     activeObjectives, setActiveObjectives, activeTab, setActiveTab,
     updatingObjectiveId, setUpdatingObjectiveId,
     objectiveProgressValue, setObjectiveProgressValue,
-    historyObjectives, setHistoryObjectives,
-    historyStatusFilter, setHistoryStatusFilter,
+    historyObjectives, historyStatusFilter, setHistoryStatusFilter,
     achievementModal, setAchievementModal,
-    refreshActiveData, handleMarkAchievementAsSeen, triggerConfetti,
+    refreshActiveData, fetchHistory, handleMarkAchievementAsSeen, triggerConfetti,
   };
 }
 
 /* ══════════════════════════════════════
-   STYLE B — Goal Board
+   STYLE B — Sans Onglets
+   Objectifs en haut, Historique en section dépliable en bas
 ══════════════════════════════════════ */
 function ModalVariantB({ isOpen, onClose, activeObjectives: initialObjectives = [], onUpdate, initialObjectiveId }) {
   const s = useObjectivesState({ isOpen, initialObjectives, onUpdate, initialObjectiveId });
+  const [histoOpen, setHistoOpen] = useState(false);
+
+  // Charger l'historique quand on ouvre la section
+  useEffect(() => {
+    if (histoOpen && isOpen) s.fetchHistory();
+  }, [histoOpen, isOpen]); // eslint-disable-line
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-emerald-950 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-emerald-800">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-200">
 
-        {/* Header sombre emerald */}
-        <div className="bg-emerald-900 px-6 py-4 flex-shrink-0">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-700 flex items-center justify-center">
-                <Target className="w-5 h-5 text-emerald-300" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-white">Mes Objectifs</h2>
-                <p className="text-xs text-emerald-400">Suivi de progression personnelle</p>
-              </div>
-            </div>
-            <button onClick={onClose} className="p-2 rounded-lg bg-emerald-800 hover:bg-emerald-700 transition-colors">
-              <X className="w-4 h-4 text-emerald-300" />
+        {/* Header avec hero stat */}
+        <div className="bg-gradient-to-r from-blue-900 via-teal-800 to-green-800 px-6 pt-5 pb-4 flex-shrink-0 rounded-t-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Mes Objectifs
+            </h2>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 text-white font-medium">Style B</span>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors ml-2">
+              <X className="w-5 h-5 text-white" />
             </button>
           </div>
-          {/* Hero stat */}
-          <div className="bg-emerald-800/50 rounded-xl px-4 py-3 flex items-center gap-3">
-            <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0" />
-            <div>
-              <p className="text-2xl font-bold text-white">{s.activeObjectives.length}</p>
-              <p className="text-xs text-emerald-400">objectif{s.activeObjectives.length > 1 ? 's' : ''} actif{s.activeObjectives.length > 1 ? 's' : ''}</p>
+          {/* Hero stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/10 rounded-xl px-4 py-3 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-300 flex-shrink-0" />
+                <div>
+                  <p className="text-2xl font-bold text-white leading-none">{s.activeObjectives.length}</p>
+                  <p className="text-xs text-teal-200 mt-0.5">objectif{s.activeObjectives.length > 1 ? 's' : ''} actif{s.activeObjectives.length > 1 ? 's' : ''}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white/10 rounded-xl px-4 py-3 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-yellow-300 flex-shrink-0" />
+                <div>
+                  <p className="text-2xl font-bold text-white leading-none">
+                    {s.activeObjectives.length > 0
+                      ? Math.round(s.activeObjectives.reduce((acc, o) => acc + (o.progress_percentage || 0), 0) / s.activeObjectives.length)
+                      : 0}%
+                  </p>
+                  <p className="text-xs text-teal-200 mt-0.5">progression moyenne</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Tabs pills */}
-        <div className="bg-emerald-900 px-6 pb-3 flex gap-2 flex-shrink-0">
-          {[{ id: 'objectifs', label: 'Objectifs actifs', icon: Target }, { id: 'historique', label: 'Historique', icon: History }].map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => s.setActiveTab(id)}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all ${
-                s.activeTab === id
-                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                  : 'bg-emerald-800 text-emerald-300 hover:bg-emerald-700'
-              }`}>
-              <Icon className="w-4 h-4" />{label}
-            </button>
-          ))}
-        </div>
+        {/* Corps scrollable */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {/* Section Objectifs actifs — toujours visible */}
+          <ObjectivesTab
+            activeObjectives={s.activeObjectives} setActiveObjectives={s.setActiveObjectives}
+            updatingObjectiveId={s.updatingObjectiveId} setUpdatingObjectiveId={s.setUpdatingObjectiveId}
+            objectiveProgressValue={s.objectiveProgressValue} setObjectiveProgressValue={s.setObjectiveProgressValue}
+            refreshActiveData={s.refreshActiveData} triggerConfetti={s.triggerConfetti}
+          />
 
-        {/* Content fond clair */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
-          {s.activeTab === 'objectifs' && (
-            <ObjectivesTab
-              activeObjectives={s.activeObjectives} setActiveObjectives={s.setActiveObjectives}
-              updatingObjectiveId={s.updatingObjectiveId} setUpdatingObjectiveId={s.setUpdatingObjectiveId}
-              objectiveProgressValue={s.objectiveProgressValue} setObjectiveProgressValue={s.setObjectiveProgressValue}
-              refreshActiveData={s.refreshActiveData} triggerConfetti={s.triggerConfetti}
-            />
-          )}
-          {s.activeTab === 'historique' && (
-            <HistoriqueTab
-              historyObjectives={s.historyObjectives} historyStatusFilter={s.historyStatusFilter}
-              setHistoryStatusFilter={s.setHistoryStatusFilter}
-            />
-          )}
+          {/* Section Historique — expansible */}
+          <div className="border-t border-gray-200">
+            <button
+              onClick={() => setHistoOpen(o => !o)}
+              className="w-full flex items-center justify-between px-5 py-3.5 bg-gray-50 hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <History className="w-4 h-4 text-purple-500" />
+                Historique des objectifs
+              </div>
+              {histoOpen
+                ? <ChevronUp className="w-4 h-4 text-gray-400" />
+                : <ChevronDown className="w-4 h-4 text-gray-400" />
+              }
+            </button>
+            {histoOpen && (
+              <HistoriqueTab
+                historyObjectives={s.historyObjectives} historyStatusFilter={s.historyStatusFilter}
+                setHistoryStatusFilter={s.setHistoryStatusFilter}
+              />
+            )}
+          </div>
         </div>
       </div>
+
       {s.achievementModal.isOpen && (
         <AchievementModal item={s.achievementModal.item} itemType={s.achievementModal.itemType}
           onClose={s.handleMarkAchievementAsSeen} />
@@ -163,68 +185,95 @@ function ModalVariantB({ isOpen, onClose, activeObjectives: initialObjectives = 
 }
 
 /* ══════════════════════════════════════
-   STYLE C — Progress View
+   STYLE C — Panneau Latéral
+   Sidebar gauche avec stats + navigation, contenu à droite
 ══════════════════════════════════════ */
 function ModalVariantC({ isOpen, onClose, activeObjectives: initialObjectives = [], onUpdate, initialObjectiveId }) {
   const s = useObjectivesState({ isOpen, initialObjectives, onUpdate, initialObjectiveId });
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-100">
+  const avgProgress = s.activeObjectives.length > 0
+    ? Math.round(s.activeObjectives.reduce((acc, o) => acc + (o.progress_percentage || 0), 0) / s.activeObjectives.length)
+    : 0;
 
-        {/* Header dégradé vert-teal */}
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-8 py-5 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                <Target className="w-6 h-6 text-white" />
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-100">
+
+        {/* Header minimaliste */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0 bg-gray-50">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+              <Target className="w-4 h-4 text-teal-600" />
+            </div>
+            <h2 className="text-base font-bold text-gray-900">Mes Objectifs</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-teal-50 text-teal-600 font-semibold border border-teal-100">Style C</span>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Corps : sidebar gauche + contenu droit */}
+        <div className="flex-1 flex overflow-hidden min-h-0">
+
+          {/* Sidebar stats + nav */}
+          <div className="w-52 flex-shrink-0 border-r border-gray-100 bg-gray-50 flex flex-col py-4 px-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-3">Vue d'ensemble</p>
+
+            {/* Stats cards */}
+            <div className="space-y-2 mb-4">
+              <div className="bg-white rounded-xl px-3 py-3 border border-gray-100 shadow-sm">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Actifs</p>
+                <p className="text-2xl font-bold text-teal-600">{s.activeObjectives.length}</p>
+                <p className="text-xs text-gray-500">objectif{s.activeObjectives.length > 1 ? 's' : ''}</p>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white">Mes Objectifs</h2>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-sm font-semibold text-emerald-100">{s.activeObjectives.length} actif{s.activeObjectives.length > 1 ? 's' : ''}</span>
-                  <span className="text-white/50">·</span>
-                  <span className="text-sm text-white/70">Suivi progression</span>
+              <div className="bg-white rounded-xl px-3 py-3 border border-gray-100 shadow-sm">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Progression</p>
+                <p className="text-2xl font-bold text-green-600">{avgProgress}%</p>
+                <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-green-400 rounded-full transition-all" style={{ width: `${avgProgress}%` }} />
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors">
-              <X className="w-5 h-5 text-white" />
-            </button>
+
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">Navigation</p>
+            {[
+              { id: 'objectifs', label: 'Actifs', icon: Target },
+              { id: 'historique', label: 'Historique', icon: History },
+            ].map(({ id, label, icon: Icon }) => (
+              <button key={id} onClick={() => s.setActiveTab(id)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
+                  s.activeTab === id
+                    ? 'bg-teal-500 text-white shadow-md shadow-teal-200'
+                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                }`}>
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Contenu principal */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {s.activeTab === 'objectifs' && (
+              <ObjectivesTab
+                activeObjectives={s.activeObjectives} setActiveObjectives={s.setActiveObjectives}
+                updatingObjectiveId={s.updatingObjectiveId} setUpdatingObjectiveId={s.setUpdatingObjectiveId}
+                objectiveProgressValue={s.objectiveProgressValue} setObjectiveProgressValue={s.setObjectiveProgressValue}
+                refreshActiveData={s.refreshActiveData} triggerConfetti={s.triggerConfetti}
+              />
+            )}
+            {s.activeTab === 'historique' && (
+              <HistoriqueTab
+                historyObjectives={s.historyObjectives} historyStatusFilter={s.historyStatusFilter}
+                setHistoryStatusFilter={s.setHistoryStatusFilter}
+              />
+            )}
           </div>
         </div>
-
-        {/* Tabs underline */}
-        <div className="px-8 flex gap-6 border-b border-gray-100 flex-shrink-0">
-          {[{ id: 'objectifs', label: 'Actifs', icon: Target }, { id: 'historique', label: 'Historique', icon: History }].map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => s.setActiveTab(id)}
-              className={`flex items-center gap-2 py-4 text-sm font-semibold border-b-2 transition-all ${
-                s.activeTab === id ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-gray-400 hover:text-gray-600'
-              }`}>
-              <Icon className="w-4 h-4" />{label}
-            </button>
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          {s.activeTab === 'objectifs' && (
-            <ObjectivesTab
-              activeObjectives={s.activeObjectives} setActiveObjectives={s.setActiveObjectives}
-              updatingObjectiveId={s.updatingObjectiveId} setUpdatingObjectiveId={s.setUpdatingObjectiveId}
-              objectiveProgressValue={s.objectiveProgressValue} setObjectiveProgressValue={s.setObjectiveProgressValue}
-              refreshActiveData={s.refreshActiveData} triggerConfetti={s.triggerConfetti}
-            />
-          )}
-          {s.activeTab === 'historique' && (
-            <HistoriqueTab
-              historyObjectives={s.historyObjectives} historyStatusFilter={s.historyStatusFilter}
-              setHistoryStatusFilter={s.setHistoryStatusFilter}
-            />
-          )}
-        </div>
       </div>
+
       {s.achievementModal.isOpen && (
         <AchievementModal item={s.achievementModal.item} itemType={s.achievementModal.itemType}
           onClose={s.handleMarkAchievementAsSeen} />

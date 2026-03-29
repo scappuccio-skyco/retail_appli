@@ -60,7 +60,7 @@ export default function NotificationBell({ notifications, unreadCount, onMarkRea
 
       {/* Panel */}
       {open && (
-        <div className="absolute right-0 top-11 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+        <div className="absolute right-0 top-11 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
             <span className="font-bold text-gray-800 text-sm">

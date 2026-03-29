@@ -5,7 +5,7 @@
 > Il documente l'architecture, les conventions, et l'historique des modifications.
 
 **⚠️ IMPORTANT**: Ce document DOIT être mis à jour à chaque modification significative de l'application.
-**Dernière mise à jour**: 26 Mars 2026 (session 14 — en prod)
+**Dernière mise à jour**: 28 Mars 2026 (session 16 — complété)
 
 ---
 
@@ -1345,3 +1345,102 @@ Est-ce que c'est quelque chose que vous reconnaissez dans votre magasin ?
 - ✅ `frontend/src/components/sections/seller/SellerHeader.js` — bouton "Mon manager" (purple→pink, icône Heart), conditionnel `onOpenManagerCompat`
 - ✅ `frontend/src/pages/SellerDashboard.js` — état `showManagerCompatModal` + passage prop à SellerHeader et SellerModalsLayer
 - ✅ `frontend/src/components/sections/seller/SellerModalsLayer.js` — import + rendu conditionnel `SellerManagerCompatibiliteModal` avec `diagnostic` prop
+
+---
+
+## 📅 Session 15 — 28 Mars 2026
+
+### Fixes : StoreKPI variantes B & C — bugs de duplication
+
+**Contexte** : lors de la création des styles B et C pour `StoreKPIModal`, la logique métier a été réécrite au lieu d'être copiée depuis Style A. Plusieurs bugs introduits.
+
+**Bugs corrigés** :
+
+1. **Endpoint IA incorrect** (`StoreKPIModalVariant.js`) : variantes B & C utilisaient toujours `/gerant/stores/:id/analyze-store-kpis` même pour un manager. Corrigé avec `isManager` prop comme Style A.
+2. **Guard clause manquante** (`StoreKPIModalVariant.js`) : `generateAnalysis` appelait l'API même quand `canLaunchAI` est false. Ajout de `if (!canLaunchAI && !aiAnalysis) return;`.
+3. **Analyse IA invisible** (`StoreKPIVariantBContent.js`, `StoreKPIVariantCContent.js`) : rendu utilisait `aiAnalysis?.summary || aiAnalysis?.content` mais l'API retourne `{ synthese, action_prioritaire, points_forts, points_attention, recommandations }`. Remplacement par `ManagerAIAnalysisDisplay` (comme Style A).
+4. **Stats KPI à 0 en vue Période** (B & C) : accédait à `totals.ca` / `totals.ventes` mais `computePeriodTotals` retourne `total_ca` / `total_ventes`.
+5. **Barres de progression toutes à 100%** (Style C) : `maxCa` calculé avant le tri → fix : trier d'abord, puis `maxCa = sorted[0]?.seller_ca`.
+6. **Trop de décimales** : `taux_transformation` stocké comme float brut. Fix dans `addDerivedMetrics`, `DailyView` des deux variants, et `StoreKPIModalDailyTab`.
+7. **Carrousel graphiques** : remplacement des graphiques empilés verticalement par un carrousel (1 seul à la fois, flèches + dots) dans tous les espaces : `StoreKPIVariantCContent`, `StoreKPIVariantBContent`, `StoreKPIModalOverviewTab`, `KPICharts`, `BilanChartsSection`, `KPIChartsSection`, `KpiTab`.
+8. **Bouton Analyser IA caché** (Style A) : section IA déplacée avant le contenu dans `StoreKPIModal.js`.
+
+**🔴 RÈGLE CRITIQUE — Duplication de composants** :
+> Quand on crée une variante visuelle d'un composant existant, **copier mot pour mot** toute la logique métier (appels API, endpoints, rendu des réponses, gestion d'erreur, guard clauses). **Ne changer que le CSS et la structure HTML.** Ne jamais réécrire la logique de mémoire.
+
+- ✅ `frontend/src/components/StoreKPIModalVariant.js`
+- ✅ `frontend/src/components/storeKPI/StoreKPIVariantBContent.js`
+- ✅ `frontend/src/components/storeKPI/StoreKPIVariantCContent.js`
+- ✅ `frontend/src/components/storeKPI/StoreKPIModalDailyTab.js`
+- ✅ `frontend/src/components/storeKPI/storeKPIUtils.js`
+- ✅ `frontend/src/components/StoreKPIModal.js`
+- ✅ `frontend/src/components/storeKPI/StoreKPIModalOverviewTab.js`
+- ✅ `frontend/src/components/performanceModal/bilanTab/KPICharts.js`
+- ✅ `frontend/src/components/bilanIndividuel/BilanChartsSection.js`
+- ✅ `frontend/src/pages/kpiReporting/KPIChartsSection.js`
+- ✅ `frontend/src/components/sellerDetail/KpiTab.js`
+
+### Session 15 (suite) — Fixes UX & anti-patterns React
+
+**Analyse IA en dessous des données + auto-scroll uniquement sur génération fraîche** :
+- Pattern `aiJustGenerated = useRef(false)` : flag set à `true` avant `setAiAnalysis()`, consommé et reset dans `useEffect([aiAnalysis])` → scroll uniquement si génération fraîche (pas au chargement depuis localStorage)
+- Appliqué dans : `StoreKPIModal.js`, `StoreKPIModalVariant.js` (B & C), `useTeamModal.js`, `TeamModalVariant.js` (B)
+
+**Fix stale closure — double appel API** : `prepareChartData()` appelée à la fin de `fetchTeamData` capturait un état `teamKpiEntriesBySeller` périmé (pré-setState). Fix : suppression de l'appel direct, `useEffect` sur `[..., teamKpiEntriesBySeller]` prend en charge le recalcul avec l'état à jour.
+
+**Fix toggle vendeur non fluide** (`ChartsSection.js`) : double `setTimeout(50ms)` supprimé — appel direct `setVisibleSellers` suffit.
+
+**Fix double déclenchement useEffect** (`useTeamModal.js`) : `customDateRange` (objet) dans les deps → remplacé par `customDateRange.start` + `customDateRange.end` (primitives) pour éviter que chaque re-render crée une nouvelle référence.
+
+---
+
+## 📅 Session 16 — 28 Mars 2026
+
+### Mobile Responsiveness — Audit et corrections
+
+**Principe général** : Tailwind responsive — préfixer les classes spécifiques au desktop avec `sm:` ; les mobiles (< 640px) ont la classe par défaut.
+
+**Corrections apportées** :
+
+1. **Inputs touch targets** (`py-2` → `py-3`) :
+   - ✅ `performanceModal/SaisieTab.js` — 4 inputs KPI (CA, Ventes, Articles, Prospects) : `py-2` → `py-3`
+   - ✅ `storeKPI/StoreKPIModalProspectsTab.js` — inputs vendeurs : `p-2` → `p-3` (3 occurrences)
+
+2. **Onglets scrollables** (overflow horizontal) :
+   - ✅ `PerformanceModal.js` — `div.flex gap-1 px-6` → `overflow-x-auto` + `px-2 sm:px-6` + `flex-shrink-0` + texte `text-xs sm:text-sm` sur les boutons onglets
+   - ✅ `DebriefModal.js` — `div.flex gap-2` → `overflow-x-auto pb-1` + `flex-shrink-0` + `py-2.5` + `px-3 sm:px-4` + texte `text-sm sm:text-base` sur les labels
+   - Note : `StoreKPIModal.js` avait déjà `overflow-x-auto` et `flex-shrink-0` (session 15)
+
+3. **Tableau vendeurs** (`SellersTableSection.js`) :
+   - ✅ Email masqué sur mobile : `text-xs text-gray-500 truncate` → `hidden sm:block text-xs text-gray-500 truncate`
+
+4. **Calendrier KPI** (`KPICalendar.js`) :
+   - ✅ Cellules jours : `h-7` → `h-9 sm:h-7` (32px sur mobile → meilleure zone de touch)
+
+5. **Graphiques Recharts adaptatifs** :
+   - ✅ `teamModal/ChartsSection.js` — 3 charts : `height={280}` → wrapper `<div className="h-52 sm:h-64">` + `height="100%"` sur ResponsiveContainer
+   - ✅ `storeKPI/StoreKPIModalOverviewTab.js` — 2 charts : `height={300}` → wrapper `<div className="h-56 sm:h-72">` + `height="100%"` sur ResponsiveContainer
+
+6. **NotificationBell** (`NotificationBell.js`) :
+   - ✅ Panel notifications : `w-80 sm:w-96` → `w-[calc(100vw-2rem)] sm:w-96 max-w-sm` (ne déborde plus sur petits écrans)
+
+**Pattern Recharts responsive** (à retenir) :
+```jsx
+<div className="h-52 sm:h-64">
+  <ResponsiveContainer width="100%" height="100%">
+    <LineChart ...>...</LineChart>
+  </ResponsiveContainer>
+</div>
+```
+Ne jamais utiliser `height={280}` fixe sur ResponsiveContainer quand un comportement responsive est voulu — l'envelopper dans un div avec classe Tailwind `h-XX`.
+
+**Fichiers modifiés** :
+- `frontend/src/components/performanceModal/SaisieTab.js`
+- `frontend/src/components/PerformanceModal.js`
+- `frontend/src/components/DebriefModal.js`
+- `frontend/src/components/teamModal/SellersTableSection.js`
+- `frontend/src/components/KPICalendar.js`
+- `frontend/src/components/storeKPI/StoreKPIModalProspectsTab.js`
+- `frontend/src/components/teamModal/ChartsSection.js`
+- `frontend/src/components/storeKPI/StoreKPIModalOverviewTab.js`
+- `frontend/src/components/notifications/NotificationBell.js`

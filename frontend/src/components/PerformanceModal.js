@@ -46,10 +46,10 @@ export default function PerformanceModal({
           </div>
 
           <div className="border-b border-gray-200 bg-gray-50 pt-2">
-            <div className="flex gap-1 px-6">
+            <div className="flex gap-1 px-2 sm:px-6 overflow-x-auto">
               <button
                 onClick={() => pm.setActiveTab('bilan')}
-                className={`px-4 py-2 text-sm font-semibold transition-all rounded-t-lg ${
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition-all rounded-t-lg flex-shrink-0 ${
                   pm.activeTab === 'bilan'
                     ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                     : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
@@ -69,7 +69,7 @@ export default function PerformanceModal({
                   pm.setActiveTab('saisie');
                 }}
                 disabled={isReadOnly}
-                className={`px-4 py-2 text-sm font-semibold transition-all rounded-t-lg ${
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition-all rounded-t-lg flex-shrink-0 ${
                   isReadOnly
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : pm.activeTab === 'saisie'

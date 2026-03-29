@@ -146,7 +146,7 @@ export default function StoreKPIModalProspectsTab({
                             disabled={sellerLocked}
                             value={sellersKPIData[seller.id]?.ca_journalier ?? ''}
                             onChange={(e) => setSellersKPIData(prev => ({ ...prev, [seller.id]: { ...prev[seller.id], ca_journalier: e.target.value } }))}
-                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${inputCls}`}
+                            className={`w-full p-3 border rounded-lg text-sm focus:outline-none ${inputCls}`}
                             placeholder="0.00"
                           />
                         </div>
@@ -161,7 +161,7 @@ export default function StoreKPIModalProspectsTab({
                             disabled={sellerLocked}
                             value={sellersKPIData[seller.id]?.nb_ventes ?? ''}
                             onChange={(e) => setSellersKPIData(prev => ({ ...prev, [seller.id]: { ...prev[seller.id], nb_ventes: e.target.value } }))}
-                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${inputCls}`}
+                            className={`w-full p-3 border rounded-lg text-sm focus:outline-none ${inputCls}`}
                             placeholder="0"
                           />
                         </div>
@@ -176,7 +176,7 @@ export default function StoreKPIModalProspectsTab({
                             disabled={sellerLocked}
                             value={sellersKPIData[seller.id]?.nb_articles ?? ''}
                             onChange={(e) => setSellersKPIData(prev => ({ ...prev, [seller.id]: { ...prev[seller.id], nb_articles: e.target.value } }))}
-                            className={`w-full p-2 border rounded-lg text-sm focus:outline-none ${inputCls}`}
+                            className={`w-full p-3 border rounded-lg text-sm focus:outline-none ${inputCls}`}
                             placeholder="0"
                           />
                         </div>
