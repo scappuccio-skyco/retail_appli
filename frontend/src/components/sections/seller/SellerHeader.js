@@ -68,67 +68,75 @@ export default function SellerHeader({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex overflow-x-auto gap-2 items-center justify-start md:justify-end w-full md:w-auto mt-4 md:mt-0 pb-1 md:pb-0 flex-nowrap">
-          <button
-            onClick={() => diagnostic ? onOpenProfile() : onOpenDiagnosticForm()}
-            className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-white border-2 border-pink-500 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 hover:shadow-md transition-all text-sm sm:text-base"
-            title="Mon Profil de Vente"
-          >
-            <User className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Profil</span>
-          </button>
+        {/* Actions — Mobile : 2 lignes, Desktop : 1 ligne */}
+        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto mt-4 md:mt-0 md:items-center md:justify-end">
 
-          <button
-            onClick={onToggleFilters}
-            className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-white border-2 border-purple-500 text-purple-600 font-semibold rounded-xl hover:bg-purple-50 hover:shadow-md transition-all group text-sm sm:text-base"
-            title="Personnaliser l'affichage du dashboard"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span className="hidden sm:inline">Personnaliser</span>
-          </button>
-
-          {onOpenManagerCompat && (
+          {/* Ligne 1 : actions principales */}
+          <div className="flex gap-2 justify-center md:contents">
             <button
-              onClick={onOpenManagerCompat}
-              className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all text-sm sm:text-base"
-              title="Comprendre mon manager"
+              onClick={() => diagnostic ? onOpenProfile() : onOpenDiagnosticForm()}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 bg-white border-2 border-pink-500 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 hover:shadow-md transition-all text-sm sm:text-base"
+              title="Mon Profil de Vente"
             >
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Mon manager</span>
+              <User className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Profil</span>
             </button>
-          )}
 
-          <button
-            onClick={onOpenSupport}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all text-sm sm:text-base"
-            title="Contacter le support"
-          >
-            <Headphones className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Support</span>
-          </button>
+            <button
+              onClick={onToggleFilters}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 bg-white border-2 border-purple-500 text-purple-600 font-semibold rounded-xl hover:bg-purple-50 hover:shadow-md transition-all group text-sm sm:text-base"
+              title="Personnaliser l'affichage du dashboard"
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="hidden sm:inline">Personnaliser</span>
+            </button>
 
-          <TutorialButton onClick={onboarding.open} />
+            {onOpenManagerCompat && (
+              <button
+                onClick={onOpenManagerCompat}
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all text-sm sm:text-base"
+                title="Comprendre mon manager"
+              >
+                <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Mon manager</span>
+              </button>
+            )}
 
-          <NotificationBell
-            notifications={notifications}
-            unreadCount={unreadCount}
-            onMarkRead={markRead}
-            onMarkAllRead={markAllRead}
-          />
+            <button
+              onClick={onOpenSupport}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all text-sm sm:text-base"
+              title="Contacter le support"
+            >
+              <Headphones className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Support</span>
+            </button>
+          </div>
 
-          <button
-            data-testid="logout-button"
-            onClick={onLogout}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow-md transition-all text-sm sm:text-base"
-            title="Se déconnecter"
-          >
-            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Déconnexion</span>
-          </button>
+          {/* Ligne 2 : utilitaires + déconnexion */}
+          <div className="flex gap-2 justify-center md:contents">
+            <TutorialButton onClick={onboarding.open} />
+
+            <NotificationBell
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onMarkRead={markRead}
+              onMarkAllRead={markAllRead}
+            />
+
+            <button
+              data-testid="logout-button"
+              onClick={onLogout}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow-md transition-all text-sm sm:text-base"
+              title="Se déconnecter"
+            >
+              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Déconnexion</span>
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
