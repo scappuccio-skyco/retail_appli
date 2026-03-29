@@ -69,7 +69,7 @@ export default function SellerHeader({
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-end w-full md:w-auto mt-4 md:mt-0">
+        <div className="flex overflow-x-auto gap-2 items-center justify-start md:justify-end w-full md:w-auto mt-4 md:mt-0 pb-1 md:pb-0 flex-nowrap">
           <button
             onClick={() => diagnostic ? onOpenProfile() : onOpenDiagnosticForm()}
             className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-white border-2 border-pink-500 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 hover:shadow-md transition-all text-sm sm:text-base"
