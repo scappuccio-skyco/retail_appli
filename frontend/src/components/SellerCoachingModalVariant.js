@@ -1,11 +1,10 @@
 /**
  * SellerCoachingModalVariant — STAGING UNIQUEMENT
  *
- * B — "Dark Coach" : header violet sombre, onglets en pills,
- *     fond très sombre pour l'immersion, accent violet/indigo.
+ * Dupliqué depuis CoachingModal.js — mêmes fonctionnalités, présentation différente.
  *
- * C — "Bright Coach" : header dégradé violet-indigo lumineux,
- *     onglets underline, fond clair et aéré.
+ * variant='B' → Tout en Scroll : pas d'onglets, défi en hero + analyse en dessous (tout visible)
+ * variant='C' → Deux Panneaux : défi à gauche + analyse à droite (côte à côte sur lg)
  */
 import React, { useState } from 'react';
 import { X, Award, MessageSquare, Sparkles, Brain } from 'lucide-react';
@@ -76,53 +75,40 @@ function useCoachingState({ isOpen, dailyChallenge, onRefreshChallenge, onComple
 }
 
 /* ══════════════════════════════════════
-   STYLE B — Dark Coach
+   STYLE B — Tout en Scroll
+   Pas d'onglets : défi hero + analyse en dessous, tout visible d'un scroll
 ══════════════════════════════════════ */
 function ModalVariantB({ isOpen, onClose, dailyChallenge, onRefreshChallenge, onCompleteChallenge, onOpenChallengeHistory, debriefs = [], onCreateDebrief }) {
   const s = useCoachingState({ isOpen, dailyChallenge, onRefreshChallenge, onCompleteChallenge, onOpenChallengeHistory, debriefs, onCreateDebrief });
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-violet-950 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-violet-800">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-200">
 
-        {/* Header violet sombre */}
-        <div className="bg-violet-900 px-6 py-4 flex-shrink-0">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-700 flex items-center justify-center">
-                <Brain className="w-5 h-5 text-violet-300" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-white">Mon Coach IA</h2>
-                <p className="text-xs text-violet-400">Défis personnalisés · Analyse de ventes</p>
-              </div>
+        {/* Header compact */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0 bg-gray-50">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+              <Brain className="w-4 h-4 text-purple-600" />
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg bg-violet-800 hover:bg-violet-700 transition-colors">
-              <X className="w-4 h-4 text-violet-300" />
-            </button>
+            <h2 className="text-base font-bold text-gray-900">Mon Coach IA</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 font-semibold border border-purple-100">Style B</span>
           </div>
-          {/* Tabs pills */}
-          <div className="flex gap-2">
-            {[
-              { id: 'coach', label: 'Mon Défi', icon: Award },
-              { id: 'analyse', label: 'Analyse Ventes', icon: MessageSquare },
-            ].map(({ id, label, icon: Icon }) => (
-              <button key={id} onClick={() => s.setActiveTab(id)}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all ${
-                  s.activeTab === id
-                    ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'
-                    : 'bg-violet-800 text-violet-300 hover:bg-violet-700'
-                }`}>
-                <Icon className="w-4 h-4" />{label}
-              </button>
-            ))}
-          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Content fond clair */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
-          {s.activeTab === 'coach' && (
+        {/* Corps scrollable : tout affiché en sections, pas d'onglets */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+
+          {/* Section 1 — Mon défi du jour */}
+          <div>
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100 bg-white sticky top-0 z-10">
+              <Award className="w-4 h-4 text-purple-500" />
+              <span className="text-sm font-bold text-gray-800">Mon Défi du Jour</span>
+            </div>
             <ChallengeTab
               dailyChallenge={dailyChallenge} stats={s.stats} loading={s.loading}
               showFeedbackForm={s.showFeedbackForm} feedbackComment={s.feedbackComment}
@@ -132,8 +118,17 @@ function ModalVariantB({ isOpen, onClose, dailyChallenge, onRefreshChallenge, on
               handleSubmitFeedback={s.handleSubmitFeedback}
               onOpenChallengeHistory={s.onOpenChallengeHistory}
             />
-          )}
-          {s.activeTab === 'analyse' && (
+          </div>
+
+          {/* Diviseur visuel */}
+          <div className="h-2 bg-gray-100 border-y border-gray-200" />
+
+          {/* Section 2 — Analyser mes ventes */}
+          <div>
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100 bg-white sticky top-0 z-10">
+              <MessageSquare className="w-4 h-4 text-indigo-500" />
+              <span className="text-sm font-bold text-gray-800">Analyser mes Ventes</span>
+            </div>
             <AnalyseTab
               debriefs={debriefs} expandedDebriefs={s.expandedDebriefs}
               setExpandedDebriefs={s.setExpandedDebriefs}
@@ -142,9 +137,10 @@ function ModalVariantB({ isOpen, onClose, dailyChallenge, onRefreshChallenge, on
               analyseSubTab={s.analyseSubTab} setAnalyseSubTab={s.setAnalyseSubTab}
               onCreateDebrief={onCreateDebrief}
             />
-          )}
+          </div>
         </div>
       </div>
+
       {s.showChallengeHistoryModal && (
         <ChallengeHistoryModal isOpen={s.showChallengeHistoryModal} onClose={() => s.setShowChallengeHistoryModal(false)} />
       )}
@@ -153,51 +149,47 @@ function ModalVariantB({ isOpen, onClose, dailyChallenge, onRefreshChallenge, on
 }
 
 /* ══════════════════════════════════════
-   STYLE C — Bright Coach
+   STYLE C — Deux Panneaux
+   Défi à gauche + Analyse à droite (côte à côte sur lg)
+   Sur mobile : onglets classiques
 ══════════════════════════════════════ */
 function ModalVariantC({ isOpen, onClose, dailyChallenge, onRefreshChallenge, onCompleteChallenge, onOpenChallengeHistory, debriefs = [], onCreateDebrief }) {
   const s = useCoachingState({ isOpen, dailyChallenge, onRefreshChallenge, onCompleteChallenge, onOpenChallengeHistory, debriefs, onCreateDebrief });
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-100">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-gray-50 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[94vh] sm:max-h-[90vh] overflow-hidden flex flex-col border border-gray-200">
 
-        {/* Header dégradé violet-indigo */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-5 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white">Mon Coach IA</h2>
-                <p className="text-sm text-purple-200">Défis · Analyse · Progression</p>
-              </div>
+        {/* Header */}
+        <div className="bg-white flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-purple-600" />
             </div>
-            <button onClick={onClose} className="p-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors">
-              <X className="w-5 h-5 text-white" />
+            <h2 className="text-base font-bold text-gray-900">Mon Coach IA</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 font-semibold border border-purple-100">Style C</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Tabs mobiles */}
+            <div className="flex sm:hidden gap-1">
+              <button onClick={() => s.setActiveTab('coach')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${s.activeTab === 'coach' ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                Défi
+              </button>
+              <button onClick={() => s.setActiveTab('analyse')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${s.activeTab === 'analyse' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                Analyse
+              </button>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Tabs underline */}
-        <div className="px-8 flex gap-6 border-b border-gray-100 flex-shrink-0">
-          {[
-            { id: 'coach', label: 'Mon Défi', icon: Award },
-            { id: 'analyse', label: 'Analyse Ventes', icon: MessageSquare },
-          ].map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => s.setActiveTab(id)}
-              className={`flex items-center gap-2 py-4 text-sm font-semibold border-b-2 transition-all ${
-                s.activeTab === id ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-400 hover:text-gray-600'
-              }`}>
-              <Icon className="w-4 h-4" />{label}
-            </button>
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Mobile : onglet actif */}
+        <div className="flex-1 sm:hidden overflow-y-auto min-h-0 bg-white">
           {s.activeTab === 'coach' && (
             <ChallengeTab
               dailyChallenge={dailyChallenge} stats={s.stats} loading={s.loading}
@@ -220,7 +212,52 @@ function ModalVariantC({ isOpen, onClose, dailyChallenge, onRefreshChallenge, on
             />
           )}
         </div>
+
+        {/* Desktop : 2 panneaux côte à côte */}
+        <div className="hidden sm:flex flex-1 overflow-hidden min-h-0 gap-px bg-gray-200">
+          {/* Panneau gauche — Défi du jour */}
+          <div className="flex-1 flex flex-col overflow-hidden bg-white min-w-0">
+            <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-purple-500" />
+                <span className="text-sm font-semibold text-gray-700">Mon Défi du Jour</span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <ChallengeTab
+                dailyChallenge={dailyChallenge} stats={s.stats} loading={s.loading}
+                showFeedbackForm={s.showFeedbackForm} feedbackComment={s.feedbackComment}
+                setShowFeedbackForm={s.setShowFeedbackForm} setFeedbackComment={s.setFeedbackComment}
+                handleCompleteChallenge={s.handleCompleteChallenge}
+                handleRefreshChallenge={s.handleRefreshChallenge}
+                handleSubmitFeedback={s.handleSubmitFeedback}
+                onOpenChallengeHistory={s.onOpenChallengeHistory}
+              />
+            </div>
+          </div>
+
+          {/* Panneau droit — Analyser mes ventes */}
+          <div className="flex-1 flex flex-col overflow-hidden bg-white min-w-0">
+            <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-indigo-500" />
+                <span className="text-sm font-semibold text-gray-700">Analyser mes Ventes</span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <AnalyseTab
+                debriefs={debriefs} expandedDebriefs={s.expandedDebriefs}
+                setExpandedDebriefs={s.setExpandedDebriefs}
+                selectedCompetence={s.selectedCompetence} setSelectedCompetence={s.setSelectedCompetence}
+                historyFilter={s.historyFilter} setHistoryFilter={s.setHistoryFilter}
+                analyseSubTab={s.analyseSubTab} setAnalyseSubTab={s.setAnalyseSubTab}
+                onCreateDebrief={onCreateDebrief}
+              />
+            </div>
+          </div>
+        </div>
       </div>
+
       {s.showChallengeHistoryModal && (
         <ChallengeHistoryModal isOpen={s.showChallengeHistoryModal} onClose={() => s.setShowChallengeHistoryModal(false)} />
       )}

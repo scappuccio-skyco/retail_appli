@@ -277,7 +277,8 @@ export default function ChartsSection({
         {visibleMetrics.ca && (
           <div key={`chart-ca-${Object.keys(visibleSellers).filter(id => visibleSellers[id]).join('-')}`} className="bg-white rounded-lg p-4 border-2 border-blue-200">
             <h4 className="font-semibold text-gray-800 mb-3 text-sm">💰 Chiffre d'Affaires (€)</h4>
-            <ResponsiveContainer width="100%" height={280}>
+            <div className="h-52 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis
@@ -318,6 +319,7 @@ export default function ChartsSection({
                 ))}
               </LineChart>
             </ResponsiveContainer>
+            </div>
           </div>
         )}
 
@@ -325,7 +327,8 @@ export default function ChartsSection({
         {visibleMetrics.ventes && (
           <div key={`chart-ventes-${Object.keys(visibleSellers).filter(id => visibleSellers[id]).join('-')}`} className="bg-white rounded-lg p-4 border-2 border-green-200">
             <h4 className="font-semibold text-gray-800 mb-3 text-sm">🛍️ Nombre de Ventes</h4>
-            <ResponsiveContainer width="100%" height={280}>
+            <div className="h-52 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis
@@ -366,6 +369,7 @@ export default function ChartsSection({
                 ))}
               </LineChart>
             </ResponsiveContainer>
+            </div>
           </div>
         )}
 
@@ -373,7 +377,8 @@ export default function ChartsSection({
         {visibleMetrics.panierMoyen && (
           <div key={`chart-panier-${Object.keys(visibleSellers).filter(id => visibleSellers[id]).join('-')}`} className="bg-white rounded-lg p-4 border-2 border-purple-200">
             <h4 className="font-semibold text-gray-800 mb-3 text-sm">💳 Panier Moyen (€)</h4>
-            <ResponsiveContainer width="100%" height={280}>
+            <div className="h-52 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis
@@ -414,6 +419,7 @@ export default function ChartsSection({
                 ))}
               </LineChart>
             </ResponsiveContainer>
+            </div>
           </div>
         )}
       </div>

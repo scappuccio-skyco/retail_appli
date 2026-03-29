@@ -1,11 +1,11 @@
 /**
  * SellerPerformanceModalVariant — STAGING UNIQUEMENT
  *
- * B — "Dark Performance" : header sombre (slate-900 + orange accent),
- *     onglets en pills oranges sur fond sombre, même contenu BilanTab/SaisieTab.
+ * Dupliqué depuis PerformanceModal.js — mêmes fonctionnalités, présentation différente.
  *
- * C — "Focus Épuré" : header blanc minimaliste, icône colorée,
- *     onglets en underline subtil, layout plus aéré.
+ * variant='A' → Style actuel (redirige vers PerformanceModal)
+ * variant='B' → Navigation Latérale : sidebar gauche avec nav verticale, contenu à droite
+ * variant='C' → Vue Double : Bilan + Saisie côte à côte simultanément (pas d'onglets)
  */
 import React from 'react';
 import { X, TrendingUp, Edit3, Lock, BarChart3 } from 'lucide-react';
@@ -54,78 +54,89 @@ function bilanTabProps(pm, p) {
 }
 
 /* ══════════════════════════════════════
-   STYLE B — Dark Performance
+   STYLE B — Navigation Latérale
+   Sidebar gauche (nav verticale) + contenu à droite
 ══════════════════════════════════════ */
 function ModalVariantB(props) {
   const { isOpen, onClose, isReadOnly = false } = props;
   const pm = usepm(props);
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-950 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-800">
+  const navItems = [
+    { id: 'bilan', label: 'Mon Bilan', icon: TrendingUp, locked: false },
+    { id: 'saisie', label: 'Saisir mes chiffres', icon: isReadOnly ? Lock : Edit3, locked: isReadOnly },
+  ];
 
-        {/* Header sombre */}
-        <div className="bg-slate-900 border-b border-slate-700 px-6 py-4 flex items-center justify-between flex-shrink-0">
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-200">
+
+        {/* Header compact */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0 bg-gray-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center border border-orange-500/30">
-              <BarChart3 className="w-5 h-5 text-orange-400" />
+            <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 text-orange-600" />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">Mes Performances</h2>
-              <p className="text-xs text-slate-400">Bilan · KPI · Historique</p>
+            <h2 className="text-base font-bold text-gray-900">Mes Performances</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 font-semibold border border-orange-100">Style B</span>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Corps : sidebar gauche + contenu droit */}
+        <div className="flex-1 flex overflow-hidden min-h-0">
+
+          {/* Sidebar navigation verticale */}
+          <div className="w-52 flex-shrink-0 border-r border-gray-100 bg-gray-50 flex flex-col py-4 px-3 gap-1">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">Navigation</p>
+            {navItems.map(({ id, label, icon: Icon, locked }) => (
+              <button
+                key={id}
+                onClick={() => {
+                  if (locked) { toast.error('Abonnement suspendu.', { icon: '🔒' }); return; }
+                  pm.setActiveTab(id);
+                }}
+                disabled={locked}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
+                  pm.activeTab === id
+                    ? 'bg-orange-500 text-white shadow-md shadow-orange-200'
+                    : locked
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                }`}
+              >
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="leading-tight">{label}</span>
+              </button>
+            ))}
+
+            {/* Séparateur + info rapide */}
+            <div className="mt-auto pt-4 border-t border-gray-200">
+              <div className="px-2">
+                <p className="text-[10px] text-gray-400 leading-relaxed">
+                  Consulte ton bilan par période ou saisis tes chiffres du jour.
+                </p>
+              </div>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors">
-            <X className="w-4 h-4 text-slate-300" />
-          </button>
-        </div>
 
-        {/* Tabs en pills */}
-        <div className="bg-slate-900 px-6 pb-3 flex gap-2 flex-shrink-0">
-          <button
-            onClick={() => pm.setActiveTab('bilan')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all ${
-              pm.activeTab === 'bilan'
-                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
-                : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            Mon bilan
-          </button>
-          <button
-            onClick={() => {
-              if (isReadOnly) { toast.error('Abonnement suspendu.', { icon: '🔒' }); return; }
-              pm.setActiveTab('saisie');
-            }}
-            disabled={isReadOnly}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full transition-all ${
-              isReadOnly
-                ? 'bg-slate-800 text-slate-600 cursor-not-allowed'
-                : pm.activeTab === 'saisie'
-                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
-                : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
-            }`}
-          >
-            {isReadOnly ? <Lock className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-            Saisir mes chiffres
-          </button>
-        </div>
-
-        {/* Content — fond légèrement moins sombre pour lisibilité */}
-        <div className="flex-1 overflow-y-auto bg-slate-50">
-          {pm.activeTab === 'bilan' && <BilanTab {...bilanTabProps(pm, props)} />}
-          {pm.activeTab === 'saisie' && (
-            <SaisieTab
-              editingEntry={pm.editingEntry} savingKPI={pm.savingKPI}
-              saveMessage={pm.saveMessage} kpiConfig={props.kpiConfig}
-              isReadOnly={isReadOnly} handleDirectSaveKPI={pm.handleDirectSaveKPI}
-              setEditingEntry={pm.setEditingEntry} setActiveTab={pm.setActiveTab}
-            />
-          )}
+          {/* Contenu principal */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {pm.activeTab === 'bilan' && <BilanTab {...bilanTabProps(pm, props)} />}
+            {pm.activeTab === 'saisie' && (
+              <SaisieTab
+                editingEntry={pm.editingEntry} savingKPI={pm.savingKPI}
+                saveMessage={pm.saveMessage} kpiConfig={props.kpiConfig}
+                isReadOnly={isReadOnly} handleDirectSaveKPI={pm.handleDirectSaveKPI}
+                setEditingEntry={pm.setEditingEntry} setActiveTab={pm.setActiveTab}
+              />
+            )}
+          </div>
         </div>
       </div>
+
       {pm.showWarningModal && (
         <WarningModal
           warnings={pm.warnings}
@@ -138,7 +149,9 @@ function ModalVariantB(props) {
 }
 
 /* ══════════════════════════════════════
-   STYLE C — Focus Épuré
+   STYLE C — Vue Double
+   Bilan (gauche) + Saisie (droite) visibles simultanément
+   Sur mobile : onglets classiques
 ══════════════════════════════════════ */
 function ModalVariantC(props) {
   const { isOpen, onClose, isReadOnly = false } = props;
@@ -146,52 +159,42 @@ function ModalVariantC(props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-100">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-gray-50 rounded-2xl shadow-2xl max-w-7xl w-full max-h-[94vh] sm:max-h-[90vh] overflow-hidden flex flex-col border border-gray-200">
 
-        {/* Header blanc épuré */}
-        <div className="px-8 pt-6 pb-0 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-orange-500" />
+        {/* Header */}
+        <div className="bg-white px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 text-orange-600" />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Mes Performances</h2>
-              <p className="text-sm text-gray-400">Analyse · KPI · Bilan individuel</p>
-            </div>
+            <h2 className="text-base font-bold text-gray-900">Mes Performances</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 font-semibold border border-orange-100">Style C</span>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
-
-        {/* Tabs underline */}
-        <div className="px-8 pt-4 flex gap-6 border-b border-gray-100 flex-shrink-0">
-          {[
-            { id: 'bilan', label: 'Mon bilan', icon: TrendingUp },
-            { id: 'saisie', label: 'Saisir mes chiffres', icon: isReadOnly ? Lock : Edit3 },
-          ].map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => {
-                if (id === 'saisie' && isReadOnly) { toast.error('Abonnement suspendu.', { icon: '🔒' }); return; }
-                pm.setActiveTab(id);
-              }}
-              disabled={id === 'saisie' && isReadOnly}
-              className={`flex items-center gap-2 pb-3 text-sm font-semibold border-b-2 transition-all ${
-                pm.activeTab === id
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200'
-              } ${id === 'saisie' && isReadOnly ? 'cursor-not-allowed opacity-50' : ''}`}
-            >
-              <Icon className="w-4 h-4" />
-              {label}
+          <div className="flex items-center gap-2">
+            {/* Tabs visibles sur mobile seulement */}
+            <div className="flex sm:hidden gap-1">
+              <button onClick={() => pm.setActiveTab('bilan')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${pm.activeTab === 'bilan' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                Bilan
+              </button>
+              <button
+                onClick={() => { if (isReadOnly) { toast.error('Abonnement suspendu.', { icon: '🔒' }); return; } pm.setActiveTab('saisie'); }}
+                disabled={isReadOnly}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${isReadOnly ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : pm.activeTab === 'saisie' ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                Saisie
+              </button>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+              <X className="w-5 h-5" />
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Corps : côte à côte sur lg, onglets sur mobile */}
+
+        {/* Mobile : onglet actif seulement */}
+        <div className="flex-1 sm:hidden overflow-y-auto min-h-0">
           {pm.activeTab === 'bilan' && <BilanTab {...bilanTabProps(pm, props)} />}
           {pm.activeTab === 'saisie' && (
             <SaisieTab
@@ -202,7 +205,44 @@ function ModalVariantC(props) {
             />
           )}
         </div>
+
+        {/* Desktop : les 2 panneaux côte à côte */}
+        <div className="hidden sm:flex flex-1 overflow-hidden min-h-0 gap-px bg-gray-200">
+          {/* Panneau gauche — Bilan */}
+          <div className="flex-1 flex flex-col overflow-hidden bg-white min-w-0">
+            <div className="px-4 py-2 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-orange-500" />
+                <span className="text-sm font-semibold text-gray-700">Mon Bilan</span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <BilanTab {...bilanTabProps(pm, props)} />
+            </div>
+          </div>
+
+          {/* Panneau droit — Saisie */}
+          <div className="w-80 xl:w-96 flex-shrink-0 flex flex-col overflow-hidden bg-white">
+            <div className="px-4 py-2 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                {isReadOnly ? <Lock className="w-4 h-4 text-gray-400" /> : <Edit3 className="w-4 h-4 text-orange-500" />}
+                <span className={`text-sm font-semibold ${isReadOnly ? 'text-gray-400' : 'text-gray-700'}`}>
+                  Saisir mes chiffres {isReadOnly && '🔒'}
+                </span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <SaisieTab
+                editingEntry={pm.editingEntry} savingKPI={pm.savingKPI}
+                saveMessage={pm.saveMessage} kpiConfig={props.kpiConfig}
+                isReadOnly={isReadOnly} handleDirectSaveKPI={pm.handleDirectSaveKPI}
+                setEditingEntry={pm.setEditingEntry} setActiveTab={pm.setActiveTab}
+              />
+            </div>
+          </div>
+        </div>
       </div>
+
       {pm.showWarningModal && (
         <WarningModal
           warnings={pm.warnings}

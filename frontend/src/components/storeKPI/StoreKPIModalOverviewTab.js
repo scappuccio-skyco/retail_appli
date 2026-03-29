@@ -16,7 +16,8 @@ function getChartInterval(viewMode) {
 
 function SingleLineChart({ data, dataKey, name, viewMode }) {
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <div className="h-56 sm:h-72">
+    <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatChartDate} />
@@ -25,6 +26,7 @@ function SingleLineChart({ data, dataKey, name, viewMode }) {
         <Line type="monotone" dataKey={dataKey} name={name} stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>
     </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -73,7 +75,8 @@ export default function StoreKPIModalOverviewTab({
     {
       label: '📦 Articles Vendus',
       content: (
-        <ResponsiveContainer width="100%" height={300}>
+        <div className="h-56 sm:h-72">
+        <ResponsiveContainer width="100%" height="100%">
           <LineChart data={historicalData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={60} tickFormatter={formatChartDate} />
@@ -82,6 +85,7 @@ export default function StoreKPIModalOverviewTab({
             <Line type="monotone" dataKey="total_articles" name="Articles" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 2 }} />
           </LineChart>
         </ResponsiveContainer>
+        </div>
       ),
     },
   ];

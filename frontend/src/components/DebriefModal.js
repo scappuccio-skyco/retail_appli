@@ -134,39 +134,39 @@ export default function DebriefModal({ onClose, onSuccess }) {
           <h2 className="text-xl font-bold text-white mb-4">📊 Analyse de vente</h2>
 
           {/* Onglets */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-1">
             <button
               onClick={() => setActiveTab('conclue')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg font-medium transition-all flex-shrink-0 ${
                 activeTab === 'conclue'
                   ? 'bg-white text-green-700 shadow-lg'
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
               }`}
             >
               <span className="text-lg">✅</span>
-              <span>Vente conclue</span>
+              <span className="text-sm sm:text-base">Vente conclue</span>
             </button>
             <button
               onClick={() => setActiveTab('manquee')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg font-medium transition-all flex-shrink-0 ${
                 activeTab === 'manquee'
                   ? 'bg-white text-orange-700 shadow-lg'
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
               }`}
             >
               <span className="text-lg">❌</span>
-              <span>Opportunité manquée</span>
+              <span className="text-sm sm:text-base">Opportunité manquée</span>
             </button>
             <button
               onClick={() => setActiveTab('historique')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg font-medium transition-all flex-shrink-0 ${
                 activeTab === 'historique'
                   ? 'bg-white text-blue-700 shadow-lg'
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
               }`}
             >
               <span className="text-lg">📚</span>
-              <span>Historique</span>
+              <span className="text-sm sm:text-base">Historique</span>
               {historique.length > 0 && (
                 <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
                   {historique.length}
