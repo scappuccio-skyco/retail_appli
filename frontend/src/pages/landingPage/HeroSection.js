@@ -55,7 +55,7 @@ export default function HeroSection({ scrollToSection }) {
                 onClick={() => navigate('/early-access')}
                 className="px-7 py-3.5 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white text-base font-semibold rounded-xl hover:shadow-2xl hover:scale-105 transition-all flex items-center justify-center gap-2"
               >
-                Essai Gratuit 14 Jours
+                Essai Gratuit 30 Jours
                 <ArrowRight className="w-5 h-5" />
               </button>
               <button
