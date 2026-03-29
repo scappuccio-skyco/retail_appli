@@ -16,14 +16,29 @@ export default function CookieConsent() {
   });
 
   useEffect(() => {
-    // Vérifier si le consentement a déjà été donné
     const consent = localStorage.getItem('cookie_consent');
     if (!consent) {
-      // Délai pour afficher le bandeau après le chargement de la page
       const timer = setTimeout(() => setShowBanner(true), 1000);
       return () => clearTimeout(timer);
     }
+    // Consentement déjà donné : appliquer immédiatement à PostHog
+    try {
+      const { analytics } = JSON.parse(consent);
+      if (analytics) {
+        window.posthog?.opt_in_capturing();
+      } else {
+        window.posthog?.opt_out_capturing();
+      }
+    } catch (_) {}
   }, []);
+
+  const applyPostHogConsent = (analytics) => {
+    if (analytics) {
+      window.posthog?.opt_in_capturing();
+    } else {
+      window.posthog?.opt_out_capturing();
+    }
+  };
 
   const handleAcceptAll = () => {
     const consentData = {
@@ -33,6 +48,7 @@ export default function CookieConsent() {
       timestamp: new Date().toISOString(),
     };
     localStorage.setItem('cookie_consent', JSON.stringify(consentData));
+    applyPostHogConsent(true);
     setShowBanner(false);
   };
 
@@ -44,6 +60,7 @@ export default function CookieConsent() {
       timestamp: new Date().toISOString(),
     };
     localStorage.setItem('cookie_consent', JSON.stringify(consentData));
+    applyPostHogConsent(false);
     setShowBanner(false);
   };
 
@@ -53,6 +70,7 @@ export default function CookieConsent() {
       timestamp: new Date().toISOString(),
     };
     localStorage.setItem('cookie_consent', JSON.stringify(consentData));
+    applyPostHogConsent(preferences.analytics);
     setShowBanner(false);
   };
 
