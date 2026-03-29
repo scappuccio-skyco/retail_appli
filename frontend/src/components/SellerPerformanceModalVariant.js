@@ -85,8 +85,34 @@ function ModalVariantB(props) {
           </button>
         </div>
 
-        {/* Corps : sidebar gauche + contenu droit */}
-        <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Mobile : onglets pleine largeur */}
+        <div className="sm:hidden flex gap-1 px-3 py-2 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+          {navItems.map(({ id, label, icon: Icon, locked }) => (
+            <button key={id}
+              onClick={() => { if (locked) { toast.error('Abonnement suspendu.', { icon: '🔒' }); return; } pm.setActiveTab(id); }}
+              disabled={locked}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                pm.activeTab === id ? 'bg-orange-500 text-white shadow' : locked ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-gray-100 text-gray-600'
+              }`}>
+              <Icon className="w-4 h-4" />{label}
+            </button>
+          ))}
+        </div>
+
+        {/* Mobile : contenu pleine largeur */}
+        <div className="sm:hidden flex-1 overflow-y-auto min-h-0">
+          {pm.activeTab === 'bilan' && <BilanTab {...bilanTabProps(pm, props)} />}
+          {pm.activeTab === 'saisie' && (
+            <SaisieTab editingEntry={pm.editingEntry} savingKPI={pm.savingKPI}
+              saveMessage={pm.saveMessage} kpiConfig={props.kpiConfig}
+              isReadOnly={isReadOnly} handleDirectSaveKPI={pm.handleDirectSaveKPI}
+              setEditingEntry={pm.setEditingEntry} setActiveTab={pm.setActiveTab}
+            />
+          )}
+        </div>
+
+        {/* Desktop : sidebar gauche + contenu droit */}
+        <div className="hidden sm:flex flex-1 overflow-hidden min-h-0">
 
           {/* Sidebar navigation verticale */}
           <div className="w-52 flex-shrink-0 border-r border-gray-100 bg-gray-50 flex flex-col py-4 px-3 gap-1">
@@ -111,8 +137,6 @@ function ModalVariantB(props) {
                 <span className="leading-tight">{label}</span>
               </button>
             ))}
-
-            {/* Séparateur + info rapide */}
             <div className="mt-auto pt-4 border-t border-gray-200">
               <div className="px-2">
                 <p className="text-[10px] text-gray-400 leading-relaxed">

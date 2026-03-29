@@ -214,8 +214,48 @@ function ModalVariantC({ isOpen, onClose, activeObjectives: initialObjectives = 
           </button>
         </div>
 
-        {/* Corps : sidebar gauche + contenu droit */}
-        <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Mobile : stats en ligne + onglets pleine largeur */}
+        <div className="sm:hidden flex-shrink-0 border-b border-gray-100 bg-gray-50">
+          <div className="flex gap-3 px-4 py-3">
+            <div className="flex-1 bg-white rounded-xl px-3 py-2 border border-gray-100 text-center">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide">Actifs</p>
+              <p className="text-xl font-bold text-teal-600">{s.activeObjectives.length}</p>
+            </div>
+            <div className="flex-1 bg-white rounded-xl px-3 py-2 border border-gray-100 text-center">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide">Progression</p>
+              <p className="text-xl font-bold text-green-600">{avgProgress}%</p>
+            </div>
+          </div>
+          <div className="flex gap-1 px-4 pb-3">
+            {[{ id: 'objectifs', label: 'Actifs', icon: Target }, { id: 'historique', label: 'Historique', icon: History }].map(({ id, label, icon: Icon }) => (
+              <button key={id} onClick={() => s.setActiveTab(id)}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  s.activeTab === id ? 'bg-teal-500 text-white shadow' : 'bg-white text-gray-500 border border-gray-200'
+                }`}>
+                <Icon className="w-4 h-4" />{label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile : contenu pleine largeur */}
+        <div className="sm:hidden flex-1 overflow-y-auto min-h-0">
+          {s.activeTab === 'objectifs' && (
+            <ObjectivesTab
+              activeObjectives={s.activeObjectives} setActiveObjectives={s.setActiveObjectives}
+              updatingObjectiveId={s.updatingObjectiveId} setUpdatingObjectiveId={s.setUpdatingObjectiveId}
+              objectiveProgressValue={s.objectiveProgressValue} setObjectiveProgressValue={s.setObjectiveProgressValue}
+              refreshActiveData={s.refreshActiveData} triggerConfetti={s.triggerConfetti}
+            />
+          )}
+          {s.activeTab === 'historique' && (
+            <HistoriqueTab historyObjectives={s.historyObjectives} historyStatusFilter={s.historyStatusFilter}
+              setHistoryStatusFilter={s.setHistoryStatusFilter} />
+          )}
+        </div>
+
+        {/* Desktop : sidebar gauche + contenu droit */}
+        <div className="hidden sm:flex flex-1 overflow-hidden min-h-0">
 
           {/* Sidebar stats + nav */}
           <div className="w-52 flex-shrink-0 border-r border-gray-100 bg-gray-50 flex flex-col py-4 px-3">

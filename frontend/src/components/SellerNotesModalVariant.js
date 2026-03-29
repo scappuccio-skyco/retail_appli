@@ -186,8 +186,57 @@ function ModalVariantC({ isOpen, onClose, onGenerateSynthesis }) {
           </button>
         </div>
 
-        {/* Corps : éditeur gauche (2/3) + liste droite (1/3) */}
-        <div className="flex-1 overflow-hidden flex min-h-0">
+        {/* Mobile : layout empilé (éditeur full width + liste en bas) */}
+        <div className="sm:hidden flex-1 overflow-y-auto min-h-0 flex flex-col">
+          {/* Date */}
+          <div className="p-4 border-b border-gray-100 flex-shrink-0">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date de la note</label>
+            <input type="date" value={s.selectedDate} onChange={(e) => s.handleDateChange(e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" />
+          </div>
+          {/* Éditeur */}
+          <div className="flex-1 min-h-0 flex flex-col p-4 gap-3">
+            <label className="block text-sm font-medium text-gray-700">{s.currentNote ? 'Modifier la note' : 'Nouvelle note'}</label>
+            <textarea value={s.noteContent} onChange={(e) => s.setNoteContent(e.target.value)}
+              placeholder="Écris tes notes ici… Réussites, défis, souhaits, questions pour l'entretien…"
+              className="w-full min-h-[160px] px-4 py-3 border-2 border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-400 resize-none text-gray-800 placeholder-gray-400 bg-white shadow-sm" />
+            {s.currentNote?.manager_reply && (
+              <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                <p className="text-[11px] font-semibold text-blue-600 mb-1">💬 Réponse de votre manager :</p>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{s.currentNote.manager_reply}</p>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-400">{s.currentNote ? `Créée le ${new Date(s.currentNote.created_at).toLocaleDateString('fr-FR')}` : `Note pour le ${new Date(s.selectedDate).toLocaleDateString('fr-FR')}`}</p>
+              <div className="flex gap-2">
+                {s.editingNote && <button onClick={s.handleCancelEdit} className="px-3 py-2 text-gray-500 text-sm">Annuler</button>}
+                <button onClick={s.editingNote ? s.handleUpdateNote : s.handleSaveNote}
+                  disabled={s.saving || !s.noteContent.trim()}
+                  className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg disabled:opacity-50 flex items-center gap-2 text-sm shadow">
+                  {s.saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Enregistrement...</> : <><Save className="w-4 h-4" />{s.editingNote ? 'Mettre à jour' : 'Enregistrer'}</>}
+                </button>
+              </div>
+            </div>
+          </div>
+          {/* Liste compacte */}
+          {s.sortedNotes.length > 0 && (
+            <div className="border-t border-gray-100 p-4 flex-shrink-0">
+              <h3 className="text-xs font-semibold text-gray-500 mb-2">Mes notes ({s.notes.length})</h3>
+              <div className="space-y-1.5">
+                {s.sortedNotes.map((note) => (
+                  <NoteItem key={note.id} note={note} selectedDate={s.selectedDate}
+                    toggling={s.toggling} deleting={s.deleting}
+                    onSelect={s.handleDateChange} onEdit={s.handleEditNote}
+                    onToggleVisibility={s.handleToggleVisibility} onDelete={s.handleDeleteNote} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop : éditeur gauche (2/3) + liste droite (1/3) */}
+        <div className="hidden sm:flex flex-1 overflow-hidden min-h-0">
 
           {/* Panneau gauche — Éditeur (2/3) */}
           <div className="flex-1 flex flex-col overflow-hidden border-r border-gray-100">
