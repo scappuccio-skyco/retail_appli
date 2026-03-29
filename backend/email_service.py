@@ -447,7 +447,7 @@ def send_gerant_welcome_email(recipient_email: str, recipient_name: str):
             
             <p style="font-size: 16px;">
                 Félicitations ! Vous avez créé votre espace <strong>Gérant</strong> sur Retail Performer AI. 
-                Vous bénéficiez de <strong>14 jours d'essai gratuit</strong> pour explorer toutes nos fonctionnalités.
+                Vous bénéficiez de <strong>30 jours d'essai gratuit</strong> pour explorer toutes nos fonctionnalités.
             </p>
             
             <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F97316;">
@@ -652,7 +652,7 @@ def send_early_access_confirmation_email(
                 <h3 style="margin-top: 0; color: #F97316;">✨ Prochaines étapes :</h3>
                 <ol style="padding-left: 20px; margin: 0;">
                     <li style="padding: 8px 0;">Réservez votre créneau de configuration (15 min) via Calendly</li>
-                    <li style="padding: 8px 0;">Créez votre compte gérant pour commencer votre essai gratuit de 14 jours</li>
+                    <li style="padding: 8px 0;">Créez votre compte gérant pour commencer votre essai gratuit de 30 jours</li>
                     <li style="padding: 8px 0;">Je vous recontacterai sous 24h ouvrées pour valider votre accès</li>
                 </ol>
             </div>
@@ -685,7 +685,7 @@ def send_early_access_confirmation_email(
                           display: inline-block;
                           border: 2px solid #F97316;
                           box-shadow: 0 2px 8px rgba(249, 115, 22, 0.2);">
-                    🚀 Créer mon compte gérant (14 jours gratuits)
+                    🚀 Créer mon compte gérant (30 jours gratuits)
                 </a>
             </div>
             

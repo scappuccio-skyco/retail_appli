@@ -215,7 +215,7 @@ class AuthService:
         
         await self.user_repo.insert_one(user)
         
-        # Create workspace for gérant with 14-day trial
+        # Create workspace for gérant with 30-day trial
         workspace = {
             "id": workspace_id,
             "name": company_name,
