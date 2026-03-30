@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { api } from '../../lib/apiClient';
 import { logger } from '../../utils/logger';
 import confetti from 'canvas-confetti';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDailyChallengeStats } from '../../hooks/useDailyChallengeStats';
 
 function triggerConfetti() {
@@ -36,6 +37,7 @@ export default function useDailyChallengeModal({ challenge, onClose, onRefresh, 
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackComment, setFeedbackComment] = useState('');
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const { data: stats } = useDailyChallengeStats();
 
   const handleComplete = async (result) => {
@@ -56,6 +58,7 @@ export default function useDailyChallengeModal({ challenge, onClose, onRefresh, 
       if (result === 'success') triggerConfetti();
       else if (result === 'partial') triggerPartialConfetti();
       else if (result === 'failed') triggerFailAnimation();
+      queryClient.invalidateQueries({ queryKey: ['dailyChallengeStats'] });
       if (onComplete) onComplete(res.data);
       setTimeout(() => onClose(), 1500);
     } catch (err) {
