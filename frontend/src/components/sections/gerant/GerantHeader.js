@@ -1,5 +1,5 @@
-import React from 'react';
-import { LogOut, Settings, Headphones, BarChart3, Store, UserCog, Key, FileText, User } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { LogOut, Settings, Headphones, BarChart3, Store, UserCog, Key, FileText, User, MoreHorizontal } from 'lucide-react';
 import Logo from '../../shared/Logo';
 import TutorialButton from '../../onboarding/TutorialButton';
 import NotificationBell from '../../notifications/NotificationBell';
@@ -20,6 +20,18 @@ export default function GerantHeader({
   onOpenBillingProfile,
 }) {
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const [showMore, setShowMore] = useState(false);
+  const moreRef = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (moreRef.current && !moreRef.current.contains(e.target)) {
+        setShowMore(false);
+      }
+    };
+    if (showMore) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showMore]);
 
   return (
     <div className="bg-white shadow-md border-b-4 border-orange-500">
@@ -46,6 +58,7 @@ export default function GerantHeader({
           </div>
 
           <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+            {/* Facturation, Abonnement — inline sur sm+, dans ⋯ sur mobile */}
             <button
               onClick={onOpenBillingProfile}
               className="hidden sm:flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
@@ -61,6 +74,35 @@ export default function GerantHeader({
               <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Mon abonnement</span>
             </button>
+
+            {/* Bouton ⋯ — mobile uniquement */}
+            <div ref={moreRef} className="relative sm:hidden">
+              <button
+                onClick={() => setShowMore(v => !v)}
+                className="flex items-center px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Plus d'options"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+              {showMore && (
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-50 min-w-[180px]">
+                  <button
+                    onClick={() => { onOpenBillingProfile(); setShowMore(false); }}
+                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    <FileText className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                    Facturation
+                  </button>
+                  <button
+                    onClick={() => { onOpenSubscription(); setShowMore(false); }}
+                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    <Settings className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                    Mon abonnement
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               onClick={onOpenSupport}
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
