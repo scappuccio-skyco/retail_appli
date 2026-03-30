@@ -56,7 +56,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   }
 
   return (
-    <div data-testid="manager-dashboard" className="min-h-screen p-4 md:p-8">
+    <div data-testid="manager-dashboard" className="min-h-screen">
       <ManagerStatusBanner subscriptionBlockCode={s.subscriptionBlockCode} />
 
       <ManagerHeader
@@ -75,6 +75,8 @@ export default function ManagerDashboard({ user, onLogout }) {
         isMultiStore={s.isMultiStore}
         onSwitchStore={() => s.setShowStoreSelector(true)}
       />
+
+      <div className="px-4 md:px-8 pb-8">
 
       <ManagerPersonalizationBar
         show={s.showFilters}
@@ -173,6 +175,8 @@ export default function ManagerDashboard({ user, onLogout }) {
         onboarding={s.onboarding}
         managerSteps={s.managerSteps}
       />
+
+      </div>
     </div>
   );
 }
