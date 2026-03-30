@@ -72,7 +72,7 @@ async def get_all_bilans_individuels(
     }
 
 
-@router.post("/bilan-individuel", dependencies=[rate_limit("5/minute")])
+@router.post("/bilan-individuel", dependencies=[rate_limit("20/minute")])
 async def generate_bilan_individuel(
     start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD", pattern=r"^\d{4}-\d{2}-\d{2}$"),
     end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD", pattern=r"^\d{4}-\d{2}-\d{2}$"),

@@ -140,10 +140,10 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
               </div>
 
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-200">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Users className="w-5 h-5 text-blue-600" />
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-5 h-5 text-blue-600 shrink-0" />
                     <span className="text-sm font-semibold text-gray-700">Équipe</span>
                   </div>
                   <div className="text-2xl font-bold text-blue-900">
@@ -154,8 +154,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                   </div>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
-                  <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-5 h-5 text-[#10B981]" />
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-5 h-5 text-[#10B981] shrink-0" />
                     <span className="text-sm font-semibold text-gray-700">Performance Globale</span>
                   </div>
                   <div className="text-2xl font-bold text-green-900">{formatNumber(teamTotalCA)} €</div>
@@ -168,17 +168,17 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                     }
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200 flex flex-col items-center justify-center gap-3">
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    <button onClick={() => setShowMorningBriefModal(true)}
-                      className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all flex items-center gap-2">
-                      <Coffee className="w-4 h-4" /> ☕ Brief du Matin
-                    </button>
-                    <button onClick={generateTeamAnalysis} disabled={aiGenerating || teamData.length === 0}
-                      className="px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                      {aiGenerating ? '⏳ Analyse en cours...' : '🤖 Analyse IA de l\'équipe'}
-                    </button>
-                  </div>
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200 flex items-center justify-center">
+                  <button onClick={() => setShowMorningBriefModal(true)}
+                    className="w-full px-3 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all flex items-center justify-center gap-2 text-sm">
+                    <Coffee className="w-4 h-4 shrink-0" /> <span>☕ Brief du Matin</span>
+                  </button>
+                </div>
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200 flex items-center justify-center">
+                  <button onClick={generateTeamAnalysis} disabled={aiGenerating || teamData.length === 0}
+                    className="w-full px-3 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                    {aiGenerating ? '⏳ En cours...' : <><span>🤖</span><span>Analyse IA</span></>}
+                  </button>
                 </div>
               </div>
 

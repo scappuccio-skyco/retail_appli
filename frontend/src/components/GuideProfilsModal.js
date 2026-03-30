@@ -9,7 +9,8 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
   const {
     allSections, activeSection,
     currentProfile, profiles, profile,
-    managerProfile, teamSellers, loadingCompatibility,
+    managerProfile, managerFullDiagnostic, teamSellers, loadingCompatibility,
+    aiCompatibilityAdvice, loadingAdviceIds, generateCompatibilityAdvice,
     ownProfile,
     handleSectionChange, handleNext, handlePrevious,
     getColorClasses,
@@ -71,8 +72,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
           {activeSection === 'mon_equipe' && (
             <CompatibiliteSection
               managerProfile={managerProfile}
+              managerFullDiagnostic={managerFullDiagnostic}
               teamSellers={teamSellers}
               loadingCompatibility={loadingCompatibility}
+              aiCompatibilityAdvice={aiCompatibilityAdvice}
+              loadingAdviceIds={loadingAdviceIds}
+              onGenerateAdvice={generateCompatibilityAdvice}
             />
           )}
           {activeSection === 'les_styles' && (

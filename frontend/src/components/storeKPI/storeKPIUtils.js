@@ -34,14 +34,14 @@ export function getWeekStartEnd(selectedWeek) {
   const [year, week] = selectedWeek.split('-W');
   const weekNum = Number.parseInt(week, 10);
   const yearNum = Number.parseInt(year, 10);
-  const jan4 = new Date(yearNum, 0, 4);
-  const dayOfWeek = jan4.getDay() || 7;
+  const jan4 = new Date(Date.UTC(yearNum, 0, 4));
+  const dayOfWeek = jan4.getUTCDay() || 7;
   const firstMonday = new Date(jan4);
-  firstMonday.setDate(jan4.getDate() - (dayOfWeek - 1));
+  firstMonday.setUTCDate(jan4.getUTCDate() - (dayOfWeek - 1));
   const startDate = new Date(firstMonday);
-  startDate.setDate(firstMonday.getDate() + (weekNum - 1) * 7);
+  startDate.setUTCDate(firstMonday.getUTCDate() + (weekNum - 1) * 7);
   const endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + 6);
+  endDate.setUTCDate(startDate.getUTCDate() + 6);
   return { startDate, endDate, days: 7 };
 }
 
@@ -56,8 +56,8 @@ export function getMonthStartEnd(selectedMonth) {
 
 /** Calcule les dates de début/fin pour une année */
 export function getYearStartEnd(selectedYear) {
-  const startDate = new Date(selectedYear, 0, 1);
-  const endDate = new Date(selectedYear, 11, 31);
+  const startDate = new Date(Date.UTC(selectedYear, 0, 1));
+  const endDate = new Date(Date.UTC(selectedYear, 11, 31));
   return { startDate, endDate, days: 365 };
 }
 

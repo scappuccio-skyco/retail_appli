@@ -14,8 +14,11 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
   const [activeSection, setActiveSection] = useState(allSections[0]);
   const [currentProfile, setCurrentProfile] = useState(0);
   const [managerProfile, setManagerProfile] = useState(null);
+  const [managerFullDiagnostic, setManagerFullDiagnostic] = useState(null);
   const [teamSellers, setTeamSellers] = useState([]);
   const [loadingCompatibility, setLoadingCompatibility] = useState(false);
+  const [aiCompatibilityAdvice, setAiCompatibilityAdvice] = useState({});
+  const [loadingAdviceIds, setLoadingAdviceIds] = useState(new Set());
 
   const urlParams = new URLSearchParams(globalThis.location.search);
   const urlStoreId = urlParams.get('store_id');
@@ -32,9 +35,11 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
     try {
       const managerRes = await api.get('/auth/me');
       const diagnosticRes = await api.get('/manager-diagnostic/me');
+      const fullDiagnostic = diagnosticRes.data?.diagnostic || null;
+      setManagerFullDiagnostic(fullDiagnostic);
       setManagerProfile({
         ...managerRes.data,
-        management_style: diagnosticRes.data?.diagnostic?.profil_nom || managerRes.data.management_style || 'Pilote',
+        management_style: fullDiagnostic?.profil_nom || managerRes.data.management_style || 'Pilote',
       });
       const sellersRes = await api.get(`/manager/sellers${storeParam}`);
       const sellersData = Array.isArray(sellersRes.data)
@@ -45,6 +50,24 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
       logger.error('Error fetching compatibility data:', error);
     } finally {
       setLoadingCompatibility(false);
+    }
+  };
+
+  const generateCompatibilityAdvice = async (seller) => {
+    if (!managerFullDiagnostic || !seller?.style_vente) return;
+    const sellerId = seller.id;
+    setLoadingAdviceIds(prev => new Set(prev).add(sellerId));
+    try {
+      const res = await api.post(`/manager/compatibility-advice${storeParam}`, {
+        manager_diagnostic: managerFullDiagnostic,
+        seller_name: seller.name,
+        seller_style: seller.style_vente,
+      });
+      setAiCompatibilityAdvice(prev => ({ ...prev, [sellerId]: res.data }));
+    } catch (err) {
+      logger.error('Error generating compatibility advice:', err);
+    } finally {
+      setLoadingAdviceIds(prev => { const s = new Set(prev); s.delete(sellerId); return s; });
     }
   };
 
@@ -90,7 +113,8 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
 
   return {
     allSections, activeSection, currentProfile,
-    managerProfile, teamSellers, loadingCompatibility,
+    managerProfile, managerFullDiagnostic, teamSellers, loadingCompatibility,
+    aiCompatibilityAdvice, loadingAdviceIds, generateCompatibilityAdvice,
     profiles, profile: profiles[currentProfile],
     ownProfile,
     handleSectionChange, handleNext, handlePrevious,

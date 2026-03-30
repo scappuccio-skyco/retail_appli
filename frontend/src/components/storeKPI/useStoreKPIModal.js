@@ -62,12 +62,15 @@ const KPI_OPPOSITE_FIELD = {
   seller_track_prospects: 'manager_track_prospects', manager_track_prospects: 'seller_track_prospects'
 };
 
+const toLocalDateStr = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, storeId = null, isManager = false }) {
   // Quand isManager est true, utiliser les routes /manager avec store_id en query (évite 403 sur routes gerant).
   const useManagerRoutes = isManager;
   const storeParam = storeId ? (useManagerRoutes ? `?store_id=${storeId}` : '') : '';
   const storeParamAnd = storeId ? (useManagerRoutes ? `&store_id=${storeId}` : '') : '';
-  const defaultDate = initialDate || new Date().toISOString().split('T')[0];
+  const defaultDate = initialDate || toLocalDateStr(new Date());
   const [activeTab, setActiveTab] = useState('daily');
   const [overviewData, setOverviewData] = useState(null);
   const [overviewDate, setOverviewDate] = useState(defaultDate);
@@ -77,7 +80,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   const [viewMode, setViewMode] = useState('day');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedWeek, setSelectedWeek] = useState(getCurrentWeek());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [selectedMonth, setSelectedMonth] = useState(toLocalDateStr(new Date()).slice(0, 7));
   const [historicalData, setHistoricalData] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
   const [datesWithData, setDatesWithData] = useState([]);
