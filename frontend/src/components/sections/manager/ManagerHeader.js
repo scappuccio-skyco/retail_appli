@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Sparkles, Headphones } from 'lucide-react';
+import { LogOut, Sparkles, Headphones, ArrowLeftRight } from 'lucide-react';
 import Logo from '../../shared/Logo';
 import SyncModeBadge from '../../SyncModeBadge';
 import TutorialButton from '../../onboarding/TutorialButton';
@@ -23,6 +23,8 @@ export default function ManagerHeader({
   onOpenSupport,
   spaceLabel,
   isGerantSpace,
+  isMultiStore,
+  onSwitchStore,
 }) {
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
 
@@ -34,12 +36,22 @@ export default function ManagerHeader({
         <div className="flex items-center gap-3 sm:gap-4">
           <Logo variant="header" size="md" showByline={true} />
           <div>
-            <p className="text-gray-600 text-sm sm:text-base">
+            <p className="text-gray-600 text-sm sm:text-base flex items-center flex-wrap gap-1">
               Bienvenue, {user.name}
               {storeName && (
                 <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
                   • 🏢 {storeName}
                 </span>
+              )}
+              {isMultiStore && (
+                <button
+                  onClick={onSwitchStore}
+                  className="inline-flex items-center gap-1 ml-1 px-2 py-0.5 text-xs font-medium text-[#1E40AF] bg-blue-50 border border-blue-200 rounded-full hover:bg-blue-100 transition-colors whitespace-nowrap"
+                  title="Changer de magasin"
+                >
+                  <ArrowLeftRight className="w-3 h-3" />
+                  Changer
+                </button>
               )}
             </p>
             <div className="flex items-center gap-2 mt-1 flex-wrap">

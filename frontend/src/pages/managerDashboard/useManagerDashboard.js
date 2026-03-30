@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import { toast } from 'sonner';
 import { api } from '../../lib/apiClient';
@@ -12,10 +12,46 @@ export default function useManagerDashboard({ user }) {
   // ── URL params (gerant-as-manager mode) ────────────────────
   const urlParams = new URLSearchParams(globalThis.location.search);
   const urlStoreId = urlParams.get('store_id');
-  const effectiveStoreId = urlStoreId || user?.store_id;
-  const apiStoreIdParam = urlStoreId ? `?store_id=${urlStoreId}` : '';
+
+  // ── Multi-store support ────────────────────────────────────
+  const isMultiStore = Array.isArray(user?.store_ids) && user.store_ids.length > 1;
+  const storeKey = user?.id ? `manager_active_store_${user.id}` : null;
+
+  const [activeStoreId, setActiveStoreId] = useState(() => {
+    if (urlStoreId) return urlStoreId;
+    if (!isMultiStore) return user?.store_id || null;
+    const saved = storeKey ? localStorage.getItem(storeKey) : null;
+    if (saved && user?.store_ids?.includes(saved)) return saved;
+    return null; // no store selected yet → will show selection screen
+  });
+
+  const [showStoreSelector, setShowStoreSelector] = useState(false);
+  const [storeOptions, setStoreOptions] = useState([]);
+
+  const effectiveStoreId = urlStoreId || activeStoreId || user?.store_id;
+  const apiStoreIdParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';
 
   const { canEditKPIConfig, isReadOnly, isSubscriptionExpired, subscriptionBlockCode } = useSyncMode(urlStoreId);
+
+  // ── Store options fetch (multi-store only) ─────────────────
+  useEffect(() => {
+    if (!isMultiStore) return;
+    const fetchStoreOptions = async () => {
+      const results = await Promise.all(
+        (user?.store_ids || []).map(async (sid) => {
+          try {
+            const res = await api.get(`/stores/${sid}/info`);
+            return { id: sid, name: res.data?.name || sid };
+          } catch {
+            return { id: sid, name: 'Magasin' };
+          }
+        })
+      );
+      setStoreOptions(results);
+    };
+    fetchStoreOptions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Onboarding ─────────────────────────────────────────────
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
@@ -91,6 +127,27 @@ export default function useManagerDashboard({ user }) {
   useEffect(() => {
     localStorage.setItem('manager_section_order', JSON.stringify(sectionOrder));
   }, [sectionOrder]);
+
+  // ── Store switch → reload all data ────────────────────────
+  const mountedRef = React.useRef(false);
+
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    if (activeStoreId) {
+      setLoading(true);
+      loadAll();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeStoreId]);
+
+  const switchStore = useCallback((storeId) => {
+    if (storeKey) localStorage.setItem(storeKey, storeId);
+    setActiveStoreId(storeId);
+    setShowStoreSelector(false);
+  }, [storeKey]);
 
   // ── Detect KPI mode ────────────────────────────────────────
   useEffect(() => {
@@ -314,6 +371,8 @@ export default function useManagerDashboard({ user }) {
   return {
     // URL/store
     urlStoreId, effectiveStoreId, apiStoreIdParam,
+    // Multi-store
+    isMultiStore, activeStoreId, storeOptions, showStoreSelector, setShowStoreSelector, switchStore,
     // Sync mode
     canEditKPIConfig, isReadOnly, isSubscriptionExpired, subscriptionBlockCode,
     // Onboarding

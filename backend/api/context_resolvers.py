@@ -46,13 +46,32 @@ async def resolve_store_context(
     role = current_user.get("role")
 
     if role == "manager":
-        store_id = current_user.get("store_id")
-        if not store_id:
+        # Multi-store support: use store_ids list, fall back to legacy store_id
+        store_ids = current_user.get("store_ids") or []
+        if not store_ids and current_user.get("store_id"):
+            store_ids = [current_user["store_id"]]
+        if not store_ids:
             raise ValidationError("Manager n'a pas de magasin assigné")
+
+        requested_store_id = request.query_params.get("store_id")
+        if requested_store_id:
+            # Security: the requested store must be in the manager's assigned stores
+            if requested_store_id not in store_ids:
+                logger.warning(
+                    "Manager %s attempted to access store %s not in their store_ids %s",
+                    current_user.get("id"), requested_store_id, store_ids,
+                )
+                raise ForbiddenError("Accès refusé à ce magasin")
+            resolved_store_id = requested_store_id
+        else:
+            # Single-store manager or default fallback
+            resolved_store_id = store_ids[0]
+
         return {
             **current_user,
-            "resolved_store_id": store_id,
+            "resolved_store_id": resolved_store_id,
             "view_mode": "manager",
+            "store_ids": store_ids,
         }
 
     if role in ["gerant", "gérant"]:
