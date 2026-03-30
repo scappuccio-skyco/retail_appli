@@ -35,11 +35,11 @@ export default function ManagerHeader({
 
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm mb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 flex items-center gap-1 sm:gap-3">
 
         {/* Logo */}
         <div className="flex-shrink-0">
-          <Logo variant="header" size="md" showByline={true} />
+          <Logo variant="dashboard" size="sm" showByline={true} />
         </div>
 
         <div className="hidden sm:block h-8 w-px bg-gray-200 flex-shrink-0" />
@@ -47,13 +47,13 @@ export default function ManagerHeader({
         {/* Magasin */}
         <button
           onClick={isMultiStore ? onSwitchStore : undefined}
-          className={`flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-700 flex-shrink-0 ${
+          className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-700 flex-shrink-0 ${
             isMultiStore ? 'hover:bg-gray-200 cursor-pointer transition-colors' : 'cursor-default'
           }`}
           title={isMultiStore ? 'Changer de magasin' : storeName}
         >
           <MapPin className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-          <span className="max-w-[130px] truncate">{storeName || 'Magasin'}</span>
+          <span className="max-w-[90px] sm:max-w-[130px] truncate">{storeName || 'Magasin'}</span>
           {isMultiStore && <ArrowLeftRight className="w-3 h-3 text-gray-400 flex-shrink-0" />}
         </button>
 
@@ -87,7 +87,7 @@ export default function ManagerHeader({
 
           <button
             onClick={onToggleFilters}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="Configuration"
           >
             <Settings className="w-4 h-4" />
@@ -96,7 +96,7 @@ export default function ManagerHeader({
 
           <button
             onClick={onOpenSupport}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+            className="flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm font-medium bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
             title="Contacter le support"
           >
             <Headphones className="w-4 h-4" />
@@ -127,7 +127,7 @@ export default function ManagerHeader({
         <button
           data-testid="logout-button"
           onClick={onLogout}
-          className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           title="Déconnexion"
         >
           <LogOut className="w-4 h-4" />
