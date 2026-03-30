@@ -48,7 +48,7 @@ export default function GerantHeader({
           <div className="flex gap-1 sm:gap-2 flex-shrink-0">
             <button
               onClick={onOpenBillingProfile}
-              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
+              className="hidden sm:flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
               title="Facturation — Profil B2B et factures"
             >
               <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -56,7 +56,7 @@ export default function GerantHeader({
             </button>
             <button
               onClick={onOpenSubscription}
-              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
+              className="hidden sm:flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
             >
               <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Mon abonnement</span>
