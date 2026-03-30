@@ -7,6 +7,7 @@ from typing import Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Query, Request
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from core.constants import (
     MONGO_GROUP,
@@ -23,6 +24,7 @@ from api.dependencies import (
     get_manager_kpi_service,
     get_ai_service,
 )
+from core.database import get_db
 from services.manager_service import ManagerService
 from services.manager import ManagerKpiService
 from services.ai_service import AIService, TEAM_ANALYSIS_SYSTEM_PROMPT, DISC_ADAPTATION_INSTRUCTIONS
@@ -248,11 +250,13 @@ async def generate_compatibility_advice(
     body: dict,
     context: dict = Depends(get_store_context),
     ai_service: AIService = Depends(get_ai_service),
+    db: AsyncIOMotorDatabase = Depends(get_db),
 ):
     """Generate personalized AI compatibility advice between a manager and a seller."""
     manager_diagnostic = body.get("manager_diagnostic") or {}
     seller_name = body.get("seller_name", "Le vendeur")
     seller_style = body.get("seller_style", "")
+    seller_id = body.get("seller_id")
 
     # Extract manager data for the prompt
     mgr_style = manager_diagnostic.get("profil_nom") or manager_diagnostic.get("management_style", "")
@@ -320,7 +324,7 @@ Réponds UNIQUEMENT avec ce JSON (sans markdown) :
             if cleaned.startswith("json"):
                 cleaned = cleaned[4:]
         advice = _json.loads(cleaned)
-        return {
+        result = {
             "manager": advice.get("manager", []),
             "seller": advice.get("seller", []),
             "data_used": {
@@ -333,6 +337,24 @@ Réponds UNIQUEMENT avec ce JSON (sans markdown) :
                 "seller_style": seller_style,
             },
         }
+        # Persist advice so seller can retrieve it later
+        if seller_id:
+            try:
+                manager_id = context.get("id")
+                record = {
+                    "seller_id": seller_id,
+                    "manager_id": manager_id,
+                    "advice": result,
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                }
+                await db["compatibility_advices"].update_one(
+                    {"seller_id": seller_id},
+                    {"$set": record},
+                    upsert=True,
+                )
+            except Exception as _e:
+                logger.warning("Could not persist compatibility advice: %s", _e)
+        return result
     except Exception as e:
         logger.error("Error generating compatibility advice: %s", e)
         raise AppException(status_code=500, message="Erreur lors de la génération des conseils IA")

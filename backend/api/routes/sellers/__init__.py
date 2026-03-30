@@ -18,6 +18,7 @@ from api.routes.sellers.diagnostic import diag_router as diag_sub_router
 from api.routes.sellers.relationship import router as relationship_router
 from api.routes.sellers.bilans import router as bilans_router
 from api.routes.sellers.interview_notes import router as interview_notes_router
+from api.routes.sellers.compatibility import router as compatibility_router
 
 # ── Root routers (exported) ─────────────────────────────────────────────────
 
@@ -43,6 +44,7 @@ router.include_router(seller_diagnostic_router)
 router.include_router(relationship_router)
 router.include_router(bilans_router)
 router.include_router(interview_notes_router)
+router.include_router(compatibility_router)
 
 # Public routes (no require_active_space)
 status_router.include_router(status_sub_router)

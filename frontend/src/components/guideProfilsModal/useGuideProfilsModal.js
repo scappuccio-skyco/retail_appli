@@ -8,7 +8,7 @@ import {
 
 export default function useGuideProfilsModal({ userRole, storeIdParam, userProfileName = null }) {
   const allSections = userRole === 'seller'
-    ? ['mon_profil', 'les_styles']
+    ? ['mon_profil', 'mon_manager', 'les_styles']
     : ['mon_profil'];
 
   const [activeSection, setActiveSection] = useState(allSections[0]);
@@ -19,6 +19,8 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
   const [loadingCompatibility, setLoadingCompatibility] = useState(false);
   const [aiCompatibilityAdvice, setAiCompatibilityAdvice] = useState({});
   const [loadingAdviceIds, setLoadingAdviceIds] = useState(new Set());
+  const [sellerCompatibilityAdvice, setSellerCompatibilityAdvice] = useState(null);
+  const [loadingSellerAdvice, setLoadingSellerAdvice] = useState(false);
 
   const urlParams = new URLSearchParams(globalThis.location.search);
   const urlStoreId = urlParams.get('store_id');
@@ -29,6 +31,23 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
   useEffect(() => {
     if (userRole === 'manager') fetchCompatibilityData();
   }, [storeParam]);
+
+  // Pour le vendeur : charger l'advice de compatibilité généré par le manager
+  useEffect(() => {
+    if (userRole === 'seller') fetchSellerCompatibilityAdvice();
+  }, []);
+
+  const fetchSellerCompatibilityAdvice = async () => {
+    setLoadingSellerAdvice(true);
+    try {
+      const res = await api.get('/seller/compatibility-advice');
+      setSellerCompatibilityAdvice(res.data?.advice || null);
+    } catch (err) {
+      logger.error('Error fetching seller compatibility advice:', err);
+    } finally {
+      setLoadingSellerAdvice(false);
+    }
+  };
 
   const fetchCompatibilityData = async () => {
     setLoadingCompatibility(true);
@@ -62,6 +81,7 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
         manager_diagnostic: managerFullDiagnostic,
         seller_name: seller.name,
         seller_style: seller.style_vente,
+        seller_id: seller.id,
       });
       setAiCompatibilityAdvice(prev => ({ ...prev, [sellerId]: res.data }));
     } catch (err) {
@@ -115,6 +135,7 @@ export default function useGuideProfilsModal({ userRole, storeIdParam, userProfi
     allSections, activeSection, currentProfile,
     managerProfile, managerFullDiagnostic, teamSellers, loadingCompatibility,
     aiCompatibilityAdvice, loadingAdviceIds, generateCompatibilityAdvice,
+    sellerCompatibilityAdvice, loadingSellerAdvice,
     profiles, profile: profiles[currentProfile],
     ownProfile,
     handleSectionChange, handleNext, handlePrevious,
