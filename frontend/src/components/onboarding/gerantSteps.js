@@ -4,7 +4,7 @@ import React from 'react';
  * Contenu des étapes d'onboarding pour le GÉRANT
  */
 
-export const gerantSteps = [
+export const getGerantSteps = () => [
   // Étape 1 : Bienvenue (vrai accueil, pas une tâche)
   {
     icon: '👋',

@@ -117,7 +117,12 @@ export default function SellerHeader({
 
           {/* Ligne 2 : utilitaires + déconnexion */}
           <div className="flex gap-2 justify-center md:contents">
-            <TutorialButton onClick={onboarding.open} />
+            <TutorialButton
+              onClick={onboarding.open}
+              isCompleted={onboarding.isCompleted}
+              currentStep={onboarding.currentStep}
+              totalSteps={onboarding.totalSteps}
+            />
 
             <NotificationBell
               notifications={notifications}

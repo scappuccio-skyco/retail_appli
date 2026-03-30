@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { useSyncMode } from '../hooks/useSyncMode';
 import { useOnboarding } from '../hooks/useOnboarding';
@@ -65,8 +65,13 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   // ── Onboarding ─────────────────────────────────────────────
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
   const [kpiModeReady, setKpiModeReady] = useState(false);
-  const sellerSteps = useMemo(() => getSellerSteps(kpiMode), [kpiMode]);
+  const onboardingRef = useRef(null);
+  const sellerSteps = useMemo(() => getSellerSteps(kpiMode, {
+    openDiagnostic: () => { onboardingRef.current?.close(); setShowDiagnosticFormModal(true); },
+    openKPI: () => { onboardingRef.current?.close(); handleOpenKPIModal(); },
+  }), [kpiMode]); // eslint-disable-line react-hooks/exhaustive-deps
   const onboarding = useOnboarding(sellerSteps.length, { readyToAutoOpen: kpiModeReady });
+  onboardingRef.current = onboarding;
 
   // ── Detect KPI mode for adaptive onboarding ────────────────
   useEffect(() => {
