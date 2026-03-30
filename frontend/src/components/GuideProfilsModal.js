@@ -4,6 +4,7 @@ import useGuideProfilsModal from './guideProfilsModal/useGuideProfilsModal';
 import CompatibiliteSection from './guideProfilsModal/CompatibiliteSection';
 import ProfileSection from './guideProfilsModal/ProfileSection';
 import MonProfilSection from './guideProfilsModal/MonProfilSection';
+import MonManagerSection from './guideProfilsModal/MonManagerSection';
 
 export default function GuideProfilsModal({ onClose, userRole = 'manager', storeIdParam = null, userProfileName = null }) {
   const {
@@ -11,6 +12,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
     currentProfile, profiles, profile,
     managerProfile, managerFullDiagnostic, teamSellers, loadingCompatibility,
     aiCompatibilityAdvice, loadingAdviceIds, generateCompatibilityAdvice,
+    sellerCompatibilityAdvice, loadingSellerAdvice,
     ownProfile,
     handleSectionChange, handleNext, handlePrevious,
     getColorClasses,
@@ -18,6 +20,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
 
   const sectionLabels = {
     mon_profil: '🎯 Mon Profil',
+    mon_manager: '🤝 Mon Manager',
     mon_equipe: '👥 Mon Équipe',
     les_styles: '🎨 Les autres styles',
   };
@@ -67,6 +70,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
             <MonProfilSection
               profile={ownProfile}
               getColorClasses={getColorClasses}
+            />
+          )}
+          {activeSection === 'mon_manager' && (
+            <MonManagerSection
+              advice={sellerCompatibilityAdvice}
+              isLoading={loadingSellerAdvice}
             />
           )}
           {activeSection === 'mon_equipe' && (
