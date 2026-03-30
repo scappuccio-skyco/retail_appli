@@ -72,17 +72,17 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT', callbacks = {}) => {
       title: 'Relevez les challenges',
       description: (
         <>
-          <p className="text-green-600 font-semibold">Rendez votre travail plus fun !</p>
-          <p className="mt-3 font-semibold">Les challenges vous permettent de :</p>
+          <p className="text-purple-600 font-semibold">Rendez votre travail plus fun !</p>
+          <p className="mt-3 font-semibold">Comment accéder aux défis :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Cliquez sur la carte verte <strong>"Objectifs et Challenges"</strong></li>
-            <li>Recevoir des objectifs quotidiens personnalisés</li>
-            <li>Gagner des badges et récompenses</li>
-            <li>Participer aux compétitions d'équipe</li>
+            <li>Cliquez sur la carte violette <strong>"Mon coach IA"</strong></li>
+            <li>Onglet <strong>"Mon défi du jour"</strong></li>
+            <li>Recevez un défi quotidien personnalisé selon vos compétences</li>
+            <li>Validez vos défis pour suivre votre progression</li>
           </ul>
         </>
       ),
-      tips: 'Les challenges rendent le travail plus motivant !'
+      tips: 'Les défis quotidiens rendent le travail plus motivant !'
     },
 
     // Étape 6 : Finir (ADAPTATIF)
@@ -104,8 +104,9 @@ function getSellerKpiStep(mode, callbacks = {}) {
         description: (
           <>
             <p className="text-purple-600 font-semibold">Votre manager saisit les chiffres pour vous.</p>
-            <p className="mt-3 font-semibold">Consultez vos KPIs :</p>
+            <p className="mt-3 font-semibold">Comment consulter vos KPIs :</p>
             <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+              <li>Cliquez sur la carte orange <strong>"Mes Performances"</strong></li>
               <li><strong>Panier Moyen</strong> : montant moyen par vente</li>
               <li><strong>Indice de Vente</strong> : articles par transaction</li>
               <li><strong>Taux de Transformation</strong> : visiteurs → acheteurs</li>
@@ -125,6 +126,7 @@ function getSellerKpiStep(mode, callbacks = {}) {
             <p className="text-blue-600 font-semibold">Vos KPI sont mis à jour automatiquement.</p>
             <p className="mt-3 font-semibold">Consultez vos indicateurs en temps réel :</p>
             <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+              <li>Cliquez sur la carte orange <strong>"Mes Performances"</strong></li>
               <li><strong>Panier Moyen</strong> : montant moyen par vente</li>
               <li><strong>Indice de Vente</strong> : articles par transaction</li>
               <li><strong>Taux de Transformation</strong> : visiteurs → acheteurs</li>
@@ -143,11 +145,11 @@ function getSellerKpiStep(mode, callbacks = {}) {
         description: (
           <>
             <p className="text-purple-600 font-semibold">Saisissez vos chiffres chaque jour.</p>
-            <p className="mt-3 font-semibold">Consultez et saisissez vos KPIs :</p>
+            <p className="mt-3 font-semibold">Comment faire :</p>
             <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-              <li><strong>Panier Moyen</strong> : montant moyen par vente</li>
-              <li><strong>Indice de Vente</strong> : articles par transaction</li>
-              <li><strong>Taux de Transformation</strong> : visiteurs → acheteurs</li>
+              <li>Cliquez sur la carte orange <strong>"Mes Performances"</strong></li>
+              <li>Onglet <strong>"Saisir mes KPIs"</strong> pour entrer vos chiffres</li>
+              <li><strong>Panier Moyen</strong>, <strong>Indice de Vente</strong>, <strong>Taux de Transformation</strong></li>
             </ul>
             <p className="mt-3">La régularité de saisie garantit des analyses IA précises !</p>
           </>
