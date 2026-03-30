@@ -17,7 +17,7 @@ function DailyKPICards({ overviewData }) {
   const indiceStr = hasIndiceVente ? parseFloat(kpis.indice_vente).toFixed(2) : 'N/A';
   const indiceSub = hasIndiceVente ? 'Articles / Ventes' : 'Données manquantes';
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
         <div className="text-xs text-purple-700 font-semibold mb-0.5">💰 CA Réalisé</div>
         <div className="text-2xl font-bold text-purple-900">{caStr}</div>
