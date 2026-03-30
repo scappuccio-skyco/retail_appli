@@ -167,7 +167,7 @@ class BriefHistoryItem(BaseModel):
     generated_at: str
 
 
-@router.post("/morning", response_model=MorningBriefResponse, dependencies=[rate_limit("20/hour")])
+@router.post("/morning", response_model=MorningBriefResponse, dependencies=[rate_limit("60/hour")])
 async def generate_morning_brief(
     request: Request,
     store_id: Optional[str] = Query(None, description=QUERY_STORE_ID_POUR_GERANT_VISUALISANT),

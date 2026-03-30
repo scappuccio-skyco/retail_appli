@@ -234,8 +234,8 @@ export default function usePerformanceModal({
   const periodChartData = useMemo(() => {
     if (!periodEntries.length) return [];
     return periodEntries.map(entry => ({
-      date: new Date(entry.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
-      CA: entry.ca_journalier || 0,
+      date: new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+      CA: Math.round(entry.ca_journalier || 0),
       Ventes: entry.nb_ventes || 0,
       Articles: entry.nb_articles || 0,
       Prospects: entry.nb_prospects || 0,
@@ -309,16 +309,16 @@ export default function usePerformanceModal({
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23, 59, 59, 999);
     const weekEntries = kpiEntries.filter(e => {
-      const d = new Date(e.date);
+      const d = new Date(e.date + 'T12:00:00');
       return d >= monday && d <= sunday;
     });
-    return weekEntries.sort((a, b) => new Date(a.date) - new Date(b.date)).map(entry => ({
-      date: new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
-      CA: entry.ca_journalier || 0,
+    return weekEntries.sort((a, b) => new Date(a.date + 'T12:00:00') - new Date(b.date + 'T12:00:00')).map(entry => ({
+      date: new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
+      CA: Math.round(entry.ca_journalier || 0),
       Ventes: entry.nb_ventes || 0,
       Articles: entry.nb_articles || 0,
       Prospects: entry.nb_prospects || 0,
-      'Panier Moyen': entry.ca_journalier && entry.nb_ventes ? (entry.ca_journalier / entry.nb_ventes).toFixed(2) : 0,
+      'Panier Moyen': entry.ca_journalier && entry.nb_ventes ? parseFloat((entry.ca_journalier / entry.nb_ventes).toFixed(2)) : 0,
     }));
   }, [kpiEntries, currentWeekOffset]);
 

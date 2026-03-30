@@ -126,7 +126,7 @@ Ton style doit être positif, professionnel et orienté action terrain. Pas de j
         }
 
 
-@router.post("", dependencies=[rate_limit("5/minute")])
+@router.post("", dependencies=[rate_limit("20/minute")])
 async def create_manager_diagnostic(
     diagnostic_data: ManagerDiagnosticCreate,
     current_user: dict = Depends(verify_manager_or_gerant),

@@ -16,7 +16,7 @@ router = APIRouter(
 )
 
 
-@router.post("/diagnostic", dependencies=[rate_limit("5/minute")])
+@router.post("/diagnostic", dependencies=[rate_limit("20/minute")])
 async def generate_diagnostic(
     request: Request,
     responses: List[Union[DiagnosticResponse, Dict]],
@@ -64,7 +64,7 @@ async def generate_diagnostic(
     )
 
 
-@router.post("/daily-challenge", dependencies=[rate_limit("5/minute")])
+@router.post("/daily-challenge", dependencies=[rate_limit("20/minute")])
 async def generate_daily_challenge(
     request: Request,
     current_user: Dict = Depends(get_current_seller),
@@ -89,7 +89,7 @@ async def generate_daily_challenge(
         raise BusinessLogicError(str(e))
 
 
-@router.post("/seller-bilan", dependencies=[rate_limit("5/minute")])
+@router.post("/seller-bilan", dependencies=[rate_limit("20/minute")])
 async def generate_seller_bilan(
     request: Request,
     current_user: Dict = Depends(get_current_seller),

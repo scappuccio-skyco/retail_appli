@@ -53,9 +53,10 @@ def rate_limit(limit_str: str):
         limiter = get_limiter_from_request(request)
         if not limiter:
             return None
-        def _key_func():
-            identity = _extract_user_id_from_request(request)
-            return f"{identity}:{request.url.path}"
+        def _key_func(req: Request = None) -> str:
+            r = req or request
+            identity = _extract_user_id_from_request(r)
+            return f"{identity}:{r.url.path}"
         async def _noop(request: Request):
             return None
         wrapped = limiter.limit(limit_str, key_func=_key_func)(_noop)

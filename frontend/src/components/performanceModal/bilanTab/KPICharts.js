@@ -27,7 +27,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
               <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#1e40af' }} stroke="#3b82f6" interval={xInterval} />
               <YAxis tick={{ fontSize: fs, fill: '#1e40af' }} stroke="#3b82f6" />
-              <Tooltip contentStyle={{ backgroundColor: '#eff6ff', border: '2px solid #3b82f6', borderRadius: '8px' }} />
+              <Tooltip formatter={(v) => [typeof v === 'number' ? `${Math.round(v)} €` : v, 'CA']} contentStyle={{ backgroundColor: '#eff6ff', border: '2px solid #3b82f6', borderRadius: '8px' }} />
               <Line type="monotone" dataKey="CA" stroke="#3b82f6" strokeWidth={sw} dot={dot} />
             </LineChart>
           </ResponsiveContainer>
@@ -92,7 +92,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
               <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#3730a3' }} stroke="#6366f1" interval={xInterval} />
               <YAxis tick={{ fontSize: fs, fill: '#3730a3' }} stroke="#6366f1" />
               <Tooltip
-                formatter={(v) => [`${v} €`, 'Panier moyen']}
+                formatter={(v) => [typeof v === 'number' ? `${v.toFixed(2)} €` : `${v} €`, 'Panier moyen']}
                 contentStyle={{ backgroundColor: '#eef2ff', border: '2px solid #6366f1', borderRadius: '8px' }}
               />
               <Line type="monotone" dataKey="Panier Moyen" stroke="#6366f1" strokeWidth={sw} dot={false} />
@@ -111,7 +111,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
               <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#9d174d' }} stroke="#ec4899" interval={xInterval} />
               <YAxis tick={{ fontSize: fs, fill: '#9d174d' }} stroke="#ec4899" domain={[0, 100]} />
               <Tooltip
-                formatter={(v) => [`${v} %`, 'Taux transfo']}
+                formatter={(v) => [typeof v === 'number' ? `${v.toFixed(1)} %` : `${v} %`, 'Taux transfo']}
                 contentStyle={{ backgroundColor: '#fdf2f8', border: '2px solid #ec4899', borderRadius: '8px' }}
               />
               <Line type="monotone" dataKey="Taux Transfo" stroke="#ec4899" strokeWidth={sw} dot={false} />
