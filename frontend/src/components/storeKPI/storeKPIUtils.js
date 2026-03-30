@@ -22,8 +22,8 @@ export function formatChartDate(dateStr) {
   if (/^[A-Za-zÀ-ÿ]+$/.exec(dateStr) !== null) return dateStr;
   if (dateStr.includes('-S') || dateStr.includes('-B')) return dateStr;
   try {
-    const [year, month, day] = dateStr.split('-');
-    return `${day}/${month}/${String(year).slice(-2)}`;
+    const [, month, day] = dateStr.split('-');
+    return `${day}/${month}`;
   } catch {
     return dateStr;
   }
@@ -89,6 +89,32 @@ export function fillMissingDays(historicalArray, startDate, endDate) {
 
 const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+/**
+ * Remplit les mois manquants pour une vue année.
+ * Ajoute les mois sans données jusqu'au mois courant (ou décembre pour les années passées).
+ */
+export function fillMissingMonths(monthlyArray, selectedYear) {
+  const now = new Date();
+  const isCurrentYear = selectedYear === now.getFullYear();
+  const lastMonth = isCurrentYear ? now.getMonth() : 11; // 0-indexed
+  const result = [];
+  for (let m = 0; m <= lastMonth; m++) {
+    const monthKey = `${selectedYear}-${String(m + 1).padStart(2, '0')}`;
+    const existing = monthlyArray.find(d => d.sortKey === monthKey);
+    result.push(existing || {
+      date: MONTH_NAMES[m],
+      sortKey: monthKey,
+      seller_ca: 0,
+      seller_ventes: 0,
+      seller_clients: 0,
+      seller_articles: 0,
+      seller_prospects: 0,
+      count: 0,
+    });
+  }
+  return result;
+}
 
 /** Agrège les données par mois (vue année). */
 export function aggregateByMonth(historicalArray) {

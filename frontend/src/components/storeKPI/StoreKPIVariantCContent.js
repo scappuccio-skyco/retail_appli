@@ -105,7 +105,7 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
       chart: (
         <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} interval={viewMode === 'month' ? 4 : 0} />
           <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
           <Tooltip formatter={(v) => [`${v} €`, 'CA']} labelFormatter={formatChartDate} />
           <Bar dataKey="total_ca" fill="#3B82F6" radius={[4, 4, 0, 0]} />
@@ -117,7 +117,7 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
       chart: (
         <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} interval={viewMode === 'month' ? 4 : 0} />
           <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
           <Tooltip formatter={(v) => [v, 'Ventes']} labelFormatter={formatChartDate} />
           <Bar dataKey="total_ventes" fill="#10B981" radius={[4, 4, 0, 0]} />
@@ -129,7 +129,7 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
       chart: (
         <BarChart data={historicalData} barSize={viewMode === 'year' ? 8 : 16}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} axisLine={false} tickLine={false} interval={viewMode === 'month' ? 4 : 0} />
           <YAxis tick={{ fontSize: 10 }} unit="%" axisLine={false} tickLine={false} />
           <Tooltip formatter={(v) => [`${v}%`, 'Transfo']} labelFormatter={formatChartDate} />
           <Bar dataKey="taux_transformation" fill="#8B5CF6" radius={[4, 4, 0, 0]} />

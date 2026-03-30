@@ -9,6 +9,7 @@ import {
   getYearStartEnd,
   filterByDateRange,
   fillMissingDays,
+  fillMissingMonths,
   aggregateByMonth,
   addDerivedMetrics,
   extractAvailableYears
@@ -165,7 +166,10 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
         historicalArray = fillMissingDays(historicalArray, startDate, endDate);
       }
 
-      const aggregatedData = viewMode === 'year' ? aggregateByMonth(historicalArray) : historicalArray;
+      let aggregatedData = viewMode === 'year' ? aggregateByMonth(historicalArray) : historicalArray;
+      if (viewMode === 'year' && selectedYear) {
+        aggregatedData = fillMissingMonths(aggregatedData, selectedYear);
+      }
       const finalData = addDerivedMetrics(aggregatedData);
 
       if (!storeId && historicalArray.length > 0) {

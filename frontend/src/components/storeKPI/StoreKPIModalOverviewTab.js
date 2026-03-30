@@ -10,7 +10,7 @@ export { WeekPicker } from './WeekPicker';
 
 function getChartInterval(viewMode) {
   if (viewMode === 'week') return 0;
-  if (viewMode === 'month') return 2;
+  if (viewMode === 'month') return 4;
   return 0;
 }
 
