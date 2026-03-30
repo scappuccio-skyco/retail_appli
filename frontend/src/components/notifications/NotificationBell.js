@@ -3,17 +3,21 @@ import ReactDOM from 'react-dom';
 import { Bell, X, CheckCheck } from 'lucide-react';
 
 const TYPE_ICONS = {
-  kpi_saved:     '✅',
-  silent_seller: '⚠️',
-  objective_reached: '🏆',
-  default:       '🔔',
+  kpi_saved:          '✅',
+  silent_seller:      '⚠️',
+  objective_reached:  '🏆',
+  note_shared:        '🗒️',
+  objective_expiring: '⏰',
+  default:            '🔔',
 };
 
 const TYPE_COLORS = {
-  kpi_saved:     'bg-green-50 border-green-200',
-  silent_seller: 'bg-orange-50 border-orange-200',
-  objective_reached: 'bg-yellow-50 border-yellow-200',
-  default:       'bg-blue-50 border-blue-200',
+  kpi_saved:          'bg-green-50 border-green-200',
+  silent_seller:      'bg-orange-50 border-orange-200',
+  objective_reached:  'bg-yellow-50 border-yellow-200',
+  note_shared:        'bg-purple-50 border-purple-200',
+  objective_expiring: 'bg-red-50 border-red-200',
+  default:            'bg-blue-50 border-blue-200',
 };
 
 function timeAgo(isoString) {

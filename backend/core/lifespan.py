@@ -157,6 +157,17 @@ def _start_scheduler(database) -> None:
             except Exception:
                 logger.exception("silent-seller-alerts job error")
 
+        async def _run_objective_expiring_alerts():
+            try:
+                from core.database import database as db_inst
+                from services.jobs_service import JobsService
+
+                service = JobsService(db_inst.db)
+                count = await service.compute_objective_expiring_alerts()
+                logger.info("objective-expiring-alerts: %d notifications créées", count)
+            except Exception:
+                logger.exception("objective-expiring-alerts job error")
+
         _scheduler = AsyncIOScheduler(timezone="Europe/Paris")
         _scheduler.add_job(
             _run_weekly_gerant_recap,
@@ -170,8 +181,14 @@ def _start_scheduler(database) -> None:
             id="silent-seller-alerts",
             replace_existing=True,
         )
+        _scheduler.add_job(
+            _run_objective_expiring_alerts,
+            CronTrigger(day_of_week="mon-fri", hour=8, minute=0, timezone="Europe/Paris"),
+            id="objective-expiring-alerts",
+            replace_existing=True,
+        )
         _scheduler.start()
-        logger.info("APScheduler started (weekly recap Mondays 08:00, silent alerts Mon-Fri 08:00 Paris)")
+        logger.info("APScheduler started (weekly recap Mon 08:00, silent alerts + objective expiring Mon-Fri 08:00 Paris)")
 
     except ImportError:
         logger.warning("APScheduler not installed — scheduled jobs disabled (pip install apscheduler)")

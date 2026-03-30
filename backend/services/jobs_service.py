@@ -28,12 +28,14 @@ class JobsService:
         from repositories.kpi_repository import KPIRepository
         from repositories.billing_repository import BillingProfileRepository
         from repositories.notification_repository import NotificationRepository
+        from repositories.objective_repository import ObjectiveRepository
 
         self.user_repo = UserRepository(db)
         self.store_repo = StoreRepository(db)
         self.kpi_repo = KPIRepository(db)
         self.billing_repo = BillingProfileRepository(db)
         self.notification_repo = NotificationRepository(db)
+        self.objective_repo = ObjectiveRepository(db)
 
     # ── Weekly gérant recap ────────────────────────────────────────────────
 
@@ -292,3 +294,73 @@ class JobsService:
                 })
 
         return alerts
+
+    # ── Objective expiring alerts ───────────────────────────────────────────
+
+    async def compute_objective_expiring_alerts(self) -> int:
+        """
+        Crée des notifications in-app pour les managers ayant des objectifs
+        qui expirent aujourd'hui ou demain.
+        Évite les doublons via vérification en base (un seul envoi par objectif par jour).
+        Retourne le nombre de notifications créées.
+        """
+        today = date.today()
+        today_str = today.isoformat()
+        tomorrow_str = (today + timedelta(days=1)).isoformat()
+        since_str = today_str + "T00:00:00"  # depuis minuit aujourd'hui
+
+        count = 0
+        try:
+            managers = await self.user_repo.find_many(
+                {"role": "manager"},
+                projection={"_id": 0, "id": 1},
+            )
+        except Exception:
+            return 0
+
+        for manager in managers:
+            manager_id = manager.get("id")
+            if not manager_id:
+                continue
+            try:
+                objectives = await self.objective_repo.find_by_manager(
+                    manager_id,
+                    projection={"_id": 0, "id": 1, "title": 1, "period_end": 1, "status": 1},
+                    limit=20,
+                )
+                for obj in objectives:
+                    if obj.get("status") != "active":
+                        continue
+                    period_end = obj.get("period_end", "")
+                    if period_end not in (today_str, tomorrow_str):
+                        continue
+
+                    obj_id = obj.get("id", "")
+
+                    # Éviter les doublons : déjà notifié aujourd'hui ?
+                    existing = await self.notification_repo.find_one(
+                        {
+                            "user_id": manager_id,
+                            "type": "objective_expiring",
+                            "data.objective_id": obj_id,
+                            "created_at": {"$gte": since_str},
+                        },
+                        {"_id": 1},
+                    )
+                    if existing:
+                        continue
+
+                    days_left = (date.fromisoformat(period_end) - today).days
+                    label = "aujourd'hui" if days_left == 0 else "demain"
+                    await self.notification_repo.create(
+                        user_id=manager_id,
+                        notif_type="objective_expiring",
+                        title=f"Objectif se termine {label} ⏰",
+                        message=f"« {obj.get('title', '')} » expire {label}",
+                        data={"objective_id": obj_id},
+                    )
+                    count += 1
+            except Exception:
+                continue
+
+        return count

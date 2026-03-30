@@ -1,4 +1,5 @@
 """Interview notes and debrief methods for SellerService."""
+import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
@@ -53,10 +54,13 @@ class NotesMixin:
         """Toggle shared_with_manager visibility of an interview note."""
         if not self.interview_note_repo:
             return False
-        return await self.interview_note_repo.update_one(
+        result = await self.interview_note_repo.update_one(
             {"id": note_id, "seller_id": seller_id},
             {"$set": {"shared_with_manager": shared, "updated_at": datetime.now(timezone.utc).isoformat()}}
         )
+        if result and shared:
+            asyncio.create_task(_notify_manager_note_shared(seller_id, note_id))
+        return result
 
     async def create_interview_note(self, note_data: Dict) -> str:
         """Create interview note. Returns note id."""
@@ -183,3 +187,38 @@ class NotesMixin:
         return await self.debrief_repo.delete_debrief(
             debrief_id=debrief_id, seller_id=seller_id
         )
+
+
+# ---------------------------------------------------------------------------
+# Helper module-level (fire-and-forget via asyncio.create_task)
+# ---------------------------------------------------------------------------
+
+async def _notify_manager_note_shared(seller_id: str, note_id: str) -> None:
+    """
+    Fire-and-forget : notifie le manager quand un vendeur partage une note.
+    """
+    try:
+        from core.database import database
+        from repositories.user_repository import UserRepository
+        from repositories.notification_repository import NotificationRepository
+
+        db = database.db
+        if db is None:
+            return
+
+        seller = await UserRepository(db).find_by_id(
+            seller_id, projection={"_id": 0, "name": 1, "manager_id": 1}
+        )
+        if not seller or not seller.get("manager_id"):
+            return
+
+        seller_name = seller.get("name", "Un vendeur")
+        await NotificationRepository(db).create(
+            user_id=seller["manager_id"],
+            notif_type="note_shared",
+            title="Nouvelle note partagée 🗒️",
+            message=f"{seller_name} a partagé une note avec vous",
+            data={"seller_id": seller_id, "note_id": note_id},
+        )
+    except Exception as e:
+        logger.warning("Note shared notification failed (non-critical): %s", e)
