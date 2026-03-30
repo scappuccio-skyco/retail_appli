@@ -9,8 +9,8 @@ from typing import Final
 # ===== PAGINATION LIMITS =====
 DEFAULT_PAGE_SIZE: Final[int] = 20
 """Default number of items per page"""
-MAX_PAGE_SIZE: Final[int] = 100
-"""Maximum number of items per page (prevents memory issues)"""
+MAX_PAGE_SIZE: Final[int] = 400
+"""Maximum number of items per page (400 couvre une année complète de saisies journalières)"""
 
 # ===== DATABASE LIMITS =====
 MONGODB_MAX_POOL_SIZE: Final[int] = 50  # ✅ Production-ready (configurable via MONGO_MAX_POOL_SIZE env var)
