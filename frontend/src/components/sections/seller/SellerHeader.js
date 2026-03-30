@@ -73,9 +73,10 @@ export default function SellerHeader({
             onMarkAllRead={markAllRead}
           />
 
+          {/* Profil, Perso, Mon manager — masqués sur mobile (accessibles via l'avatar) */}
           <button
             onClick={() => diagnostic ? onOpenProfile() : onOpenDiagnosticForm()}
-            className="flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
             title="Mon Profil de Vente"
           >
             <User className="w-4 h-4" />
@@ -84,7 +85,7 @@ export default function SellerHeader({
 
           <button
             onClick={onToggleFilters}
-            className="flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
             title="Personnaliser l'affichage"
           >
             <Settings className="w-4 h-4" />
@@ -94,7 +95,7 @@ export default function SellerHeader({
           {onOpenManagerCompat && (
             <button
               onClick={onOpenManagerCompat}
-              className="flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+              className="hidden sm:flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
               title="Comprendre mon manager"
             >
               <Heart className="w-4 h-4" />
