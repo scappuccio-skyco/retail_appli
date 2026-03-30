@@ -1,5 +1,6 @@
 import React from 'react';
 import { LogOut, Settings, Headphones, BarChart3, Store, UserCog, Key, FileText, User } from 'lucide-react';
+import Logo from '../../shared/Logo';
 import TutorialButton from '../../onboarding/TutorialButton';
 import NotificationBell from '../../notifications/NotificationBell';
 import { useNotifications } from '../../../hooks/useNotifications';
@@ -25,31 +26,23 @@ export default function GerantHeader({
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
 
         {/* Titre + actions */}
-        <div className="flex items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2">
-          <div className="min-w-0 flex-1 max-w-[250px] sm:max-w-none">
-            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
-              🏢 <span className="hidden sm:inline">Dashboard </span>Gérant
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 truncate">
-              Bonjour, {user?.name}
-              {subscriptionInfo?.workspace_name && (
-                <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
-                  • 🏪 {subscriptionInfo.workspace_name}
-                </span>
-              )}
-            </p>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <span className="hidden xs:inline">Données sécurisées</span>
-                <span className="xs:hidden">Sécurisé</span>
-              </span>
-              <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border bg-orange-50 text-orange-800 border-orange-300">
-                Espace Gérant
-              </span>
+        <div className="flex items-center justify-between mb-3 sm:mb-4 gap-1 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 min-w-0">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <Logo variant="dashboard" size="sm" showByline={true} />
             </div>
+            <div className="hidden sm:block h-8 w-px bg-gray-200 flex-shrink-0" />
+            {/* Magasin + badges */}
+            {subscriptionInfo?.workspace_name && (
+              <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-700 flex-shrink-0">
+                <span className="text-xs">🏪</span>
+                <span className="max-w-[90px] sm:max-w-[160px] truncate">{subscriptionInfo.workspace_name}</span>
+              </div>
+            )}
+            <span className="hidden lg:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border bg-orange-50 text-orange-800 border-orange-300 flex-shrink-0">
+              Espace Gérant
+            </span>
           </div>
 
           <div className="flex gap-1 sm:gap-2 flex-shrink-0">

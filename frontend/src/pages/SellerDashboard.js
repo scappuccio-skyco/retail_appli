@@ -32,10 +32,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [initialTab, setInitialTab] = useState('bilan');
 
   // ── Staging variant state ──────────────────────────────────
-  const [performanceVariant, setPerformanceVariant] = useState('A');
-  const [objectivesVariant, setObjectivesVariant] = useState('A');
-  const [coachingVariant, setCoachingVariant] = useState('A');
-  const [notesVariant, setNotesVariant] = useState('A');
+  const [performanceVariant] = useState('A');
+  const [objectivesVariant] = useState('B');
+  const [coachingVariant] = useState('A');
+  const [notesVariant] = useState('A');
 
   // ── Modal state ────────────────────────────────────────────
   const [showEvalModal, setShowEvalModal] = useState(false);
@@ -182,10 +182,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           finalOrder={finalOrder}
           dashboardFilters={dashboardFilters}
           activeObjectives={data.activeObjectives}
-          onOpenPerformance={(variant = 'A') => { setPerformanceVariant(variant); setShowPerformanceModal(true); }}
-          onOpenObjectives={(variant = 'A') => { setObjectivesVariant(variant); setShowObjectivesModal(true); }}
-          onOpenCoaching={(variant = 'A') => { setCoachingVariant(variant); setShowCoachingModal(true); }}
-          onOpenNotes={(variant = 'A') => { setNotesVariant(variant); setShowNotesNotebook(true); }}
+          onOpenPerformance={() => setShowPerformanceModal(true)}
+          onOpenObjectives={() => setShowObjectivesModal(true)}
+          onOpenCoaching={() => setShowCoachingModal(true)}
+          onOpenNotes={() => setShowNotesNotebook(true)}
         />
 
         <SellerCompetencesRadar competencesHistory={data.competencesHistory} />
