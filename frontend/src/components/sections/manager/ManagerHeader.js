@@ -1,14 +1,13 @@
 import React from 'react';
-import { LogOut, Sparkles, Headphones, ArrowLeftRight } from 'lucide-react';
+import { LogOut, Headphones, Settings, MapPin, ArrowLeftRight } from 'lucide-react';
 import Logo from '../../shared/Logo';
-import SyncModeBadge from '../../SyncModeBadge';
 import TutorialButton from '../../onboarding/TutorialButton';
 import NotificationBell from '../../notifications/NotificationBell';
 import { useNotifications } from '../../../hooks/useNotifications';
 
 /**
- * Header du dashboard manager.
- * Affiche le logo, welcome, store name, badges rôle, et boutons d'action.
+ * Header du dashboard manager — design navbar plat.
+ * Logo · Magasin · Rôle · [spacer] · Tutoriel · Notifs · Config · Support · Avatar · Déconnexion
  */
 export default function ManagerHeader({
   user,
@@ -18,7 +17,6 @@ export default function ManagerHeader({
   onboarding,
   onOpenProfile,
   onOpenDiagnostic,
-  showFilters,
   onToggleFilters,
   onOpenSupport,
   spaceLabel,
@@ -28,85 +26,51 @@ export default function ManagerHeader({
 }) {
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
 
-  return (
-    <div className="max-w-7xl mx-auto mb-8">
-      <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  const initials = (user?.name || '?')
+    .split(' ')
+    .map(w => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
-        {/* Identité */}
-        <div className="flex items-center gap-3 sm:gap-4">
+  return (
+    <div className="bg-white border-b border-gray-200 shadow-sm mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
+
+        {/* Logo */}
+        <div className="flex-shrink-0">
           <Logo variant="header" size="md" showByline={true} />
-          <div>
-            <p className="text-gray-600 text-sm sm:text-base flex items-center flex-wrap gap-1">
-              Bienvenue, {user.name}
-              {storeName && (
-                <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
-                  • 🏢 {storeName}
-                </span>
-              )}
-              {isMultiStore && (
-                <button
-                  onClick={onSwitchStore}
-                  className="inline-flex items-center gap-1 ml-1 px-2 py-0.5 text-xs font-medium text-[#1E40AF] bg-blue-50 border border-blue-200 rounded-full hover:bg-blue-100 transition-colors whitespace-nowrap"
-                  title="Changer de magasin"
-                >
-                  <ArrowLeftRight className="w-3 h-3" />
-                  Changer
-                </button>
-              )}
-            </p>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Données sécurisées
-              </span>
-              <span className={`inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border ${
-                isGerantSpace
-                  ? 'bg-orange-50 text-orange-800 border-orange-300'
-                  : 'bg-blue-50 text-blue-800 border-blue-300'
-              }`}>
-                {spaceLabel}
-              </span>
-              <span
-                className="text-xs text-gray-500 cursor-help"
-                title="Vos données sont chiffrées. Les noms de famille sont anonymisés dans les analyses IA. Aucune donnée n'est conservée par l'IA."
-              >
-                ℹ️
-              </span>
-            </div>
-          </div>
         </div>
 
+        <div className="hidden sm:block h-8 w-px bg-gray-200 flex-shrink-0" />
+
+        {/* Magasin */}
+        <button
+          onClick={isMultiStore ? onSwitchStore : undefined}
+          className={`flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-700 flex-shrink-0 ${
+            isMultiStore ? 'hover:bg-gray-200 cursor-pointer transition-colors' : 'cursor-default'
+          }`}
+          title={isMultiStore ? 'Changer de magasin' : storeName}
+        >
+          <MapPin className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+          <span className="max-w-[130px] truncate">{storeName || 'Magasin'}</span>
+          {isMultiStore && <ArrowLeftRight className="w-3 h-3 text-gray-400 flex-shrink-0" />}
+        </button>
+
+        {/* Badge rôle */}
+        <span className={`hidden lg:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border flex-shrink-0 ${
+          isGerantSpace
+            ? 'bg-orange-50 text-orange-800 border-orange-300'
+            : 'bg-blue-50 text-blue-800 border-blue-300'
+        }`}>
+          {spaceLabel}
+        </span>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
         {/* Actions */}
-        <div className="flex gap-2 flex-wrap items-center justify-center md:justify-start w-full md:w-auto">
-          <button
-            onClick={managerDiagnostic ? onOpenProfile : onOpenDiagnostic}
-            className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span className="hidden sm:inline">Profil</span>
-          </button>
-
-          <button
-            onClick={onToggleFilters}
-            className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
-            <span className="hidden sm:inline">Config</span>
-          </button>
-
-          <button
-            onClick={onOpenSupport}
-            className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
-            title="Contacter le support"
-          >
-            <Headphones className="w-4 h-4" />
-            <span className="hidden sm:inline">Support</span>
-          </button>
-
+        <div className="flex items-center gap-1">
           <TutorialButton
             onClick={onboarding.open}
             isCompleted={onboarding.isCompleted}
@@ -122,20 +86,54 @@ export default function ManagerHeader({
           />
 
           <button
-            data-testid="logout-button"
-            onClick={onLogout}
-            className="px-3 py-2 flex items-center gap-1.5 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 hover:shadow-lg transition-all text-sm"
-            title="Déconnexion"
+            onClick={onToggleFilters}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Configuration"
           >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Déconnexion</span>
+            <Settings className="w-4 h-4" />
+            <span className="hidden md:inline">Config</span>
+          </button>
+
+          <button
+            onClick={onOpenSupport}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+            title="Contacter le support"
+          >
+            <Headphones className="w-4 h-4" />
+            <span className="hidden sm:inline">Support</span>
           </button>
         </div>
-      </div>
 
-      {/* Sync Mode Badge */}
-      <div className="mt-2">
-        <SyncModeBadge />
+        <div className="hidden sm:block h-8 w-px bg-gray-200 flex-shrink-0" />
+
+        {/* Avatar + nom (cliquable → profil) */}
+        <button
+          onClick={managerDiagnostic ? onOpenProfile : onOpenDiagnostic}
+          className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0"
+          title="Mon profil"
+        >
+          <div className="text-right leading-tight">
+            <p className="text-[10px] text-gray-400">Bienvenue</p>
+            <p className="text-sm font-semibold text-gray-800 max-w-[100px] truncate">{user?.name}</p>
+          </div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
+            isGerantSpace ? 'bg-orange-500' : 'bg-[#1E40AF]'
+          }`}>
+            {initials}
+          </div>
+        </button>
+
+        {/* Déconnexion */}
+        <button
+          data-testid="logout-button"
+          onClick={onLogout}
+          className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          title="Déconnexion"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="hidden lg:inline">Déconnexion</span>
+        </button>
+
       </div>
     </div>
   );
