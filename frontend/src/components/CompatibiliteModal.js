@@ -6,8 +6,11 @@ import CompatibiliteSection from './guideProfilsModal/CompatibiliteSection';
 
 export default function CompatibiliteModal({ storeIdParam, sellers = [], onClose }) {
   const [managerProfile, setManagerProfile] = useState(null);
+  const [managerFullDiagnostic, setManagerFullDiagnostic] = useState(null);
   const [enrichedSellers, setEnrichedSellers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [aiCompatibilityAdvice, setAiCompatibilityAdvice] = useState({});
+  const [loadingAdviceIds, setLoadingAdviceIds] = useState(new Set());
 
   const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
 
@@ -28,10 +31,12 @@ export default function CompatibiliteModal({ storeIdParam, sellers = [], onClose
 
       const [managerRes, diagRes, profilesRes] = await Promise.all(requests);
 
+      const fullDiagnostic = diagRes.data?.diagnostic || null;
+      setManagerFullDiagnostic(fullDiagnostic);
       setManagerProfile({
         ...managerRes.data,
         management_style:
-          diagRes.data?.diagnostic?.profil_nom ||
+          fullDiagnostic?.profil_nom ||
           managerRes.data.management_style ||
           'Pilote',
       });
@@ -49,6 +54,25 @@ export default function CompatibiliteModal({ storeIdParam, sellers = [], onClose
       setLoading(false);
     }
   }, [storeParam, sellers]);
+
+  const generateCompatibilityAdvice = async (seller) => {
+    if (!managerFullDiagnostic || !seller?.style_vente) return;
+    const sellerId = seller.id;
+    setLoadingAdviceIds(prev => new Set(prev).add(sellerId));
+    try {
+      const res = await api.post(`/manager/compatibility-advice${storeParam}`, {
+        manager_diagnostic: managerFullDiagnostic,
+        seller_name: seller.name,
+        seller_style: seller.style_vente,
+        seller_id: seller.id,
+      });
+      setAiCompatibilityAdvice(prev => ({ ...prev, [sellerId]: res.data }));
+    } catch (err) {
+      logger.error('Error generating compatibility advice:', err);
+    } finally {
+      setLoadingAdviceIds(prev => { const s = new Set(prev); s.delete(sellerId); return s; });
+    }
+  };
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -89,8 +113,12 @@ export default function CompatibiliteModal({ storeIdParam, sellers = [], onClose
         <div className="flex-1 overflow-y-auto p-5">
           <CompatibiliteSection
             managerProfile={managerProfile}
+            managerFullDiagnostic={managerFullDiagnostic}
             teamSellers={enrichedSellers}
             loadingCompatibility={loading}
+            aiCompatibilityAdvice={aiCompatibilityAdvice}
+            loadingAdviceIds={loadingAdviceIds}
+            onGenerateAdvice={generateCompatibilityAdvice}
           />
         </div>
       </div>
