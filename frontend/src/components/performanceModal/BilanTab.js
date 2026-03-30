@@ -169,7 +169,7 @@ export default function BilanTab({
             periodLoading={periodLoading}
             periodEntries={periodEntries}
             kpiConfig={kpiConfig}
-            chartData={chartData}
+            chartData={periodChartData.length > 0 ? periodChartData : chartData}
             generatingBilan={generatingBilan}
             bilanSectionRef={bilanSectionRef}
             onRegenerate={onRegenerate}
