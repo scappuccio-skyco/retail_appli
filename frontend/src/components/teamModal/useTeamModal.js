@@ -107,9 +107,9 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
 
       const sellersDataPromises = sellersToUse.map(async (seller) => {
         try {
-          let kpiUrl = `/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
+          let kpiUrl = `/manager/kpi-entries/${seller.id}?days=${daysParam}&size=366${storeParam}`;
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
-            kpiUrl = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
+            kpiUrl = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}&size=366${storeParam}`;
           }
           const kpiRes = await api.get(kpiUrl, { params: { _t: Date.now() } });
 
@@ -287,9 +287,9 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
       const storeParam = storeIdParam ? `&store_id=${storeIdParam}` : '';
       const chartDataPromises = sellers.map(async (seller) => {
         try {
-          let url = `/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
+          let url = `/manager/kpi-entries/${seller.id}?days=${daysParam}&size=366${storeParam}`;
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
-            url = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
+            url = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}&size=366${storeParam}`;
           }
           const res = await api.get(url);
           return { sellerId: seller.id, sellerName: seller.name, data: res.data };

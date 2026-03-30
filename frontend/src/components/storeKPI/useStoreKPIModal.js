@@ -9,6 +9,7 @@ import {
   getYearStartEnd,
   filterByDateRange,
   fillMissingDays,
+  fillMissingMonths,
   aggregateByMonth,
   addDerivedMetrics,
   extractAvailableYears
@@ -82,7 +83,7 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
   const [datesWithData, setDatesWithData] = useState([]);
   const [lockedDates, setLockedDates] = useState([]);
   const [lockedSellersByDate, setLockedSellersByDate] = useState({});
-  const [displayMode, setDisplayMode] = useState('chart');
+  const [displayMode, setDisplayMode] = useState('list');
   const [displayedListItems, setDisplayedListItems] = useState(10);
   const [loadingHistorical, setLoadingHistorical] = useState(false);
   const [visibleCharts, setVisibleCharts] = useState(DEFAULT_VISIBLE_CHARTS);
@@ -165,7 +166,10 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
         historicalArray = fillMissingDays(historicalArray, startDate, endDate);
       }
 
-      const aggregatedData = viewMode === 'year' ? aggregateByMonth(historicalArray) : historicalArray;
+      let aggregatedData = viewMode === 'year' ? aggregateByMonth(historicalArray) : historicalArray;
+      if (viewMode === 'year' && selectedYear) {
+        aggregatedData = fillMissingMonths(aggregatedData, selectedYear);
+      }
       const finalData = addDerivedMetrics(aggregatedData);
 
       if (!storeId && historicalArray.length > 0) {
@@ -204,15 +208,19 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     const startStr = startDate?.toISOString().split('T')[0];
     const endStr = endDate?.toISOString().split('T')[0];
     const kpiUrl = (sellerId) => startStr && endStr
-      ? `/manager/kpi-entries/${sellerId}?start_date=${startStr}&end_date=${endStr}${storeParam}`
-      : `/manager/kpi-entries/${sellerId}?days=${days}${storeParam}`;
+      ? `/manager/kpi-entries/${sellerId}?start_date=${startStr}&end_date=${endStr}&size=366${storeParam}`
+      : `/manager/kpi-entries/${sellerId}?days=${days}&size=366${storeParam}`;
 
     const today = new Date();
     const managerStart = new Date(today);
     managerStart.setDate(today.getDate() - days);
+    // Priorité aux startStr/endStr (plage exacte mois/semaine/année) pour éviter
+    // de décaler la fenêtre temporelle (ex: février vu depuis fin mars)
+    const mgrStartStr = startStr || managerStart.toISOString().split('T')[0];
+    const mgrEndStr = endStr || today.toISOString().split('T')[0];
     const managerKpiUrl = storeIdParam
-      ? `/manager/manager-kpi?start_date=${managerStart.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}&store_id=${storeIdParam}`
-      : `/manager/manager-kpi?start_date=${managerStart.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`;
+      ? `/manager/manager-kpi?start_date=${mgrStartStr}&end_date=${mgrEndStr}&store_id=${storeIdParam}&size=366`
+      : `/manager/manager-kpi?start_date=${mgrStartStr}&end_date=${mgrEndStr}&size=366`;
 
     const [sellersDataResponses, managerKpiRes] = await Promise.all([
       Promise.all(sellersList.map(seller => api.get(kpiUrl(seller.id)))),

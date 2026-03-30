@@ -15,6 +15,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
   const sw = showDots ? 3 : 2;
   const dot = showDots ? { fill: '#1e40af', r: 4 } : false;
   const prospDot = showDots ? { fill: '#7c3aed', r: 4 } : false;
+  const xInterval = data.length > 15 ? Math.floor(data.length / 7) : 0;
 
   const chartDefs = [
     (kpiConfig?.track_ca ?? true) && {
@@ -24,7 +25,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#1e40af' }} stroke="#3b82f6" />
+              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#1e40af' }} stroke="#3b82f6" interval={xInterval} />
               <YAxis tick={{ fontSize: fs, fill: '#1e40af' }} stroke="#3b82f6" />
               <Tooltip contentStyle={{ backgroundColor: '#eff6ff', border: '2px solid #3b82f6', borderRadius: '8px' }} />
               <Line type="monotone" dataKey="CA" stroke="#3b82f6" strokeWidth={sw} dot={dot} />
@@ -40,7 +41,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#d1fae5" />
-              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#065f46' }} stroke="#10b981" />
+              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#065f46' }} stroke="#10b981" interval={xInterval} />
               <YAxis tick={{ fontSize: fs, fill: '#065f46' }} stroke="#10b981" />
               <Tooltip contentStyle={{ backgroundColor: '#d1fae5', border: '2px solid #10b981', borderRadius: '8px' }} />
               <Bar dataKey="Ventes" fill="#10b981" radius={barRadius} />
@@ -56,7 +57,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#fed7aa" />
-              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#9a3412' }} stroke="#f97316" />
+              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#9a3412' }} stroke="#f97316" interval={xInterval} />
               <YAxis tick={{ fontSize: fs, fill: '#9a3412' }} stroke="#f97316" />
               <Tooltip contentStyle={{ backgroundColor: '#ffedd5', border: '2px solid #f97316', borderRadius: '8px' }} />
               <Bar dataKey="Articles" fill="#f97316" radius={barRadius} />
@@ -72,7 +73,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e9d5ff" />
-              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#581c87' }} stroke="#a855f7" />
+              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#581c87' }} stroke="#a855f7" interval={xInterval} />
               <YAxis tick={{ fontSize: fs, fill: '#581c87' }} stroke="#a855f7" />
               <Tooltip contentStyle={{ backgroundColor: '#f3e8ff', border: '2px solid #a855f7', borderRadius: '8px' }} />
               <Line type="monotone" dataKey="Prospects" stroke="#a855f7" strokeWidth={sw} dot={prospDot} />
@@ -88,7 +89,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#3730a3' }} stroke="#6366f1" />
+              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#3730a3' }} stroke="#6366f1" interval={xInterval} />
               <YAxis tick={{ fontSize: fs, fill: '#3730a3' }} stroke="#6366f1" />
               <Tooltip
                 formatter={(v) => [`${v} €`, 'Panier moyen']}
@@ -107,7 +108,7 @@ export default function KPICharts({ data, kpiConfig, showDots = false }) {
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#fce7f3" />
-              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#9d174d' }} stroke="#ec4899" />
+              <XAxis dataKey="date" tick={{ fontSize: fs, fill: '#9d174d' }} stroke="#ec4899" interval={xInterval} />
               <YAxis tick={{ fontSize: fs, fill: '#9d174d' }} stroke="#ec4899" domain={[0, 100]} />
               <Tooltip
                 formatter={(v) => [`${v} %`, 'Taux transfo']}

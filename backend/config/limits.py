@@ -46,6 +46,10 @@ JWT_EXPIRATION_HOURS: Final[int] = 24
 PASSWORD_RESET_TOKEN_EXPIRATION_SECONDS: Final[int] = 600
 """Password reset token expiration (10 minutes)"""
 
+# ===== TRIAL =====
+TRIAL_DAYS: Final[int] = 30
+"""Durée de la période d'essai gratuit en jours. Modifier ici pour changer partout."""
+
 # ===== CGU / RGPD =====
 CGU_CURRENT_VERSION: Final[str] = "v1.0"
 """Version actuelle des CGU acceptées à l'inscription. À incrémenter (v1.1, v2.0...) à chaque

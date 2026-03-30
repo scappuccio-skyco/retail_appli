@@ -9,7 +9,7 @@
  */
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Users, ShoppingBag, BarChart2, Zap, RefreshCw } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatChartDate, computePeriodTotals } from './storeKPIUtils';
 import ManagerAIAnalysisDisplay from '../ManagerAIAnalysisDisplay';
 
@@ -150,18 +150,12 @@ function PeriodView({ historicalData, viewMode, loadingHistorical }) {
       <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
         <p className="text-sm font-semibold text-gray-700 mb-4">Évolution du CA</p>
         <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={historicalData}>
-            <defs>
-              <linearGradient id="caGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-              </linearGradient>
-            </defs>
+          <BarChart data={historicalData}>
             <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatChartDate} />
             <YAxis tick={{ fontSize: 10 }} />
             <Tooltip formatter={(v) => [`${v} €`, 'CA']} labelFormatter={formatChartDate} />
-            <Area type="monotone" dataKey="total_ca" stroke="#3B82F6" strokeWidth={2} fill="url(#caGrad)" dot={{ r: 3, fill: '#3B82F6' }} />
-          </AreaChart>
+            <Bar dataKey="total_ca" name="CA" fill="#3B82F6" radius={[3, 3, 0, 0]} />
+          </BarChart>
         </ResponsiveContainer>
       </div>
 

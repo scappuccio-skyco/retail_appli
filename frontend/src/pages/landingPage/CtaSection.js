@@ -22,7 +22,7 @@ export default function CtaSection() {
           <ArrowRight className="w-5 h-5" />
         </button>
         <p className="text-blue-100 text-sm mt-4">
-          14 jours gratuits • Sans carte bancaire • Résiliation à tout moment
+          30 jours gratuits • Sans carte bancaire • Résiliation à tout moment
         </p>
       </div>
     </section>

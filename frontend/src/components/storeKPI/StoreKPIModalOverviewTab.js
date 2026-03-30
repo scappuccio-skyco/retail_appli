@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatChartDate, computePeriodTotals, formatListDateLabel } from './storeKPIUtils';
 import OverviewListTotals from './storeKPIOverview/OverviewListTotals';
@@ -10,21 +10,21 @@ export { WeekPicker } from './WeekPicker';
 
 function getChartInterval(viewMode) {
   if (viewMode === 'week') return 0;
-  if (viewMode === 'month') return 2;
+  if (viewMode === 'month') return 4;
   return 0;
 }
 
-function SingleLineChart({ data, dataKey, name, viewMode }) {
+function SingleBarChart({ data, dataKey, name, viewMode }) {
   return (
     <div className="h-56 sm:h-72">
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data}>
+      <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatChartDate} />
         <YAxis tick={{ fontSize: 12 }} />
         <Tooltip formatter={(value) => [value, name]} labelFormatter={formatChartDate} />
-        <Line type="monotone" dataKey={dataKey} name={name} stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-      </LineChart>
+        <Bar dataKey={dataKey} name={name} fill="#8b5cf6" radius={[3, 3, 0, 0]} />
+      </BarChart>
     </ResponsiveContainer>
     </div>
   );
@@ -45,20 +45,20 @@ export default function StoreKPIModalOverviewTab({
   const chartDefs = [
     {
       label: '💰 Chiffre d\'Affaires',
-      content: <SingleLineChart data={historicalData} dataKey="total_ca" name="CA (€)" viewMode={viewMode} />,
+      content: <SingleBarChart data={historicalData} dataKey="total_ca" name="CA (€)" viewMode={viewMode} />,
     },
     {
       label: '🛒 Nombre de Ventes',
-      content: <SingleLineChart data={historicalData} dataKey="total_ventes" name="Ventes" viewMode={viewMode} />,
+      content: <SingleBarChart data={historicalData} dataKey="total_ventes" name="Ventes" viewMode={viewMode} />,
     },
     {
       label: '🛍️ Panier Moyen',
-      content: <SingleLineChart data={historicalData} dataKey="panier_moyen" name="Panier Moyen (€)" viewMode={viewMode} />,
+      content: <SingleBarChart data={historicalData} dataKey="panier_moyen" name="Panier Moyen (€)" viewMode={viewMode} />,
     },
     {
       label: '📈 Taux de Transformation (%)',
       content: hasProspectsData ? (
-        <SingleLineChart data={historicalData} dataKey="taux_transformation" name="Taux (%)" viewMode={viewMode} />
+        <SingleBarChart data={historicalData} dataKey="taux_transformation" name="Taux (%)" viewMode={viewMode} />
       ) : (
         <div className="h-[300px] flex flex-col items-center justify-center text-center p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
           <div className="text-4xl mb-3">📊</div>
@@ -70,20 +70,20 @@ export default function StoreKPIModalOverviewTab({
     },
     {
       label: '📊 Indice de Vente',
-      content: <SingleLineChart data={historicalData} dataKey="indice_vente" name="Indice" viewMode={viewMode} />,
+      content: <SingleBarChart data={historicalData} dataKey="indice_vente" name="Indice" viewMode={viewMode} />,
     },
     {
       label: '📦 Articles Vendus',
       content: (
         <div className="h-56 sm:h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={historicalData}>
+          <BarChart data={historicalData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={60} tickFormatter={formatChartDate} />
             <YAxis tick={{ fontSize: 10 }} />
             <Tooltip formatter={(value) => [value, 'Articles']} labelFormatter={formatChartDate} />
-            <Line type="monotone" dataKey="total_articles" name="Articles" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 2 }} />
-          </LineChart>
+            <Bar dataKey="total_articles" name="Articles" fill="#8b5cf6" radius={[3, 3, 0, 0]} />
+          </BarChart>
         </ResponsiveContainer>
         </div>
       ),

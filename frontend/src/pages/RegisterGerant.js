@@ -104,7 +104,7 @@ export default function RegisterGerant() {
                     Invitation pour : {invitation.email}
                   </p>
                   <p className="text-xs text-purple-600 mt-1">
-                    Profitez de 14 jours d'essai gratuit !
+                    Profitez de 30 jours d'essai gratuit !
                   </p>
                 </div>
               </div>
