@@ -249,6 +249,43 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 </div>
               </div>
 
+              {/* IA Analysis Section — au-dessus des données */}
+              <div ref={aiSectionRef} className="mb-4">
+                {!aiAnalysis && !aiGenerating && (
+                  <div className="text-center py-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                    <button
+                      onClick={generateAnalysis}
+                      disabled={!canLaunchAI}
+                      className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      ✨ Générer l'analyse IA
+                    </button>
+                    {!canLaunchAI && (
+                      <p className="text-xs text-gray-400 mt-2">Aucune donnée disponible pour cette période</p>
+                    )}
+                  </div>
+                )}
+                {aiGenerating && (
+                  <div className="bg-white rounded-2xl p-6 text-center shadow border-2 border-blue-200">
+                    <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse">
+                      <span className="text-xl">✨</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">Analyse en cours...</h3>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-3">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 animate-pulse rounded-full" style={{ width: '60%' }} />
+                    </div>
+                  </div>
+                )}
+                {aiAnalysis && !aiGenerating && (
+                  <ManagerAIAnalysisDisplay
+                    analysis={aiAnalysis}
+                    onRegenerate={generateAnalysis}
+                    title="Analyse IA — KPIs Magasin"
+                    sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
+                  />
+                )}
+              </div>
+
               {/* Contenu */}
               {state.viewMode === 'day' ? (
                 <StoreKPIModalDailyTab overviewData={state.overviewData} storeId={storeId} />
@@ -266,45 +303,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   loadingHistorical={state.loadingHistorical}
                 />
               )}
-
-              {/* IA Analysis Section — sous les données */}
-              <div ref={aiSectionRef} className="mt-4">
-                {!aiAnalysis && !aiGenerating && (
-                  <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                    <span className="text-4xl mb-3 block">🤖</span>
-                    <p className="text-gray-600 mb-4">Aucune analyse IA pour cette période</p>
-                    <button
-                      onClick={generateAnalysis}
-                      disabled={!canLaunchAI}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      ✨ Générer l'analyse IA
-                    </button>
-                    {!canLaunchAI && (
-                      <p className="text-xs text-gray-400 mt-2">Aucune donnée disponible pour cette période</p>
-                    )}
-                  </div>
-                )}
-                {aiGenerating && (
-                  <div className="bg-white rounded-2xl p-8 text-center shadow border-2 border-blue-200">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse">
-                      <span className="text-2xl">✨</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">Analyse en cours...</h3>
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-4">
-                      <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 animate-pulse rounded-full" style={{ width: '60%' }} />
-                    </div>
-                  </div>
-                )}
-                {aiAnalysis && !aiGenerating && (
-                  <ManagerAIAnalysisDisplay
-                    analysis={aiAnalysis}
-                    onRegenerate={generateAnalysis}
-                    title="Analyse IA — KPIs Magasin"
-                    sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
-                  />
-                )}
-              </div>
             </div>
           )}
 
