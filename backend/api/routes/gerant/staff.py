@@ -242,6 +242,54 @@ async def resend_invitation(
         raise ValidationError(str(e))
 
 
+# ===== MANAGER MULTI-STORE ROUTES =====
+
+@router.patch("/managers/{manager_id}/stores")
+async def update_manager_stores(
+    manager_id: str,
+    body: Dict,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+):
+    """
+    Assign a list of stores to a manager (multi-store support).
+    Body: { "store_ids": ["store_uuid1", "store_uuid2"] }
+    All stores must belong to the current gérant.
+    Also updates store_id (primary store = first in list) for backward compat.
+    """
+    try:
+        store_ids = body.get("store_ids", [])
+        if not isinstance(store_ids, list) or not store_ids:
+            raise ValidationError("store_ids doit être une liste non vide")
+
+        gerant_id = current_user["id"]
+
+        # Verify all stores belong to this gérant
+        for sid in store_ids:
+            store = await gerant_service.store_repo.find_by_id(sid, gerant_id=gerant_id, projection={"_id": 0, "id": 1})
+            if not store:
+                raise ForbiddenError(f"Magasin {sid} introuvable ou ne vous appartient pas")
+
+        # Verify manager belongs to this gérant
+        manager = await gerant_service.get_user_by_id(manager_id)
+        if not manager or manager.get("gerant_id") != gerant_id or manager.get("role") != "manager":
+            raise NotFoundError("Manager introuvable")
+
+        await gerant_service.update_user_one(manager_id, {
+            "store_ids": store_ids,
+            "store_id": store_ids[0],  # backward compat
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+        return {"success": True, "store_ids": store_ids}
+
+    except AppException:
+        raise
+    except Exception as e:
+        logger.error("Error updating manager stores: %s", e)
+        raise AppException(status_code=500, message="Erreur lors de la mise à jour des magasins")
+
+
 # ===== MANAGER SUSPEND/REACTIVATE/DELETE ROUTES =====
 
 @router.patch("/managers/{manager_id}/suspend")

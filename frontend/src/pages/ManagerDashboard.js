@@ -3,6 +3,7 @@ import useManagerDashboard from './managerDashboard/useManagerDashboard';
 
 import ManagerStatusBanner from '../components/sections/manager/ManagerStatusBanner';
 import ManagerHeader from '../components/sections/manager/ManagerHeader';
+import StoreSelectionScreen from '../components/sections/manager/StoreSelectionScreen';
 import ManagerPersonalizationBar from '../components/sections/manager/ManagerPersonalizationBar';
 import ManagerDashboardGrid from '../components/sections/manager/ManagerDashboardGrid';
 import ManagerModalsLayer from '../components/sections/manager/ManagerModalsLayer';
@@ -10,6 +11,31 @@ import ManagerTaskList from '../components/ManagerTaskList';
 
 export default function ManagerDashboard({ user, onLogout }) {
   const s = useManagerDashboard({ user });
+
+  // Multi-store: show selector on first login (no active store) or when switching
+  if (s.isMultiStore && !s.activeStoreId) {
+    return (
+      <StoreSelectionScreen
+        user={user}
+        storeOptions={s.storeOptions}
+        onSelectStore={s.switchStore}
+        onLogout={onLogout}
+        isSwitch={false}
+      />
+    );
+  }
+
+  if (s.showStoreSelector) {
+    return (
+      <StoreSelectionScreen
+        user={user}
+        storeOptions={s.storeOptions}
+        onSelectStore={s.switchStore}
+        onLogout={onLogout}
+        isSwitch={true}
+      />
+    );
+  }
 
   if (s.loading) {
     return (
@@ -46,6 +72,8 @@ export default function ManagerDashboard({ user, onLogout }) {
         onOpenSupport={() => s.setShowSupportModal(true)}
         spaceLabel={s.spaceLabel}
         isGerantSpace={s.isGerantSpace}
+        isMultiStore={s.isMultiStore}
+        onSwitchStore={() => s.setShowStoreSelector(true)}
       />
 
       <ManagerPersonalizationBar

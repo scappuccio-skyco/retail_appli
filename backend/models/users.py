@@ -23,7 +23,8 @@ class User(BaseModel):
     
     # Hiérarchie Multi-Store
     gerant_id: Optional[str] = None  # null si role = gerant
-    store_id: Optional[str] = None   # ID du magasin d'affectation
+    store_id: Optional[str] = None   # ID du magasin d'affectation (legacy — utiliser store_ids pour manager)
+    store_ids: List[str] = []        # IDs des magasins gérés (manager multi-store)
     manager_id: Optional[str] = None # null si role != seller
     
     # Double rôle pour gérant qui est aussi manager
