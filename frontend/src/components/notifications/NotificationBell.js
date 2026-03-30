@@ -37,12 +37,24 @@ export default function NotificationBell({ notifications, unreadCount, onMarkRea
   useEffect(() => {
     if (!open || !buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
-    const rightOffset = window.innerWidth - rect.right;
-    setPanelStyle({
-      position: 'fixed',
-      top: rect.bottom + 8,
-      right: Math.max(8, rightOffset),
-    });
+    if (window.innerWidth < 640) {
+      // Mobile : panel pleine largeur centré sur l'écran
+      setPanelStyle({
+        position: 'fixed',
+        top: rect.bottom + 8,
+        left: '0.75rem',
+        right: '0.75rem',
+        width: 'auto',
+      });
+    } else {
+      // Desktop : panel ancré à droite du bouton
+      const rightOffset = window.innerWidth - rect.right;
+      setPanelStyle({
+        position: 'fixed',
+        top: rect.bottom + 8,
+        right: Math.max(8, rightOffset),
+      });
+    }
   }, [open]);
 
   // Fermer si clic en dehors du panel ET du bouton
@@ -72,7 +84,7 @@ export default function NotificationBell({ notifications, unreadCount, onMarkRea
     <div
       ref={panelRef}
       style={panelStyle}
-      className="w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-200 z-[9999] overflow-hidden"
+      className="sm:w-96 sm:max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-200 z-[9999] overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
