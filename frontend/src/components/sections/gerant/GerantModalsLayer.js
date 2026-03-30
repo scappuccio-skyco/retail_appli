@@ -11,7 +11,9 @@ import SubscriptionModal from '../../SubscriptionModal';
 import SupportModal from '../../SupportModal';
 import BillingProfileModal from '../../gerant/BillingProfileModal';
 import OnboardingModal from '../../onboarding/OnboardingModal';
-import { gerantSteps } from '../../onboarding/gerantSteps';
+import { getGerantSteps } from '../../onboarding/gerantSteps';
+
+const gerantSteps = getGerantSteps();
 
 /**
  * Couche de tous les modals du dashboard gérant.
