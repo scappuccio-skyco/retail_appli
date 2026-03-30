@@ -214,9 +214,13 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     const today = new Date();
     const managerStart = new Date(today);
     managerStart.setDate(today.getDate() - days);
+    // Priorité aux startStr/endStr (plage exacte mois/semaine/année) pour éviter
+    // de décaler la fenêtre temporelle (ex: février vu depuis fin mars)
+    const mgrStartStr = startStr || managerStart.toISOString().split('T')[0];
+    const mgrEndStr = endStr || today.toISOString().split('T')[0];
     const managerKpiUrl = storeIdParam
-      ? `/manager/manager-kpi?start_date=${managerStart.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}&store_id=${storeIdParam}`
-      : `/manager/manager-kpi?start_date=${managerStart.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`;
+      ? `/manager/manager-kpi?start_date=${mgrStartStr}&end_date=${mgrEndStr}&store_id=${storeIdParam}`
+      : `/manager/manager-kpi?start_date=${mgrStartStr}&end_date=${mgrEndStr}`;
 
     const [sellersDataResponses, managerKpiRes] = await Promise.all([
       Promise.all(sellersList.map(seller => api.get(kpiUrl(seller.id)))),
