@@ -6,7 +6,7 @@ import React from 'react';
  * Adaptatif selon le mode de saisie KPI
  */
 
-export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
+export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT', callbacks = {}) => {
   const steps = [
     // Étape 1 : Bienvenue
     {
@@ -43,7 +43,8 @@ export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
           </ul>
         </>
       ),
-      tips: 'Un bon manager connaît ses forces et ses axes de progression.'
+      tips: 'Un bon manager connaît ses forces et ses axes de progression.',
+      ...(callbacks.openDiagnostic && { actionLabel: 'Ouvrir mon diagnostic', onAction: callbacks.openDiagnostic }),
     },
 
     // Étape 3 : Votre équipe
@@ -62,11 +63,12 @@ export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
           </ul>
         </>
       ),
-      tips: 'Cliquez sur un vendeur pour voir ses détails complets.'
+      tips: 'Cliquez sur un vendeur pour voir ses détails complets.',
+      ...(callbacks.openTeam && { actionLabel: 'Voir mon équipe', onAction: callbacks.openTeam }),
     },
 
     // Étape 4 : KPI magasin (ADAPTATIF)
-    getManagerKpiStep(kpiMode),
+    getManagerKpiStep(kpiMode, callbacks),
 
     // Étape 5 : Coaching IA d'équipe
     {
@@ -113,7 +115,7 @@ export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
 /**
  * Génère l'étape KPI manager selon le mode
  */
-function getManagerKpiStep(mode) {
+function getManagerKpiStep(mode, callbacks = {}) {
   switch (mode) {
     case 'MANAGER_SAISIT':
       return {
@@ -130,7 +132,8 @@ function getManagerKpiStep(mode) {
             <p className="mt-3">💡 La régularité de saisie garantit des analyses IA précises !</p>
           </>
         ),
-        tips: 'Saisissez les données chaque jour pour un suivi optimal.'
+        tips: 'Saisissez les données chaque jour pour un suivi optimal.',
+        ...(callbacks.openKPI && { actionLabel: 'Ouvrir les KPI magasin', onAction: callbacks.openKPI }),
       };
 
     case 'VENDEUR_SAISIT':

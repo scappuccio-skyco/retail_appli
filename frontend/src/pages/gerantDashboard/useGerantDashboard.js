@@ -5,7 +5,7 @@ import { api } from '../../lib/apiClient';
 import { logger } from '../../utils/logger';
 import { isSafeUrl } from '../../utils/safeRedirect';
 import { useOnboarding } from '../../hooks/useOnboarding';
-import { gerantSteps } from '../../components/onboarding/gerantSteps';
+import { getGerantSteps } from '../../components/onboarding/gerantSteps';
 
 function deriveSubscriptionState(subscriptionInfo) {
   if (!subscriptionInfo) return { isReadOnly: false, subscriptionBlockCode: null, isPastDue: false };
@@ -22,7 +22,7 @@ function deriveSubscriptionState(subscriptionInfo) {
 export default function useGerantDashboard({ user, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const onboarding = useOnboarding(gerantSteps.length);
+  const onboarding = useOnboarding(getGerantSteps().length);
 
   // ── Data state ─────────────────────────────────────────────
   const [stores, setStores] = useState([]);

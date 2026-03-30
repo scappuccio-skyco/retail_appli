@@ -76,7 +76,12 @@ export default function GerantHeader({
               <Headphones className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Support</span>
             </button>
-            <TutorialButton onClick={onboarding.open} />
+            <TutorialButton
+              onClick={onboarding.open}
+              isCompleted={onboarding.isCompleted}
+              currentStep={onboarding.currentStep}
+              totalSteps={onboarding.totalSteps}
+            />
             <NotificationBell
               notifications={notifications}
               unreadCount={unreadCount}

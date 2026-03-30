@@ -107,7 +107,12 @@ export default function ManagerHeader({
             <span className="hidden sm:inline">Support</span>
           </button>
 
-          <TutorialButton onClick={onboarding.open} />
+          <TutorialButton
+            onClick={onboarding.open}
+            isCompleted={onboarding.isCompleted}
+            currentStep={onboarding.currentStep}
+            totalSteps={onboarding.totalSteps}
+          />
 
           <NotificationBell
             notifications={notifications}

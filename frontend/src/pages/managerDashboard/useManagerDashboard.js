@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import { toast } from 'sonner';
 import { api } from '../../lib/apiClient';
@@ -55,8 +55,14 @@ export default function useManagerDashboard({ user }) {
 
   // ── Onboarding ─────────────────────────────────────────────
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
-  const managerSteps = useMemo(() => getManagerSteps(kpiMode), [kpiMode]);
+  const onboardingRef = useRef(null);
+  const managerSteps = useMemo(() => getManagerSteps(kpiMode, {
+    openDiagnostic: () => { onboardingRef.current?.close(); setShowManagerDiagnostic(true); },
+    openTeam: () => { onboardingRef.current?.close(); setShowTeamModal(true); },
+    openKPI: () => { onboardingRef.current?.close(); setShowStoreKPIModal(true); },
+  }), [kpiMode]); // eslint-disable-line react-hooks/exhaustive-deps
   const onboarding = useOnboarding(managerSteps.length);
+  onboardingRef.current = onboarding;
 
   // ── Data state ─────────────────────────────────────────────
   const [sellers, setSellers] = useState([]);

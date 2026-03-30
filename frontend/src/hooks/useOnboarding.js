@@ -12,6 +12,7 @@ export const useOnboarding = (totalSteps, { readyToAutoOpen = true } = {}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [pendingAutoOpen, setPendingAutoOpen] = useState(false);
 
@@ -21,15 +22,19 @@ export const useOnboarding = (totalSteps, { readyToAutoOpen = true } = {}) => {
       try {
         const response = await api.get('/onboarding/progress');
 
-        if (response.data && !response.data.is_completed) {
-          const step = response.data.current_step || 0;
-          const completed = response.data.completed_steps || [];
-          setCurrentStep(step);
-          setCompletedSteps(completed);
-          // Premier login : jamais démarré → ouvrir automatiquement (si prêt)
-          if (step === 0 && completed.length === 0) {
-            if (readyToAutoOpen) setIsOpen(true);
-            else setPendingAutoOpen(true);
+        if (response.data) {
+          if (response.data.is_completed) {
+            setIsCompleted(true);
+          } else {
+            const step = response.data.current_step || 0;
+            const completed = response.data.completed_steps || [];
+            setCurrentStep(step);
+            setCompletedSteps(completed);
+            // Premier login : jamais démarré → ouvrir automatiquement (si prêt)
+            if (step === 0 && completed.length === 0) {
+              if (readyToAutoOpen) setIsOpen(true);
+              else setPendingAutoOpen(true);
+            }
           }
         }
         setIsLoaded(true);
@@ -112,6 +117,7 @@ export const useOnboarding = (totalSteps, { readyToAutoOpen = true } = {}) => {
         markAsComplete();
       }
 
+      setIsCompleted(true);
       setIsOpen(false); // pas close() — ne re-sauvegarde pas avec is_completed:false
     }
   };
@@ -144,6 +150,7 @@ export const useOnboarding = (totalSteps, { readyToAutoOpen = true } = {}) => {
     if (isLoaded) {
       markAsComplete();
     }
+    setIsCompleted(true);
     setIsOpen(false);
   };
 
@@ -151,6 +158,8 @@ export const useOnboarding = (totalSteps, { readyToAutoOpen = true } = {}) => {
     isOpen,
     currentStep,
     completedSteps,
+    isCompleted,
+    totalSteps,
     open,
     close,
     next,

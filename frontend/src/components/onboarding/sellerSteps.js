@@ -5,7 +5,7 @@ import React from 'react';
  * Adaptatif selon le mode de saisie KPI
  */
 
-export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
+export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT', callbacks = {}) => {
   const steps = [
     // Étape 1 : Bienvenue
     {
@@ -40,11 +40,12 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
           <p className="mt-3">Cela personnalise votre coaching IA et vos conseils.</p>
         </>
       ),
-      tips: 'Soyez honnête dans vos réponses, personne ne vous jugera !'
+      tips: 'Soyez honnête dans vos réponses, personne ne vous jugera !',
+      ...(callbacks.openDiagnostic && { actionLabel: 'Ouvrir mon diagnostic', onAction: callbacks.openDiagnostic }),
     },
 
     // Étape 3 : Saisie KPI (ADAPTATIF selon le mode)
-    getSellerKpiStep(kpiMode),
+    getSellerKpiStep(kpiMode, callbacks),
 
     // Étape 4 : Coaching IA
     {
@@ -94,7 +95,7 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
 /**
  * Étape KPI adaptée selon le mode de saisie
  */
-function getSellerKpiStep(mode) {
+function getSellerKpiStep(mode, callbacks = {}) {
   switch (mode) {
     case 'MANAGER_SAISIT':
       return {
@@ -151,7 +152,8 @@ function getSellerKpiStep(mode) {
             <p className="mt-3">La régularité de saisie garantit des analyses IA précises !</p>
           </>
         ),
-        tips: 'Saisissez vos chiffres chaque jour pour un suivi optimal !'
+        tips: 'Saisissez vos chiffres chaque jour pour un suivi optimal !',
+        ...(callbacks.openKPI && { actionLabel: 'Saisir mes chiffres du jour', onAction: callbacks.openKPI }),
       };
   }
 }
