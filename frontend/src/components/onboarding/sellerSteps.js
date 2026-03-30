@@ -44,8 +44,26 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT', callbacks = {}) => {
       ...(callbacks.openDiagnostic && { actionLabel: 'Ouvrir mon diagnostic', onAction: callbacks.openDiagnostic }),
     },
 
-    // Étape 3 : Saisie KPI (ADAPTATIF selon le mode)
-    getSellerKpiStep(kpiMode, callbacks),
+    // Étape 3 : Saisie KPI — explication des 4 cas possibles
+    {
+      icon: '📊',
+      title: 'Suivez vos performances',
+      description: (
+        <>
+          <p className="text-purple-600 font-semibold">Comment fonctionnent vos KPIs ?</p>
+          <p className="mt-3 font-semibold">Cela dépend de votre configuration — 4 cas possibles :</p>
+          <ul className="list-disc list-inside space-y-2 mt-2 text-left mx-auto max-w-md">
+            <li><strong>Vous saisissez</strong> : vous entrez vos chiffres chaque jour dans la carte <strong>"Mes Performances"</strong></li>
+            <li><strong>Votre manager saisit</strong> : vos KPIs sont renseignés par votre responsable, consultez-les dans <strong>"Mes Performances"</strong></li>
+            <li><strong>Les deux</strong> : vous et votre manager contribuez à la saisie</li>
+            <li><strong>Automatique</strong> : vos données sont synchronisées depuis votre caisse ou logiciel de vente</li>
+          </ul>
+          <p className="mt-3 text-orange-600 font-medium">👉 En cas de doute, demandez à votre manager quel mode est activé pour vous.</p>
+        </>
+      ),
+      tips: 'Peu importe le mode, retrouvez toujours vos performances dans la carte orange "Mes Performances".',
+      ...(callbacks.openKPI && { actionLabel: 'Saisir mes chiffres du jour', onAction: callbacks.openKPI }),
+    },
 
     // Étape 4 : Coaching IA
     {
