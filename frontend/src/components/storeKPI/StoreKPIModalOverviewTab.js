@@ -22,7 +22,7 @@ function SingleBarChart({ data, dataKey, name, viewMode }) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={70} tickFormatter={formatChartDate} />
         <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip formatter={(value) => [value, name]} labelFormatter={formatChartDate} />
+        <Tooltip formatter={(value) => [typeof value === 'number' ? Math.round(value * 100) / 100 : value, name]} labelFormatter={formatChartDate} />
         <Bar dataKey={dataKey} name={name} fill="#8b5cf6" radius={[3, 3, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
@@ -81,7 +81,7 @@ export default function StoreKPIModalOverviewTab({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={getChartInterval(viewMode)} angle={-45} textAnchor="end" height={60} tickFormatter={formatChartDate} />
             <YAxis tick={{ fontSize: 10 }} />
-            <Tooltip formatter={(value) => [value, 'Articles']} labelFormatter={formatChartDate} />
+            <Tooltip formatter={(value) => [typeof value === 'number' ? Math.round(value * 100) / 100 : value, 'Articles']} labelFormatter={formatChartDate} />
             <Bar dataKey="total_articles" name="Articles" fill="#8b5cf6" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
