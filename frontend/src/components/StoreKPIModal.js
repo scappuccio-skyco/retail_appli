@@ -187,8 +187,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             <div>
               {/* Barre d'action : sélecteur de période */}
               <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl mb-4 space-y-3">
+                {/* Ligne 1 : granularité + bouton IA (desktop) / granularité seule (mobile) */}
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     {[
                       { id: 'day', label: '📅 Jour' },
                       { id: 'week', label: '📅 Semaine' },
@@ -209,52 +210,66 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       </button>
                     ))}
                   </div>
+                  {/* Bouton IA — visible uniquement sur sm+ dans cette ligne */}
                   {!aiAnalysis && !aiGenerating && (
                     <button
                       onClick={generateAnalysis}
                       disabled={!canLaunchAI}
-                      className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      className="hidden sm:inline-flex flex-shrink-0 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                       title={!canLaunchAI ? 'Aucune donnée disponible' : ''}
                     >
                       ✨ Analyse IA
                     </button>
                   )}
                 </div>
-                {/* Navigation */}
-                <div>
-                  {state.viewMode === 'day' && (
-                    <KPICalendar
-                      selectedDate={state.overviewDate}
-                      onDateChange={state.setOverviewDate}
-                      datesWithData={state.datesWithData}
-                      lockedDates={state.lockedDates}
-                      partiallyLockedDates={state.partiallyLockedDates}
-                    />
-                  )}
-                  {state.viewMode === 'week' && (
-                    <WeekPicker
-                      value={state.selectedWeek}
-                      onChange={state.setSelectedWeek}
-                      datesWithData={state.datesWithData}
-                    />
-                  )}
-                  {state.viewMode === 'month' && (
-                    <input
-                      type="month"
-                      value={state.selectedMonth}
-                      onChange={(e) => state.setSelectedMonth(e.target.value)}
-                      onClick={(e) => { try { if (typeof e.target.showPicker === 'function') e.target.showPicker(); } catch (_) {} }}
-                      className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none cursor-pointer bg-white"
-                    />
-                  )}
-                  {state.viewMode === 'year' && (
-                    <select
-                      value={state.selectedYear}
-                      onChange={(e) => state.setSelectedYear(parseInt(e.target.value, 10))}
-                      className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none bg-white cursor-pointer"
+                {/* Ligne 2 : sélecteur de date + bouton IA mobile */}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    {state.viewMode === 'day' && (
+                      <KPICalendar
+                        selectedDate={state.overviewDate}
+                        onDateChange={state.setOverviewDate}
+                        datesWithData={state.datesWithData}
+                        lockedDates={state.lockedDates}
+                        partiallyLockedDates={state.partiallyLockedDates}
+                      />
+                    )}
+                    {state.viewMode === 'week' && (
+                      <WeekPicker
+                        value={state.selectedWeek}
+                        onChange={state.setSelectedWeek}
+                        datesWithData={state.datesWithData}
+                      />
+                    )}
+                    {state.viewMode === 'month' && (
+                      <input
+                        type="month"
+                        value={state.selectedMonth}
+                        onChange={(e) => state.setSelectedMonth(e.target.value)}
+                        onClick={(e) => { try { if (typeof e.target.showPicker === 'function') e.target.showPicker(); } catch (_) {} }}
+                        className="w-full max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none cursor-pointer bg-white"
+                      />
+                    )}
+                    {state.viewMode === 'year' && (
+                      <select
+                        value={state.selectedYear}
+                        onChange={(e) => state.setSelectedYear(parseInt(e.target.value, 10))}
+                        className="w-full max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-400 focus:outline-none bg-white cursor-pointer"
+                      >
+                        {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                    )}
+                  </div>
+                  {/* Bouton IA — visible uniquement sur mobile dans cette ligne */}
+                  {!aiAnalysis && !aiGenerating && (
+                    <button
+                      onClick={generateAnalysis}
+                      disabled={!canLaunchAI}
+                      className="sm:hidden flex-shrink-0 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      title={!canLaunchAI ? 'Aucune donnée disponible' : ''}
                     >
-                      {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
-                    </select>
+                      ✨ Analyse IA
+                    </button>
                   )}
                 </div>
               </div>
