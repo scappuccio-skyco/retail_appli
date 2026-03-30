@@ -187,7 +187,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             <div>
               {/* Barre d'action : sélecteur de période */}
               <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl mb-4 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex gap-1.5">
                     {[
                       { id: 'day', label: '📅 Jour' },
@@ -209,6 +209,16 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       </button>
                     ))}
                   </div>
+                  {!aiAnalysis && !aiGenerating && (
+                    <button
+                      onClick={generateAnalysis}
+                      disabled={!canLaunchAI}
+                      className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      title={!canLaunchAI ? 'Aucune donnée disponible' : ''}
+                    >
+                      ✨ Analyse IA
+                    </button>
+                  )}
                 </div>
                 {/* Navigation */}
                 <div>
@@ -248,22 +258,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   )}
                 </div>
               </div>
-
-              {/* Bouton IA — en haut, uniquement si pas encore d'analyse */}
-              {!aiAnalysis && !aiGenerating && (
-                <div className="mb-4 text-center py-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                  <button
-                    onClick={generateAnalysis}
-                    disabled={!canLaunchAI}
-                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  >
-                    ✨ Générer l'analyse IA
-                  </button>
-                  {!canLaunchAI && (
-                    <p className="text-xs text-gray-400 mt-2">Aucune donnée disponible pour cette période</p>
-                  )}
-                </div>
-              )}
 
               {/* Contenu */}
               {state.viewMode === 'day' ? (
