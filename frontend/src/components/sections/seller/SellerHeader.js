@@ -163,6 +163,15 @@ export default function SellerHeader({
                     Mon manager
                   </button>
                 )}
+                <div className="border-t border-gray-100 my-1" />
+                <button
+                  data-testid="logout-button-mobile"
+                  onClick={() => { setShowMore(false); onLogout(); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4 flex-shrink-0" />
+                  Se déconnecter
+                </button>
               </div>
             )}
           </div>
@@ -185,11 +194,11 @@ export default function SellerHeader({
           </div>
         </button>
 
-        {/* Déconnexion */}
+        {/* Déconnexion — sm+ uniquement */}
         <button
           data-testid="logout-button"
           onClick={onLogout}
-          className="flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          className="hidden sm:flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           title="Déconnexion"
         >
           <LogOut className="w-4 h-4" />
