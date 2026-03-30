@@ -21,6 +21,8 @@ export default function KpiTab({
   };
 
   const fmtDate = e => new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+  const filteredCount = getFilteredEntries().length;
+  const xInterval = filteredCount > 15 ? Math.floor(filteredCount / 7) : 0;
   const tooltipStyle = { backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '11px' };
   const axisStyle = { fill: '#94a3b8', fontSize: 10 };
 
@@ -32,7 +34,7 @@ export default function KpiTab({
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={getFilteredEntries().map(e => ({ date: fmtDate(e), CA: e.ca_journalier || 0 }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={axisStyle} />
+            <XAxis dataKey="date" tick={axisStyle} interval={xInterval} />
             <YAxis tick={axisStyle} />
             <Tooltip contentStyle={tooltipStyle} formatter={v => `${v.toFixed(2)}€`} />
             <Bar dataKey="CA" fill="#6366f1" radius={[4,4,0,0]} />
@@ -47,7 +49,7 @@ export default function KpiTab({
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={getFilteredEntries().map(e => ({ date: fmtDate(e), Ventes: e.nb_ventes || 0 }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={axisStyle} />
+            <XAxis dataKey="date" tick={axisStyle} interval={xInterval} />
             <YAxis tick={axisStyle} />
             <Tooltip contentStyle={tooltipStyle} />
             <Bar dataKey="Ventes" fill="#10b981" radius={[4,4,0,0]} />
@@ -62,7 +64,7 @@ export default function KpiTab({
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={getFilteredEntries().map(e => ({ date: fmtDate(e), Clients: e.nb_clients || 0 }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={axisStyle} />
+            <XAxis dataKey="date" tick={axisStyle} interval={xInterval} />
             <YAxis tick={axisStyle} />
             <Tooltip contentStyle={tooltipStyle} />
             <Bar dataKey="Clients" fill="#9333ea" radius={[4,4,0,0]} />
@@ -77,7 +79,7 @@ export default function KpiTab({
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={getFilteredEntries().map(e => ({ date: fmtDate(e), Articles: e.nb_articles || 0 }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={axisStyle} />
+            <XAxis dataKey="date" tick={axisStyle} interval={xInterval} />
             <YAxis tick={axisStyle} />
             <Tooltip contentStyle={tooltipStyle} />
             <Bar dataKey="Articles" fill="#f59e0b" radius={[4,4,0,0]} />
@@ -92,7 +94,7 @@ export default function KpiTab({
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={getFilteredEntries().map(e => ({ date: fmtDate(e), Ventes: e.nb_ventes || 0, Clients: e.nb_clients || 0 }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={axisStyle} />
+            <XAxis dataKey="date" tick={axisStyle} interval={xInterval} />
             <YAxis tick={axisStyle} />
             <Tooltip contentStyle={tooltipStyle} />
             <Legend wrapperStyle={{ fontSize: '10px' }} />
@@ -112,7 +114,7 @@ export default function KpiTab({
             PanierMoyen: e.nb_ventes > 0 ? (e.ca_journalier / e.nb_ventes) : 0
           }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={axisStyle} />
+            <XAxis dataKey="date" tick={axisStyle} interval={xInterval} />
             <YAxis tick={axisStyle} />
             <Tooltip contentStyle={tooltipStyle} formatter={v => `${v.toFixed(2)}€`} />
             <Line type="monotone" dataKey="PanierMoyen" stroke="#14b8a6" strokeWidth={2} dot={{ r: 2 }} />
@@ -130,7 +132,7 @@ export default function KpiTab({
             TauxTransfo: e.taux_transformation || 0
           }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={axisStyle} />
+            <XAxis dataKey="date" tick={axisStyle} interval={xInterval} />
             <YAxis tick={axisStyle} />
             <Tooltip contentStyle={tooltipStyle} formatter={v => `${v.toFixed(2)}%`} />
             <Line type="monotone" dataKey="TauxTransfo" stroke="#ec4899" strokeWidth={2} dot={{ r: 2 }} />
@@ -150,7 +152,7 @@ export default function KpiTab({
               : (e.nb_ventes > 0 ? (e.nb_articles / e.nb_ventes) : 0)
           }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={axisStyle} />
+            <XAxis dataKey="date" tick={axisStyle} interval={xInterval} />
             <YAxis tick={axisStyle} />
             <Tooltip contentStyle={tooltipStyle} formatter={v => v.toFixed(2)} />
             <Line type="monotone" dataKey="IndiceVente" stroke="#f97316" strokeWidth={2} dot={{ r: 2 }} />
