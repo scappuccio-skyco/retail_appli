@@ -1,13 +1,14 @@
-import React from 'react';
-import { LogOut, User, Headphones, Heart, Settings, MapPin } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { LogOut, User, Headphones, Heart, Settings, MapPin, MoreHorizontal } from 'lucide-react';
 import Logo from '../../shared/Logo';
 import TutorialButton from '../../onboarding/TutorialButton';
 import NotificationBell from '../../notifications/NotificationBell';
 import { useNotifications } from '../../../hooks/useNotifications';
 
 /**
- * Header du dashboard vendeur — design navbar plat (même principe que ManagerHeader).
- * Logo · Magasin · Rôle · [spacer] · Tutoriel · Notifs · Profil · Perso · Manager · Support · Avatar · Déconnexion
+ * Header du dashboard vendeur — design navbar plat.
+ * Mobile : Logo · Magasin · Tutorial · Bell · Support · ⋯ · Logout
+ * Desktop : + Profil · Perso · Mon manager · Avatar
  */
 export default function SellerHeader({
   user,
@@ -22,6 +23,18 @@ export default function SellerHeader({
   onOpenManagerCompat,
 }) {
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const [showMore, setShowMore] = useState(false);
+  const moreRef = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (moreRef.current && !moreRef.current.contains(e.target)) {
+        setShowMore(false);
+      }
+    };
+    if (showMore) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showMore]);
 
   const initials = (user?.name || '?')
     .split(' ')
@@ -29,6 +42,10 @@ export default function SellerHeader({
     .slice(0, 2)
     .join('')
     .toUpperCase();
+
+  const handleProfile = () => {
+    diagnostic ? onOpenProfile() : onOpenDiagnosticForm();
+  };
 
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm mb-8">
@@ -73,9 +90,9 @@ export default function SellerHeader({
             onMarkAllRead={markAllRead}
           />
 
-          {/* Profil, Perso, Mon manager — masqués sur mobile (accessibles via l'avatar) */}
+          {/* Profil, Perso, Mon manager — inline sur sm+, dans ⋯ sur mobile */}
           <button
-            onClick={() => diagnostic ? onOpenProfile() : onOpenDiagnosticForm()}
+            onClick={handleProfile}
             className="hidden sm:flex items-center gap-1.5 px-2 sm:px-3 py-2 text-sm text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
             title="Mon Profil de Vente"
           >
@@ -111,13 +128,51 @@ export default function SellerHeader({
             <Headphones className="w-4 h-4" />
             <span className="hidden sm:inline">Support</span>
           </button>
+
+          {/* Bouton ⋯ — mobile uniquement */}
+          <div ref={moreRef} className="relative sm:hidden">
+            <button
+              onClick={() => setShowMore(v => !v)}
+              className="flex items-center px-2 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Plus d'options"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+            {showMore && (
+              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-50 min-w-[170px]">
+                <button
+                  onClick={() => { handleProfile(); setShowMore(false); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <User className="w-4 h-4 text-pink-500 flex-shrink-0" />
+                  Mon Profil
+                </button>
+                <button
+                  onClick={() => { onToggleFilters(); setShowMore(false); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <Settings className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                  Personnaliser
+                </button>
+                {onOpenManagerCompat && (
+                  <button
+                    onClick={() => { onOpenManagerCompat(); setShowMore(false); }}
+                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    <Heart className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                    Mon manager
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="hidden sm:block h-8 w-px bg-gray-200 flex-shrink-0" />
 
-        {/* Avatar + nom */}
+        {/* Avatar + nom — sm+ */}
         <button
-          onClick={() => diagnostic ? onOpenProfile() : onOpenDiagnosticForm()}
+          onClick={handleProfile}
           className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0"
           title="Mon profil"
         >
