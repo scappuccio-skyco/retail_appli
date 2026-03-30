@@ -88,7 +88,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         onClose={() => s.setShowFilters(false)}
       />
 
-      <div className={`glass-morphism rounded-2xl ${s.managerTasks.length > 0 ? 'p-3 mb-6' : 'p-1 mb-2'} border border-[#1E40AF]`}>
+      <div className={`max-w-7xl mx-auto glass-morphism rounded-2xl ${s.managerTasks.length > 0 ? 'p-3 mb-6' : 'p-1 mb-2'} border border-[#1E40AF]`}>
         {s.managerTasks.length > 0 && (
           <p className="text-xs font-semibold text-[#1E40AF] mb-2 px-1">📋 Mes tâches à faire</p>
         )}
