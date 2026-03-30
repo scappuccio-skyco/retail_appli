@@ -208,8 +208,8 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     const startStr = startDate?.toISOString().split('T')[0];
     const endStr = endDate?.toISOString().split('T')[0];
     const kpiUrl = (sellerId) => startStr && endStr
-      ? `/manager/kpi-entries/${sellerId}?start_date=${startStr}&end_date=${endStr}${storeParam}`
-      : `/manager/kpi-entries/${sellerId}?days=${days}${storeParam}`;
+      ? `/manager/kpi-entries/${sellerId}?start_date=${startStr}&end_date=${endStr}&size=366${storeParam}`
+      : `/manager/kpi-entries/${sellerId}?days=${days}&size=366${storeParam}`;
 
     const today = new Date();
     const managerStart = new Date(today);
@@ -219,8 +219,8 @@ export function useStoreKPIModal({ onClose, onSuccess, initialDate = null, store
     const mgrStartStr = startStr || managerStart.toISOString().split('T')[0];
     const mgrEndStr = endStr || today.toISOString().split('T')[0];
     const managerKpiUrl = storeIdParam
-      ? `/manager/manager-kpi?start_date=${mgrStartStr}&end_date=${mgrEndStr}&store_id=${storeIdParam}`
-      : `/manager/manager-kpi?start_date=${mgrStartStr}&end_date=${mgrEndStr}`;
+      ? `/manager/manager-kpi?start_date=${mgrStartStr}&end_date=${mgrEndStr}&store_id=${storeIdParam}&size=366`
+      : `/manager/manager-kpi?start_date=${mgrStartStr}&end_date=${mgrEndStr}&size=366`;
 
     const [sellersDataResponses, managerKpiRes] = await Promise.all([
       Promise.all(sellersList.map(seller => api.get(kpiUrl(seller.id)))),
