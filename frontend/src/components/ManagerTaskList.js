@@ -91,19 +91,21 @@ export default function ManagerTaskList({ tasks, onViewSellerNotes, onViewSeller
   );
 
   return (
-    <div className="flex flex-col gap-2">
-      {actionTasks.length > 0 && (
-        <div className="flex flex-col gap-1.5">
-          <p className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide px-1">⚡ À faire</p>
-          {actionTasks.map(t => renderTask(t, 'bg-white border-orange-200 hover:border-orange-400 hover:shadow-md'))}
-        </div>
-      )}
-      {infoTasks.length > 0 && (
-        <div className="flex flex-col gap-1.5">
-          <p className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide px-1">ℹ️ À surveiller</p>
-          {infoTasks.map(t => renderTask(t, 'bg-blue-50/60 border-blue-100 hover:border-blue-300 hover:shadow-sm'))}
-        </div>
-      )}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="flex flex-col gap-1.5">
+        <p className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide px-1">⚡ À faire</p>
+        {actionTasks.length === 0
+          ? <p className="text-xs text-gray-400 px-1">Aucune tâche urgente.</p>
+          : actionTasks.map(t => renderTask(t, 'bg-white border-orange-200 hover:border-orange-400 hover:shadow-md'))
+        }
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <p className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide px-1">ℹ️ À surveiller</p>
+        {infoTasks.length === 0
+          ? <p className="text-xs text-gray-400 px-1">Rien à signaler.</p>
+          : infoTasks.map(t => renderTask(t, 'bg-blue-50/60 border-blue-100 hover:border-blue-300 hover:shadow-sm'))
+        }
+      </div>
     </div>
   );
 }
