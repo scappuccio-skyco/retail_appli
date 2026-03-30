@@ -249,22 +249,42 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 </div>
               </div>
 
-              {/* IA Analysis Section — au-dessus des données */}
-              <div ref={aiSectionRef} className="mb-4">
-                {!aiAnalysis && !aiGenerating && (
-                  <div className="text-center py-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                    <button
-                      onClick={generateAnalysis}
-                      disabled={!canLaunchAI}
-                      className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                    >
-                      ✨ Générer l'analyse IA
-                    </button>
-                    {!canLaunchAI && (
-                      <p className="text-xs text-gray-400 mt-2">Aucune donnée disponible pour cette période</p>
-                    )}
-                  </div>
-                )}
+              {/* Bouton IA — en haut, uniquement si pas encore d'analyse */}
+              {!aiAnalysis && !aiGenerating && (
+                <div className="mb-4 text-center py-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                  <button
+                    onClick={generateAnalysis}
+                    disabled={!canLaunchAI}
+                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    ✨ Générer l'analyse IA
+                  </button>
+                  {!canLaunchAI && (
+                    <p className="text-xs text-gray-400 mt-2">Aucune donnée disponible pour cette période</p>
+                  )}
+                </div>
+              )}
+
+              {/* Contenu */}
+              {state.viewMode === 'day' ? (
+                <StoreKPIModalDailyTab overviewData={state.overviewData} storeId={storeId} />
+              ) : (
+                <StoreKPIModalOverviewTab
+                  viewMode={state.viewMode}
+                  displayMode={state.displayMode}
+                  setDisplayMode={state.setDisplayMode}
+                  displayedListItems={state.displayedListItems}
+                  setDisplayedListItems={state.setDisplayedListItems}
+                  visibleCharts={state.visibleCharts}
+                  toggleChart={state.toggleChart}
+                  setVisibleCharts={state.setVisibleCharts}
+                  historicalData={state.historicalData}
+                  loadingHistorical={state.loadingHistorical}
+                />
+              )}
+
+              {/* Résultat IA — en bas */}
+              <div ref={aiSectionRef} className="mt-4">
                 {aiGenerating && (
                   <div className="bg-white rounded-2xl p-6 text-center shadow border-2 border-blue-200">
                     <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse">
@@ -285,24 +305,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   />
                 )}
               </div>
-
-              {/* Contenu */}
-              {state.viewMode === 'day' ? (
-                <StoreKPIModalDailyTab overviewData={state.overviewData} storeId={storeId} />
-              ) : (
-                <StoreKPIModalOverviewTab
-                  viewMode={state.viewMode}
-                  displayMode={state.displayMode}
-                  setDisplayMode={state.setDisplayMode}
-                  displayedListItems={state.displayedListItems}
-                  setDisplayedListItems={state.setDisplayedListItems}
-                  visibleCharts={state.visibleCharts}
-                  toggleChart={state.toggleChart}
-                  setVisibleCharts={state.setVisibleCharts}
-                  historicalData={state.historicalData}
-                  loadingHistorical={state.loadingHistorical}
-                />
-              )}
             </div>
           )}
 
