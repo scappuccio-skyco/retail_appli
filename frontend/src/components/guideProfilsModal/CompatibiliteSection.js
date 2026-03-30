@@ -79,9 +79,14 @@ function AIAdviceSection({ advice, sellerFirstName, isLoading, hasAdvice, onGene
         )}
       </div>
 
-      {!hasAdvice && !isLoading && (
+      {!hasAdvice && !isLoading && canGenerate && (
         <p className="text-sm text-indigo-700 opacity-70">
           Cliquez sur "Générer" pour obtenir des conseils personnalisés basés sur votre profil DISC réel et le style de vente de {sellerFirstName}.
+        </p>
+      )}
+      {!hasAdvice && !isLoading && !canGenerate && (
+        <p className="text-sm text-indigo-700 opacity-70">
+          Complétez votre diagnostic DISC pour débloquer les conseils personnalisés.
         </p>
       )}
 
