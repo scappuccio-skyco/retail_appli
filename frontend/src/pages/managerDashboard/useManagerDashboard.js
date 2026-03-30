@@ -323,7 +323,7 @@ export default function useManagerDashboard({ user }) {
     // Onboarding
     kpiMode, onboarding, managerSteps,
     // Data
-    sellers, invitations, managerDiagnostic, teamBilan, kpiConfig,
+    sellers, invitations, managerDiagnostic, setManagerDiagnostic, teamBilan, kpiConfig,
     activeObjectives, storeKPIStats, storeName, managerTasks,
     // UI
     loading, processingStripeReturn, generatingTeamBilan, generatingAIAdvice, setGeneratingAIAdvice,

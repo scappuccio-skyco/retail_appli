@@ -63,9 +63,9 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
           richResponses[q.id] = { q: q.text, a: q.options[answerIdx], idx: answerIdx };
         }
       });
-      await api.post('/manager-diagnostic', { responses: richResponses });
+      const res = await api.post('/manager-diagnostic', { responses: richResponses });
       toast.success('Ton profil manager est prêt ! 🔥');
-      onSuccess();
+      onSuccess(res.data?.diagnostic || null);
       onClose();
     } catch (err) {
       logger.error('Error submitting diagnostic:', err);

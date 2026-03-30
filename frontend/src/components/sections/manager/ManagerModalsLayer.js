@@ -35,6 +35,7 @@ export default function ManagerModalsLayer({
   urlStoreId,
   apiStoreIdParam,
   managerDiagnostic,
+  setManagerDiagnostic,
   selectedSeller,
   settingsModalType,
   initialObjectiveId,
@@ -109,10 +110,11 @@ export default function ManagerModalsLayer({
       {showManagerDiagnostic && (
         <ManagerDiagnosticForm
           onClose={() => setShowManagerDiagnostic(false)}
-          onSuccess={async () => {
+          onSuccess={(diagnostic) => {
+            if (diagnostic) setManagerDiagnostic(diagnostic);
             setShowManagerDiagnostic(false);
-            await fetchManagerDiagnostic();
             setShowManagerProfileModal(true);
+            fetchManagerDiagnostic();
           }}
         />
       )}

@@ -105,6 +105,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         urlStoreId={s.urlStoreId}
         apiStoreIdParam={s.apiStoreIdParam}
         managerDiagnostic={s.managerDiagnostic}
+        setManagerDiagnostic={s.setManagerDiagnostic}
         selectedSeller={s.selectedSeller}
         settingsModalType={s.settingsModalType}
         initialObjectiveId={s.initialObjectiveId}
