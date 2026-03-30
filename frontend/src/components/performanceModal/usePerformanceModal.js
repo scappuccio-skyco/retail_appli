@@ -235,12 +235,12 @@ export default function usePerformanceModal({
     if (!periodEntries.length) return [];
     return periodEntries.map(entry => ({
       date: new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
-      CA: Math.round(entry.ca_journalier || 0),
-      Ventes: entry.nb_ventes || 0,
-      Articles: entry.nb_articles || 0,
-      Prospects: entry.nb_prospects || 0,
-      'Panier Moyen': (entry.ca_journalier && entry.nb_ventes) ? Math.round(entry.ca_journalier / entry.nb_ventes) : 0,
-      'Taux Transfo': (entry.nb_ventes && entry.nb_prospects) ? Math.round((entry.nb_ventes / entry.nb_prospects) * 100) : 0,
+      CA: parseFloat((entry.ca_journalier || 0).toFixed(2)),
+      Ventes: parseFloat((entry.nb_ventes || 0).toFixed(2)),
+      Articles: parseFloat((entry.nb_articles || 0).toFixed(2)),
+      Prospects: parseFloat((entry.nb_prospects || 0).toFixed(2)),
+      'Panier Moyen': (entry.ca_journalier && entry.nb_ventes) ? parseFloat((entry.ca_journalier / entry.nb_ventes).toFixed(2)) : 0,
+      'Taux Transfo': (entry.nb_ventes && entry.nb_prospects) ? parseFloat(((entry.nb_ventes / entry.nb_prospects) * 100).toFixed(2)) : 0,
     }));
   }, [periodEntries]);
 
@@ -314,10 +314,10 @@ export default function usePerformanceModal({
     });
     return weekEntries.sort((a, b) => new Date(a.date + 'T12:00:00') - new Date(b.date + 'T12:00:00')).map(entry => ({
       date: new Date(entry.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
-      CA: Math.round(entry.ca_journalier || 0),
-      Ventes: entry.nb_ventes || 0,
-      Articles: entry.nb_articles || 0,
-      Prospects: entry.nb_prospects || 0,
+      CA: parseFloat((entry.ca_journalier || 0).toFixed(2)),
+      Ventes: parseFloat((entry.nb_ventes || 0).toFixed(2)),
+      Articles: parseFloat((entry.nb_articles || 0).toFixed(2)),
+      Prospects: parseFloat((entry.nb_prospects || 0).toFixed(2)),
       'Panier Moyen': entry.ca_journalier && entry.nb_ventes ? parseFloat((entry.ca_journalier / entry.nb_ventes).toFixed(2)) : 0,
     }));
   }, [kpiEntries, currentWeekOffset]);
