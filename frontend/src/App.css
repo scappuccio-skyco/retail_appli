@@ -14,6 +14,7 @@ body {
   font-family: 'Inter', sans-serif;
   background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
