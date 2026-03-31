@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BannerSection from './landingPage/BannerSection';
 import HeaderSection from './landingPage/HeaderSection';
 import HeroSection from './landingPage/HeroSection';
@@ -13,8 +13,17 @@ import ContactSection from './landingPage/ContactSection';
 import FooterSection from './landingPage/FooterSection';
 import DemoModal from './landingPage/DemoModal';
 import LiveDemoModal from './landingPage/LiveDemoModal';
+import { useAuth } from '../contexts';
 
 export default function LandingPage() {
+  const { user, logout } = useAuth();
+
+  // Si un visiteur revient sur la landing avec une session démo active, on la nettoie
+  useEffect(() => {
+    if (user?.is_demo) {
+      logout();
+    }
+  }, [user, logout]);
   const [openFaq, setOpenFaq] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
