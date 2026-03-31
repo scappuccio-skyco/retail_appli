@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { Building2, Users, Mail, User, MessageSquare, Sparkles, ArrowRight, Check } from 'lucide-react';
 import Logo from '../components/shared/Logo';
@@ -40,7 +41,7 @@ export default function EarlyAccess() {
         full_name: formData.fullName,
         email: formData.email,
         enseigne: formData.enseigne,
-        nombre_vendeurs: Number.Number.parseInt(formData.nombreVendeurs) || 0,
+        nombre_vendeurs: Number.parseInt(formData.nombreVendeurs) || 0,
         defi_principal: formData.defiPrincipal
       });
 
@@ -51,7 +52,7 @@ export default function EarlyAccess() {
         email: formData.email,
         fullName: formData.fullName,
         enseigne: formData.enseigne,
-        nombreVendeurs: Number.Number.parseInt(formData.nombreVendeurs) || 0
+        nombreVendeurs: Number.parseInt(formData.nombreVendeurs) || 0
       }));
 
       // Rediriger vers la page de succès immédiatement
