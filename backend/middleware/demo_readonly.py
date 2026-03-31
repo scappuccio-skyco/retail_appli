@@ -13,14 +13,20 @@ logger = logging.getLogger(__name__)
 
 _WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
-# Routes toujours accessibles en mode démo
+# Routes toujours accessibles en mode démo (exact match)
 _DEMO_PASSTHROUGH = {
     "/api/auth/logout",
     "/api/auth/me",
     "/api/demo/login",
     "/api/onboarding/progress",
     "/api/onboarding/complete",
+    "/api/manager/kpi-config",   # Config KPI (qui saisit quoi) — interactif en démo
 }
+
+# Préfixes de routes accessibles en mode démo
+_DEMO_PASSTHROUGH_PREFIXES = (
+    "/api/manager/kpi-config",
+)
 
 
 def _extract_token(request: Request) -> str | None:
@@ -40,7 +46,7 @@ class DemoReadOnlyMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         path = request.url.path
-        if path in _DEMO_PASSTHROUGH:
+        if path in _DEMO_PASSTHROUGH or path.startswith(_DEMO_PASSTHROUGH_PREFIXES):
             return await call_next(request)
 
         # Vérifie le flag is_demo dans le JWT (sans appel DB)
