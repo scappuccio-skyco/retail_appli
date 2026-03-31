@@ -11,10 +11,12 @@ import HistoryTab from './teamAIAnalysis/HistoryTab';
 
 export default function TeamAIAnalysisModal({ teamData, periodFilter, customDateRange, onClose, storeIdParam = null }) {
   const { user } = useAuth();
+  const isDemo = !!user?.is_demo;
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [analysisMetadata, setAnalysisMetadata] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('new'); // 'new' or 'history'
+  const [showDemoPrompt, setShowDemoPrompt] = useState(false);
+  const [activeTab, setActiveTab] = useState(isDemo ? 'history' : 'new'); // démo → onglet historique
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
@@ -62,6 +64,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
   };
 
   const handleGenerateAnalysis = async () => {
+    if (isDemo) { setShowDemoPrompt(true); return; }
     if (generateAbortRef.current) generateAbortRef.current.abort();
     generateAbortRef.current = new AbortController();
 
@@ -166,6 +169,32 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)]">
           {loading && <LoadingOverlay />}
+
+          {showDemoPrompt && (
+            <div className="mb-6 bg-indigo-50 border border-indigo-200 rounded-xl p-5 text-center">
+              <div className="text-4xl mb-3">✨</div>
+              <h3 className="font-bold text-indigo-800 text-lg mb-2">Fonctionnalité disponible après inscription</h3>
+              <p className="text-indigo-700 text-sm mb-4">
+                En mode démo, les analyses IA sont pré-chargées pour vous donner un aperçu réaliste.
+                Créez un compte pour générer vos propres analyses en temps réel, basées sur les données de votre équipe.
+              </p>
+              <div className="flex justify-center gap-3">
+                <a
+                  href="/#pricing"
+                  onClick={onClose}
+                  className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                >
+                  Voir les offres
+                </a>
+                <button
+                  onClick={() => { setShowDemoPrompt(false); setActiveTab('history'); }}
+                  className="px-4 py-2 bg-white border border-indigo-300 text-indigo-700 font-medium rounded-lg hover:bg-indigo-50 transition-colors text-sm"
+                >
+                  Voir les exemples d'analyses
+                </button>
+              </div>
+            </div>
+          )}
 
           {activeTab === 'new' && !aiAnalysis && !loading && (
             <div className="text-center py-12">
