@@ -25,6 +25,7 @@ class Store(BaseModel):
     address: Optional[str] = None
     phone: Optional[str] = None
     opening_hours: Optional[str] = None
+    business_context: Optional[Dict] = None  # Contexte métier pour personnaliser les analyses IA
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
