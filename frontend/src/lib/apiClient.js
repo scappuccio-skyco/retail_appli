@@ -107,9 +107,19 @@ apiClient.interceptors.response.use(
       const code = data.error_code;
       const now = Date.now();
       const isSubscriptionIssue = code === 'SUBSCRIPTION_INACTIVE' || code === 'TRIAL_EXPIRED';
+      const isDemoReadOnly = code === 'DEMO_READ_ONLY';
       const alreadyShownSubscription = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(SUBSCRIPTION_INACTIVE_SHOWN_KEY) === '1';
 
-      if (isSubscriptionIssue && !alreadyShownSubscription) {
+      if (isDemoReadOnly) {
+        if (now - last403ToastAt > 3000) {
+          last403ToastAt = now;
+          toast.info('Fonctionnalité disponible après inscription', {
+            description: 'Créez un compte pour accéder à toutes les fonctionnalités en temps réel.',
+            duration: 5000,
+            icon: '✨',
+          });
+        }
+      } else if (isSubscriptionIssue && !alreadyShownSubscription) {
         if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(SUBSCRIPTION_INACTIVE_SHOWN_KEY, '1');
         const description = code === 'TRIAL_EXPIRED'
           ? 'La période d\'essai est terminée. Le gérant peut souscrire depuis son tableau de bord.'
