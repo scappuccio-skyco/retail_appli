@@ -61,24 +61,29 @@ def verify_password(password: str, hashed: str) -> bool:
 
 # ===== JWT TOKEN MANAGEMENT =====
 
-def create_token(user_id: str, email: str, role: str) -> str:
+def create_token(user_id: str, email: str, role: str, is_demo: bool = False, expiry_hours: Optional[int] = None) -> str:
     """
     Create a JWT token for a user
-    
+
     Args:
         user_id: User's unique identifier
         email: User's email
         role: User's role (super_admin, gerant, manager, seller)
-        
+        is_demo: If True, marks token as read-only demo session
+        expiry_hours: Override default expiry (JWT_EXPIRATION)
+
     Returns:
         Encoded JWT token string
     """
+    exp_hours = expiry_hours if expiry_hours is not None else JWT_EXPIRATION
     payload = {
         'user_id': user_id,
         'email': email,
         'role': role,
-        'exp': datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION)
+        'exp': datetime.now(timezone.utc) + timedelta(hours=exp_hours),
     }
+    if is_demo:
+        payload['is_demo'] = True
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
