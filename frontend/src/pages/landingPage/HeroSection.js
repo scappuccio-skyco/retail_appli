@@ -91,22 +91,12 @@ export default function HeroSection({ scrollToSection, onOpenLiveDemo }) {
                   <img
                     src="/dashboard-manager.png"
                     alt="Dashboard Manager Retail Performer AI"
-                    className="w-full max-w-md rounded-xl"
+                    className="w-full max-w-xl rounded-xl"
                     loading="lazy"
                   />
                 </div>
               </div>
 
-              {/* Badge flottant KPI */}
-              <div className="absolute -bottom-5 -left-6 bg-white rounded-2xl shadow-2xl px-5 py-3 border border-gray-100 flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-[#F97316] to-[#EA580C] rounded-full flex items-center justify-center text-white font-bold text-sm">
-                  +30%
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Objectif ventes</p>
-                  <p className="text-sm font-bold text-[#1E40AF]">Atteint en 3 mois</p>
-                </div>
-              </div>
             </div>
           </div>
 
