@@ -98,13 +98,6 @@ export default function ContactSection({ setShowDemoModal }) {
               </p>
             </div>
 
-            <div className="rounded-2xl overflow-hidden shadow-lg">
-              <img
-                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80"
-                alt="Service client professionnel et accueillant"
-                className="w-full h-48 object-cover"
-              />
-            </div>
           </div>
         </div>
       </div>
