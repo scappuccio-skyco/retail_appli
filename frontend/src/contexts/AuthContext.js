@@ -28,6 +28,15 @@ export function AuthProvider({ children }) {
   const checkAuth = useCallback(async () => {
     try {
       const res = await api.get('/auth/me');
+
+      // Session démo sur la landing page → logout silencieux sans jamais setter le user
+      if (res.data?.is_demo && globalThis.location?.pathname === '/') {
+        try { await api.post('/auth/logout'); } catch { /* best-effort */ }
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       setUser(res.data);
 
       // Pour les vendeurs : charger le diagnostic
