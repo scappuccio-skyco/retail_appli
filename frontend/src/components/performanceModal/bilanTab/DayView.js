@@ -18,7 +18,7 @@ export default function DayView({
   return (
     <>
       {periodEntries.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {(kpiConfig?.track_ca ?? true) && (
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
               <p className="text-xs text-blue-700 font-semibold mb-1">💰 CA Réalisé</p>

@@ -12,7 +12,7 @@ export default function WeekView({
     <>
       {/* KPI Summary from bilanData */}
       {bilanData?.kpi_resume && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           {bilanData.kpi_resume?.ca_total !== undefined && (
             <div className="bg-blue-50 rounded-lg p-3">
               <p className="text-xs text-blue-600 mb-1">💰 CA</p>

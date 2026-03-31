@@ -30,7 +30,7 @@ function Card({ icon, label, value, color }) {
 export default function KPISummary({ bilan, kpiConfig }) {
   const r = bilan.kpi_resume;
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
       {kpiConfig?.track_ca && r.ca_total !== undefined && <Card icon="💰" label="CA" value={`${r.ca_total.toFixed(0)}€`} color="blue" />}
       {kpiConfig?.track_ventes && r.ventes !== undefined && <Card icon="🛒" label="Ventes" value={r.ventes} color="green" />}
       {kpiConfig?.track_clients && r.clients !== undefined && <Card icon="👥" label="Clients" value={r.clients} color="purple" />}

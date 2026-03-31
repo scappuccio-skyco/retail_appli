@@ -59,7 +59,7 @@ export default function MonthYearView({
       </div>
 
       {/* Aggregate KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         {(kpiConfig?.track_ca ?? true) && (
           <div className="bg-blue-50 rounded-lg p-3">
             <p className="text-xs text-blue-600 mb-1">💰 CA total</p>
