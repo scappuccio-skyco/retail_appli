@@ -333,6 +333,7 @@ async def seed(db):
             kpi_docs.append({
                 "id": f"demo-kpi-{s['id']}-{date_s}",
                 "seller_id": s["id"],
+                "store_id": DEMO_STORE_ID,
                 "date": date_s,
                 "ts": date,
                 "is_demo": True,
