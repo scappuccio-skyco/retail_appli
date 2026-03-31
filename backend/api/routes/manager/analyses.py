@@ -361,7 +361,7 @@ Réponds UNIQUEMENT avec ce JSON (sans markdown) :
                     "generated_at": datetime.now(timezone.utc).isoformat(),
                 }
                 await db["compatibility_advices"].update_one(
-                    {"seller_id": seller_id},
+                    {"seller_id": seller_id, "manager_id": manager_id},
                     {"$set": record},
                     upsert=True,
                 )

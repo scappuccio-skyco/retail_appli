@@ -258,6 +258,10 @@ INDEXES: Dict[str, List[IndexSpec]] = {
     "conflict_consultations": [
         _spec([("seller_id", 1), ("created_at", -1)], background=True, name="seller_created_idx"),
     ],
+    "compatibility_advices": [
+        _spec([("seller_id", 1), ("manager_id", 1)],
+              unique=True, background=True, name="seller_manager_unique"),
+    ],
 
     # ── Paiements / Facturation ──────────────────────────────────────────────
     "payment_transactions": [
