@@ -30,18 +30,40 @@ from motor.motor_asyncio import AsyncIOMotorClient
 # ── IDs fixes (déterministes) ─────────────────────────────────────────────────
 DEMO_WORKSPACE_ID  = "demo-workspace-001"
 DEMO_GERANT_ID     = "demo-gerant-001"
+
+# Boutique 1 — Maison Lumière Paris 6e (prêt-à-porter haut de gamme)
 DEMO_STORE_ID      = "demo-store-001"
 DEMO_MANAGER_ID    = "demo-manager-001"
-DEMO_SELLER_T      = "demo-seller-thomas"   # D – Dynamique
-DEMO_SELLER_E      = "demo-seller-emma"     # I – Influent
-DEMO_SELLER_L      = "demo-seller-lucas"    # S – Stable
-DEMO_SELLER_C      = "demo-seller-clara"    # C – Consciencieux
+DEMO_SELLER_T      = "demo-seller-thomas"
+DEMO_SELLER_E      = "demo-seller-emma"
+DEMO_SELLER_L      = "demo-seller-lucas"
+DEMO_SELLER_C      = "demo-seller-clara"
 
 SELLERS = [
     {"id": DEMO_SELLER_T, "name": "Thomas Durand",  "email": "demo-seller-thomas@demo.retailperformerai.com", "disc": "D"},
     {"id": DEMO_SELLER_E, "name": "Emma Martin",    "email": "demo-seller-emma@demo.retailperformerai.com",   "disc": "I"},
     {"id": DEMO_SELLER_L, "name": "Lucas Petit",    "email": "demo-seller-lucas@demo.retailperformerai.com",  "disc": "S"},
     {"id": DEMO_SELLER_C, "name": "Clara Rousseau", "email": "demo-seller-clara@demo.retailperformerai.com",  "disc": "C"},
+]
+
+# Boutique 2 — Sport & Move Lyon Part-Dieu (sportswear / outdoor)
+DEMO_STORE_ID_2    = "demo-store-002"
+DEMO_MANAGER_ID_2  = "demo-manager-002"
+SELLERS_2 = [
+    {"id": "demo-seller-alex",    "name": "Alex Bernard",   "email": "demo-seller-alex@demo.retailperformerai.com",    "disc": "D"},
+    {"id": "demo-seller-julie",   "name": "Julie Faure",    "email": "demo-seller-julie@demo.retailperformerai.com",   "disc": "I"},
+    {"id": "demo-seller-maxime",  "name": "Maxime Colin",   "email": "demo-seller-maxime@demo.retailperformerai.com",  "disc": "S"},
+    {"id": "demo-seller-sarah2",  "name": "Sarah Girard",   "email": "demo-seller-sarah2@demo.retailperformerai.com",  "disc": "C"},
+]
+
+# Boutique 3 — Éclat Beauté Bordeaux (cosmétiques / parfumerie)
+DEMO_STORE_ID_3    = "demo-store-003"
+DEMO_MANAGER_ID_3  = "demo-manager-003"
+SELLERS_3 = [
+    {"id": "demo-seller-camille", "name": "Camille Morel",  "email": "demo-seller-camille@demo.retailperformerai.com", "disc": "I"},
+    {"id": "demo-seller-hugo",    "name": "Hugo Lambert",   "email": "demo-seller-hugo@demo.retailperformerai.com",    "disc": "C"},
+    {"id": "demo-seller-lea",     "name": "Léa Simon",      "email": "demo-seller-lea@demo.retailperformerai.com",     "disc": "S"},
+    {"id": "demo-seller-romain",  "name": "Romain Blanc",   "email": "demo-seller-romain@demo.retailperformerai.com",  "disc": "D"},
 ]
 
 NOW = datetime.now(timezone.utc)
@@ -396,6 +418,367 @@ DEBRIEF_DATA = {
              axes=["Adapter le niveau de discours au profil client", "Commencer par des questions simples de découverte"]),
     ],
 }
+
+
+# ── Configs boutiques 2 & 3 ──────────────────────────────────────────────────
+
+STORE_2_CONFIG = {
+    "store_id": DEMO_STORE_ID_2,
+    "manager_id": DEMO_MANAGER_ID_2,
+    "sellers": SELLERS_2,
+    "store": {
+        "name": "Sport & Move – Lyon Part-Dieu",
+        "location": "Lyon 3e",
+        "address": "17 rue du Président Carnot, 69003 Lyon",
+        "business_context": {
+            "type_commerce": "Magasin de sport et outdoor multisport",
+            "positionnement": "Mid-range / Premium sport",
+            "clientele_cible": "Sportifs actifs 20-45 ans, CSP+, pratique régulière",
+            "format_magasin": "Surface 280m², équipements et vêtements sport",
+            "duree_vente": "8-15 minutes",
+            "kpi_prioritaire": "Volume de ventes et indice de vente (équipement complémentaire)",
+            "saisonnalite": "Pics en janvier (bonnes résolutions) et septembre (rentrée sport)",
+            "contexte_libre": "Flux naturel élevé. Priorité sur l'équipement complet : chaussure + chaussette + accessoire.",
+        },
+    },
+    "manager": {
+        "name": "Antoine Moreau",
+        "email": "demo-manager-2@demo.retailperformerai.com",
+        "disc_dominant": "D/C",
+        "disc_percentages": {"D": 40, "I": 15, "S": 15, "C": 30},
+        "profil_nom": "L'Architecte",
+        "profil_description": "Antoine pilote son équipe avec rigueur et résultats. Il fixe des objectifs chiffrés clairs et suit les KPIs de près. Sa force : transformer les données en plans d'action concrets.",
+        "force_1": "Vision analytique et objectifs chiffrés",
+        "force_2": "Rigueur dans le suivi des performances",
+        "axe_progression": "Développer son approche humaine pour mieux motiver les profils S et I",
+        "recommandation": "Intégrer des moments de reconnaissance individuelle dans ses rituels de management.",
+        "manager_style": "Architecte",
+    },
+    "kpi_profiles": {
+        # Sport : volume élevé, panier moyen plus faible, prospects élevés
+        "D": dict(base_prospects=28, base_ventes=16, base_ca=720,  panier=45),
+        "I": dict(base_prospects=32, base_ventes=18, base_ca=650,  panier=36),
+        "S": dict(base_prospects=22, base_ventes=13, base_ca=540,  panier=42),
+        "C": dict(base_prospects=18, base_ventes=11, base_ca=680,  panier=62),
+    },
+    "objectives": [
+        ("Volume ventes mensuel", "nb_ventes", 1200, "active"),
+        ("Indice de vente ≥ 1.5", "indice_vente", 1.5, "active"),
+        ("CA mensuel équipe", "ca_journalier", 75000, "achieved"),
+    ],
+    "team_analysis": {
+        "synthese": "Sport & Move affiche un CA de 108 200€ sur 30 jours avec 1 847 ventes — volume record depuis l'ouverture. L'équipe est performante sur le flux mais l'indice de vente à 1,42 laisse de la marge sur l'équipement complémentaire. 4 profils DISC complémentaires pour couvrir tous les types de sportifs.",
+        "action_prioritaire": "Systématiser la proposition d'accessoire sur chaque vente chaussure — objectif : passer l'indice de 1,42 à 1,6 d'ici 3 semaines.",
+        "points_forts": [
+            "Alex (D) : 22 500€ de CA, meilleur taux de transformation à 57% — il convertit vite et bien.",
+            "Julie (I) : 1 847 interactions client ce mois, fidélisation exceptionnelle (+40% de clients récurrents).",
+            "Volume global de ventes : +12% vs mois précédent — toute l'équipe progresse.",
+        ],
+        "points_attention": [
+            "Indice de vente à 1,42 — chaque vente de chaussure doit s'accompagner d'au moins 1 accessoire.",
+            "Maxime (S) : taux de transformation à 41% — le plus bas de l'équipe, travail d'accroche à renforcer.",
+        ],
+        "recommandations": [
+            "Brief quotidien focus accessoire : montrer les 3 produits complémentaires du jour à l'équipe.",
+            "Challenge hebdomadaire : meilleur indice de vente de la semaine gagne le choix du planning.",
+            "Binômer Alex et Maxime sur 2 après-midis : observation du closing Alex, retour feedback.",
+            "Sarah (C) : valoriser son expertise technique en lui confiant les clients qui cherchent du conseil pointu.",
+        ],
+    },
+    "briefs": [
+        "Bon démarrage cette semaine. Alex est en feu — 6 ventes hier dont 4 avec accessoires. "
+        "Objectif du jour : chaque vente chaussure = 1 accessoire proposé. On vise l'indice 1,6 collectivement.",
+        "Journée chargée prévue, météo favorable aux achats sport. Profitez du flux. "
+        "Maxime : accrocher les clients dès l'entrée du rayon running — zone prioritaire aujourd'hui.",
+        "Mi-mois : on est à 72% de l'objectif CA. Il faut accélérer. "
+        "Julie : ton taux de fidélisation est exceptionnel — propose la carte club à chaque client.",
+        "Lundi motivation ! Objectif semaine : 300 ventes collectivement. "
+        "Sarah : ton expertise technique sur les chaussures trail est un vrai avantage — utilise-la.",
+        "Super semaine derrière nous. +15% vs S-1. On maintient l'élan. "
+        "Rappel : présenter la nouvelle collection running à chaque client — elle se vend toute seule.",
+    ],
+}
+
+STORE_3_CONFIG = {
+    "store_id": DEMO_STORE_ID_3,
+    "manager_id": DEMO_MANAGER_ID_3,
+    "sellers": SELLERS_3,
+    "store": {
+        "name": "Éclat Beauté – Bordeaux",
+        "location": "Bordeaux Centre",
+        "address": "8 cours de l'Intendance, 33000 Bordeaux",
+        "business_context": {
+            "type_commerce": "Parfumerie et cosmétiques haut de gamme",
+            "positionnement": "Luxe accessible / Premium beauté",
+            "clientele_cible": "Femmes 25-60 ans, CSP++, sensibles aux marques et au conseil",
+            "format_magasin": "Boutique 90m², atmosphère premium, conseil personnalisé",
+            "duree_vente": "20-35 minutes",
+            "kpi_prioritaire": "Panier moyen et fidélisation client",
+            "saisonnalite": "Pics Noël/Saint-Valentin, fêtes des mères/pères",
+            "contexte_libre": "Peu de flux mais qualité client très élevée. Chaque interaction compte. La confiance et l'expertise sont les clés de la vente.",
+        },
+    },
+    "manager": {
+        "name": "Léa Dupont",
+        "email": "demo-manager-3@demo.retailperformerai.com",
+        "disc_dominant": "I/S",
+        "disc_percentages": {"D": 15, "I": 40, "S": 30, "C": 15},
+        "profil_nom": "L'Inspirant",
+        "profil_description": "Léa crée une ambiance de confiance et d'enthousiasme. Elle fédère son équipe par l'exemple et la bienveillance. Son atout : transformer chaque cliente en ambassadrice de la boutique.",
+        "force_1": "Créer un environnement de travail inspirant et bienveillant",
+        "force_2": "Sens aigu de la relation client transmis à toute l'équipe",
+        "axe_progression": "Être plus directif sur les objectifs chiffrés et les conséquences",
+        "recommandation": "Intégrer des objectifs numériques dans les briefs quotidiens pour équilibrer relation et performance.",
+        "manager_style": "Inspirant",
+    },
+    "kpi_profiles": {
+        # Beauté/parfumerie : faible volume, panier très élevé, longues interactions
+        "D": dict(base_prospects=8,  base_ventes=5,  base_ca=1150, panier=230),
+        "I": dict(base_prospects=12, base_ventes=7,  base_ca=980,  panier=140),
+        "S": dict(base_prospects=9,  base_ventes=5,  base_ca=850,  panier=170),
+        "C": dict(base_prospects=7,  base_ventes=4,  base_ca=1280, panier=320),
+    },
+    "objectives": [
+        ("Panier moyen ≥ 180€", "panier_moyen", 180, "achieved"),
+        ("CA mensuel équipe", "ca_journalier", 65000, "active"),
+        ("Taux de transformation ≥ 55%", "taux_transformation", 55, "active"),
+    ],
+    "team_analysis": {
+        "synthese": "Éclat Beauté affiche un CA de 72 400€ sur 30 jours avec un panier moyen de 196€ — meilleur des 3 boutiques. Le volume de prospects est naturellement faible (flux boutique), mais la qualité de conversion est exceptionnelle. L'équipe excelle dans le conseil personnalisé.",
+        "action_prioritaire": "Développer les ventes de coffrets et routines complètes — chaque cliente qui vient pour un parfum repart idéalement avec le soin associé.",
+        "points_forts": [
+            "Hugo (C) : panier moyen à 318€ — son expertise produit convainc les clientes les plus exigeantes.",
+            "Camille (I) : fidélisation à 68% — ses clientes reviennent et la recommandent à leur entourage.",
+            "Taux de transformation global à 58% : excellent pour ce type de boutique premium.",
+        ],
+        "points_attention": [
+            "Romain (D) : quelques interactions trop courtes qui ne se concluent pas — ralentir et laisser la cliente rêver.",
+            "Volume de nouveaux prospects en légère baisse — renforcer la communication digitale et le bouche-à-oreille.",
+        ],
+        "recommandations": [
+            "Former l'équipe sur les routines beauté complètes : chaque parfum a son lait corps et son soin associé.",
+            "Camille : lui confier le programme de fidélité — c'est sa force naturelle, valorisons-la.",
+            "Hugo : animer un atelier 'expertise parfumerie' mensuel pour les clientes VIP.",
+            "Romain : observer Camille sur ses interactions longues — apprendre à créer de la désirabilité avant de closer.",
+        ],
+    },
+    "briefs": [
+        "Belle énergie cette semaine. Hugo a réalisé une vente à 580€ hier — un record boutique. "
+        "Rappel : chaque cliente qui demande un parfum doit repartir avec la suggestion d'un soin associé.",
+        "Journée calme prévue — idéale pour la formation produit. Préparez vos argumentaires sur la nouvelle collection printemps. "
+        "Camille : appelle 3 clientes fidèles pour les informer des nouveautés — chaque appel = une visite potentielle.",
+        "Mi-mois, on est à 61% de l'objectif CA. Léger retard. Concentrons-nous sur les coffrets et routines complètes. "
+        "Romain : prends le temps avec chaque cliente — nos meilleures ventes viennent des interactions >20 minutes.",
+        "Lundi inspirant ! Notre boutique est un lieu de plaisir et de découverte. "
+        "Léa sera là pour du coaching individuel cet après-midi — profitez-en.",
+        "Excellent week-end derrière nous — +28% vs objectif samedi. "
+        "On capitalise sur cet élan. Focus : présenter la nouvelle gamme anti-âge premium à chaque cliente 40+.",
+    ],
+}
+
+
+async def seed_store_data(db, config: dict):
+    """Seed une boutique additionnelle avec toutes ses données."""
+    store_id = config["store_id"]
+    manager_id = config["manager_id"]
+    sellers = config["sellers"]
+    store_cfg = config["store"]
+    mgr_cfg = config["manager"]
+    kpi_profiles = config["kpi_profiles"]
+
+    disc_configs = {
+        "D": dict(style="Dynamique", level="Maître du Jeu", motivation="Performance",
+                  scores=dict(accueil=7.5, decouverte=8.0, argumentation=9.0, closing=9.5, fidelisation=6.5),
+                  disc_pct={"D": 45, "I": 25, "S": 15, "C": 15}),
+        "I": dict(style="Convivial",  level="Ambassadeur",  motivation="Relation",
+                  scores=dict(accueil=9.5, decouverte=8.5, argumentation=7.5, closing=7.0, fidelisation=9.0),
+                  disc_pct={"D": 15, "I": 45, "S": 25, "C": 15}),
+        "S": dict(style="Discret",    level="Challenger",   motivation="Reconnaissance",
+                  scores=dict(accueil=8.0, decouverte=7.0, argumentation=7.0, closing=6.5, fidelisation=8.5),
+                  disc_pct={"D": 15, "I": 20, "S": 45, "C": 20}),
+        "C": dict(style="Explorateur", level="Ambassadeur", motivation="Découverte",
+                  scores=dict(accueil=7.0, decouverte=9.0, argumentation=8.5, closing=7.0, fidelisation=8.0),
+                  disc_pct={"D": 10, "I": 15, "S": 25, "C": 50}),
+    }
+
+    # Store
+    await upsert(db["stores"], {
+        "id": store_id,
+        "name": store_cfg["name"],
+        "location": store_cfg["location"],
+        "address": store_cfg["address"],
+        "gerant_id": DEMO_GERANT_ID,
+        "active": True,
+        "is_demo": True,
+        "created_at": days_ago(90),
+        "business_context": store_cfg["business_context"],
+    })
+
+    # Manager
+    await upsert(db["users"], {
+        "id": manager_id,
+        "name": mgr_cfg["name"],
+        "email": mgr_cfg["email"],
+        "password": "demo_hashed_password",
+        "role": "manager",
+        "status": "active",
+        "gerant_id": DEMO_GERANT_ID,
+        "store_id": store_id,
+        "store_ids": [store_id],
+        "workspace_id": DEMO_WORKSPACE_ID,
+        "is_demo": True,
+        "created_at": days_ago(60),
+    })
+    await upsert(db["manager_diagnostics"], {
+        "id": f"demo-mgr-diag-{store_id}",
+        "manager_id": manager_id,
+        "store_id": store_id,
+        "responses": {},
+        "profil_nom": mgr_cfg["profil_nom"],
+        "profil_description": mgr_cfg["profil_description"],
+        "force_1": mgr_cfg["force_1"],
+        "force_2": mgr_cfg["force_2"],
+        "axe_progression": mgr_cfg["axe_progression"],
+        "recommandation": mgr_cfg["recommandation"],
+        "exemple_concret": "Rituel hebdomadaire de 15 min avec chaque vendeur.",
+        "disc_dominant": mgr_cfg["disc_dominant"],
+        "disc_percentages": mgr_cfg["disc_percentages"],
+        "manager_style": mgr_cfg["manager_style"],
+        "is_demo": True,
+        "created_at": days_ago(45),
+    })
+
+    # KPI config
+    await db["kpi_configs"].replace_one(
+        {"store_id": store_id},
+        {"store_id": store_id, "enabled": True, "saisie_enabled": True,
+         "seller_track_ca": True, "seller_track_ventes": True,
+         "seller_track_articles": True, "seller_track_prospects": True,
+         "manager_track_ca": True, "manager_track_ventes": True,
+         "manager_track_articles": False, "manager_track_prospects": False,
+         "is_demo": True, "updated_at": days_ago(30)},
+        upsert=True,
+    )
+
+    # Vendeurs + diagnostics
+    for s in sellers:
+        await upsert(db["users"], {
+            "id": s["id"], "name": s["name"], "email": s["email"],
+            "password": "demo_hashed_password", "role": "seller", "status": "active",
+            "gerant_id": DEMO_GERANT_ID, "store_id": store_id,
+            "manager_id": manager_id, "workspace_id": DEMO_WORKSPACE_ID,
+            "is_demo": True, "created_at": days_ago(55),
+        })
+        cfg = disc_configs[s["disc"]]
+        await upsert(db["diagnostics"], {
+            "id": f"demo-diag-{s['id']}", "seller_id": s["id"], "responses": {},
+            "ai_profile_summary": f"{s['name']} présente un profil {cfg['style']} marqué.",
+            "style": cfg["style"], "level": cfg["level"], "motivation": cfg["motivation"],
+            "score_accueil": cfg["scores"]["accueil"], "score_decouverte": cfg["scores"]["decouverte"],
+            "score_argumentation": cfg["scores"]["argumentation"], "score_closing": cfg["scores"]["closing"],
+            "score_fidelisation": cfg["scores"]["fidelisation"],
+            "disc_dominant": s["disc"], "disc_percentages": cfg["disc_pct"],
+            "is_demo": True, "created_at": days_ago(50),
+        })
+
+    # KPIs — 183 jours
+    kpi_docs = []
+    for day_idx in range(1, 184):
+        date = NOW - timedelta(days=day_idx)
+        date_s = date.strftime("%Y-%m-%d")
+        dow = date.weekday()
+        seasonal_mult = 1.0 + (183 - day_idx) / 183 * 0.20
+        for s in sellers:
+            p = kpi_profiles[s["disc"]]
+            is_weekend = dow >= 5
+            wave = day_idx % 7
+            mult = (1.5 if is_weekend else 1.0) * seasonal_mult
+            nb_prospects = int((p["base_prospects"] + wave) * mult)
+            nb_ventes    = int((p["base_ventes"]    + wave // 2) * mult)
+            nb_articles  = int(nb_ventes * (1.4 + wave * 0.05))
+            ca           = round((p["base_ca"] + wave * 20) * mult, 2)
+            panier_moyen = round(ca / nb_ventes, 2) if nb_ventes else 0
+            taux         = round(nb_ventes / nb_prospects * 100, 1) if nb_prospects else 0
+            indice       = round(nb_articles / nb_ventes, 2) if nb_ventes else 0
+            kpi_docs.append({
+                "id": f"demo-kpi-{s['id']}-{date_s}",
+                "seller_id": s["id"], "store_id": store_id,
+                "date": date_s, "ts": date, "is_demo": True,
+                "source": "manual", "locked": False, "created_at": date,
+                "ca_journalier": ca, "nb_ventes": nb_ventes, "nb_clients": nb_ventes,
+                "nb_articles": nb_articles, "nb_prospects": nb_prospects,
+                "panier_moyen": panier_moyen, "taux_transformation": taux, "indice_vente": indice,
+            })
+    await db["kpi_entries"].delete_many({"store_id": store_id, "is_demo": True})
+    if kpi_docs:
+        await db["kpi_entries"].insert_many(kpi_docs)
+
+    # Objectifs
+    month_start = NOW.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(seconds=1)
+    for i, (title, kpi, target, status) in enumerate(config["objectives"]):
+        await upsert(db["objectives"], {
+            "id": f"demo-obj-{store_id}-{i+1:03d}",
+            "manager_id": manager_id, "store_id": store_id, "gerant_id": DEMO_GERANT_ID,
+            "title": title, "type": "kpi_standard", "kpi_key": kpi,
+            "target_value": target,
+            "period_start": month_start.strftime("%Y-%m-%d"),
+            "period_end": month_end.strftime("%Y-%m-%d"),
+            "status": status, "is_demo": True, "created_at": month_start,
+        })
+
+    # Briefs structurés
+    for i, text in enumerate(config["briefs"]):
+        brief_date = days_ago(i * 7)
+        await upsert(db["morning_briefs"], {
+            "id": f"demo-brief-{store_id}-{i+1:03d}",
+            "manager_id": manager_id, "store_id": store_id,
+            "brief": text, "content": text, "objective_daily": 4500,
+            "store_name": store_cfg["name"], "manager_name": mgr_cfg["name"],
+            "has_context": False, "context": None,
+            "date": brief_date.strftime("%Y-%m-%d"),
+            "data_date": days_ago(i * 7 + 1).strftime("%Y-%m-%d"),
+            "generated_at": brief_date.isoformat(),
+            "success": True, "is_demo": True, "created_at": brief_date,
+        })
+
+    # Analyses équipe — 3 (aujourd'hui, -14j, -45j)
+    ta = config["team_analysis"]
+    for idx, gen_days in enumerate([0, 14, 45]):
+        gen_date = days_ago(gen_days)
+        p_start = (NOW - timedelta(days=gen_days + 30)).strftime("%Y-%m-%d")
+        p_end = gen_date.strftime("%Y-%m-%d")
+        await upsert(db["team_analyses"], {
+            "id": f"demo-team-analysis-{store_id}-{idx+1:03d}",
+            "manager_id": manager_id, "store_id": store_id,
+            "period_start": p_start, "period_end": p_end,
+            "analysis": {
+                "synthese": ta["synthese"],
+                "action_prioritaire": ta["action_prioritaire"],
+                "points_forts": ta["points_forts"],
+                "points_attention": ta["points_attention"],
+                "recommandations": ta["recommandations"],
+            },
+            "team_stats": {"total_sellers": len(sellers), "team_total_ca": 0, "team_total_ventes": 0},
+            "generated_at": gen_date.isoformat(),
+            "is_demo": True, "created_at": gen_date,
+        })
+
+    # Compatibility advices
+    for s in sellers:
+        cfg = disc_configs[s["disc"]]
+        await upsert(db["compatibility_advices"], {
+            "id": f"demo-compat-{s['id']}",
+            "seller_id": s["id"], "manager_id": manager_id,
+            "advice": {
+                "manager": [f"Adapter votre management au profil {cfg['style']}", "Reconnaître les efforts selon sa motivation"],
+                "seller": [f"Profil {cfg['style']} — comprendre votre manager"],
+            },
+            "synthese": f"{s['name']} ({cfg['style']}) fonctionne mieux avec un management axé sur {cfg['motivation'].lower()}. Adaptez vos feedbacks et votre communication à ce profil pour maximiser son engagement.",
+            "is_demo": True, "generated_at": days_ago(10).isoformat(),
+        })
+
+    print(f"  ✓ {store_cfg['name']} — {len(sellers)} vendeurs seedés")
 
 
 # ── Seed functions ────────────────────────────────────────────────────────────
@@ -771,7 +1154,17 @@ async def seed(db):
             "generated_at": days_ago(10).isoformat(),
         })
 
-    print(f"✅ Demo seeding complete — {len(SELLERS)} vendeurs, 183j de KPIs (6 mois), {len(BRIEF_TEXTS)} briefs structurés, 3 analyses équipe, bilans individuels pré-rédigés")
+    # ── Boutiques 2 & 3 ──────────────────────────────────────────────────────
+    await seed_store_data(db, STORE_2_CONFIG)
+    await seed_store_data(db, STORE_3_CONFIG)
+
+    # Mettre à jour le gérant avec les 3 store_ids
+    await db["users"].update_one(
+        {"id": DEMO_GERANT_ID},
+        {"$set": {"store_ids": [DEMO_STORE_ID, DEMO_STORE_ID_2, DEMO_STORE_ID_3]}},
+    )
+
+    print(f"✅ Demo seeding complete — 3 boutiques, {len(SELLERS) + len(SELLERS_2) + len(SELLERS_3)} vendeurs, 183j de KPIs (6 mois) par boutique")
 
 
 # ── Entrypoint ────────────────────────────────────────────────────────────────
