@@ -82,6 +82,21 @@ async def create_debrief(
     kpi_context = ""
     if today_kpi:
         kpi_context = f"\n\nKPIs du jour: CA {today_kpi.get('ca_journalier', 0):.0f}€{kpi_benchmark}, {today_kpi.get('nb_ventes', 0)} ventes"
+
+    # Fetch store business context for AI personalization
+    store_business_context = None
+    _seller_store_id = current_user.get("store_id")
+    if _seller_store_id:
+        try:
+            _store_doc = await seller_service.get_store_by_id(
+                store_id=_seller_store_id,
+                projection={"_id": 0, "business_context": 1},
+            )
+            if _store_doc:
+                store_business_context = _store_doc.get("business_context")
+        except Exception as _e:
+            logger.warning("Could not fetch business context for debrief: %s", _e)
+
     new_scores = current_scores.copy()
     ai_analyse = ""
     ai_points_travailler = ""
@@ -119,6 +134,7 @@ async def create_debrief(
                 is_success=debrief_data.vente_conclue,
                 previous_coaching=previous_coaching,
                 disc_style=disc_style,
+                business_context=store_business_context,
             )
             if feedback_result:
                 ai_analyse = feedback_result.get('analyse', '')

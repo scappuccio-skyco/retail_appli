@@ -321,6 +321,7 @@ Format exact :
         is_success: bool = True,
         previous_coaching: Optional[List[Dict]] = None,
         disc_style: str = "",
+        business_context: Optional[Dict] = None,
     ) -> Dict:
         """
         Generate sales debrief analysis
@@ -373,6 +374,31 @@ Format exact :
             f"- Fidélisation : {current_scores.get('fidelisation', 6.0)}"
         )
 
+        business_context_block = ""
+        if business_context:
+            bc_lines = []
+            if business_context.get("type_commerce"):
+                bc_lines.append(f"- Type : {business_context['type_commerce']}")
+            if business_context.get("positionnement"):
+                bc_lines.append(f"- Positionnement : {business_context['positionnement']}")
+            if business_context.get("clientele_cible"):
+                cible = business_context["clientele_cible"]
+                if isinstance(cible, list):
+                    cible = ", ".join(cible)
+                bc_lines.append(f"- Clientèle cible : {cible}")
+            if business_context.get("duree_vente"):
+                bc_lines.append(f"- Durée de vente typique : {business_context['duree_vente']}")
+            if business_context.get("kpi_prioritaire"):
+                bc_lines.append(f"- KPI prioritaire : {business_context['kpi_prioritaire']}")
+            if business_context.get("contexte_libre"):
+                bc_lines.append(f"- Contexte : {business_context['contexte_libre']}")
+            if bc_lines:
+                business_context_block = (
+                    "\n🏪 CONTEXTE MÉTIER DU MAGASIN :\n"
+                    + "\n".join(bc_lines)
+                    + "\n→ Adapte tes conseils aux techniques de vente spécifiques à ce type de commerce.\n"
+                )
+
         json_format = """{
   "analyse": "2-3 phrases percutantes (félicitations si succès / analyse empathique si échec). Cite les faits décrits.",
   "points_travailler": "Point 1\\nPoint 2",
@@ -388,7 +414,7 @@ Format exact :
 
         if is_success:
             prompt = f"""VENTE CONCLUE AVEC SUCCÈS — Analyse et renforce les compétences mobilisées.
-
+{business_context_block}
 DÉTAILS DE LA VENTE :
 - Produit : {debrief_data.get('produit', 'Non spécifié')}
 - Type de client : {debrief_data.get('type_client', 'Non spécifié')}
@@ -411,7 +437,7 @@ FORMAT JSON UNIQUEMENT :
 {json_format}"""
         else:
             prompt = f"""OPPORTUNITÉ MANQUÉE — Analyse les causes et propose des leviers d'amélioration concrets.
-
+{business_context_block}
 DÉTAILS DE L'ÉCHEC :
 - Produit : {debrief_data.get('produit', 'Non spécifié')}
 - Type de client : {debrief_data.get('type_client', 'Non spécifié')}
