@@ -62,7 +62,7 @@ def date_str(n: int) -> str:
     return (NOW - timedelta(days=n)).strftime("%Y-%m-%d")
 
 
-def kpi_for(seller_disc: str, day_idx: int, day_of_week: int) -> dict:
+def kpi_for(seller_disc: str, day_idx: int, day_of_week: int, seasonal_mult: float = 1.0) -> dict:
     """
     Génère des KPIs déterministes selon le profil DISC et le jour.
     day_idx : 1 = hier, 30 = il y a 30 jours
@@ -79,7 +79,7 @@ def kpi_for(seller_disc: str, day_idx: int, day_of_week: int) -> dict:
     }
     p = profiles[seller_disc]
 
-    mult = 1.5 if is_weekend else 1.0
+    mult = (1.5 if is_weekend else 1.0) * seasonal_mult
     nb_prospects = int((p["base_prospects"] + wave) * mult)
     nb_ventes    = int((p["base_ventes"]    + wave // 2) * mult)
     nb_articles  = int(nb_ventes * (1.4 + wave * 0.05))
@@ -120,6 +120,34 @@ BRIEF_TEXTS = [
     "Excellente semaine derrière nous, +12% vs objectif. "
     "On maintient l'élan. Focus aujourd'hui : accueil premium et découverte des besoins. "
     "Chaque client est une opportunité, soyez présents et proactifs.",
+
+    "Mois de janvier difficile mais l'équipe reste solide. Le flux client est plus faible, "
+    "compensez par une qualité de service maximale. Clara : excellent travail sur le panier moyen ce mois-ci. "
+    "Objectif du jour : 3 800 €. Chaque vente compte.",
+
+    "Premier lundi de février — les soldes se terminent, retour aux fondamentaux. "
+    "Thomas et Emma ont excellé pendant les soldes, capitalisons sur cet élan. "
+    "Lucas : belle progression sur le taux de transformation (+5 pts vs janvier). Continuez !",
+
+    "Mi-mars, la boutique retrouve un bon flux avec le printemps. "
+    "Les nouvelles collections attirent une clientèle curieuse — c'est le moment de briller. "
+    "Focus ventes additionnelles : accessoires et seconde pièce. Objectif : 5 000 € aujourd'hui.",
+
+    "Semaine post-inventaire. L'équipe a été exemplaire pendant la fermeture. "
+    "Clara a finalisé les fiches produit — distribuez-les ce matin. "
+    "Emma : ton binôme avec Lucas la semaine dernière a généré +22% de paniers à 2 articles. Reproduire !",
+
+    "Beau démarrage d'avril. Le flux client est au plus haut depuis septembre. "
+    "Thomas : tu es à 103% de ton objectif mensuel à J+8, bravo ! "
+    "Concentrez-vous sur la fidélisation — proposez la carte de fidélité à chaque client.",
+
+    "Dernier lundi du mois — on pousse fort ! Il reste 12 000 € à faire pour atteindre l'objectif mensuel. "
+    "Mobilisation générale. Chaque prospect compte, chaque vente compte. "
+    "Je suis disponible pour coacher quiconque en a besoin aujourd'hui.",
+
+    "Bilan de mi-parcours : l'équipe est à +8% vs les 6 mois de l'an dernier. "
+    "C'est le résultat de votre travail quotidien. Félicitations à tous. "
+    "Cette semaine : focus sur les clients récurrents — appelez ceux qui n'ont pas visité depuis 30 jours.",
 ]
 
 BILAN_SYNTHESES = [
@@ -131,6 +159,23 @@ BILAN_SYNTHESES = [
     "Semaine en légère baisse (-6% CA vs S-1) due au flux client réduit en début de semaine. "
     "La qualité de vente reste bonne (panier moyen stable). Thomas a eu sa meilleure journée du mois jeudi. "
     "Point de vigilance : Lucas et Clara ont besoin d'un accompagnement sur l'argumentation produit.",
+
+    "Mois de janvier clôturé à 87% de l'objectif. Les soldes ont sauvé la dernière semaine. "
+    "Emma a progressé de manière spectaculaire sur les ventes additionnelles (+30% d'articles par vente). "
+    "Thomas montre des signes de baisse de motivation — prévoir un entretien individuel en février.",
+
+    "Février : bonne surprise malgré un flux client modéré. Le panier moyen de l'équipe atteint un record à 103€. "
+    "Clara est la surprise du mois — son taux de transformation est passé de 58% à 67%. "
+    "Lucas : point de blocage sur la proposition premium, travailler l'argumentation valeur.",
+
+    "Mars : démarrage de saison réussi. CA à 112% de l'objectif grâce à un flux client exceptionnel. "
+    "L'équipe a bien géré l'afflux. Thomas a guidé naturellement ses collègues — potentiel de tuteur identifié. "
+    "Clara a rassuré plusieurs clients hésitants grâce à sa maîtrise technique — à valoriser.",
+
+    "Avril : meilleur mois depuis l'ouverture. +18% vs avril N-1. "
+    "L'ensemble de l'équipe a progressé. Emma atteint pour la première fois 70% de taux de transformation. "
+    "Thomas a réalisé 3 ventes à plus de 400€ dans la semaine — nouveau record personnel. "
+    "Prochain défi : maintenir ce niveau en mai avec un flux client en baisse prévisible.",
 ]
 
 TEAM_ANALYSIS_SYNTHESE = (
@@ -149,6 +194,13 @@ DEBRIEF_DATA = {
         dict(type="failure", synthese="Vente non conclue malgré un bon démarrage. Le client a hésité sur le prix. "
              "Thomas a manqué d'arguments sur la valeur ajoutée et n'a pas proposé d'alternative.",
              axes=["Travailler les réponses aux objections prix", "Préparer 2-3 alternatives produit"]),
+        dict(type="success", synthese="Thomas a réalisé une vente à 520€ sur une cliente venue chercher un cadeau. "
+             "Il a parfaitement cerné le budget et proposé la pièce maîtresse de la nouvelle collection. "
+             "La cliente est repartie avec un sourire et a demandé sa carte de fidélité.",
+             axes=["Reproduire la détection budget dès l'accueil", "Proposer systématiquement la carte fidélité"]),
+        dict(type="failure", synthese="Lundi difficile pour Thomas — 4 prospects, 0 vente. "
+             "Le profil D le pousse à aller trop vite en closing. Les clients ont senti la pression.",
+             axes=["Ralentir le rythme sur les clients hésitants", "Pratiquer l'écoute active 3 min avant toute proposition"]),
     ],
     DEMO_SELLER_E: [
         dict(type="success", synthese="Emma a créé une relation de confiance immédiate. Le client est reparti avec "
@@ -157,6 +209,12 @@ DEBRIEF_DATA = {
         dict(type="failure", synthese="Interaction longue (25 min) sans achat. Emma s'est trop focalisée sur l'échange "
              "relationnel au détriment de la phase de closing.",
              axes=["Équilibrer relation et efficacité commerciale", "Introduire la proposition d'achat plus tôt"]),
+        dict(type="success", synthese="Très belle interaction avec un client régulier. Emma s'est souvenue de ses achats "
+             "précédents et a proposé des pièces complémentaires. Vente à 290€, panier à 3 articles.",
+             axes=["Capitaliser sur la mémoire client", "Créer un carnet de notes sur les clients VIP"]),
+        dict(type="failure", synthese="Emma a perdu un client pendant la période d'attente en caisse. "
+             "Elle était en conversation avec une autre cliente et n'a pas délégué.",
+             axes=["Gérer les situations multi-clients", "Signaler au manager quand débordée"]),
     ],
     DEMO_SELLER_L: [
         dict(type="success", synthese="Lucas a bien géré une situation de réclamation client et transformé l'insatisfaction "
@@ -165,6 +223,12 @@ DEBRIEF_DATA = {
         dict(type="failure", synthese="Lucas n'a pas osé proposer le produit premium alors que le client semblait réceptif. "
              "Manque de confiance en phase d'argumentation.",
              axes=["Travailler la présentation des gammes premium", "Oser proposer sans attendre le signal d'achat explicite"]),
+        dict(type="success", synthese="Progression notable de Lucas ce mois-ci. Il a initié 3 ventes additionnelles "
+             "sans y être invité — c'était son point faible. Panier moyen en hausse de 15% vs mois dernier.",
+             axes=["Ancrer cette nouvelle habitude de proposition", "Viser l'indice de vente à 1.8"]),
+        dict(type="failure", synthese="Lucas est arrivé en retard lundi et cela a impacté son énergie toute la journée. "
+             "CA journalier à 45% de son objectif. Entretien de soutien prévu.",
+             axes=["Rituel de préparation avant l'ouverture", "Identifier les facteurs de démotivation"]),
     ],
     DEMO_SELLER_C: [
         dict(type="success", synthese="Clara a su rassurer un client très hésitant grâce à une présentation technique "
@@ -173,6 +237,12 @@ DEBRIEF_DATA = {
         dict(type="failure", synthese="Vente perdue car Clara a passé trop de temps en argumentation sans détecter "
              "que le client était déjà convaincu et attendait juste qu'on lui propose de passer en caisse.",
              axes=["Mieux lire les signaux d'achat", "Raccourcir l'argumentation quand le besoin est identifié"]),
+        dict(type="success", synthese="Clara a géré 8 clients en 4h samedi avec un taux de transformation de 75%. "
+             "Sa rigueur et sa maîtrise produit lui permettent d'être efficace même sous pression.",
+             axes=["Transmettre sa méthode à Lucas", "Maintenir cette performance en période calme"]),
+        dict(type="failure", synthese="Clara n'a pas adapté son discours très technique à une cliente visiblement novice. "
+             "La cliente est repartie sans acheter, submergée par les informations.",
+             axes=["Adapter le niveau de discours au profil client", "Commencer par des questions simples de découverte"]),
     ],
 }
 
@@ -322,14 +392,37 @@ async def seed(db):
             "created_at": days_ago(50),
         })
 
-    # ── 6. KPIs (30 jours × 4 vendeurs) ──────────────────────────────────────
+    # ── 6. KPI config magasin ─────────────────────────────────────────────────
+    await db["kpi_configs"].replace_one(
+        {"store_id": DEMO_STORE_ID},
+        {
+            "store_id": DEMO_STORE_ID,
+            "enabled": True,
+            "saisie_enabled": True,
+            "seller_track_ca": True,
+            "seller_track_ventes": True,
+            "seller_track_articles": True,
+            "seller_track_prospects": True,
+            "manager_track_ca": True,
+            "manager_track_ventes": True,
+            "manager_track_articles": False,
+            "manager_track_prospects": False,
+            "is_demo": True,
+            "updated_at": days_ago(30),
+        },
+        upsert=True,
+    )
+
+    # ── 7. KPIs (183 jours × 4 vendeurs — 6 mois) ────────────────────────────
     kpi_docs = []
-    for day_idx in range(1, 31):
+    for day_idx in range(1, 184):
         date = NOW - timedelta(days=day_idx)
         date_s = date.strftime("%Y-%m-%d")
         dow = date.weekday()
         for s in SELLERS:
-            k = kpi_for(s["disc"], day_idx, dow)
+            # Trend saisonnier : croissance progressive sur 6 mois (+20% au global)
+            seasonal_mult = 1.0 + (183 - day_idx) / 183 * 0.20
+            k = kpi_for(s["disc"], day_idx, dow, seasonal_mult)
             kpi_docs.append({
                 "id": f"demo-kpi-{s['id']}-{date_s}",
                 "seller_id": s["id"],
@@ -348,13 +441,14 @@ async def seed(db):
     if kpi_docs:
         await db["kpi_entries"].insert_many(kpi_docs)
 
-    # ── 7. Objectifs ──────────────────────────────────────────────────────────
+    # ── 8. Objectifs (mois courant + 2 mois passés résolus) ──────────────────
     month_start = NOW.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(seconds=1)
 
-    for i, (title, kpi, target) in enumerate([
-        ("CA mensuel équipe", "ca_journalier", 90000),
-        ("Panier moyen ≥ 95€", "panier_moyen", 95),
+    for i, (title, kpi, target, status) in enumerate([
+        ("CA mensuel équipe — avril", "ca_journalier", 90000, "active"),
+        ("Panier moyen ≥ 95€", "panier_moyen", 95, "achieved"),
+        ("Taux de transformation ≥ 65%", "taux_transformation", 65, "active"),
     ]):
         await upsert(db["objectives"], {
             "id": f"demo-obj-{i+1:03d}",
@@ -365,15 +459,35 @@ async def seed(db):
             "type": "kpi_standard",
             "kpi_key": kpi,
             "target_value": target,
-            "period_start": month_start,
-            "period_end": month_end,
-            "status": "active",
+            "period_start": month_start.strftime("%Y-%m-%d"),
+            "period_end": month_end.strftime("%Y-%m-%d"),
+            "status": status,
             "is_demo": True,
             "created_at": month_start,
         })
 
-    # ── 8. Morning briefs (5 jours) ───────────────────────────────────────────
-    for i, text in enumerate(BRIEF_TEXTS):
+    # Objectif du mois passé — atteint
+    prev_month_start = (month_start - timedelta(days=1)).replace(day=1)
+    prev_month_end = month_start - timedelta(seconds=1)
+    await upsert(db["objectives"], {
+        "id": "demo-obj-004",
+        "manager_id": DEMO_MANAGER_ID,
+        "store_id": DEMO_STORE_ID,
+        "gerant_id": DEMO_GERANT_ID,
+        "title": "CA mensuel équipe — mars",
+        "type": "kpi_standard",
+        "kpi_key": "ca_journalier",
+        "target_value": 85000,
+        "period_start": prev_month_start.strftime("%Y-%m-%d"),
+        "period_end": prev_month_end.strftime("%Y-%m-%d"),
+        "status": "achieved",
+        "is_demo": True,
+        "created_at": prev_month_start,
+    })
+
+    # ── 9. Morning briefs (12 — espacés sur 3 mois) ───────────────────────────
+    brief_days = [1, 4, 8, 12, 16, 21, 26, 32, 39, 47, 56, 68]
+    for i, (text, d) in enumerate(zip(BRIEF_TEXTS, brief_days)):
         await upsert(db["morning_briefs"], {
             "id": f"demo-brief-{i+1:03d}",
             "manager_id": DEMO_MANAGER_ID,
@@ -381,23 +495,24 @@ async def seed(db):
             "content": text,
             "objective_daily": 4500,
             "is_demo": True,
-            "created_at": days_ago(i + 1),
+            "created_at": days_ago(d),
         })
 
-    # ── 9. Bilans équipe (2 semaines) ─────────────────────────────────────────
-    for i, synthese in enumerate(BILAN_SYNTHESES):
+    # ── 10. Bilans équipe (6 mois) ────────────────────────────────────────────
+    bilan_days = [7, 14, 45, 75, 105, 135]
+    for i, (synthese, d) in enumerate(zip(BILAN_SYNTHESES, bilan_days)):
         await upsert(db["team_bilans"], {
             "id": f"demo-bilan-{i+1:03d}",
             "manager_id": DEMO_MANAGER_ID,
             "store_id": DEMO_STORE_ID,
             "gerant_id": DEMO_GERANT_ID,
             "synthese": synthese,
-            "periode": f"Semaine {i+1}",
+            "periode": f"Période {i+1}",
             "is_demo": True,
-            "created_at": days_ago(7 * (i + 1)),
+            "created_at": days_ago(d),
         })
 
-    # ── 10. Analyse équipe ────────────────────────────────────────────────────
+    # ── 11. Analyse équipe ────────────────────────────────────────────────────
     await upsert(db["team_analyses"], {
         "id": "demo-team-analysis-001",
         "manager_id": DEMO_MANAGER_ID,
@@ -413,7 +528,8 @@ async def seed(db):
         "created_at": days_ago(3),
     })
 
-    # ── 11. Debriefs (2 par vendeur) ──────────────────────────────────────────
+    # ── 12. Debriefs (4 par vendeur) ──────────────────────────────────────────
+    debrief_offsets = [3, 14, 35, 60]
     for s in SELLERS:
         for j, d in enumerate(DEBRIEF_DATA[s["id"]]):
             await upsert(db["debriefs"], {
@@ -425,10 +541,10 @@ async def seed(db):
                 "synthese": d["synthese"],
                 "axes_progression": d["axes"],
                 "is_demo": True,
-                "created_at": days_ago(5 + j * 7),
+                "created_at": days_ago(debrief_offsets[j]),
             })
 
-    # ── 12. Compatibility advices ─────────────────────────────────────────────
+    # ── 13. Compatibility advices ─────────────────────────────────────────────
     compat_texts = {
         DEMO_SELLER_T: ("Avec Thomas (D), soyez direct et orienté résultats. Fixez des objectifs ambitieux et reconnaissez publiquement ses succès.",
                         ["Fixer des défis stimulants", "Feedback immédiat et factuel"]),
@@ -455,7 +571,7 @@ async def seed(db):
             "generated_at": days_ago(10).isoformat(),
         })
 
-    print(f"✅ Demo seeding complete — {len(SELLERS)} vendeurs, 30j de KPIs, {len(BRIEF_TEXTS)} briefs")
+    print(f"✅ Demo seeding complete — {len(SELLERS)} vendeurs, 183j de KPIs (6 mois), {len(BRIEF_TEXTS)} briefs, {len(BILAN_SYNTHESES)} bilans")
 
 
 # ── Entrypoint ────────────────────────────────────────────────────────────────
