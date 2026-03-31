@@ -121,6 +121,25 @@ class SubscriptionMixin:
         if not gerant:
             raise Exception("Gérant non trouvé")
 
+        # Bypass démo : retourne un statut actif fictif sans vérifier Stripe
+        if gerant.get('is_demo'):
+            active_sellers_count = await self.user_repo.count({
+                "gerant_id": gerant_id,
+                "role": "seller",
+                "status": "active"
+            })
+            return {
+                "has_subscription": True,
+                "status": "active",
+                "current_plan": "professional",
+                "used_seats": active_sellers_count,
+                "remaining_seats": 999,
+                "subscription": {"seats": 999, "billing_interval": "month"},
+                "message": "Espace démonstration",
+                "workspace_name": "Démo",
+                "is_demo": True,
+            }
+
         workspace_id = gerant.get('workspace_id')
         workspace_name = None  # Will be set if workspace exists
 

@@ -30,6 +30,8 @@ async def get_onboarding_progress(
     Returns:
         Dict with user_id, current_step, completed_steps, is_completed
     """
+    if current_user.get('is_demo'):
+        return {"user_id": current_user['id'], "current_step": 0, "completed_steps": [], "is_completed": True}
     return await onboarding_service.get_progress(current_user['id'])
 
 

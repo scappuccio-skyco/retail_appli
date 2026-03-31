@@ -18,6 +18,8 @@ _DEMO_PASSTHROUGH = {
     "/api/auth/logout",
     "/api/auth/me",
     "/api/demo/login",
+    "/api/onboarding/progress",
+    "/api/onboarding/complete",
 }
 
 
