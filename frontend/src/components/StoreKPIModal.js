@@ -57,13 +57,34 @@ function getStartEndForView(viewMode, state) {
   return { start: startDt.toISOString().split('T')[0], end };
 }
 
+const DEMO_STORE_AI_ANALYSIS = {
+  synthese: "Mode & Style Paris affiche des performances solides sur le mois écoulé avec un CA de 48 320 € et 312 ventes. Le panier moyen de 154,87 € est en hausse de +8% par rapport au mois précédent, et le taux de transformation atteint 62%, signe d'une équipe bien alignée sur la conversion.",
+  action_prioritaire: "Renforcer l'indice de vente (UPT) en formant l'équipe aux techniques de vente additionnelle — objectif : passer de 2,1 à 2,5 articles par vente d'ici la fin du mois.",
+  points_forts: [
+    "Panier moyen en hausse à 154,87 € (+8% vs mois précédent) — bon travail sur la montée en gamme",
+    "Taux de transformation à 62%, meilleur résultat depuis l'ouverture du magasin",
+    "CA en progression constante sur les 4 dernières semaines (+5% semaine sur semaine)"
+  ],
+  points_attention: [
+    "Indice de vente (UPT) à 2,1 — en dessous de l'objectif fixé à 2,5 articles par vente",
+    "Mardi et mercredi affichent un taux de transformation inférieur à 50% — flux plus faible, à surveiller"
+  ],
+  recommandations: [
+    "Mettre en place un brief quotidien de 5 min axé sur la vente additionnelle avec 2 exemples de produits complémentaires à proposer",
+    "Animer un atelier pratique sur les techniques de cross-selling adapté au secteur prêt-à-porter",
+    "Suivre individuellement l'UPT de chaque vendeur et féliciter publiquement les progressions en réunion d'équipe"
+  ]
+};
+
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null, isManager = false }) {
   const { user } = useAuth();
+  const isDemo = !!user?.is_demo;
   const state = useStoreKPIModal({ onClose, onSuccess, initialDate, storeId, isManager });
 
   // AI Analysis state
-  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiAnalysis, setAiAnalysis] = useState(isDemo ? DEMO_STORE_AI_ANALYSIS : null);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [showDemoPrompt, setShowDemoPrompt] = useState(false);
   const aiSectionRef = useRef(null);
   const aiJustGenerated = useRef(false);
 
@@ -92,8 +113,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   }`;
   const lsKey = `mgr_kpi_analysis_${storeId || 'default'}_${currentPeriodKey}`;
 
-  // Load persisted analysis when period changes
+  // Load persisted analysis when period changes (skip for demo — always show static)
   useEffect(() => {
+    if (isDemo) return;
     try {
       const saved = localStorage.getItem(lsKey);
       if (saved) {
@@ -105,7 +127,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     } catch {
       setAiAnalysis(null);
     }
-  }, [lsKey]);
+  }, [lsKey, isDemo]);
 
   // Auto-scroll uniquement lors d'une génération fraîche (pas au chargement depuis localStorage)
   useEffect(() => {
@@ -118,6 +140,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const canLaunchAI = state.viewMode === 'day' ? canLaunchDailyAI : canLaunchOverviewAI;
 
   const generateAnalysis = async () => {
+    if (isDemo) { setShowDemoPrompt(true); return; }
     if (!canLaunchAI && !aiAnalysis) return;
     setAiGenerating(true);
 
@@ -290,6 +313,31 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   historicalData={state.historicalData}
                   loadingHistorical={state.loadingHistorical}
                 />
+              )}
+
+              {/* Demo prompt — inscription requise */}
+              {showDemoPrompt && (
+                <div className="mt-4 bg-orange-50 border border-orange-200 rounded-xl p-5 text-center">
+                  <div className="text-4xl mb-3">✨</div>
+                  <h3 className="font-bold text-orange-800 text-lg mb-2">Fonctionnalité disponible après inscription</h3>
+                  <p className="text-orange-700 text-sm mb-4">
+                    En mode démo, l'analyse IA ci-dessous est un exemple pré-chargé. Créez un compte pour générer vos propres analyses en temps réel, basées sur les données de votre magasin.
+                  </p>
+                  <div className="flex justify-center gap-3">
+                    <a
+                      href="/#pricing"
+                      className="px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-sm"
+                    >
+                      Voir les offres
+                    </a>
+                    <button
+                      onClick={() => setShowDemoPrompt(false)}
+                      className="px-4 py-2 bg-white border border-orange-300 text-orange-700 font-medium rounded-lg hover:bg-orange-50 transition-colors text-sm"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                </div>
               )}
 
               {/* Résultat IA — en bas */}

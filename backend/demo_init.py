@@ -1093,7 +1093,7 @@ async def seed(db):
         seller_bilans = BILANS_VENDEURS.get(s["id"], [])
         for j, bilan in enumerate(seller_bilans):
             bilan_date = days_ago(7 + j * 30)
-            await upsert(db["bilans"], {
+            await upsert(db["seller_bilans"], {
                 "id": f"demo-bilan-{s['id']}-{j+1}",
                 "seller_id": s["id"],
                 "store_id": DEMO_STORE_ID,
