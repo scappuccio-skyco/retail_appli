@@ -342,8 +342,10 @@ async def seed(db):
                 **k,
             })
 
-    for doc in kpi_docs:
-        await db["kpi_entries"].replace_one({"id": doc["id"]}, doc, upsert=True)
+    # Time-series collection : delete + insert (replace_one non supporté)
+    await db["kpi_entries"].delete_many({"is_demo": True})
+    if kpi_docs:
+        await db["kpi_entries"].insert_many(kpi_docs)
 
     # ── 7. Objectifs ──────────────────────────────────────────────────────────
     month_start = NOW.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
