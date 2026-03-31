@@ -27,6 +27,11 @@ const SUBSCRIPTION_MESSAGES = {
     manager: "Cette fonctionnalité est temporairement bloquée. Contactez votre gérant pour le réactiver.",
     seller:  "Cette fonctionnalité est temporairement bloquée. Contactez votre manager pour le réactiver.",
   },
+  DEMO_READ_ONLY: {
+    gerant:  "Fonctionnalité disponible après inscription ✨",
+    manager: "Fonctionnalité disponible après inscription ✨",
+    seller:  "Fonctionnalité disponible après inscription ✨",
+  },
 };
 
 /**
