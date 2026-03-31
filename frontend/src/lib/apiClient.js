@@ -111,14 +111,7 @@ apiClient.interceptors.response.use(
       const alreadyShownSubscription = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(SUBSCRIPTION_INACTIVE_SHOWN_KEY) === '1';
 
       if (isDemoReadOnly) {
-        if (now - last403ToastAt > 3000) {
-          last403ToastAt = now;
-          toast.info('Fonctionnalité disponible après inscription', {
-            description: 'Créez un compte pour accéder à toutes les fonctionnalités en temps réel.',
-            duration: 5000,
-            icon: '✨',
-          });
-        }
+        // Géré par getSubscriptionErrorMessage dans chaque composant — pas de toast ici
       } else if (isSubscriptionIssue && !alreadyShownSubscription) {
         if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(SUBSCRIPTION_INACTIVE_SHOWN_KEY, '1');
         const description = code === 'TRIAL_EXPIRED'
