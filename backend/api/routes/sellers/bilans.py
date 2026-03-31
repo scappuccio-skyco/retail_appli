@@ -125,6 +125,20 @@ async def generate_bilan_individuel(
     recommandations = []
     action_prioritaire = ""
 
+    # Fetch store business context for AI personalization
+    store_business_context = None
+    _seller_store_id = current_user.get("store_id") or (seller_data.get("store_id") if seller_data else None)
+    if _seller_store_id:
+        try:
+            _store_doc = await seller_service.get_store_by_id(
+                store_id=_seller_store_id,
+                projection={"_id": 0, "business_context": 1},
+            )
+            if _store_doc:
+                store_business_context = _store_doc.get("business_context")
+        except Exception as _e:
+            logger.warning("Could not fetch business context for bilan: %s", _e)
+
     # Calcul du libellé de période et des bornes (utilisé par IA + fallback)
     from datetime import date as _date2
     _start = _date2.fromisoformat(eff_start)
@@ -265,6 +279,30 @@ async def generate_bilan_individuel(
                         "'D'après tes réponses, tu as tendance à...' ou 'Tu es plutôt...' — JAMAIS 'Tu possèdes le style X' ou 'ton profil est X'.\n"
                         "→ TUTOIEMENT STRICT : adresse-toi toujours au vendeur en 'tu'. Ne parle JAMAIS de lui à la 3e personne.\n"
                     )
+
+                # --- Business context block ---
+                business_context_block = ""
+                if store_business_context:
+                    _bc_lines = []
+                    if store_business_context.get("type_commerce"):
+                        _bc_lines.append(f"- Type : {store_business_context['type_commerce']}")
+                    if store_business_context.get("positionnement"):
+                        _bc_lines.append(f"- Positionnement : {store_business_context['positionnement']}")
+                    if store_business_context.get("clientele_cible"):
+                        _cible = store_business_context["clientele_cible"]
+                        if isinstance(_cible, list):
+                            _cible = ", ".join(_cible)
+                        _bc_lines.append(f"- Clientèle cible : {_cible}")
+                    if store_business_context.get("kpi_prioritaire"):
+                        _bc_lines.append(f"- KPI prioritaire : {store_business_context['kpi_prioritaire']}")
+                    if store_business_context.get("contexte_libre"):
+                        _bc_lines.append(f"- Contexte : {store_business_context['contexte_libre']}")
+                    if _bc_lines:
+                        business_context_block = (
+                            "\n🏪 CONTEXTE MÉTIER DU MAGASIN :\n"
+                            + "\n".join(_bc_lines)
+                            + "\n→ Adapte tes recommandations à ce type de commerce et à sa clientèle.\n"
+                        )
 
                 # --- Scores de compétences (avec fiabilité selon nb debriefs) ---
                 scores_block = ""
@@ -440,7 +478,7 @@ async def generate_bilan_individuel(
                 # SELLER PROMPT V7 — Context-rich, team-benchmarked, period-aware, tutoiement strict
                 prompt = f"""Tu es un coach de vente retail expert. Génère un bilan PERSONNALISÉ en tutoiement direct (tu/toi).
 ⚠️ TUTOIEMENT STRICT : adresse-toi TOUJOURS au vendeur en "tu". Ne cite jamais son prénom ni son nom. Ne parle JAMAIS de lui à la 3e personne.
-{disc_block}
+{disc_block}{business_context_block}
 ⏱️ TYPE D'ANALYSE : {period_context}
 
 📊 DONNÉES DE {_period_label.upper()} :

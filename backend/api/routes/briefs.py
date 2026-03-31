@@ -250,6 +250,7 @@ async def generate_morning_brief(
             data_date=data_date,
             objective_daily=brief_request.objective_daily,
             team_disc_profiles=team_disc_profiles,
+            business_context=store.get("business_context") if store else None,
         )
 
         if result.get("success"):

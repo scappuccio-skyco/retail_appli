@@ -33,6 +33,7 @@ class BriefMixin:
         data_date: Optional[str] = None,
         objective_daily: Optional[float] = None,
         team_disc_profiles: Optional[List[Dict]] = None,
+        business_context: Optional[Dict] = None,
     ) -> Dict:
         """
         Génère le script du brief matinal pour le manager.
@@ -62,6 +63,34 @@ class BriefMixin:
 """
             else:
                 context_instruction = "(Aucune consigne spécifique - Brief standard basé sur les chiffres)"
+
+            # Business context block
+            business_context_block = ""
+            if business_context:
+                bc_lines = []
+                if business_context.get("type_commerce"):
+                    bc_lines.append(f"- Type : {business_context['type_commerce']}")
+                if business_context.get("positionnement"):
+                    bc_lines.append(f"- Positionnement : {business_context['positionnement']}")
+                if business_context.get("clientele_cible"):
+                    cible = business_context["clientele_cible"]
+                    if isinstance(cible, list):
+                        cible = ", ".join(cible)
+                    bc_lines.append(f"- Clientèle cible : {cible}")
+                if business_context.get("format_magasin"):
+                    bc_lines.append(f"- Format : {business_context['format_magasin']}")
+                if business_context.get("kpi_prioritaire"):
+                    bc_lines.append(f"- KPI prioritaire : {business_context['kpi_prioritaire']}")
+                if business_context.get("saisonnalite"):
+                    bc_lines.append(f"- Saisonnalité : {business_context['saisonnalite']}")
+                if business_context.get("contexte_libre"):
+                    bc_lines.append(f"- Contexte : {business_context['contexte_libre']}")
+                if bc_lines:
+                    business_context_block = (
+                        "\n🏪 CONTEXTE MÉTIER DU MAGASIN :\n"
+                        + "\n".join(bc_lines)
+                        + "\n→ Adapte le défi du jour et la priorité à ce contexte spécifique.\n"
+                    )
 
             # Date du jour en français
             today = self._format_date_french(datetime.now())
@@ -105,7 +134,7 @@ RÈGLES IMPÉRATIVES :
 
 CONSIGNE DU MANAGER :
 {context_instruction}
-
+{business_context_block}
 STRUCTURE ATTENDUE (6 sections, Markdown) :
 
 # 📋 Brief du Matin — {today}
