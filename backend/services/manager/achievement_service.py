@@ -103,10 +103,15 @@ class ManagerAchievementService:
         all_objectives = await self.objective_repo.find_by_store(
             store_id, projection={"_id": 0}, limit=100
         )
+        def _to_date_str(val) -> str:
+            if isinstance(val, datetime):
+                return val.strftime("%Y-%m-%d")
+            return str(val) if val else ""
+
         objectives = [
             obj
             for obj in all_objectives
-            if (obj.get("status") == "active" and obj.get("period_end", "") >= today)
+            if (obj.get("status") == "active" and _to_date_str(obj.get("period_end")) >= today)
             or obj.get("status") == "achieved"
         ]
         await self.notification_service.add_achievement_notification_flag(
@@ -199,7 +204,7 @@ class ManagerAchievementService:
             c
             for c in all_challenges
             if c.get("status") in ["active", "completed"]
-            and c.get("end_date", "") >= today
+            and (c.get("end_date").strftime("%Y-%m-%d") if isinstance(c.get("end_date"), datetime) else str(c.get("end_date", ""))) >= today
         ]
         await self.notification_service.add_achievement_notification_flag(
             challenges, manager_id, "challenge"

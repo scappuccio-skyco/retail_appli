@@ -570,7 +570,10 @@ class ObjectivesMixin:
             "active" | "achieved" | "failed"
         """
         today = datetime.now(timezone.utc).date()
-        end_date_obj = datetime.fromisoformat(end_date).date()
+        if isinstance(end_date, datetime):
+            end_date_obj = end_date.date()
+        else:
+            end_date_obj = datetime.fromisoformat(str(end_date).replace("Z", "+00:00")).date()
 
         # Ensure both values are floats for proper comparison (handles string/int/float types)
         current_value = float(current_value) if current_value is not None else 0.0
