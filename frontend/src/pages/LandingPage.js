@@ -12,12 +12,14 @@ import CtaSection from './landingPage/CtaSection';
 import ContactSection from './landingPage/ContactSection';
 import FooterSection from './landingPage/FooterSection';
 import DemoModal from './landingPage/DemoModal';
+import LiveDemoModal from './landingPage/LiveDemoModal';
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [showLiveDemoModal, setShowLiveDemoModal] = useState(false);
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
@@ -35,7 +37,7 @@ export default function LandingPage() {
         setMobileMenuOpen={setMobileMenuOpen}
         scrollToSection={scrollToSection}
       />
-      <HeroSection scrollToSection={scrollToSection} />
+      <HeroSection scrollToSection={scrollToSection} onOpenLiveDemo={() => setShowLiveDemoModal(true)} />
       <SocialProofSection />
       <ProblemSolutionSection />
       <FeaturesSection />
@@ -50,6 +52,7 @@ export default function LandingPage() {
       <ContactSection setShowDemoModal={setShowDemoModal} />
       <FooterSection scrollToSection={scrollToSection} />
       <DemoModal showDemoModal={showDemoModal} setShowDemoModal={setShowDemoModal} />
+      <LiveDemoModal show={showLiveDemoModal} onClose={() => setShowLiveDemoModal(false)} />
     </div>
   );
 }

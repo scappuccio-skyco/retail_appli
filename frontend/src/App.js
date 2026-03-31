@@ -22,6 +22,7 @@ import DiagnosticForm from './components/DiagnosticFormScrollable';
 import DiagnosticResult from './components/DiagnosticResult';
 import ErrorBoundary from './components/ErrorBoundary';
 import CookieConsent from './components/CookieConsent';
+import DemoBanner from './components/DemoBanner';
 import { Toaster } from 'sonner';
 
 // Legal pages
@@ -62,7 +63,8 @@ function AppContent() {
 
   return (
     <>
-      <Toaster 
+      {user?.is_demo && <DemoBanner />}
+      <Toaster
         position="top-right" 
         richColors
         expand={false}

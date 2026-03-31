@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Zap } from 'lucide-react';
+import { ArrowRight, Check, Zap, Play } from 'lucide-react';
 
-export default function HeroSection({ scrollToSection }) {
+export default function HeroSection({ scrollToSection, onOpenLiveDemo }) {
   const navigate = useNavigate();
 
   return (
@@ -59,10 +59,11 @@ export default function HeroSection({ scrollToSection }) {
                 <ArrowRight className="w-5 h-5" />
               </button>
               <button
-                onClick={() => scrollToSection('contact')}
-                className="px-7 py-3.5 bg-white/15 backdrop-blur-sm text-white text-base font-semibold rounded-xl border border-white/40 hover:bg-white/25 transition-all"
+                onClick={onOpenLiveDemo}
+                className="px-7 py-3.5 bg-white/15 backdrop-blur-sm text-white text-base font-semibold rounded-xl border border-white/40 hover:bg-white/25 transition-all flex items-center justify-center gap-2"
               >
-                Demander une Démo
+                <Play className="w-4 h-4" />
+                Explorer la démo
               </button>
             </div>
 

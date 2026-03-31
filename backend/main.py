@@ -200,6 +200,11 @@ except Exception as e:
 # --- Middlewares (order: last added = first executed) ---
 # Error handling: FastAPI exception handlers only (AppException + Exception). No ErrorHandlerMiddleware.
 try:
+    from middleware.demo_readonly import DemoReadOnlyMiddleware
+    app.add_middleware(DemoReadOnlyMiddleware)
+except Exception as e:
+    logger.warning("DemoReadOnlyMiddleware not loaded: %s", e)
+try:
     from middleware.logging import LoggingMiddleware
     app.add_middleware(LoggingMiddleware)
 except Exception as e:
