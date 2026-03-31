@@ -102,7 +102,7 @@ export default function ScreenshotsSection() {
                 {[
                   'Vue consolidée du CA et des KPI de tous vos points de vente',
                   'Gestion centralisée des magasins (création, modification, équipes)',
-                  'Suivi de tous vos managers et vendeurs en temps réel',
+
                   'Comparaison de performance entre magasins',
                   'Intégrations API pour synchroniser vos données existantes'
                 ].map((item, idx) => (
