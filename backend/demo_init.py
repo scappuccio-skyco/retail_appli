@@ -178,13 +178,164 @@ BILAN_SYNTHESES = [
     "Prochain défi : maintenir ce niveau en mai avec un flux client en baisse prévisible.",
 ]
 
-TEAM_ANALYSIS_SYNTHESE = (
-    "L'équipe présente un bon équilibre de profils DISC. Thomas (D) tire la performance individuelle vers le haut "
-    "et peut servir de référence sur le closing. Emma (I) excelle dans la relation client et la fidélisation. "
-    "Lucas (S) assure la stabilité collective mais manque d'assertivité en phase de closing. "
-    "Clara (C) apporte une rigueur précieuse sur la connaissance produit, mais doit gagner en spontanéité client. "
-    "Recommandation : binômer Thomas/Lucas et Emma/Clara pour un transfert de compétences naturel."
-)
+# ── Analyses IA structurées (format exact retourné par GPT-4o) ────────────────
+
+TEAM_ANALYSIS = {
+    "synthese": (
+        "L'équipe de Maison Lumière affiche un CA de 134 925€ sur les 30 derniers jours, soit +8% vs la période précédente. "
+        "4 vendeurs actifs avec un panier moyen de 97,5€ et un taux de transformation de 62%. "
+        "Le profil DISC équilibré de l'équipe est un atout stratégique — chaque vendeur couvre un segment client différent."
+    ),
+    "action_prioritaire": "Faire monter Lucas et Clara en closing premium : objectif panier moyen ≥ 100€ d'ici 3 semaines.",
+    "points_forts": [
+        "Thomas (D) : meilleur CA du mois à 38 200€, 3 ventes >400€ — référence closing à valoriser en briefs collectifs.",
+        "Emma (I) : taux de fidélisation le plus élevé (72% de clients revenant), excellent cross-selling (1,8 articles/vente).",
+        "Progression collective de +8% CA vs période précédente — dynamique positive à entretenir.",
+        "Clara (C) : panier moyen record à 118€ grâce à sa maîtrise technique — à transmettre à l'équipe.",
+    ],
+    "points_attention": [
+        "Lucas (S) : volume de prospects le plus faible (11/jour en moyenne) — accroche client à renforcer dès l'entrée boutique.",
+        "Taux de transformation en légère baisse lundi/mardi (-6 pts vs week-end) — énergie de début de semaine à travailler.",
+        "Clara : indice de vente à 1,2 contre 1,8 pour Thomas — ventes additionnelles à développer.",
+    ],
+    "recommandations": [
+        "Binômer Thomas et Lucas 2 après-midis par semaine : observation du closing Thomas, retour de feedback immédiat.",
+        "Lancer un défi équipe sur l'indice de vente (objectif collectif 1,6 d'ici fin du mois) avec affichage journalier.",
+        "Brief quotidien de 5 min le lundi matin pour rituellement recharger l'énergie de début de semaine.",
+        "Clara : lui confier l'animation d'un atelier connaissance produit pour l'équipe — valorise son expertise et renforce le collectif.",
+        "Revoir le script d'accroche Lucas avec lui en 1-to-1 : 3 phrases d'entrée adaptées à ses prospects types.",
+    ],
+}
+
+MORNING_BRIEF_STRUCTURED = {
+    "flashback": (
+        "Hier : CA 4 820€ (+7% vs objectif). Thomas en tête avec 1 650€ et 4 ventes — belle journée. "
+        "Emma : 3 ventes croisées sur 5 interactions, excellent. Lucas : taux de transfo à 58%, un cran sous son potentiel. "
+        "Clara : panier moyen de 124€, record personnel. Bonne dynamique collective."
+    ),
+    "focus": "Aujourd'hui : objectif CA 4 500€. Priorité à la vente additionnelle — chaque client repart avec au moins 2 articles.",
+    "examples": [
+        "Proposer systématiquement un accessoire complémentaire après la première pièce choisie.",
+        "Phrase clé : 'Avec cette veste, le pantalon X se porte parfaitement — je vous le montre ?'",
+        "Observer les clients qui regardent plusieurs rayons : signal fort d'ouverture à la vente croisée.",
+        "Lucas : accrocher le client dans les 30 secondes après l'entrée — sourire, contact visuel, question ouverte.",
+    ],
+    "team_question": "Quelle est votre meilleure technique pour proposer une 2e pièce sans que le client se sente forcé ?",
+    "booster": "Les grands vendeurs ne vendent pas des produits — ils offrent des solutions. Chaque client qui entre a un besoin que vous êtes les seuls à pouvoir identifier aujourd'hui.",
+}
+
+BILANS_VENDEURS = {
+    DEMO_SELLER_T: [
+        {
+            "periode": "01/03/2026 - 31/03/2026",
+            "period_start": "2026-03-01",
+            "period_end": "2026-03-31",
+            "kpi_resume": {"ca": 38200, "ventes": 132, "articles": 218, "prospects": 480, "panier_moyen": 289.4, "indice_vente": 1.65, "taux_transformation": 27.5, "jours": 23},
+            "synthese": "Mars exceptionnel pour toi : 38 200€ de CA, ton meilleur mois depuis l'ouverture. Tu es à +12% vs l'objectif mensuel. Ton taux de transformation de 27,5% est le meilleur de l'équipe, et tes 3 ventes au-dessus de 400€ montrent ta maîtrise du premium. La dynamique est là.",
+            "action_prioritaire": "Atteindre 1,8 d'indice de vente en avril — tu es à 1,65, le palier supérieur est à portée avec une vente additionnelle de plus par interaction.",
+            "points_forts": [
+                "CA de 38 200€ : +12% vs objectif, meilleur score de l'équipe ce mois.",
+                "Taux de transformation à 27,5% : tu convertis plus d'1 prospect sur 4 — référence équipe.",
+                "3 ventes >400€ dans le mois : maîtrise confirmée du segment premium.",
+            ],
+            "points_attention": [
+                "Indice de vente à 1,65 — légèrement sous ton potentiel (1,8 visé). Travaille la proposition de la 2e pièce.",
+                "Quelques lundis matin en dessous de ton rythme habituel — rituel de préparation à renforcer.",
+            ],
+            "recommandations": [
+                "Avant chaque client, visualise 1 vente complémentaire possible — crée l'habitude mentale.",
+                "Proposer systématiquement un accessoire avant de passer en caisse : +20% d'articles potentiels.",
+            ],
+        },
+        {
+            "periode": "01/02/2026 - 28/02/2026",
+            "period_start": "2026-02-01",
+            "period_end": "2026-02-28",
+            "kpi_resume": {"ca": 29800, "ventes": 104, "articles": 168, "prospects": 390, "panier_moyen": 286.5, "indice_vente": 1.62, "taux_transformation": 26.7, "jours": 20},
+            "synthese": "Février solide malgré un flux client réduit post-soldes. 29 800€ de CA pour 104 ventes. Ton ratio qualité/volume est excellent : tu fais plus avec moins de monde. Ton panier moyen est stable à 286€ — signe de maîtrise constante de l'offre premium.",
+            "action_prioritaire": "Relancer ta dynamique de prospection active en début de mois — tes meilleures journées sont celles où tu accroches les 5 premiers clients de la journée.",
+            "points_forts": [
+                "Panier moyen à 286€ : stable et élevé malgré la pression soldes en début de mois.",
+                "104 ventes sur 20 jours : 5,2 ventes/jour — rythme soutenu.",
+            ],
+            "points_attention": [
+                "Volume de prospects en baisse (-18% vs janvier) — accroche client à maintenir même en période creuse.",
+            ],
+            "recommandations": [
+                "Fixer un objectif personnel de 15 prises de contact minimum par demi-journée.",
+            ],
+        },
+    ],
+    DEMO_SELLER_E: [
+        {
+            "periode": "01/03/2026 - 31/03/2026",
+            "period_start": "2026-03-01",
+            "period_end": "2026-03-31",
+            "kpi_resume": {"ca": 31400, "ventes": 148, "articles": 266, "prospects": 520, "panier_moyen": 212.2, "indice_vente": 1.80, "taux_transformation": 28.5, "jours": 23},
+            "synthese": "Mars remarquable pour toi, Emma : 31 400€ de CA et surtout 1,80 d'indice de vente — meilleur de l'équipe ce mois. Ta progression sur les ventes croisées est spectaculaire (+30% d'articles/vente vs janvier). Ton taux de transformation de 28,5% confirme que ta relation client se convertit en actes d'achat.",
+            "action_prioritaire": "Travailler le closing sur les clients hésitants — tu engages très bien mais quelques interactions >20 min ne se concluent pas. Introduis la proposition d'achat plus tôt.",
+            "points_forts": [
+                "Indice de vente à 1,80 : meilleur de l'équipe — tu proposes naturellement les ventes additionnelles.",
+                "266 articles vendus pour 148 ventes : moyenne de 1,8 article/vente — excellente maîtrise du cross-selling.",
+                "Taux de fidélisation le plus élevé : 72% des clients te demandent à leur retour.",
+            ],
+            "points_attention": [
+                "Quelques interactions longues (>25 min) qui ne se concluent pas — équilibre relation/efficacité à affiner.",
+                "Panier moyen à 212€ — légèrement sous Thomas et Clara. Ose proposer la pièce premium en fin d'interaction.",
+            ],
+            "recommandations": [
+                "Après 15 min d'interaction sans signal d'achat, introduire : 'Qu'est-ce qui vous retient encore ?' — direct et bienveillant.",
+                "Propose systématiquement la pièce à >150€ une fois que la confiance est établie.",
+            ],
+        },
+    ],
+    DEMO_SELLER_L: [
+        {
+            "periode": "01/03/2026 - 31/03/2026",
+            "period_start": "2026-03-01",
+            "period_end": "2026-03-31",
+            "kpi_resume": {"ca": 24600, "ventes": 112, "articles": 157, "prospects": 380, "panier_moyen": 219.6, "indice_vente": 1.40, "taux_transformation": 29.5, "jours": 23},
+            "synthese": "Mars positif pour toi Lucas : 24 600€ de CA et surtout une belle progression du taux de transformation à 29,5% (+5 pts vs février). Ta constance est un atout réel — les clients réguliers te font confiance. Le défi du mois prochain : passer à la vitesse supérieure sur l'indice de vente.",
+            "action_prioritaire": "Atteindre 1,6 d'indice de vente en avril — propose systématiquement une 2e pièce complémentaire avant de passer en caisse.",
+            "points_forts": [
+                "Taux de transformation à 29,5% : en progression de +5 pts vs février — bel effort payant.",
+                "Régularité exemplaire : pas de jour sous 3 ventes sur le mois, équipe sécurisée par ta présence.",
+                "Belle gestion d'une situation de réclamation transformée en rachat cette semaine.",
+            ],
+            "points_attention": [
+                "Indice de vente à 1,40 : le plus bas de l'équipe. La vente additionnelle est ton principal levier de progression.",
+                "Volume de prospects en dessous des autres (380 vs 480-520) — accroche dès l'entrée boutique à développer.",
+            ],
+            "recommandations": [
+                "Exercice quotidien : avant de proposer de passer en caisse, demande-toi quelle pièce complémentaire tu pourrais montrer.",
+                "Observer Emma sur ses interactions cross-selling — elle a la technique que tu cherches à développer.",
+            ],
+        },
+    ],
+    DEMO_SELLER_C: [
+        {
+            "periode": "01/03/2026 - 31/03/2026",
+            "period_start": "2026-03-01",
+            "period_end": "2026-03-31",
+            "kpi_resume": {"ca": 28900, "ventes": 96, "articles": 134, "prospects": 310, "panier_moyen": 301.0, "indice_vente": 1.40, "taux_transformation": 31.0, "jours": 23},
+            "synthese": "Mars exceptionnel sur la qualité, Clara : panier moyen de 301€ — record absolu de l'équipe. Ton taux de transformation de 31% est le meilleur du mois. Tu convertis moins de prospects mais avec une valeur bien supérieure. Le CA de 28 900€ reflète ta montée en puissance sur le segment premium.",
+            "action_prioritaire": "Développer ton volume de prospection : ton taux de transformation exceptionnel mérite plus d'entrées. Objectif : +20% de prospects en avril.",
+            "points_forts": [
+                "Panier moyen à 301€ : record de l'équipe — ta maîtrise technique se traduit en ventes premium.",
+                "Taux de transformation à 31% : tu convertis presque 1 prospect sur 3 — efficacité remarquable.",
+                "Présentation technique irréprochable : les clients hésitants deviennent acheteurs avec toi.",
+            ],
+            "points_attention": [
+                "Volume de prospects le plus faible (310) — ton excellent taux mérite plus d'opportunités.",
+                "Indice de vente à 1,40 — quelques ventes croisées manquées sur les clients déjà convaincus.",
+            ],
+            "recommandations": [
+                "Adopter une posture plus proactive dès l'entrée boutique — ton expertise rassure, utilise-la pour accrocher.",
+                "Sur les clients déjà convaincus, raccourcir l'argumentation et proposer rapidement la pièce complémentaire.",
+            ],
+        },
+    ],
+}
 
 DEBRIEF_DATA = {
     DEMO_SELLER_T: [
@@ -485,18 +636,32 @@ async def seed(db):
         "created_at": prev_month_start,
     })
 
-    # ── 9. Morning briefs (12 — espacés sur 3 mois) ───────────────────────────
-    brief_days = [1, 4, 8, 12, 16, 21, 26, 32, 39, 47, 56, 68]
+    # ── 9. Morning briefs — format structuré exact (12 briefs espacés sur 3 mois) ─
+    brief_days = [0, 4, 8, 12, 16, 21, 26, 32, 39, 47, 56, 68]
     for i, (text, d) in enumerate(zip(BRIEF_TEXTS, brief_days)):
-        await upsert(db["morning_briefs"], {
+        brief_date = days_ago(d)
+        brief_doc = {
             "id": f"demo-brief-{i+1:03d}",
             "manager_id": DEMO_MANAGER_ID,
             "store_id": DEMO_STORE_ID,
+            "brief": text,
             "content": text,
             "objective_daily": 4500,
+            "store_name": "Maison Lumière – Paris 6e",
+            "manager_name": "Sarah Benali",
+            "has_context": False,
+            "context": None,
+            "date": brief_date.strftime("%Y-%m-%d"),
+            "data_date": days_ago(d + 1).strftime("%Y-%m-%d"),
+            "generated_at": brief_date.isoformat(),
+            "success": True,
             "is_demo": True,
-            "created_at": days_ago(d),
-        })
+            "created_at": brief_date,
+        }
+        # Le brief du jour (d=0) reçoit aussi le format structuré
+        if d == 0:
+            brief_doc["structured"] = MORNING_BRIEF_STRUCTURED
+        await upsert(db["morning_briefs"], brief_doc)
 
     # ── 10. Bilans équipe (6 mois) ────────────────────────────────────────────
     bilan_days = [7, 14, 45, 75, 105, 135]
@@ -512,23 +677,58 @@ async def seed(db):
             "created_at": days_ago(d),
         })
 
-    # ── 11. Analyse équipe ────────────────────────────────────────────────────
-    await upsert(db["team_analyses"], {
-        "id": "demo-team-analysis-001",
-        "manager_id": DEMO_MANAGER_ID,
-        "store_id": DEMO_STORE_ID,
-        "synthese": TEAM_ANALYSIS_SYNTHESE,
-        "analyses_vendeurs": [
-            {"seller_id": s["id"], "seller_name": s["name"],
-             "note": f"Profil {disc_configs[s['disc']]['style']} — {disc_configs[s['disc']]['level']}"}
-            for s in SELLERS
-        ],
-        "kpi_resume": {"ca_total": 68420, "panier_moyen_equipe": 97.5, "taux_transfo_moyen": 62.3},
-        "is_demo": True,
-        "created_at": days_ago(3),
-    })
+    # ── 11. Analyse équipe — format exact (analysis.synthese/points_forts/...) ──
+    today_str = NOW.strftime("%Y-%m-%d")
+    period_start_str = (NOW - timedelta(days=30)).strftime("%Y-%m-%d")
+    for idx, (gen_days, p_start_offset) in enumerate([
+        (0, 30),   # analyse récente (aujourd'hui)
+        (14, 44),  # analyse il y a 2 semaines
+        (45, 75),  # analyse il y a 6 semaines
+    ]):
+        gen_date = days_ago(gen_days)
+        p_start = (NOW - timedelta(days=p_start_offset)).strftime("%Y-%m-%d")
+        p_end = days_ago(gen_days).strftime("%Y-%m-%d")
+        await upsert(db["team_analyses"], {
+            "id": f"demo-team-analysis-{idx+1:03d}",
+            "manager_id": DEMO_MANAGER_ID,
+            "store_id": DEMO_STORE_ID,
+            "period_start": p_start,
+            "period_end": p_end,
+            "analysis": TEAM_ANALYSIS,
+            "team_stats": {
+                "total_sellers": 4,
+                "team_total_ca": 134925,
+                "team_total_ventes": 488,
+            },
+            "generated_at": gen_date.isoformat(),
+            "is_demo": True,
+            "created_at": gen_date,
+        })
 
-    # ── 12. Debriefs (4 par vendeur) ──────────────────────────────────────────
+    # ── 12. Bilans individuels vendeurs — format exact (synthese/points_forts/...) ─
+    for s in SELLERS:
+        seller_bilans = BILANS_VENDEURS.get(s["id"], [])
+        for j, bilan in enumerate(seller_bilans):
+            bilan_date = days_ago(7 + j * 30)
+            await upsert(db["bilans"], {
+                "id": f"demo-bilan-{s['id']}-{j+1}",
+                "seller_id": s["id"],
+                "store_id": DEMO_STORE_ID,
+                "manager_id": DEMO_MANAGER_ID,
+                "periode": bilan["periode"],
+                "period_start": bilan["period_start"],
+                "period_end": bilan["period_end"],
+                "kpi_resume": bilan["kpi_resume"],
+                "synthese": bilan["synthese"],
+                "action_prioritaire": bilan["action_prioritaire"],
+                "points_forts": bilan["points_forts"],
+                "points_attention": bilan["points_attention"],
+                "recommandations": bilan["recommandations"],
+                "is_demo": True,
+                "created_at": bilan_date.isoformat(),
+            })
+
+    # ── 13. Debriefs (4 par vendeur) ──────────────────────────────────────────
     debrief_offsets = [3, 14, 35, 60]
     for s in SELLERS:
         for j, d in enumerate(DEBRIEF_DATA[s["id"]]):
@@ -544,7 +744,7 @@ async def seed(db):
                 "created_at": days_ago(debrief_offsets[j]),
             })
 
-    # ── 13. Compatibility advices ─────────────────────────────────────────────
+    # ── 14. Compatibility advices ─────────────────────────────────────────────
     compat_texts = {
         DEMO_SELLER_T: ("Avec Thomas (D), soyez direct et orienté résultats. Fixez des objectifs ambitieux et reconnaissez publiquement ses succès.",
                         ["Fixer des défis stimulants", "Feedback immédiat et factuel"]),
@@ -571,7 +771,7 @@ async def seed(db):
             "generated_at": days_ago(10).isoformat(),
         })
 
-    print(f"✅ Demo seeding complete — {len(SELLERS)} vendeurs, 183j de KPIs (6 mois), {len(BRIEF_TEXTS)} briefs, {len(BILAN_SYNTHESES)} bilans")
+    print(f"✅ Demo seeding complete — {len(SELLERS)} vendeurs, 183j de KPIs (6 mois), {len(BRIEF_TEXTS)} briefs structurés, 3 analyses équipe, bilans individuels pré-rédigés")
 
 
 # ── Entrypoint ────────────────────────────────────────────────────────────────

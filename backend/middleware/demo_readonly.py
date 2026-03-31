@@ -2,8 +2,7 @@
 Middleware : bloc en lecture seule pour les sessions de démonstration.
 
 Si le JWT contient `is_demo: True`, toute requête d'écriture
-(POST / PUT / PATCH / DELETE) retourne 403 sauf les routes d'auth
-et les routes IA (showcase du produit).
+(POST / PUT / PATCH / DELETE) retourne 403 sauf les routes d'auth.
 """
 import logging
 from fastapi import Request
@@ -19,16 +18,6 @@ _DEMO_PASSTHROUGH = {
     "/api/auth/logout",
     "/api/auth/me",
     "/api/demo/login",
-}
-
-# Routes IA autorisées en démo (showcase du produit — lecture enrichie)
-_DEMO_ALLOWED_WRITES = {
-    "/api/briefs/morning",                  # Brief matinal IA
-    "/api/manager/analyze-team",            # Analyse équipe IA
-    "/api/manager/analyze-store-kpis",      # Analyse KPI magasin IA
-    "/api/manager/compatibility-advice",    # Conseil compatibilité IA
-    "/api/manager/relationship-advice",     # Conseil relationnel IA
-    "/api/seller/bilan-individuel",         # Bilan individuel vendeur IA
 }
 
 
@@ -50,10 +39,6 @@ class DemoReadOnlyMiddleware(BaseHTTPMiddleware):
 
         path = request.url.path
         if path in _DEMO_PASSTHROUGH:
-            return await call_next(request)
-
-        # Routes IA toujours autorisées en démo
-        if path in _DEMO_ALLOWED_WRITES:
             return await call_next(request)
 
         # Vérifie le flag is_demo dans le JWT (sans appel DB)
