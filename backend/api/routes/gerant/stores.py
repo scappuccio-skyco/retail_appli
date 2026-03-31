@@ -301,6 +301,39 @@ async def update_store_kpi_config_gerant(
     return config
 
 
+@router.get("/stores/{store_id}/business-context")
+async def get_store_business_context(
+    store_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+):
+    """Récupère le contexte métier d'un magasin pour personnaliser les analyses IA."""
+    stores = await gerant_service.get_all_stores(current_user["id"])
+    if not any(s.get("id") == store_id for s in stores):
+        raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN)
+    store = await gerant_service.store_repo.find_one({"id": store_id, "active": True}, {"_id": 0, "business_context": 1})
+    return {"business_context": store.get("business_context") if store else None}
+
+
+@router.put("/stores/{store_id}/business-context")
+async def update_store_business_context(
+    store_id: str,
+    payload: Dict,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service),
+):
+    """Met à jour le contexte métier d'un magasin."""
+    stores = await gerant_service.get_all_stores(current_user["id"])
+    if not any(s.get("id") == store_id for s in stores):
+        raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN)
+    business_context = payload.get("business_context", payload)
+    await gerant_service.store_repo.update_one(
+        {"id": store_id, "gerant_id": current_user["id"]},
+        {"$set": {"business_context": business_context, "updated_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    return {"success": True, "business_context": business_context}
+
+
 @router.post("/stores/{store_id}/analyze-store-kpis")
 async def analyze_store_kpis_gerant(
     store_id: str,

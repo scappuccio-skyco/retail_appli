@@ -38,6 +38,7 @@ class AnalysisMixin:
         prev_period_data: Optional[Dict] = None,
         team_objectives: Optional[list] = None,
         previous_recommendations: Optional[list] = None,
+        business_context: Optional[Dict] = None,
     ) -> Dict:
         """
         Generate comprehensive team analysis using GPT-4o
@@ -183,10 +184,37 @@ Adapte ton résumé exécutif et ton ton à ce style de communication.
             reco_text = "\n".join(f"- {r}" for r in previous_recommendations[:3])
             prev_reco_block = f"\n📋 RECOMMANDATIONS PRÉCÉDENTES (à NE PAS répéter, mais à faire évoluer) :\n{reco_text}\n"
 
+        # Build business context block
+        business_context_block = ""
+        if business_context:
+            bc_lines = []
+            if business_context.get("type_commerce"):
+                bc_lines.append(f"- Type : {business_context['type_commerce']}")
+            if business_context.get("positionnement"):
+                bc_lines.append(f"- Positionnement : {business_context['positionnement']}")
+            if business_context.get("clientele_cible"):
+                cible = business_context["clientele_cible"]
+                if isinstance(cible, list):
+                    cible = ", ".join(cible)
+                bc_lines.append(f"- Clientèle cible : {cible}")
+            if business_context.get("format_magasin"):
+                bc_lines.append(f"- Format : {business_context['format_magasin']}")
+            if business_context.get("duree_vente"):
+                bc_lines.append(f"- Durée de vente typique : {business_context['duree_vente']}")
+            if business_context.get("kpi_prioritaire"):
+                bc_lines.append(f"- KPI prioritaire : {business_context['kpi_prioritaire']}")
+            if business_context.get("saisonnalite"):
+                bc_lines.append(f"- Saisonnalité : {business_context['saisonnalite']}")
+            if business_context.get("contexte_libre"):
+                bc_lines.append(f"- Contexte : {business_context['contexte_libre']}")
+            if bc_lines:
+                business_context_block = "\n🏪 CONTEXTE MÉTIER DU MAGASIN :\n" + "\n".join(bc_lines) + "\n→ Adapte tes recommandations managériales à ce contexte spécifique.\n"
+
         # 🎯 UPDATED PROMPT — JSON output
         prompt = f"""Tu es un expert en management retail et coaching d'équipe. Analyse cette équipe de boutique physique et fournis des recommandations managériales pour MOTIVER et DÉVELOPPER l'équipe.
 
 CONTEXTE : Boutique physique avec flux naturel de clients. Focus sur performance commerciale ET dynamique d'équipe.
+{business_context_block}
 
 PÉRIODE D'ANALYSE : {period_label}
 DATE DU JOUR : {datetime.now().strftime('%d/%m/%Y')} (permet de situer la période en cours)

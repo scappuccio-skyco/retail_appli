@@ -5,6 +5,7 @@ import useStoreDetailModal from './storeDetailModal/useStoreDetailModal';
 import TeamMemberRow from './storeDetailModal/TeamMemberRow';
 import PendingInvitationRow from './storeDetailModal/PendingInvitationRow';
 import SellerPassportModal from './SellerPassportModal';
+import BusinessContextTab from './storeDetailModal/BusinessContextTab';
 
 const STORE_COLOR_CONFIG = [
   { name: 'orange', from: '#f97316', via: '#ea580c', to: '#c2410c', accent: 'text-orange-600 border-orange-600' },
@@ -55,6 +56,7 @@ export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = f
               { key: 'performance', label: '📊 Performance' },
               { key: 'managers',    label: `👔 Managers (${managers.filter(m => m.status === 'active').length})` },
               { key: 'sellers',     label: `👥 Vendeurs (${sellers.filter(s => s.status === 'active').length})` },
+              { key: 'context',     label: '🏪 Contexte' },
             ].map(tab => (
               <button
                 key={tab.key}
@@ -135,6 +137,8 @@ export default function StoreDetailModal({ store, colorIndex = 0, isReadOnly = f
                 </>
               )}
             </div>
+          ) : activeTab === 'context' ? (
+            <BusinessContextTab storeId={store.id} />
           ) : null}
         </div>
 

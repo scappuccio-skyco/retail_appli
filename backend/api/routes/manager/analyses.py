@@ -221,6 +221,18 @@ async def analyze_team(
         except Exception as _e:
             logger.warning("Could not fetch previous recommendations for team analysis: %s", _e)
 
+    # Fetch store business context for AI personalization
+    store_business_context = None
+    if resolved_store_id:
+        try:
+            store_doc = await manager_service.get_store_by_id_simple(
+                resolved_store_id, projection={"_id": 0, "business_context": 1}
+            )
+            if store_doc:
+                store_business_context = store_doc.get("business_context")
+        except Exception as _e:
+            logger.warning("Could not fetch business context for team analysis: %s", _e)
+
     analysis_result = await ai_service.generate_team_analysis(
         team_data=team_data,
         period_label=period_label,
@@ -229,6 +241,7 @@ async def analyze_team(
         prev_period_data=prev_period_data,
         team_objectives=team_objectives,
         previous_recommendations=previous_recommendations,
+        business_context=store_business_context,
     )
     analysis_record = {
         "id": str(uuid4()),
@@ -396,11 +409,12 @@ async def run_store_kpi_analysis(
     """
     store = await manager_service.get_store_by_id_simple(
         resolved_store_id,
-        projection={"_id": 0, "name": 1, "location": 1},
+        projection={"_id": 0, "name": 1, "location": 1, "business_context": 1},
     )
     if not store:
         raise NotFoundError("Magasin non trouvé")
     store_name = store.get("name", "Magasin")
+    business_context = store.get("business_context") or {}
     start_date = analysis_data.get("start_date") or analysis_data.get("startDate")
     end_date = analysis_data.get("end_date") or analysis_data.get("endDate")
     if not end_date:
@@ -667,9 +681,36 @@ async def run_store_kpi_analysis(
         except Exception as _e:
             logger.warning("Could not fetch objectives for store KPI analysis: %s", _e)
 
+    # Build business context block
+    business_context_block = ""
+    if business_context:
+        bc_lines = []
+        if business_context.get("type_commerce"):
+            bc_lines.append(f"- Type : {business_context['type_commerce']}")
+        if business_context.get("positionnement"):
+            bc_lines.append(f"- Positionnement : {business_context['positionnement']}")
+        if business_context.get("clientele_cible"):
+            cible = business_context["clientele_cible"]
+            if isinstance(cible, list):
+                cible = ", ".join(cible)
+            bc_lines.append(f"- Clientèle cible : {cible}")
+        if business_context.get("format_magasin"):
+            bc_lines.append(f"- Format : {business_context['format_magasin']}")
+        if business_context.get("duree_vente"):
+            bc_lines.append(f"- Durée de vente typique : {business_context['duree_vente']}")
+        if business_context.get("kpi_prioritaire"):
+            bc_lines.append(f"- KPI prioritaire : {business_context['kpi_prioritaire']}")
+        if business_context.get("saisonnalite"):
+            bc_lines.append(f"- Saisonnalité : {business_context['saisonnalite']}")
+        if business_context.get("contexte_libre"):
+            bc_lines.append(f"- Contexte : {business_context['contexte_libre']}")
+        if bc_lines:
+            business_context_block = "\n🏪 CONTEXTE MÉTIER DU MAGASIN :\n" + "\n".join(bc_lines) + "\n→ Adapte tes recommandations à ce contexte spécifique.\n"
+
     prompt = f"""Tu es un expert en analyse de performance retail pour BOUTIQUES PHYSIQUES. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
 {disc_block}
 CONTEXTE IMPORTANT : Il s'agit d'une boutique avec flux naturel de clients. Les "prospects" représentent les visiteurs entrés en boutique, PAS de prospection active à faire. Le travail consiste à transformer les visiteurs en acheteurs.
+{business_context_block}
 
 Magasin : {store_name}
 Période analysée : {period_text}
