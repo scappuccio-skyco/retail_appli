@@ -707,11 +707,15 @@ async def run_store_kpi_analysis(
         if bc_lines:
             business_context_block = "\n🏪 CONTEXTE MÉTIER DU MAGASIN :\n" + "\n".join(bc_lines) + "\n→ Adapte tes recommandations à ce contexte spécifique.\n"
 
-    prompt = f"""Tu es un expert en analyse de performance retail pour BOUTIQUES PHYSIQUES. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
+    _default_store_context = "" if business_context_block else (
+        'CONTEXTE IMPORTANT : Il s\'agit d\'une boutique avec flux naturel de clients. '
+        'Les "prospects" représentent les visiteurs entrés en boutique, PAS de prospection active à faire. '
+        'Le travail consiste à transformer les visiteurs en acheteurs.\n'
+    )
+    _no_prospection_rule = "" if business_context_block else "- NE RECOMMANDE PAS de prospection active (boutique = flux entrant)\n"
+    prompt = f"""Tu es un expert en analyse de performance retail. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
 {disc_block}
-CONTEXTE IMPORTANT : Il s'agit d'une boutique avec flux naturel de clients. Les "prospects" représentent les visiteurs entrés en boutique, PAS de prospection active à faire. Le travail consiste à transformer les visiteurs en acheteurs.
-{business_context_block}
-
+{_default_store_context}{business_context_block}
 Magasin : {store_name}
 Période analysée : {period_text}
 DATE DU JOUR : {datetime.now().strftime('%d/%m/%Y')}
@@ -729,10 +733,9 @@ CONSIGNES STRICTES :
 - Commente les variations vs période précédente si disponible (>10% = notable)
 - Si des objectifs sont fournis, indique explicitement s'ils sont atteints ou non
 - Sois concis et direct (2-3 points max par section)
-- Fournis des insights actionnables pour BOUTIQUE PHYSIQUE
+- Fournis des insights actionnables adaptés au contexte du magasin
 - Focus sur : accueil, découverte besoins, argumentation, closing, fidélisation
-- NE RECOMMANDE PAS de prospection active (boutique = flux entrant)
-- NE COMMENCE PAS par "Bien sûr !" ou une formule introductive
+{_no_prospection_rule}- NE COMMENCE PAS par "Bien sûr !" ou une formule introductive
 
 IMPORTANT: Réponds UNIQUEMENT avec un JSON valide, sans markdown, sans balises de code.
 Format exact :
@@ -741,7 +744,7 @@ Format exact :
   "action_prioritaire": "LA priorité absolue et concrète pour améliorer les KPIs du magasin cette semaine",
   "points_forts": ["KPI fort 1 avec chiffre exact et comparaison si possible", "KPI fort 2"],
   "points_attention": ["KPI à améliorer 1 avec chiffre et impact", "Point d'attention 2"],
-  "recommandations": ["Action concrète 1 pour boutique physique (qui fait quoi, quand)", "Action 2", "Action 3"]
+  "recommandations": ["Action concrète 1 adaptée au contexte du magasin (qui fait quoi, quand)", "Action 2", "Action 3"]
 }}"""
     if not ai_service.available:
         fallback_kpis_text = chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '- Aucun KPI calculé'

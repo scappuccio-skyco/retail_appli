@@ -211,10 +211,10 @@ Adapte ton résumé exécutif et ton ton à ce style de communication.
                 business_context_block = "\n🏪 CONTEXTE MÉTIER DU MAGASIN :\n" + "\n".join(bc_lines) + "\n→ Adapte tes recommandations managériales à ce contexte spécifique.\n"
 
         # 🎯 UPDATED PROMPT — JSON output
-        prompt = f"""Tu es un expert en management retail et coaching d'équipe. Analyse cette équipe de boutique physique et fournis des recommandations managériales pour MOTIVER et DÉVELOPPER l'équipe.
+        _default_context = "" if business_context_block else "CONTEXTE : Boutique physique avec flux naturel de clients. Focus sur performance commerciale ET dynamique d'équipe.\n"
+        prompt = f"""Tu es un expert en management retail et coaching d'équipe. Analyse cette équipe de vente et fournis des recommandations managériales pour MOTIVER et DÉVELOPPER l'équipe.
 
-CONTEXTE : Boutique physique avec flux naturel de clients. Focus sur performance commerciale ET dynamique d'équipe.
-{business_context_block}
+{_default_context}{business_context_block}
 
 PÉRIODE D'ANALYSE : {period_label}
 DATE DU JOUR : {datetime.now().strftime('%d/%m/%Y')} (permet de situer la période en cours)
