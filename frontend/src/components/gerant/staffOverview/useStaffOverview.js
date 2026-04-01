@@ -20,6 +20,8 @@ export default function useStaffOverview({ onRefresh }) {
   const [resendingInvitation, setResendingInvitation] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
+  const [managerStoresModalOpen, setManagerStoresModalOpen] = useState(false);
+  const [managerForStores, setManagerForStores] = useState(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -182,6 +184,8 @@ export default function useStaffOverview({ onRefresh }) {
     resendingInvitation,
     editModalOpen, setEditModalOpen,
     userToEdit, setUserToEdit,
+    managerStoresModalOpen, setManagerStoresModalOpen,
+    managerForStores, setManagerForStores,
     filteredManagers, filteredSellers, filteredInvitations,
     pendingInvitationsCount,
     fetchData,

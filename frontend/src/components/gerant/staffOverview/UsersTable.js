@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, Phone, Building2, MoreVertical, Trash2, Ban, CheckCircle, ArrowRightLeft, Lock, Edit } from 'lucide-react';
+import { Mail, Phone, Building2, MoreVertical, Trash2, Ban, CheckCircle, ArrowRightLeft, Lock, Edit, Store } from 'lucide-react';
 import { toast } from 'sonner';
 
 function getStatusBadge(status) {
@@ -13,7 +13,7 @@ export default function UsersTable({
   users, canManageStaff,
   actionMenuOpen, setActionMenuOpen,
   getStoreName,
-  onEdit, onTransfer, onSuspend, onReactivate, onDelete,
+  onEdit, onTransfer, onSuspend, onReactivate, onDelete, onManageStores,
 }) {
   return (
     <div className="overflow-x-auto">
@@ -71,6 +71,11 @@ export default function UsersTable({
                       <button onClick={() => onEdit(user)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
                         <Edit className="w-4 h-4" /> Modifier
                       </button>
+                      {user.role === 'manager' && onManageStores && (
+                        <button onClick={() => onManageStores(user)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-indigo-600">
+                          <Store className="w-4 h-4" /> Gérer les magasins
+                        </button>
+                      )}
                       {(user.status || 'active') === 'active' && (
                         <>
                           <button onClick={() => onTransfer(user)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">

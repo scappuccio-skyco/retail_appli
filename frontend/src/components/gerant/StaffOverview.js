@@ -1,6 +1,7 @@
 import React from 'react';
 import { Users, UserCog, Building2, Clock, Lock } from 'lucide-react';
 import EditStaffModal from './EditStaffModal';
+import ManagerStoresModal from './ManagerStoresModal';
 import useStaffOverview from './staffOverview/useStaffOverview';
 import StaffFilters from './staffOverview/StaffFilters';
 import UsersTable from './staffOverview/UsersTable';
@@ -98,6 +99,7 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
             actionMenuOpen={s.actionMenuOpen} setActionMenuOpen={s.setActionMenuOpen}
             getStoreName={s.getStoreName}
             onEdit={(user) => { s.setUserToEdit(user); s.setEditModalOpen(true); s.setActionMenuOpen(null); }}
+            onManageStores={s.activeTab === 'managers' ? (user) => { s.setManagerForStores(user); s.setManagerStoresModalOpen(true); s.setActionMenuOpen(null); } : undefined}
             onTransfer={s.openTransferModal}
             onSuspend={s.handleSuspend}
             onReactivate={s.handleReactivate}
@@ -136,6 +138,16 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
           managers={s.managers}
           onTransfer={s.handleTransfer}
           onClose={() => { s.setTransferModalOpen(false); s.setSelectedUser(null); }}
+        />
+      )}
+
+      {s.managerStoresModalOpen && s.managerForStores && (
+        <ManagerStoresModal
+          isOpen={s.managerStoresModalOpen}
+          onClose={() => { s.setManagerStoresModalOpen(false); s.setManagerForStores(null); }}
+          manager={s.managerForStores}
+          stores={s.stores}
+          onUpdate={() => { s.fetchData(); if (onRefresh) onRefresh(); }}
         />
       )}
     </div>
