@@ -1,6 +1,8 @@
-import React, { useRef, useState } from 'react';
-import { Plus, Building2, Users, TrendingUp, BarChart3, Lock, TrendingDown, Minus, MapPin, Download, Loader2 } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { Plus, Building2, Users, TrendingUp, BarChart3, Lock, TrendingDown, Minus, MapPin, Download, Loader2, Trash2, Settings, X, Check } from 'lucide-react';
 import { exportGerantDashboardPdf } from './gerantDashboardPdfExport';
+import { api } from '../../../lib/apiClient';
+import { toast } from 'sonner';
 
 /**
  * Vue principale du dashboard gérant (onglet "Vue d'ensemble").
@@ -19,7 +21,7 @@ export default function GerantDashboardView({
   isReadOnly,
   onOpenCreateStore,
   onOpenInviteStaff,
-  onStoreClick,
+  onRefresh,
 }) {
   // ── Period helpers ─────────────────────────────────────────
   const getPeriodDates = (type, offset) => {
@@ -81,6 +83,76 @@ export default function GerantDashboardView({
   const handleExportPdf = () => {
     exportGerantDashboardPdf(contentRef, formatPeriod(periodType, periodOffset), setExporting);
   };
+
+  // ── Multi-select ───────────────────────────────────────────
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const toggleSelect = (id) => setSelectedIds(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
+  const toggleSelectAll = () => {
+    if (selectedIds.size === rankedStores.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(rankedStores.map(s => s.id)));
+  };
+
+  // ── Delete ─────────────────────────────────────────────────
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // array of store ids
+  const [deleting, setDeleting] = useState(false);
+  const handleDeleteConfirmed = async () => {
+    setDeleting(true);
+    try {
+      await Promise.all(deleteConfirm.map(id => api.delete(`/gerant/stores/${id}`)));
+      toast.success(`${deleteConfirm.length} magasin(s) supprimé(s)`);
+      setSelectedIds(new Set());
+      setDeleteConfirm(null);
+      onRefresh && onRefresh();
+    } catch {
+      toast.error('Erreur lors de la suppression');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // ── Business context modal ─────────────────────────────────
+  const [contextModal, setContextModal] = useState(null); // { storeIds: [], title: '' }
+  const [contextForm, setContextForm] = useState({});
+  const [contextLoading, setContextLoading] = useState(false);
+  const [contextSaving, setContextSaving] = useState(false);
+
+  useEffect(() => {
+    if (!contextModal) return;
+    setContextLoading(true);
+    api.get(`/gerant/stores/${contextModal.storeIds[0]}/business-context`)
+      .then(res => { if (res.data?.business_context) setContextForm(res.data.business_context); else setContextForm({}); })
+      .catch(() => setContextForm({}))
+      .finally(() => setContextLoading(false));
+  }, [contextModal]);
+
+  const handleContextSave = async () => {
+    setContextSaving(true);
+    try {
+      await Promise.all(contextModal.storeIds.map(id =>
+        api.put(`/gerant/stores/${id}/business-context`, { business_context: contextForm })
+      ));
+      toast.success(contextModal.storeIds.length > 1
+        ? `Contexte appliqué à ${contextModal.storeIds.length} magasins`
+        : 'Contexte enregistré');
+      setContextModal(null);
+      setContextForm({});
+    } catch {
+      toast.error('Erreur lors de l\'enregistrement');
+    } finally {
+      setContextSaving(false);
+    }
+  };
+
+  const toggleClientele = (val) => setContextForm(prev => ({
+    ...prev,
+    clientele_cible: (prev.clientele_cible || []).includes(val)
+      ? (prev.clientele_cible || []).filter(v => v !== val)
+      : [...(prev.clientele_cible || []), val],
+  }));
 
   // ── Rankings ───────────────────────────────────────────────
   const rankedStores = stores.map(store => {
@@ -292,10 +364,35 @@ export default function GerantDashboardView({
             </button>
           </div>
         ) : (
+          {/* Toolbar multi-select */}
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-3 mb-3 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl">
+              <span className="text-sm font-semibold text-indigo-700">{selectedIds.size} magasin(s) sélectionné(s)</span>
+              <button
+                onClick={() => setContextModal({ storeIds: [...selectedIds], title: `${selectedIds.size} magasins sélectionnés` })}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <Settings className="w-3.5 h-3.5" /> Appliquer un contexte
+              </button>
+              <button
+                onClick={() => setDeleteConfirm([...selectedIds])}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Supprimer ({selectedIds.size})
+              </button>
+              <button onClick={() => setSelectedIds(new Set())} className="ml-auto text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           <div className="glass-morphism rounded-xl border border-gray-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
+                  <th className="px-3 py-3 text-center w-8">
+                    <input type="checkbox" checked={rankedStores.length > 0 && selectedIds.size === rankedStores.length} onChange={toggleSelectAll} className="rounded border-gray-300 text-indigo-600" />
+                  </th>
                   <th className="px-4 py-3 text-center w-10">#</th>
                   <th className="px-4 py-3 text-left">Magasin</th>
                   <th className="px-4 py-3 text-right">CA — {formatPeriod(periodType, periodOffset)}</th>
@@ -325,6 +422,7 @@ export default function GerantDashboardView({
                     </span>
                   </th>
                   <th className="px-4 py-3 text-center hidden md:table-cell">Équipe</th>
+                  <th className="px-4 py-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -335,7 +433,11 @@ export default function GerantDashboardView({
                   const evo = s.periodEvolution;
                   const hasEvo = evo !== null && evo !== undefined && !isNaN(evo) && (s.stats?.prev_period_ca > 0 || s.periodCA > 0);
                   return (
-                    <tr key={s.id} onClick={() => onStoreClick && onStoreClick(s, originalIndex)} className={`hover:bg-orange-50/40 transition-colors cursor-pointer ${index < 3 ? 'bg-orange-50/20' : 'bg-white'}`}>
+                    <tr key={s.id} className={`hover:bg-orange-50/40 transition-colors ${index < 3 ? 'bg-orange-50/20' : 'bg-white'}`}>
+                      {/* Checkbox */}
+                      <td className="px-3 py-4 text-center">
+                        <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} className="rounded border-gray-300 text-indigo-600" />
+                      </td>
                       {/* Rang */}
                       <td className="px-4 py-4 text-center">
                         <span className="text-xl">{rankIcon}</span>
@@ -437,6 +539,26 @@ export default function GerantDashboardView({
                         </div>
                       </td>
 
+                      {/* Actions */}
+                      <td className="px-4 py-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setContextForm({}); setContextModal({ storeIds: [s.id], title: s.name }); }}
+                            title="Contexte métier IA"
+                            className="p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                          >
+                            <Settings className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeleteConfirm([s.id]); }}
+                            title="Supprimer le magasin"
+                            className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+
                     </tr>
                   );
                 })}
@@ -445,6 +567,106 @@ export default function GerantDashboardView({
           </div>
         )}
       </div>
+
+      {/* ── Modal contexte métier ─────────────────────────── */}
+      {contextModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white z-10">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">🏪 Contexte métier</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{contextModal.title}</p>
+              </div>
+              <button onClick={() => { setContextModal(null); setContextForm({}); }} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            {contextLoading ? (
+              <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>
+            ) : (
+              <div className="px-6 py-5 space-y-5">
+                {contextModal.storeIds.length > 1 && (
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-xs text-indigo-800">
+                    Ce contexte sera appliqué aux <strong>{contextModal.storeIds.length} magasins sélectionnés</strong>.
+                  </div>
+                )}
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+                  🤖 Ces informations permettent à l'IA d'adapter ses analyses, conseils et défis au contexte précis de chaque boutique.
+                </div>
+
+                {[
+                  { key: 'type_commerce', label: '🏷️ Type de commerce', options: ['Boutique mode / textile','Bijouterie / accessoires','Cosmétique / beauté','Sport / outdoor','Tech / électronique','Librairie / papeterie','Maison / décoration','Épicerie / alimentaire','Pharmacie / parapharmacie','Autre'] },
+                  { key: 'positionnement', label: '🎯 Positionnement prix', options: ['Entrée de gamme / discount','Milieu de gamme','Premium','Luxe'] },
+                  { key: 'format_magasin', label: '🏪 Format du point de vente', options: ['Boutique de centre-ville','Centre commercial','Retail park / zone commerciale','Outlet / déstockage','Concept store','Pop-up / éphémère'] },
+                  { key: 'duree_vente', label: '⏱️ Durée moyenne d\'une vente', options: ['Moins de 5 minutes','5 à 15 minutes','15 à 30 minutes','Plus de 30 minutes'] },
+                  { key: 'kpi_prioritaire', label: '📊 KPI prioritaire', options: ['Chiffre d\'affaires (CA)','Panier moyen','Taux de transformation','Indice de vente (UPT)','Fidélisation client'] },
+                ].map(({ key, label, options }) => (
+                  <div key={key}>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</label>
+                    <select value={contextForm[key] || ''} onChange={e => setContextForm(p => ({ ...p, [key]: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                      <option value="">-- Sélectionner --</option>
+                      {options.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+                ))}
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">👥 Clientèle cible <span className="font-normal text-gray-500">(plusieurs choix)</span></label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Familles','Jeunes (18-35 ans)','Seniors (50+)','Touristes','Professionnels / B2B','Enfants','Tous publics'].map(opt => (
+                      <button key={opt} type="button" onClick={() => toggleClientele(opt)}
+                        className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${(contextForm.clientele_cible || []).includes(opt) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-400'}`}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">📅 Saisonnalité <span className="font-normal text-gray-500">(optionnel)</span></label>
+                  <input type="text" value={contextForm.saisonnalite || ''} onChange={e => setContextForm(p => ({ ...p, saisonnalite: e.target.value }))}
+                    placeholder="Ex : forte activité en décembre, creux en août..."
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">💬 Contexte libre <span className="font-normal text-gray-500">(optionnel)</span></label>
+                  <textarea value={contextForm.contexte_libre || ''} onChange={e => setContextForm(p => ({ ...p, contexte_libre: e.target.value }))}
+                    placeholder="Particularités de la boutique utiles pour l'IA..."
+                    rows={3} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none" />
+                </div>
+
+                <button onClick={handleContextSave} disabled={contextSaving}
+                  className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-60 text-sm flex items-center justify-center gap-2">
+                  {contextSaving ? <><Loader2 className="w-4 h-4 animate-spin" /> Enregistrement...</> : <><Check className="w-4 h-4" /> Enregistrer le contexte</>}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal confirmation suppression ───────────────────── */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Supprimer {deleteConfirm.length > 1 ? `ces ${deleteConfirm.length} magasins` : 'ce magasin'} ?</h3>
+            <p className="text-sm text-gray-500 mb-6">Cette action est irréversible. Les managers et vendeurs associés ne seront pas supprimés.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-sm">
+                Annuler
+              </button>
+              <button onClick={handleDeleteConfirmed} disabled={deleting}
+                className="flex-1 py-2.5 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors text-sm disabled:opacity-60 flex items-center justify-center gap-2">
+                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

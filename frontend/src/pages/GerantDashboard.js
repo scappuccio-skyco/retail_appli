@@ -87,11 +87,7 @@ const GerantDashboard = ({ user, onLogout }) => {
             isReadOnly={s.isReadOnly}
             onOpenCreateStore={() => s.setShowCreateStoreModal(true)}
             onOpenInviteStaff={() => s.setShowInviteStaffModal(true)}
-            onStoreClick={(store, idx) => {
-              s.setSelectedStore(store);
-              s.setSelectedStoreColorIndex(idx);
-              s.setShowStoreDetailModal(true);
-            }}
+            onRefresh={s.fetchDashboardData}
           />
         )}
       </div>
