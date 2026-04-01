@@ -13,7 +13,6 @@ import KPIReporting from '../../../pages/KPIReporting';
 import SellerProfileModal from '../../SellerProfileModal';
 import BilanIndividuelModal from '../../BilanIndividuelModal';
 import PerformanceModal from '../../PerformanceModal';
-import ObjectivesModal from '../../ObjectivesModal';
 import DiagnosticFormScrollable from '../../DiagnosticFormScrollable';
 import CompetencesExplicationModal from '../../CompetencesExplicationModal';
 import ChallengeHistoryModal from '../../ChallengeHistoryModal';
@@ -24,10 +23,7 @@ import SellerManagerCompatibiliteModal from '../../SellerManagerCompatibiliteMod
 import EvaluationGenerator from '../../EvaluationGenerator';
 import EvaluationNotesNotebook from '../../EvaluationNotesNotebook';
 import OnboardingModal from '../../onboarding/OnboardingModal';
-import SellerPerformanceModalVariant from '../../SellerPerformanceModalVariant';
 import SellerObjectivesModalVariant from '../../SellerObjectivesModalVariant';
-import SellerCoachingModalVariant from '../../SellerCoachingModalVariant';
-import SellerNotesModalVariant from '../../SellerNotesModalVariant';
 
 /**
  * Couche de tous les modals du dashboard vendeur.
@@ -68,11 +64,6 @@ export default function SellerModalsLayer({
   showEvaluationModal,
   showSupportModal,
   showManagerCompatModal,
-  performanceVariant = 'A',
-  objectivesVariant = 'A',
-  coachingVariant = 'A',
-  notesVariant = 'A',
-
   // Modal setters
   setShowEvalModal,
   setShowDebriefModal,
@@ -263,22 +254,7 @@ export default function SellerModalsLayer({
         />
       )}
 
-      {showPerformanceModal && (performanceVariant === 'B' || performanceVariant === 'C') && (
-        <SellerPerformanceModalVariant
-          variant={performanceVariant}
-          isOpen={showPerformanceModal}
-          onClose={() => { setShowPerformanceModal(false); setInitialTab('bilan'); }}
-          bilanData={bilanIndividuel} kpiEntries={kpiEntries} user={user}
-          kpiConfig={kpiConfig} currentWeekOffset={currentWeekOffset}
-          onWeekChange={(offset) => { setCurrentWeekOffset(offset); fetchBilanIndividuel(offset); }}
-          onDataUpdate={fetchData} onRegenerate={regenerateBilan}
-          generatingBilan={generatingBilan} initialTab={initialTab}
-          isReadOnly={isSubscriptionExpired} onLoadMoreKpi={loadMoreKpiEntries}
-          kpiEntriesTotal={kpiEntriesTotal}
-          onEditKPI={(entry) => { handleOpenKPIModal(entry); setShowPerformanceModal(false); }}
-        />
-      )}
-      {showPerformanceModal && (!performanceVariant || performanceVariant === 'A') && (
+      {showPerformanceModal && (
         <PerformanceModal
           isOpen={showPerformanceModal}
           onClose={() => { setShowPerformanceModal(false); setInitialTab('bilan'); }}
@@ -293,17 +269,8 @@ export default function SellerModalsLayer({
         />
       )}
 
-      {showObjectivesModal && (objectivesVariant === 'B' || objectivesVariant === 'C') && (
+      {showObjectivesModal && (
         <SellerObjectivesModalVariant
-          variant={objectivesVariant}
-          isOpen={showObjectivesModal}
-          onClose={() => { setShowObjectivesModal(false); setInitialObjectiveId?.(null); }}
-          activeObjectives={activeObjectives} initialObjectiveId={initialObjectiveId}
-          onUpdate={async () => { await fetchActiveObjectives(); }}
-        />
-      )}
-      {showObjectivesModal && (!objectivesVariant || objectivesVariant === 'A') && (
-        <ObjectivesModal
           isOpen={showObjectivesModal}
           onClose={() => { setShowObjectivesModal(false); setInitialObjectiveId?.(null); }}
           activeObjectives={activeObjectives} initialObjectiveId={initialObjectiveId}
@@ -359,33 +326,17 @@ export default function SellerModalsLayer({
         </div>
       )}
 
-      {(coachingVariant === 'B' || coachingVariant === 'C') && (
-        <SellerCoachingModalVariant
-          key={dailyChallenge?.id || 'no-challenge'}
-          variant={coachingVariant}
-          isOpen={showCoachingModal}
-          onClose={() => setShowCoachingModal(false)}
-          dailyChallenge={dailyChallenge}
-          onRefreshChallenge={(newChallenge) => { if (newChallenge) setDailyChallenge(newChallenge); else fetchDailyChallenge(); }}
-          onCompleteChallenge={async () => { await fetchDailyChallenge(); }}
-          onOpenChallengeHistory={() => { setShowCoachingModal(false); setShowChallengeHistoryModal(true); }}
-          debriefs={debriefs}
-          onCreateDebrief={async () => { await fetchDebriefs(); }}
-        />
-      )}
-      {(!coachingVariant || coachingVariant === 'A') && (
-        <CoachingModal
-          key={dailyChallenge?.id || 'no-challenge'}
-          isOpen={showCoachingModal}
-          onClose={() => setShowCoachingModal(false)}
-          dailyChallenge={dailyChallenge}
-          onRefreshChallenge={(newChallenge) => { if (newChallenge) setDailyChallenge(newChallenge); else fetchDailyChallenge(); }}
-          onCompleteChallenge={async () => { await fetchDailyChallenge(); }}
-          onOpenChallengeHistory={() => { setShowCoachingModal(false); setShowChallengeHistoryModal(true); }}
-          debriefs={debriefs}
-          onCreateDebrief={async () => { await fetchDebriefs(); }}
-        />
-      )}
+      <CoachingModal
+        key={dailyChallenge?.id || 'no-challenge'}
+        isOpen={showCoachingModal}
+        onClose={() => setShowCoachingModal(false)}
+        dailyChallenge={dailyChallenge}
+        onRefreshChallenge={(newChallenge) => { if (newChallenge) setDailyChallenge(newChallenge); else fetchDailyChallenge(); }}
+        onCompleteChallenge={async () => { await fetchDailyChallenge(); }}
+        onOpenChallengeHistory={() => { setShowCoachingModal(false); setShowChallengeHistoryModal(true); }}
+        debriefs={debriefs}
+        onCreateDebrief={async () => { await fetchDebriefs(); }}
+      />
 
       <OnboardingModal
         isOpen={onboarding.isOpen}
@@ -400,21 +351,11 @@ export default function SellerModalsLayer({
         completedSteps={onboarding.completedSteps}
       />
 
-      {(notesVariant === 'B' || notesVariant === 'C') && (
-        <SellerNotesModalVariant
-          variant={notesVariant}
-          isOpen={showNotesNotebook}
-          onClose={() => setShowNotesNotebook(false)}
-          onGenerateSynthesis={() => { setShowNotesNotebook(false); setShowEvaluationModal(true); }}
-        />
-      )}
-      {(!notesVariant || notesVariant === 'A') && (
-        <EvaluationNotesNotebook
-          isOpen={showNotesNotebook}
-          onClose={() => setShowNotesNotebook(false)}
-          onGenerateSynthesis={() => { setShowNotesNotebook(false); setShowEvaluationModal(true); }}
-        />
-      )}
+      <EvaluationNotesNotebook
+        isOpen={showNotesNotebook}
+        onClose={() => setShowNotesNotebook(false)}
+        onGenerateSynthesis={() => { setShowNotesNotebook(false); setShowEvaluationModal(true); }}
+      />
 
       <EvaluationGenerator
         isOpen={showEvaluationModal}

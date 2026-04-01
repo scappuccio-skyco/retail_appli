@@ -31,12 +31,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showFilters, setShowFilters] = useState(false);
   const [initialTab, setInitialTab] = useState('bilan');
 
-  // ── Staging variant state ──────────────────────────────────
-  const [performanceVariant] = useState('A');
-  const [objectivesVariant] = useState('B');
-  const [coachingVariant] = useState('A');
-  const [notesVariant] = useState('A');
-
   // ── Modal state ────────────────────────────────────────────
   const [showEvalModal, setShowEvalModal] = useState(false);
   const [showDebriefModal, setShowDebriefModal] = useState(false);
@@ -225,10 +219,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         showEvaluationModal={showEvaluationModal}
         showSupportModal={showSupportModal}
         showManagerCompatModal={showManagerCompatModal}
-        performanceVariant={performanceVariant}
-        objectivesVariant={objectivesVariant}
-        coachingVariant={coachingVariant}
-        notesVariant={notesVariant}
         // Modal setters
         setShowEvalModal={setShowEvalModal}
         setShowDebriefModal={setShowDebriefModal}
