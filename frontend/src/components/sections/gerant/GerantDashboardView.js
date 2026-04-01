@@ -103,25 +103,25 @@ export default function GerantDashboardView({
           <BarChart3 className="w-5 h-5 text-orange-500" />
           Vue d'ensemble
         </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-4">
 
           {/* Magasins */}
-          <div className="glass-morphism rounded-2xl p-5 border border-orange-200 flex flex-col items-center text-center gap-2">
-            <div className="w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-orange-600" />
+          <div className="glass-morphism rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-orange-200 flex flex-col items-center text-center gap-1 sm:gap-2">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 bg-orange-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
             </div>
-            <p className="text-3xl font-extrabold text-gray-900">{globalStats?.total_stores || 0}</p>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Magasins</p>
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900">{globalStats?.total_stores || 0}</p>
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Magasins</p>
           </div>
 
           {/* Managers */}
-          <div className="glass-morphism rounded-2xl p-5 border border-blue-200 flex flex-col items-center text-center gap-2">
-            <div className="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600" />
+          <div className="glass-morphism rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-blue-200 flex flex-col items-center text-center gap-1 sm:gap-2">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 bg-blue-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             </div>
-            <p className="text-3xl font-extrabold text-gray-900">{globalStats?.total_managers || 0}</p>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Managers actifs</p>
-            <div className="flex flex-wrap justify-center gap-1">
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900">{globalStats?.total_managers || 0}</p>
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Managers</p>
+            <div className="hidden sm:flex flex-wrap justify-center gap-1">
               {pendingInvitations.managers > 0 && (
                 <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">+{pendingInvitations.managers} en attente</span>
               )}
@@ -132,13 +132,13 @@ export default function GerantDashboardView({
           </div>
 
           {/* Vendeurs */}
-          <div className="glass-morphism rounded-2xl p-5 border border-indigo-200 flex flex-col items-center text-center gap-2">
-            <div className="w-11 h-11 bg-indigo-100 rounded-xl flex items-center justify-center">
-              <Users className="w-5 h-5 text-indigo-600" />
+          <div className="glass-morphism rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-indigo-200 flex flex-col items-center text-center gap-1 sm:gap-2">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 bg-indigo-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
             </div>
-            <p className="text-3xl font-extrabold text-gray-900">{globalStats?.total_sellers || 0}</p>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Vendeurs actifs</p>
-            <div className="flex flex-wrap justify-center gap-1">
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900">{globalStats?.total_sellers || 0}</p>
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Vendeurs</p>
+            <div className="hidden sm:flex flex-wrap justify-center gap-1">
               {pendingInvitations.sellers > 0 && (
                 <span className="text-xs text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">+{pendingInvitations.sellers} en attente</span>
               )}
@@ -149,15 +149,15 @@ export default function GerantDashboardView({
           </div>
 
           {/* CA mois */}
-          <div className="glass-morphism rounded-2xl p-5 border border-green-200 flex flex-col items-center text-center gap-2 col-span-2 lg:col-span-1">
-            <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-green-600" />
+          <div className="glass-morphism rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-green-200 flex flex-col items-center text-center gap-1 sm:gap-2">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
-            <p className="text-3xl font-extrabold text-gray-900">
+            <p className="text-xl sm:text-3xl font-extrabold text-gray-900">
               {globalStats?.month_ca ? `${Math.round(globalStats.month_ca).toLocaleString('fr-FR')} €` : '0 €'}
             </p>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              CA — {new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+            <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">
+              CA {new Date().toLocaleDateString('fr-FR', { month: 'short' })}
             </p>
           </div>
 
