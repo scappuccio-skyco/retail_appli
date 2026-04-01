@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Heart, RefreshCw } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
-import { getCompatibilityResult } from './guideProfilsData';
+import { getCompatibilityResult } from './guideProfilsUtils';
 
 // Normalise les styles du diagnostic vendeur vers les clés de la matrice
 const STYLE_TO_COMPAT = {

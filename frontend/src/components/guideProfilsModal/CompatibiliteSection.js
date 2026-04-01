@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
-import { getCompatibilityResult } from '../guideProfilsData';
+import { getCompatibilityResult } from '../guideProfilsUtils';
 
 // Normalise les styles du diagnostic vers les clés de la matrice de compatibilité
 const STYLE_TO_COMPAT = {
