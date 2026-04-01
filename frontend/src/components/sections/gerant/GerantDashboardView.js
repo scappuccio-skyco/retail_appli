@@ -93,7 +93,14 @@ export default function GerantDashboardView({
     return { ...store, stats, periodCA, periodVentes, periodProspects, periodEvolution, isPartialComparison };
   }).sort((a, b) => b.periodCA - a.periodCA);
 
+  const totalPeriodCA = rankedStores.reduce((sum, s) => sum + s.periodCA, 0);
 
+  const getPeriodLabel = (type, offset) => {
+    const { start } = getPeriodDates(type, offset);
+    if (type === 'week') return offset === 0 ? 'CA Sem. en cours' : `CA Sem. ${getPeriodNumber(type, start)}`;
+    if (type === 'month') return `CA ${start.toLocaleDateString('fr-FR', { month: 'short' })}`;
+    return `CA ${start.getFullYear()}`;
+  };
 
   return (
     <div ref={contentRef}>
@@ -154,10 +161,10 @@ export default function GerantDashboardView({
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
             <p className="text-xl sm:text-3xl font-extrabold text-gray-900">
-              {globalStats?.month_ca ? `${Math.round(globalStats.month_ca).toLocaleString('fr-FR')} €` : '0 €'}
+              {totalPeriodCA > 0 ? `${Math.round(totalPeriodCA).toLocaleString('fr-FR')} €` : '0 €'}
             </p>
             <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">
-              CA {new Date().toLocaleDateString('fr-FR', { month: 'short' })}
+              {getPeriodLabel(periodType, periodOffset)}
             </p>
           </div>
 
