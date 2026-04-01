@@ -364,6 +364,7 @@ export default function GerantDashboardView({
             </button>
           </div>
         ) : (
+          <>
           {/* Toolbar multi-select */}
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-3 mb-3 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl">
@@ -565,6 +566,7 @@ export default function GerantDashboardView({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
