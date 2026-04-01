@@ -52,7 +52,7 @@ export default function GerantHeader({
                 <span className="max-w-[90px] sm:max-w-[160px] truncate">{subscriptionInfo.workspace_name}</span>
               </div>
             )}
-            <span className="hidden lg:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border bg-orange-50 text-orange-800 border-orange-300 flex-shrink-0">
+            <span className="hidden xl:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border bg-orange-50 text-orange-800 border-orange-300 flex-shrink-0">
               Espace Gérant
             </span>
           </div>
