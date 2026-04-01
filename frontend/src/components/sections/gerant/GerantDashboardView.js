@@ -19,6 +19,7 @@ export default function GerantDashboardView({
   isReadOnly,
   onOpenCreateStore,
   onOpenInviteStaff,
+  onStoreClick,
 }) {
   // ── Period helpers ─────────────────────────────────────────
   const getPeriodDates = (type, offset) => {
@@ -334,7 +335,7 @@ export default function GerantDashboardView({
                   const evo = s.periodEvolution;
                   const hasEvo = evo !== null && evo !== undefined && !isNaN(evo) && (s.stats?.prev_period_ca > 0 || s.periodCA > 0);
                   return (
-                    <tr key={s.id} className={`hover:bg-orange-50/40 transition-colors ${index < 3 ? 'bg-orange-50/20' : 'bg-white'}`}>
+                    <tr key={s.id} onClick={() => onStoreClick && onStoreClick(s, originalIndex)} className={`hover:bg-orange-50/40 transition-colors cursor-pointer ${index < 3 ? 'bg-orange-50/20' : 'bg-white'}`}>
                       {/* Rang */}
                       <td className="px-4 py-4 text-center">
                         <span className="text-xl">{rankIcon}</span>
