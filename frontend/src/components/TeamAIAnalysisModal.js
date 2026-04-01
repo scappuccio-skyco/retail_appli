@@ -12,6 +12,7 @@ import HistoryTab from './teamAIAnalysis/HistoryTab';
 export default function TeamAIAnalysisModal({ teamData, periodFilter, customDateRange, onClose, storeIdParam = null }) {
   const { user } = useAuth();
   const isDemo = !!user?.is_demo;
+  const teamTotalCA = (teamData || []).reduce((sum, s) => sum + (s.monthlyCA || 0), 0);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [analysisMetadata, setAnalysisMetadata] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -231,7 +232,13 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
             </div>
           )}
 
-          {activeTab === 'history' && (
+          {activeTab === 'history' && isDemo && teamTotalCA === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-5xl mb-4">📭</div>
+              <p className="font-semibold text-gray-700 mb-2">Aucune donnée pour cette période</p>
+              <p className="text-sm text-gray-500">Naviguez vers une période avec des ventes pour voir des exemples d'analyses.</p>
+            </div>
+          ) : activeTab === 'history' && (
             <HistoryTab
               history={history}
               loadingHistory={loadingHistory}
@@ -239,6 +246,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
               onToggleExpand={handleToggleExpand}
               onDeleteAnalysis={handleDeleteAnalysis}
               onCreateAnalysis={() => setActiveTab('new')}
+              isDemo={isDemo}
             />
           )}
         </div>

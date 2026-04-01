@@ -6,7 +6,7 @@ import AIBilanSection from './AIBilanSection';
 
 export default function WeekView({
   bilanData, periodLoading, periodEntries, kpiConfig,
-  chartData, generatingBilan, bilanSectionRef, onRegenerate,
+  chartData, generatingBilan, bilanSectionRef, onRegenerate, isDemo = false,
 }) {
   return (
     <>
@@ -76,6 +76,8 @@ export default function WeekView({
         onGenerate={onRegenerate}
         bilanSectionRef={bilanSectionRef}
         size="lg"
+        isDemo={isDemo}
+        totalCA={bilanData?.kpi_resume?.ca_total ?? null}
       />
     </>
   );

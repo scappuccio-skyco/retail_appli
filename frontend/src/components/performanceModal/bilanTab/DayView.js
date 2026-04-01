@@ -4,7 +4,7 @@ import AIBilanSection from './AIBilanSection';
 
 export default function DayView({
   periodLoading, periodEntries, kpiConfig,
-  periodBilan, periodGenerating, periodRange,
+  periodBilan, periodGenerating, periodRange, isDemo = false,
 }) {
   if (periodLoading) {
     return (
@@ -77,6 +77,8 @@ export default function DayView({
           bilan={periodBilan}
           generating={periodGenerating}
           periodLabel={periodRange?.label}
+          isDemo={isDemo}
+          totalCA={periodEntries?.[0]?.ca_journalier ?? null}
         />
       </div>
     </>

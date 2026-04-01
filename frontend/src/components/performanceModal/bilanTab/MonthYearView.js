@@ -7,7 +7,7 @@ import AIBilanSection from './AIBilanSection';
 export default function MonthYearView({
   viewMode, periodLoading,
   periodAggregates, periodEntries, yearMonthlyData, periodChartData,
-  kpiConfig, periodRange, periodBilan, periodGenerating, generatePeriodBilan,
+  kpiConfig, periodRange, periodBilan, periodGenerating, generatePeriodBilan, isDemo = false,
 }) {
   // Pour la vue année : regrouper par mois (plus lisible que 365 points)
   const yearChartData = useMemo(() => {
@@ -124,6 +124,8 @@ export default function MonthYearView({
           generating={periodGenerating}
           onGenerate={generatePeriodBilan}
           periodLabel={periodRange?.label}
+          isDemo={isDemo}
+          totalCA={periodAggregates?.ca ?? null}
         />
       </div>
     </>

@@ -9,6 +9,7 @@ export default function HistoryTab({
   onToggleExpand,
   onDeleteAnalysis,
   onCreateAnalysis,
+  isDemo = false,
 }) {
   if (loadingHistory) {
     return (
@@ -36,6 +37,12 @@ export default function HistoryTab({
 
   return (
     <div className="space-y-4">
+      {isDemo && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+          <span className="text-lg leading-none mt-0.5">🎭</span>
+          <span>Ces analyses sont des <strong>exemples créés pour la démo</strong>. Vos vraies analyses s'adapteront aux données réelles de votre équipe et de vos périodes.</span>
+        </div>
+      )}
       {history.map((item, index) => {
         const isExpanded = expandedItems[item.analysis_id];
         const isLatest = index === 0;
@@ -89,16 +96,18 @@ export default function HistoryTab({
                       isExpanded ? 'rotate-180' : ''
                     }`}
                   />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteAnalysis(item.analysis_id);
-                    }}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Supprimer cette analyse"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                  {!isDemo && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteAnalysis(item.analysis_id);
+                      }}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Supprimer cette analyse"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

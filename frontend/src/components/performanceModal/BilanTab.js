@@ -144,6 +144,7 @@ export default function BilanTab({
             periodGenerating={periodGenerating}
             periodRange={periodRange}
             generatePeriodBilan={generatePeriodBilan}
+            isDemo={!!user?.is_demo}
           />
         )}
 
@@ -160,6 +161,7 @@ export default function BilanTab({
             periodBilan={periodBilan}
             periodGenerating={periodGenerating}
             generatePeriodBilan={generatePeriodBilan}
+            isDemo={!!user?.is_demo}
           />
         )}
 
@@ -173,6 +175,7 @@ export default function BilanTab({
             generatingBilan={generatingBilan}
             bilanSectionRef={bilanSectionRef}
             onRegenerate={onRegenerate}
+            isDemo={!!user?.is_demo}
           />
         )}
       </div>

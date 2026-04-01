@@ -9,10 +9,21 @@ const BILAN_SOURCES = ['CA', 'Ventes', 'Panier moyen', 'Taux de transformation',
  * size='lg' for semaine (larger animation), 'md' for jour/mois/annee.
  * onGenerate: if provided, shows empty state button; otherwise no empty state.
  */
-export default function AIBilanSection({ bilan, generating, onGenerate, periodLabel, bilanSectionRef, size = 'md' }) {
+export default function AIBilanSection({ bilan, generating, onGenerate, periodLabel, bilanSectionRef, size = 'md', isDemo = false, totalCA = null }) {
   const iconWrap = size === 'lg' ? 'w-20 h-20' : 'w-16 h-16';
   const sparkleSize = size === 'lg' ? 'w-10 h-10' : 'w-8 h-8';
   const title = bilan?.periode ? `💡 Synthèse — ${bilan.periode}` : '💡 Synthèse de la semaine';
+
+  // Mode démo : pas de synthèse si CA = 0
+  if (isDemo && totalCA !== null && totalCA === 0) {
+    return (
+      <div className="text-center py-8 text-gray-400">
+        <div className="text-4xl mb-3">📭</div>
+        <p className="font-semibold text-gray-600">Aucune donnée pour cette période</p>
+        <p className="text-sm mt-1">Naviguez vers une période avec des ventes pour voir un exemple de synthèse.</p>
+      </div>
+    );
+  }
   const fortLabel = bilan?.periode ? '👍 Points forts' : '👍 Tes points forts';
   const recoLabel = bilan?.periode ? '🎯 Recommandations' : '🎯 Recommandations personnalisées';
 
@@ -48,6 +59,12 @@ export default function AIBilanSection({ bilan, generating, onGenerate, periodLa
   if (bilan?.synthese) {
     return (
       <div ref={bilanSectionRef} className="space-y-4">
+        {isDemo && (
+          <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-xs text-amber-800">
+            <span className="mt-0.5">🎭</span>
+            <span>Ceci est un <strong>exemple créé pour la démo</strong>. Vos vraies synthèses s'adapteront à vos données réelles.</span>
+          </div>
+        )}
         <div className="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500">
           <div className="flex items-start gap-2 mb-2">
             <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
