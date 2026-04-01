@@ -41,11 +41,11 @@ export const getGerantSteps = () => [
         <ul className="list-disc list-inside space-y-1 mt-1 text-left mx-auto max-w-md">
           <li>Voir les performances du magasin</li>
           <li>Voir l'équipe rattachée (managers et vendeurs)</li>
-          <li><strong>Accéder à l'espace Manager</strong> de la boutique</li>
+          <li>Définir le contexte métier de la boutique</li>
         </ul>
       </>
     ),
-    tips: 'En tant que gérant, vous pouvez aussi être manager d\'un magasin et saisir les KPI directement.'
+    tips: 'Vous pouvez modifier ou supprimer un magasin à tout moment depuis l\'onglet "Magasins".'
   },
 
   // Étape 3 : Contexte métier IA
