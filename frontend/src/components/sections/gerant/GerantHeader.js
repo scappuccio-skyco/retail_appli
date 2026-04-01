@@ -134,29 +134,28 @@ export default function GerantHeader({
         </div>
 
         {/* Onglets de navigation */}
-        <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-          <div className="flex gap-1 border-b border-gray-200 min-w-max">
-            {[
-              { id: 'dashboard', icon: BarChart3, label: "Vue d'ensemble" },
-              { id: 'stores',    icon: Store,    label: 'Magasins' },
-              { id: 'staff',     icon: UserCog,  label: 'Personnel' },
-              { id: 'api',       icon: Key,      label: 'Intégrations API' },
-              { id: 'profile',   icon: User,     label: 'Profil' },
-            ].map(({ id, icon: Icon, label }) => (
-              <button
-                key={id}
-                onClick={() => setActiveView(id)}
-                className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-base font-semibold transition-all whitespace-nowrap ${
-                  activeView === id
-                    ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
+        <div className="flex border-b border-gray-200">
+          {[
+            { id: 'dashboard', icon: BarChart3, label: "Vue d'ensemble" },
+            { id: 'stores',    icon: Store,    label: 'Magasins' },
+            { id: 'staff',     icon: UserCog,  label: 'Personnel' },
+            { id: 'api',       icon: Key,      label: 'API' },
+            { id: 'profile',   icon: User,     label: 'Profil' },
+          ].map(({ id, icon: Icon, label }) => (
+            <button
+              key={id}
+              onClick={() => setActiveView(id)}
+              title={label}
+              className={`flex flex-1 sm:flex-none items-center justify-center sm:justify-start gap-1 sm:gap-2 px-1 sm:px-6 py-2 sm:py-3 text-xs sm:text-base font-semibold transition-all ${
+                activeView === id
+                  ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="hidden sm:inline">{label}</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>
