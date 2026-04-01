@@ -57,24 +57,49 @@ function getStartEndForView(viewMode, state) {
   return { start: startDt.toISOString().split('T')[0], end };
 }
 
-const DEMO_STORE_AI_ANALYSIS = {
-  synthese: "Mode & Style Paris affiche des performances solides sur le mois écoulé avec un CA de 48 320 € et 312 ventes. Le panier moyen de 154,87 € est en hausse de +8% par rapport au mois précédent, et le taux de transformation atteint 62%, signe d'une équipe bien alignée sur la conversion.",
-  action_prioritaire: "Renforcer l'indice de vente (UPT) en formant l'équipe aux techniques de vente additionnelle — objectif : passer de 2,1 à 2,5 articles par vente d'ici la fin du mois.",
-  points_forts: [
-    "Panier moyen en hausse à 154,87 € (+8% vs mois précédent) — bon travail sur la montée en gamme",
-    "Taux de transformation à 62%, meilleur résultat depuis l'ouverture du magasin",
-    "CA en progression constante sur les 4 dernières semaines (+5% semaine sur semaine)"
-  ],
-  points_attention: [
-    "Indice de vente (UPT) à 2,1 — en dessous de l'objectif fixé à 2,5 articles par vente",
-    "Mardi et mercredi affichent un taux de transformation inférieur à 50% — flux plus faible, à surveiller"
-  ],
-  recommandations: [
-    "Mettre en place un brief quotidien de 5 min axé sur la vente additionnelle avec 2 exemples de produits complémentaires à proposer",
-    "Animer un atelier pratique sur les techniques de cross-selling adapté au secteur prêt-à-porter",
-    "Suivre individuellement l'UPT de chaque vendeur et féliciter publiquement les progressions en réunion d'équipe"
-  ]
-};
+function buildDemoAnalysis(overviewData) {
+  const totals = overviewData?.totals ?? {};
+  const kpis = overviewData?.calculated_kpis ?? {};
+  const ca = typeof totals.ca === 'number' ? totals.ca : null;
+  const ventes = typeof totals.ventes === 'number' ? totals.ventes : null;
+  const panierMoyen = typeof kpis.panier_moyen === 'number' ? kpis.panier_moyen : null;
+  const tauxTransfo = typeof kpis.taux_transformation === 'number' ? kpis.taux_transformation : null;
+  const upt = typeof kpis.indice_vente === 'number' ? kpis.indice_vente : null;
+
+  const caStr = ca !== null ? ca.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €' : 'N/A';
+  const ventesStr = ventes !== null ? ventes : 'N/A';
+  const panierStr = panierMoyen !== null ? panierMoyen.toFixed(2) + ' €' : 'N/A';
+  const tauxStr = tauxTransfo !== null ? tauxTransfo.toFixed(1) + '%' : 'N/A';
+  const uptStr = upt !== null ? upt.toFixed(2) : 'N/A';
+  const uptTarget = upt !== null ? (upt * 1.2).toFixed(1) : '2.5';
+
+  return {
+    synthese: `Ce magasin enregistre ${ventes !== null ? ventesStr + ' vente(s)' : 'des ventes'} pour un CA de ${caStr} sur la période sélectionnée. Le panier moyen s'établit à ${panierStr}${tauxTransfo !== null ? ` et le taux de transformation atteint ${tauxStr}` : ''}.`,
+    action_prioritaire: `Renforcer l'indice de vente (UPT) actuellement à ${uptStr} via des techniques de vente additionnelle — objectif : atteindre ${uptTarget} articles par vente sur la prochaine période.`,
+    points_forts: [
+      `CA de ${caStr} généré sur la période — bon indicateur de l'activité commerciale`,
+      ventes !== null
+        ? `${ventesStr} vente(s) enregistrée(s), reflet d'une activité régulière`
+        : 'Suivi des ventes actif pour mesurer l\'activité commerciale',
+      panierMoyen !== null
+        ? `Panier moyen à ${panierStr} — potentiel de montée en gamme à exploiter`
+        : 'Suivi du panier moyen disponible pour piloter la montée en gamme',
+    ],
+    points_attention: [
+      tauxTransfo !== null
+        ? `Taux de transformation à ${tauxStr} — vérifier si l'accueil et le conseil client peuvent être renforcés`
+        : 'Activez le suivi des prospects pour mesurer le taux de transformation',
+      upt !== null
+        ? `Indice de vente (UPT) à ${uptStr} — une marge de progression existe sur la vente additionnelle`
+        : 'Activez le suivi des articles pour mesurer l\'indice de vente par transaction',
+    ],
+    recommandations: [
+      'Mettre en place un brief quotidien de 5 min axé sur la vente additionnelle avec 2 exemples de produits complémentaires',
+      'Suivre l\'évolution du panier moyen semaine par semaine pour détecter les tendances et les effets des actions',
+      'Analyser les créneaux de faible fréquentation pour adapter les effectifs et les animations commerciales',
+    ],
+  };
+}
 
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null, isManager = false }) {
   const { user } = useAuth();
@@ -82,7 +107,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const state = useStoreKPIModal({ onClose, onSuccess, initialDate, storeId, isManager });
 
   // AI Analysis state
-  const [aiAnalysis, setAiAnalysis] = useState(isDemo ? DEMO_STORE_AI_ANALYSIS : null);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [showDemoPrompt, setShowDemoPrompt] = useState(false);
   const aiSectionRef = useRef(null);
@@ -113,7 +138,17 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   }`;
   const lsKey = `mgr_kpi_analysis_${storeId || 'default'}_${currentPeriodKey}`;
 
-  // Load persisted analysis when period changes (skip for demo — always show static)
+  // Demo: rebuild analysis from real data whenever overviewData changes
+  useEffect(() => {
+    if (!isDemo) return;
+    if (state.overviewData) {
+      setAiAnalysis(buildDemoAnalysis(state.overviewData));
+    } else {
+      setAiAnalysis(null);
+    }
+  }, [isDemo, state.overviewData]);
+
+  // Load persisted analysis when period changes (skip for demo)
   useEffect(() => {
     if (isDemo) return;
     try {
@@ -354,12 +389,23 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   </div>
                 )}
                 {aiAnalysis && !aiGenerating && (state.viewMode === 'day' ? canLaunchDailyAI : canLaunchOverviewAI) && (
-                  <ManagerAIAnalysisDisplay
-                    analysis={aiAnalysis}
-                    onRegenerate={generateAnalysis}
-                    title="Analyse IA — KPIs Magasin"
-                    sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
-                  />
+                  <>
+                    {isDemo && (
+                      <div className="mb-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 text-xs text-amber-800">
+                        <span className="flex-shrink-0 mt-0.5">⚠️</span>
+                        <span>
+                          <strong>Analyse illustrative (mode démo)</strong> — Les recommandations ci-dessous sont générées à partir de vos données réelles mais restent indicatives.
+                          Créez un compte pour bénéficier d'analyses IA complètes et personnalisées.
+                        </span>
+                      </div>
+                    )}
+                    <ManagerAIAnalysisDisplay
+                      analysis={aiAnalysis}
+                      onRegenerate={generateAnalysis}
+                      title="Analyse IA — KPIs Magasin"
+                      sources={['CA du jour', 'Ventes', 'Clients', 'Panier moyen', 'Taux de transformation', 'Indice de vente']}
+                    />
+                  </>
                 )}
               </div>
             </div>
