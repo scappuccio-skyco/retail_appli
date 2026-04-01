@@ -52,7 +52,7 @@ export default function GerantHeader({
                 <span className="max-w-[90px] sm:max-w-[160px] truncate">{subscriptionInfo.workspace_name}</span>
               </div>
             )}
-            <span className="hidden xl:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border bg-orange-50 text-orange-800 border-orange-300 flex-shrink-0">
+            <span className="hidden lg:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border bg-orange-50 text-orange-800 border-orange-300 flex-shrink-0">
               Espace Gérant
             </span>
           </div>
@@ -65,14 +65,14 @@ export default function GerantHeader({
               title="Facturation — Profil B2B et factures"
             >
               <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden md:inline">Facturation</span>
+              <span className="hidden xl:inline">Facturation</span>
             </button>
             <button
               onClick={onOpenSubscription}
               className="hidden sm:flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
             >
               <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden md:inline">Mon abonnement</span>
+              <span className="hidden xl:inline">Mon abonnement</span>
             </button>
 
             {/* Bouton ⋯ — mobile uniquement */}
@@ -109,7 +109,7 @@ export default function GerantHeader({
               title="Contacter le support"
             >
               <Headphones className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden md:inline">Support</span>
+              <span className="hidden xl:inline">Support</span>
             </button>
             <TutorialButton
               onClick={onboarding.open}
