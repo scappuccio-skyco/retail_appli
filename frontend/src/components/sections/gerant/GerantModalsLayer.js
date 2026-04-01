@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '../../../contexts';
 import CreateStoreModal from '../../gerant/CreateStoreModal';
-import StoreDetailModal from '../../gerant/StoreDetailModal';
-import ManagerTransferModal from '../../gerant/ManagerTransferModal';
-import SellerTransferModal from '../../gerant/SellerTransferModal';
 import DeleteStoreConfirmation from '../../gerant/DeleteStoreConfirmation';
 import InviteStaffModal from '../../gerant/InviteStaffModal';
 import SubscriptionModal from '../../SubscriptionModal';
@@ -30,9 +27,6 @@ export default function GerantModalsLayer({
 
   // Modal visibility
   showCreateStoreModal,
-  showStoreDetailModal,
-  showManagerTransferModal,
-  showSellerTransferModal,
   showDeleteConfirmation,
   showInviteStaffModal,
   showSubscriptionModal,
@@ -43,9 +37,6 @@ export default function GerantModalsLayer({
 
   // Modal setters
   setShowCreateStoreModal,
-  setShowStoreDetailModal,
-  setShowManagerTransferModal,
-  setShowSellerTransferModal,
   setShowDeleteConfirmation,
   setShowInviteStaffModal,
   setShowSubscriptionModal,
@@ -54,13 +45,9 @@ export default function GerantModalsLayer({
 
   // Data setters
   setSelectedStore,
-  setSelectedManager,
-  setSelectedSeller,
 
   // Actions
   handleCreateStore,
-  handleTransferManager,
-  handleTransferSeller,
   handleDeleteStore,
   handleInviteStaff,
   fetchDashboardData,
@@ -70,8 +57,6 @@ export default function GerantModalsLayer({
   onboarding,
 }) {
   const { user } = useAuth();
-  const [storeDetailRefreshToken, setStoreDetailRefreshToken] = useState(0);
-  const [orphanedSellersCount, setOrphanedSellersCount] = useState(0);
 
   return (
     <>
@@ -79,75 +64,6 @@ export default function GerantModalsLayer({
         <CreateStoreModal
           onClose={() => setShowCreateStoreModal(false)}
           onCreate={handleCreateStore}
-        />
-      )}
-
-      {showStoreDetailModal && selectedStore && (
-        <StoreDetailModal
-          store={selectedStore}
-          colorIndex={selectedStoreColorIndex}
-          isReadOnly={isReadOnly}
-          onClose={() => {
-            setShowStoreDetailModal(false);
-            setSelectedStore(null);
-          }}
-          onTransferManager={(manager, sellers) => {
-            if (!isReadOnly) {
-              setSelectedManager(manager);
-              const count = (sellers || []).filter(
-                s => s.manager_id === manager.id && s.status === 'active'
-              ).length;
-              setOrphanedSellersCount(count);
-              setShowManagerTransferModal(true);
-            }
-          }}
-          onTransferSeller={(seller) => {
-            if (!isReadOnly) {
-              setSelectedSeller(seller);
-              setShowSellerTransferModal(true);
-            }
-          }}
-          onDeleteStore={(store) => {
-            if (!isReadOnly) {
-              setSelectedStore(store);
-              setShowDeleteConfirmation(true);
-            }
-          }}
-          onRefresh={fetchDashboardData}
-          refreshToken={storeDetailRefreshToken}
-        />
-      )}
-
-      {showManagerTransferModal && selectedManager && (
-        <ManagerTransferModal
-          manager={selectedManager}
-          stores={stores}
-          currentStoreId={selectedStore?.id}
-          orphanedSellersCount={orphanedSellersCount}
-          onClose={() => {
-            setShowManagerTransferModal(false);
-            setSelectedManager(null);
-          }}
-          onTransfer={async (managerId, storeId) => {
-            await handleTransferManager(managerId, storeId);
-            setStoreDetailRefreshToken(t => t + 1);
-          }}
-        />
-      )}
-
-      {showSellerTransferModal && selectedSeller && (
-        <SellerTransferModal
-          seller={selectedSeller}
-          stores={stores}
-          currentStoreId={selectedStore?.id}
-          onClose={() => {
-            setShowSellerTransferModal(false);
-            setSelectedSeller(null);
-          }}
-          onTransfer={async (sellerId, storeId, managerId) => {
-            await handleTransferSeller(sellerId, storeId, managerId);
-            setStoreDetailRefreshToken(t => t + 1);
-          }}
         />
       )}
 

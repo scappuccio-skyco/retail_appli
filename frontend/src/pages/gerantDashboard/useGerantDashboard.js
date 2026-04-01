@@ -40,9 +40,6 @@ export default function useGerantDashboard({ user, onLogout }) {
 
   // ── Modal state ────────────────────────────────────────────
   const [showCreateStoreModal, setShowCreateStoreModal] = useState(false);
-  const [showStoreDetailModal, setShowStoreDetailModal] = useState(false);
-  const [showManagerTransferModal, setShowManagerTransferModal] = useState(false);
-  const [showSellerTransferModal, setShowSellerTransferModal] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showInviteStaffModal, setShowInviteStaffModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -51,9 +48,6 @@ export default function useGerantDashboard({ user, onLogout }) {
   const [billingInitialTab, setBillingInitialTab] = useState('profile');
   const [showInvoicesModal, setShowInvoicesModal] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
-  const [selectedStoreColorIndex, setSelectedStoreColorIndex] = useState(0);
-  const [selectedManager, setSelectedManager] = useState(null);
-  const [selectedSeller, setSelectedSeller] = useState(null);
 
   // ── Derived ────────────────────────────────────────────────
   const { isReadOnly, subscriptionBlockCode: gerantBlockCode, isPastDue } = deriveSubscriptionState(subscriptionInfo);
@@ -262,9 +256,6 @@ export default function useGerantDashboard({ user, onLogout }) {
     isReadOnly, gerantBlockCode, isPastDue,
     // Modal state
     showCreateStoreModal, setShowCreateStoreModal,
-    showStoreDetailModal, setShowStoreDetailModal,
-    showManagerTransferModal, setShowManagerTransferModal,
-    showSellerTransferModal, setShowSellerTransferModal,
     showDeleteConfirmation, setShowDeleteConfirmation,
     showInviteStaffModal, setShowInviteStaffModal,
     showSubscriptionModal, setShowSubscriptionModal,
@@ -274,12 +265,9 @@ export default function useGerantDashboard({ user, onLogout }) {
     openBillingModal: (tab = 'profile') => { setBillingInitialTab(tab); setShowBillingProfileModal(true); },
     showInvoicesModal, setShowInvoicesModal,
     selectedStore, setSelectedStore,
-    selectedStoreColorIndex, setSelectedStoreColorIndex,
-    selectedManager, setSelectedManager,
-    selectedSeller, setSelectedSeller,
     // Actions
     handleLogoutClick, handleOpenBillingPortal,
-    handleCreateStore, handleTransferManager, handleTransferSeller,
+    handleCreateStore,
     handleDeleteStore, handleInviteStaff,
     fetchDashboardData, fetchSubscriptionInfo,
   };
