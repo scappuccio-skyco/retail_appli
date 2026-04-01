@@ -353,7 +353,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                     </div>
                   </div>
                 )}
-                {aiAnalysis && !aiGenerating && (
+                {aiAnalysis && !aiGenerating && (state.viewMode === 'day' ? canLaunchDailyAI : canLaunchOverviewAI) && (
                   <ManagerAIAnalysisDisplay
                     analysis={aiAnalysis}
                     onRegenerate={generateAnalysis}

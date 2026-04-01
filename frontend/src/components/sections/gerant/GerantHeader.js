@@ -52,9 +52,6 @@ export default function GerantHeader({
                 <span className="max-w-[90px] sm:max-w-[160px] truncate">{subscriptionInfo.workspace_name}</span>
               </div>
             )}
-            <span className="hidden lg:inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border bg-orange-50 text-orange-800 border-orange-300 flex-shrink-0">
-              Espace Gérant
-            </span>
           </div>
 
           <div className="flex gap-1 sm:gap-2 flex-shrink-0">
@@ -134,7 +131,7 @@ export default function GerantHeader({
         </div>
 
         {/* Onglets de navigation */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex items-center border-b border-gray-200">
           {[
             { id: 'dashboard', icon: BarChart3, label: "Vue d'ensemble" },
             { id: 'stores',    icon: Store,    label: 'Magasins' },
@@ -156,6 +153,9 @@ export default function GerantHeader({
               <span className="hidden sm:inline">{label}</span>
             </button>
           ))}
+          <span className="hidden sm:inline-flex items-center ml-auto mr-1 px-2 py-0.5 text-xs font-semibold rounded-full border bg-orange-50 text-orange-800 border-orange-300 flex-shrink-0">
+            Espace Gérant
+          </span>
         </div>
       </div>
     </div>
