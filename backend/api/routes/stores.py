@@ -87,7 +87,7 @@ async def get_store_hierarchy(
         raise NotFoundError("Store not found")
     store = hierarchy['store']
     user_role = current_user.get('role')
-    if user_role in ['gerant', 'gérant']:
+    if user_role in ['gerant']:
         if store.get('gerant_id') != current_user['id']:
             raise ForbiddenError("Access denied")
     elif user_role == 'manager':
@@ -125,7 +125,7 @@ async def get_store_info(
     if not store.get('active', True):
         raise ForbiddenError("Store is inactive")
     user_role = current_user.get('role')
-    if user_role in ['gerant', 'gérant']:
+    if user_role in ['gerant']:
         store_gerant_id = store.get('gerant_id')
         user_id = current_user.get('id')
         if store_gerant_id != user_id:

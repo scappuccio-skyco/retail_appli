@@ -63,7 +63,7 @@ class JobsService:
 
         try:
             gerants = await self.user_repo.find_many(
-                {"role": {"$in": ["gerant", "gérant"]}, "status": "active"},
+                {"role": {"$in": ["gerant"]}, "status": "active"},
                 projection={"_id": 0, "id": 1, "name": 1, "email": 1, "created_at": 1}
             )
         except Exception:

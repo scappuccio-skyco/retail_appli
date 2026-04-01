@@ -90,7 +90,6 @@ def get_rate_limit_by_role(role: str) -> str:
         "seller": "10/minute",
         "manager": "50/minute",
         "gerant": "100/minute",
-        "gérant": "100/minute",
         "super_admin": "200/minute",
     }
     return limits.get(role, "10/minute")

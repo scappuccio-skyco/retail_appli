@@ -131,7 +131,7 @@ function AppContent() {
               <Navigate to="/login" replace />
             ) : user.role === 'super_admin' ? (
               <Navigate to="/superadmin" replace />
-            ) : (user.role === 'gerant' || user.role === 'gérant') ? (
+            ) : (user.role === 'gerant') ? (
               <Navigate to="/gerant-dashboard" replace />
             ) : user.role === 'seller' ? (
               <SellerDashboard user={user} diagnostic={diagnostic} onLogout={handleLogout} />
@@ -147,7 +147,7 @@ function AppContent() {
           element={
             !user ? (
               <Navigate to="/login" replace />
-            ) : (user.role !== 'gerant' && user.role !== 'gérant') ? (
+            ) : (user.role !== 'gerant') ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <GerantDashboard user={user} onLogout={handleLogout} />
@@ -161,7 +161,7 @@ function AppContent() {
           element={
             !user ? (
               <Navigate to="/login" replace />
-            ) : (user.role === 'gerant' || user.role === 'gérant') ? (
+            ) : (user.role === 'gerant') ? (
               <Navigate to="/gerant-dashboard" replace state={{ message: 'Accès réservé au personnel opérationnel' }} />
             ) : (
               <Navigate to="/dashboard" replace />
@@ -195,7 +195,7 @@ function AppContent() {
           element={
             !user ? (
               <Navigate to="/login" replace />
-            ) : (user.role === 'gerant' || user.role === 'gérant') ? (
+            ) : (user.role === 'gerant') ? (
               <Navigate to="/gerant-dashboard" replace state={{ message: 'Accès réservé au personnel opérationnel' }} />
             ) : user.role !== 'manager' ? (
               <Navigate to="/dashboard" replace />
@@ -210,7 +210,7 @@ function AppContent() {
           element={
             !user ? (
               <Navigate to="/login" replace />
-            ) : (user.role === 'gerant' || user.role === 'gérant') ? (
+            ) : (user.role === 'gerant') ? (
               <Navigate to="/gerant-dashboard" replace state={{ message: 'Accès réservé au personnel opérationnel' }} />
             ) : (
               <Navigate to="/dashboard" replace />

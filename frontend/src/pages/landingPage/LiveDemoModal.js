@@ -43,7 +43,7 @@ export default function LiveDemoModal({ show, onClose }) {
       if (!user) throw new Error('Réponse inattendue');
       // Redirection vers le dashboard selon le rôle
       const role_ = user.role;
-      if (role_ === 'gerant' || role_ === 'gérant') {
+      if (role_ === 'gerant') {
         globalThis.location.href = '/gerant-dashboard';
       } else if (role_ === 'manager') {
         globalThis.location.href = '/dashboard';

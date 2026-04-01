@@ -41,7 +41,7 @@ async def check_kpi_enabled(
     Check if KPI input is enabled for seller
     Used to determine if sellers can input their own KPIs or if manager does it
     """
-    if current_user["role"] not in ["seller", "manager", "gerant", "gérant"]:
+    if current_user["role"] not in ["seller", "manager", "gerant"]:
         raise ForbiddenError("Access denied")
     SELLER_INPUT_KPIS = ["ca_journalier", "nb_ventes", "nb_clients", "nb_articles", "nb_prospects"]
     manager_id = None
@@ -50,7 +50,7 @@ async def check_kpi_enabled(
         manager_id = current_user.get("manager_id")
         if not manager_id:
             return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
-    elif store_id and current_user["role"] in ["gerant", "gérant"]:
+    elif store_id and current_user["role"] in ["gerant"]:
         effective_store_id = store_id
     elif current_user.get("store_id"):
         effective_store_id = current_user["store_id"]

@@ -80,7 +80,7 @@ export function AuthProvider({ children }) {
 
     // Tunnel Early Adopter : redirection welcome-pilot uniquement à l'inscription
     const earlyAdopterData = localStorage.getItem('early_adopter_candidate');
-    if (isRegistration && earlyAdopterData && (userData.role === 'gérant' || userData.role === 'gerant')) {
+    if (isRegistration && earlyAdopterData && (userData.role === 'gerant')) {
       localStorage.removeItem('early_adopter_candidate');
       globalThis.location.href = '/welcome-pilot';
       return;
@@ -91,7 +91,7 @@ export function AuthProvider({ children }) {
 
     // Redirection par rôle
     const role = userData.role;
-    if (role === 'gérant' || role === 'gerant') {
+    if (role === 'gerant') {
       globalThis.location.href = '/gerant-dashboard';
       return;
     }

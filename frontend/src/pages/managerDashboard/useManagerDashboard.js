@@ -122,8 +122,8 @@ export default function useManagerDashboard({ user }) {
   });
 
   // ── Derived ────────────────────────────────────────────────
-  const spaceLabel = (user?.role === 'gerant' || user?.role === 'gérant') ? 'Espace Gérant' : 'Espace Manager';
-  const isGerantSpace = (user?.role === 'gerant' || user?.role === 'gérant');
+  const spaceLabel = (user?.role === 'gerant') ? 'Espace Gérant' : 'Espace Manager';
+  const isGerantSpace = (user?.role === 'gerant');
 
   // ── Persistence ────────────────────────────────────────────
   useEffect(() => {

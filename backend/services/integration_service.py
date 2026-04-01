@@ -91,7 +91,7 @@ class IntegrationService:
         role_norm = (user.get("role") or "").strip().lower()
         
         # Calculate tenant_id
-        if role_norm in ["gerant", "gérant"]:
+        if role_norm in ["gerant"]:
             return str(user.get("id") or user.get("_id"))
         else:
             gerant_id = user.get("gerant_id")

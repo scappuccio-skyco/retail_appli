@@ -699,7 +699,7 @@ async def verify_evaluation_employee_access(
             raise ForbiddenError("Un vendeur ne peut générer que son propre bilan")
         return current_user
 
-    if role in ("manager", "gerant", "gérant"):
+    if role in ("manager", "gerant"):
         if seller_service is not None and store_service is not None:
             employee = await seller_service.get_user_by_id_and_role(
                 employee_id, "seller", {"_id": 0}

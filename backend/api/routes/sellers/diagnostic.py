@@ -607,7 +607,7 @@ async def get_seller_diagnostic_for_manager(
     """
     user_role = current_user.get('role')
     user_id = current_user.get('id')
-    if user_role not in ['manager', 'gerant', 'gérant']:
+    if user_role not in ['manager', 'gerant']:
         raise ForbiddenError("Accès réservé aux managers et gérants")
     seller = await seller_service.get_seller_profile(seller_id)
     if seller and seller.get("role") != "seller":
@@ -618,7 +618,7 @@ async def get_seller_diagnostic_for_manager(
     has_access = False
     if user_role == 'manager':
         has_access = (seller_store_id == current_user.get('store_id'))
-    elif user_role in ['gerant', 'gérant']:
+    elif user_role in ['gerant']:
         store = await seller_service.get_store_by_id(
             store_id=seller_store_id,
             gerant_id=user_id

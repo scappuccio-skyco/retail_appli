@@ -351,7 +351,7 @@ async def update_challenge_progress(
         actor_name = (
             context.get("name") or context.get("full_name") or context.get("email") or "Manager"
         )
-        if user_role in ["gerant", "gérant"] and not resolved_store_id:
+        if user_role in ["gerant"] and not resolved_store_id:
             raise ValidationError(
                 "Le paramètre store_id est requis pour mettre à jour la progression d'un challenge"
             )
@@ -367,7 +367,7 @@ async def update_challenge_progress(
             raise NotFoundError(
                 f"Challenge non trouvé dans le magasin spécifié (store_id: {resolved_store_id})"
             )
-        if user_role not in ["manager", "gerant", "gérant"]:
+        if user_role not in ["manager", "gerant"]:
             raise ForbiddenError(
                 "Seuls les managers peuvent mettre à jour la progression via cette route"
             )

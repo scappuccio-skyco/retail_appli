@@ -66,7 +66,7 @@ SCHEMAS: Dict[str, Dict[str, Any]] = {
                 "email": {"bsonType": "string"},
                 "role": {
                     "bsonType": "string",
-                    "enum": ["gerant", "gérant", "manager", "seller", "super_admin", "it_admin"],
+                    "enum": ["gerant", "manager", "seller", "super_admin", "it_admin"],
                 },
                 "status": {
                     "bsonType": ["string", "null"],

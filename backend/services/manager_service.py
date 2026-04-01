@@ -1170,7 +1170,7 @@ class APIKeyService:
         if role == 'manager':
             if key.get('user_id') != user_id:
                 raise PermissionError("Not authorized to delete this key")
-        elif role in ['gerant', 'gérant']:
+        elif role in ['gerant']:
             if key.get('gerant_id') != user_id:
                 raise PermissionError("Not authorized to delete this key")
         

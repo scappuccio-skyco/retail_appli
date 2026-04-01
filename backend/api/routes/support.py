@@ -57,7 +57,7 @@ async def send_support_message(
         
         # Get store/workspace info based on role (Zero Repo: StoreService methods only)
         context_info = "N/A"
-        if user_role == 'gerant' or user_role == 'gérant':
+        if user_role == 'gerant':
             workspace = await store_service.get_workspace_by_id(current_user.get('workspace_id'))
             context_info = workspace.get('name', 'N/A') if workspace else 'N/A'
         elif store_id:
@@ -67,7 +67,6 @@ async def send_support_message(
         # Role labels
         role_labels = {
             "gerant": "👔 Gérant",
-            "gérant": "👔 Gérant",
             "manager": "👥 Manager",
             "seller": "🛍️ Vendeur"
         }

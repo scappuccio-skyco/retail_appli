@@ -87,7 +87,7 @@ async def verify_seller_ownership_example(
                 )
             raise HTTPException(status_code=404, detail="Vendeur non trouvé")
             
-    elif role in ['gerant', 'gérant']:
+    elif role in ['gerant']:
         # Gérant : Le vendeur doit appartenir à un magasin possédé par le gérant
         # ✅ CRITIQUE : Vérifier la parenté via la hiérarchie store → gérant
         
@@ -217,7 +217,7 @@ async def verify_kpi_entry_ownership_example(
             {"_id": 0}
         )
         
-    elif role in ['gerant', 'gérant']:
+    elif role in ['gerant']:
         # Gérant : Le KPI doit appartenir à un vendeur d'un magasin possédé par le gérant
         # ✅ CRITIQUE : Vérification de parenté complète (kpi → seller → store → gérant)
         

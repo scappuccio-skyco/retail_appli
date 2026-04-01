@@ -177,11 +177,11 @@ async def save_manager_kpi(
     manager_id = context.get("id")
     role = context.get("role")
     if not resolved_store_id:
-        raise ValidationError("Store ID requis." if role in ["gerant", "gérant"] else "Le manager doit avoir un magasin assigné.")
+        raise ValidationError("Store ID requis." if role in ["gerant"] else "Le manager doit avoir un magasin assigné.")
     store = await manager_service.get_store_by_id_simple(resolved_store_id, projection={"_id": 0, "id": 1, "name": 1, "gerant_id": 1, "active": 1})
     if not store or not store.get("active"):
         raise NotFoundError(f"Magasin {resolved_store_id} non trouvé ou inactif")
-    if role in ["gerant", "gérant"] and store.get("gerant_id") != manager_id:
+    if role in ["gerant"] and store.get("gerant_id") != manager_id:
         raise ForbiddenError("Ce magasin ne vous appartient pas")
     if role == "manager" and context.get("store_id") != resolved_store_id:
         raise ForbiddenError("Ce magasin ne vous est pas assigné")

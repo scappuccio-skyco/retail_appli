@@ -74,7 +74,7 @@ async def resolve_store_context(
             "store_ids": store_ids,
         }
 
-    if role in ["gerant", "gérant"]:
+    if role in ["gerant"]:
         store_id = request.query_params.get("store_id")
         if not store_id:
             if include_seller:

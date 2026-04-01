@@ -50,7 +50,7 @@ async def get_subscription_status(
     En cas d'erreur, l'exception est propagée (4xx/5xx).
     """
     role = context.get("role")
-    if role in ["gerant", "gérant"]:
+    if role in ["gerant"]:
         workspace_id = context.get("workspace_id")
         if workspace_id:
             workspace = await gerant_service.get_workspace_by_id(workspace_id)
@@ -297,13 +297,13 @@ async def save_manager_kpi(
     manager_id = context.get("id")
     role = context.get("role")
     if not resolved_store_id:
-        raise ValidationError("Store ID requis. Veuillez fournir ?store_id=xxx" if role in ["gerant", "gérant"] else "Store ID requis.")
+        raise ValidationError("Store ID requis. Veuillez fournir ?store_id=xxx" if role in ["gerant"] else "Store ID requis.")
     store = await manager_service.get_store_by_id_simple(
         resolved_store_id, projection={"_id": 0, "id": 1, "name": 1, "gerant_id": 1, "active": 1}
     )
     if not store or not store.get("active"):
         raise NotFoundError(f"Magasin {resolved_store_id} non trouvé ou inactif")
-    if role in ["gerant", "gérant"] and store.get("gerant_id") != manager_id:
+    if role in ["gerant"] and store.get("gerant_id") != manager_id:
         raise ForbiddenError("Accès refusé : ce magasin ne vous appartient pas")
     if role == "manager" and context.get("store_id") != resolved_store_id:
         raise ForbiddenError(ERR_ACCES_REFUSE_MAGASIN_NON_ASSIGNE)
@@ -453,7 +453,7 @@ async def create_api_key(
     api_key_service: APIKeyService = Depends(get_api_key_service),
 ):
     """Create a new API key for integrations (Manager/Gérant)."""
-    gerant_id = current_user.get("id") if current_user["role"] in ["gerant", "gérant"] else None
+    gerant_id = current_user.get("id") if current_user["role"] in ["gerant"] else None
     return await api_key_service.create_api_key(
         user_id=current_user["id"],
         store_id=current_user.get("store_id"),

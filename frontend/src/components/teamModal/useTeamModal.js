@@ -31,7 +31,7 @@ export default function useTeamModal({ sellers, storeIdParam, userRole, storeNam
   const [selectedSellerForEval, setSelectedSellerForEval] = useState(null);
   const [teamKpiEntriesBySeller, setTeamKpiEntriesBySeller] = useState({});
 
-  const isGerantWithoutStore = ['gerant', 'gérant'].includes(userRole) && !storeIdParam;
+  const isGerantWithoutStore = userRole === 'gerant' && !storeIdParam;
 
   useEffect(() => {
     const initialVisibleSellers = {};

@@ -90,7 +90,7 @@ export const useSyncMode = (storeId = null) => {
             setSubscriptionBlockCode(code);
           }
         }
-      } else if (userRole === 'gerant' || userRole === 'gérant') {
+      } else if (userRole === 'gerant') {
         setSubscriptionBlockCode(null);
       }
 

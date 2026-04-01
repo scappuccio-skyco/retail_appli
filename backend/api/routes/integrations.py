@@ -327,7 +327,7 @@ async def update_user(
     role_norm = (user.get("role") or "").strip().lower()
     
     # Calculate user's tenant_id
-    if role_norm in ["gerant", "gérant"]:
+    if role_norm in ["gerant"]:
         user_tenant_id = user_id_normalized
     else:
         user_tenant_id = user.get("gerant_id")
@@ -423,7 +423,7 @@ async def delete_user(
     role_norm = (user.get("role") or "").strip().lower()
     
     # Verify it's a manager or seller (not gérant)
-    if role_norm in ["gerant", "gérant"]:
+    if role_norm in ["gerant"]:
         raise ForbiddenError("Cannot delete gérant via API")
     
     # Calculate user's tenant_id
