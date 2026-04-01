@@ -5,116 +5,152 @@ import React from 'react';
  */
 
 export const getGerantSteps = () => [
-  // Étape 1 : Bienvenue (vrai accueil, pas une tâche)
+  // Étape 1 : Bienvenue
   {
     icon: '👋',
     title: 'Bienvenue dans votre espace Gérant',
     description: (
       <>
-        <p className="text-blue-600 font-semibold">Vous pilotez votre entreprise depuis cet espace.</p>
-        <p className="mt-3 font-semibold">En tant que gérant, vous pouvez :</p>
+        <p className="text-blue-600 font-semibold">Vous pilotez l'ensemble de votre entreprise depuis cet espace.</p>
+        <p className="mt-3 font-semibold">5 onglets à votre disposition :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-          <li>Créer et gérer vos magasins</li>
-          <li>Inviter et gérer votre équipe</li>
-          <li>Suivre les performances globales</li>
-          <li>Gérer votre abonnement</li>
+          <li><strong>Vue d'ensemble</strong> — tableau de bord multi-magasins</li>
+          <li><strong>Magasins</strong> — créer et gérer chaque boutique</li>
+          <li><strong>Personnel</strong> — inviter, gérer et transférer votre équipe</li>
+          <li><strong>API</strong> — connecter vos outils externes</li>
+          <li><strong>Profil</strong> — vos informations personnelles</li>
         </ul>
       </>
     ),
-    tips: 'Ce tutoriel vous guide étape par étape. Vous pourrez le relancer à tout moment.'
+    tips: 'Ce tutoriel vous guide étape par étape. Vous pourrez le relancer à tout moment via le bouton "Tutoriel".'
   },
 
-  // Étape 2 : Créer et gérer les magasins
+  // Étape 2 : Créer les magasins
   {
     icon: '🏪',
     title: 'Créez vos magasins',
     description: (
       <>
-        <p className="text-orange-600 font-semibold">Première étape : créez vos magasins.</p>
-        <p className="mt-3 font-semibold">Pour chaque magasin :</p>
+        <p className="text-orange-600 font-semibold">Commencez par créer vos boutiques dans l'onglet "Magasins".</p>
+        <p className="mt-3 font-semibold">Pour chaque magasin vous renseignez :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-          <li>Nom de votre boutique</li>
-          <li>Adresse</li>
-          <li>Téléphone</li>
+          <li>Nom, adresse, téléphone</li>
           <li>Horaires d'ouverture</li>
         </ul>
-      </>
-    ),
-    tips: 'Vous pourrez ajouter, modifier ou supprimer des magasins à tout moment.'
-  },
-
-  // Étape 3 : Accéder à l'espace manager
-  {
-    icon: '🎯',
-    title: 'Gérez vos magasins au quotidien',
-    description: (
-      <>
-        <p className="text-blue-600 font-semibold">Deuxième étape : accédez à l'espace manager de vos magasins.</p>
-        <p className="mt-3 font-semibold">En tant que manager d'un magasin, vous pouvez :</p>
-        <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-          <li>Saisir les KPI quotidiens</li>
-          <li>Fixer des objectifs et challenges</li>
-          <li>Faire des états des lieux avec vos équipes</li>
-          <li>Gérer les vendeurs du magasin</li>
+        <p className="mt-3 font-semibold">Depuis le détail d'un magasin vous pouvez :</p>
+        <ul className="list-disc list-inside space-y-1 mt-1 text-left mx-auto max-w-md">
+          <li>Voir les performances du magasin</li>
+          <li>Voir l'équipe rattachée (managers et vendeurs)</li>
+          <li><strong>Accéder à l'espace Manager</strong> de la boutique</li>
         </ul>
       </>
     ),
-    tips: "Vous pouvez être à la fois gérant ET manager d'un ou plusieurs magasins. Cliquez sur \"Accéder à l'espace Manager\" dans le détail du magasin."
+    tips: 'En tant que gérant, vous pouvez aussi être manager d\'un magasin et saisir les KPI directement.'
   },
 
-  // Étape 4 : Inviter du personnel
+  // Étape 3 : Contexte métier IA
   {
-    icon: '👥',
-    title: 'Invitez et gérez votre équipe',
+    icon: '🤖',
+    title: 'Configurez le contexte métier de chaque boutique',
     description: (
       <>
-        <p className="text-blue-600 font-semibold">Troisième étape : constituez votre équipe.</p>
-        <p className="mt-3 font-semibold">Vos actions en tant que gérant :</p>
+        <p className="text-purple-600 font-semibold">C'est la fonctionnalité la plus puissante : elle personnalise toute l'IA.</p>
+        <p className="mt-3">Depuis le tableau de bord, cliquez sur ⚙️ à côté d'un magasin pour renseigner :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-          <li><strong>Inviter</strong> des managers et vendeurs par email</li>
-          <li><strong>Placer</strong> les utilisateurs dans les magasins</li>
-          <li><strong>Suspendre ou réactiver</strong> (mettre en veille) le personnel</li>
-          <li><strong>Valider ou supprimer</strong> les comptes utilisateurs</li>
+          <li>Type de commerce, positionnement prix, format</li>
+          <li>Clientèle cible, durée moyenne d'une vente</li>
+          <li>KPI prioritaires de la boutique</li>
+          <li>Saisonnalité et contexte libre</li>
         </ul>
+        <p className="mt-3 text-sm text-gray-600">Vous pouvez aussi appliquer un contexte à <strong>plusieurs magasins en même temps</strong> via la sélection multiple.</p>
       </>
     ),
-    tips: "Chaque invitation génère un lien unique envoyé par email. Seul le gérant peut inviter et gérer le statut du personnel."
+    tips: 'Plus le contexte est précis, plus les analyses IA (briefs, bilans, recommandations) seront pertinentes pour chaque boutique.'
   },
 
-  // Étape 5 : Statistiques globales
+  // Étape 4 : Tableau de bord & performances
   {
     icon: '📊',
-    title: 'Suivez vos performances',
+    title: 'Pilotez vos performances multi-magasins',
     description: (
       <>
-        <p className="text-purple-600 font-semibold">Quatrième étape : analysez les performances de votre entreprise.</p>
-        <p className="mt-3 font-semibold">Consultez les statistiques de toute votre entreprise :</p>
+        <p className="text-blue-600 font-semibold">La Vue d'ensemble vous donne une lecture globale en temps réel.</p>
+        <p className="mt-3 font-semibold">Ce que vous voyez :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-          <li>CA global et par magasin</li>
-          <li>Classement des magasins</li>
-          <li>Évolution temporelle</li>
-          <li>Comparaisons de performances</li>
+          <li>CA total, classement des magasins, évolution</li>
+          <li>Panier moyen, taux de transformation, prospects</li>
+          <li>Nombre de managers et vendeurs par boutique</li>
+        </ul>
+        <p className="mt-3 font-semibold">Ce que vous pouvez faire :</p>
+        <ul className="list-disc list-inside space-y-1 mt-1 text-left mx-auto max-w-md">
+          <li>Filtrer par <strong>semaine, mois ou année</strong> avec navigation dans le temps</li>
+          <li>Sélectionner plusieurs magasins et agir en masse</li>
+          <li><strong>Exporter le tableau en PDF</strong></li>
         </ul>
       </>
     ),
-    tips: 'Utilisez les filtres par période pour analyser les tendances. Les KPI sont saisis par les managers de chaque magasin.'
+    tips: 'Les données sont saisies par les managers de chaque magasin. Utilisez les filtres de période pour comparer des semaines ou des mois passés.'
   },
 
-  // Étape 6 : Abonnement
+  // Étape 5 : Gérer l'équipe
   {
-    icon: '💳',
-    title: 'Gérez votre abonnement',
+    icon: '👥',
+    title: 'Gérez votre équipe',
     description: (
       <>
-        <p className="text-green-600 font-semibold">Dernière étape : maîtrisez votre abonnement et facturation.</p>
-        <p className="mt-3 font-semibold">Consultez et gérez votre formule d'abonnement :</p>
+        <p className="text-blue-600 font-semibold">L'onglet "Personnel" centralise toute la gestion RH.</p>
+        <p className="mt-3 font-semibold">Vos actions :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-          <li>Plan actuel et nombre de sièges</li>
-          <li>Historique de facturation</li>
-          <li>Upgrade/downgrade</li>
+          <li><strong>Inviter</strong> un manager ou un vendeur par email</li>
+          <li><strong>Transférer</strong> un membre vers un autre magasin</li>
+          <li><strong>Suspendre / réactiver</strong> un compte</li>
+          <li><strong>Modifier</strong> les informations d'un utilisateur</li>
+          <li><strong>Supprimer</strong> un compte définitivement</li>
+          <li>Annuler une invitation en attente</li>
         </ul>
       </>
     ),
-    tips: 'Les sièges s\'ajustent automatiquement selon la taille de votre équipe.'
-  }
+    tips: "Chaque invitation génère un lien unique envoyé par email. Un manager peut être assigné à plusieurs magasins."
+  },
+
+  // Étape 6 : API
+  {
+    icon: '🔑',
+    title: 'Connectez vos outils via l\'API',
+    description: (
+      <>
+        <p className="text-indigo-600 font-semibold">L'onglet "API" vous permet d'intégrer Retail Performer AI à vos propres outils.</p>
+        <p className="mt-3 font-semibold">Vous pouvez :</p>
+        <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+          <li>Créer des <strong>clés API</strong> avec permissions et date d'expiration</li>
+          <li>Désactiver ou réactiver une clé</li>
+          <li>Consulter la <strong>documentation complète</strong> (endpoints, exemples JS/Node)</li>
+        </ul>
+        <p className="mt-3 text-sm text-gray-600">Idéal pour envoyer des données depuis votre logiciel de caisse ou votre CRM.</p>
+      </>
+    ),
+    tips: 'Chaque clé API est liée à votre espace. Ne la partagez pas publiquement — vous pouvez la désactiver à tout moment.'
+  },
+
+  // Étape 7 : Abonnement & Facturation
+  {
+    icon: '💳',
+    title: 'Gérez votre abonnement et votre facturation',
+    description: (
+      <>
+        <p className="text-green-600 font-semibold">Les boutons "Mon abonnement" et "Facturation" en haut de page centralisent tout.</p>
+        <p className="mt-3 font-semibold">Abonnement :</p>
+        <ul className="list-disc list-inside space-y-1 mt-1 text-left mx-auto max-w-md">
+          <li>Plan actuel, nombre de sièges utilisés</li>
+          <li>Changer de formule (upgrade / downgrade)</li>
+        </ul>
+        <p className="mt-3 font-semibold">Facturation :</p>
+        <ul className="list-disc list-inside space-y-1 mt-1 text-left mx-auto max-w-md">
+          <li>Profil B2B (raison sociale, TVA, adresse de facturation)</li>
+          <li>Historique des factures téléchargeables</li>
+        </ul>
+      </>
+    ),
+    tips: 'Les sièges s\'ajustent en fonction de votre équipe active (managers + vendeurs). Les comptes suspendus ne comptent pas.'
+  },
 ];
