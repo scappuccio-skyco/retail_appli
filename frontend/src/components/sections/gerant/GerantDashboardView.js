@@ -124,7 +124,18 @@ export default function GerantDashboardView({
     if (!contextModal) return;
     setContextLoading(true);
     api.get(`/gerant/stores/${contextModal.storeIds[0]}/business-context`)
-      .then(res => { if (res.data?.business_context) setContextForm(res.data.business_context); else setContextForm({}); })
+      .then(res => {
+        if (res.data?.business_context) {
+          const bc = res.data.business_context;
+          // rétrocompat : kpi_prioritaire était une string, on normalise en tableau
+          if (bc.kpi_prioritaire && !Array.isArray(bc.kpi_prioritaire)) {
+            bc.kpi_prioritaire = [bc.kpi_prioritaire];
+          }
+          setContextForm(bc);
+        } else {
+          setContextForm({});
+        }
+      })
       .catch(() => setContextForm({}))
       .finally(() => setContextLoading(false));
   }, [contextModal]);
@@ -152,6 +163,13 @@ export default function GerantDashboardView({
     clientele_cible: (prev.clientele_cible || []).includes(val)
       ? (prev.clientele_cible || []).filter(v => v !== val)
       : [...(prev.clientele_cible || []), val],
+  }));
+
+  const toggleKpi = (val) => setContextForm(prev => ({
+    ...prev,
+    kpi_prioritaire: (prev.kpi_prioritaire || []).includes(val)
+      ? (prev.kpi_prioritaire || []).filter(v => v !== val)
+      : [...(prev.kpi_prioritaire || []), val],
   }));
 
   // ── Rankings ───────────────────────────────────────────────
@@ -601,7 +619,6 @@ export default function GerantDashboardView({
                   { key: 'positionnement', label: '🎯 Positionnement prix', options: ['Entrée de gamme / discount','Milieu de gamme','Premium','Luxe'] },
                   { key: 'format_magasin', label: '🏪 Format du point de vente', options: ['Boutique de centre-ville','Centre commercial','Retail park / zone commerciale','Outlet / déstockage','Concept store','Pop-up / éphémère'] },
                   { key: 'duree_vente', label: '⏱️ Durée moyenne d\'une vente', options: ['Moins de 5 minutes','5 à 15 minutes','15 à 30 minutes','Plus de 30 minutes'] },
-                  { key: 'kpi_prioritaire', label: '📊 KPI prioritaire', options: ['Chiffre d\'affaires (CA)','Panier moyen','Taux de transformation','Indice de vente (UPT)','Fidélisation client'] },
                 ].map(({ key, label, options }) => (
                   <div key={key}>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</label>
@@ -619,6 +636,18 @@ export default function GerantDashboardView({
                     {['Familles','Jeunes (18-35 ans)','Seniors (50+)','Touristes','Professionnels / B2B','Enfants','Tous publics'].map(opt => (
                       <button key={opt} type="button" onClick={() => toggleClientele(opt)}
                         className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${(contextForm.clientele_cible || []).includes(opt) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-400'}`}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">📊 KPI prioritaires <span className="font-normal text-gray-500">(plusieurs choix)</span></label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Chiffre d\'affaires (CA)','Panier moyen','Taux de transformation','Indice de vente (UPT)','Fidélisation client'].map(opt => (
+                      <button key={opt} type="button" onClick={() => toggleKpi(opt)}
+                        className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${(contextForm.kpi_prioritaire || []).includes(opt) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-400'}`}>
                         {opt}
                       </button>
                     ))}
