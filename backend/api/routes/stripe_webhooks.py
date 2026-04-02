@@ -11,7 +11,8 @@ from fastapi.responses import JSONResponse
 
 from core.exceptions import ValidationError
 from services.payment_service import PaymentService
-from api.dependencies import get_payment_service
+from services.stripe_client import StripeClient
+from api.dependencies import get_payment_service, get_stripe_client
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +33,11 @@ async def stripe_webhook(
     request: Request,
     background_tasks: BackgroundTasks,
     payment_service: PaymentService = Depends(get_payment_service),
+    stripe_client: StripeClient = Depends(get_stripe_client),
 ):
     """
     Stripe Webhook Endpoint.
-    
+
     RC6: Returns 200 immediately, processes event in background to avoid Stripe timeout.
     Security: Validates webhook signature using STRIPE_WEBHOOK_SECRET.
     Handles: invoice.payment_*, customer.subscription.*, checkout.session.completed.
@@ -54,9 +56,7 @@ async def stripe_webhook(
         )
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, webhook_secret
-        )
+        event = stripe_client.construct_event(payload, sig_header, webhook_secret)
     except ValueError:
         logger.error("Invalid webhook payload")
         raise ValidationError("Invalid payload")

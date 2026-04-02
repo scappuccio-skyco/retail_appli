@@ -31,15 +31,17 @@ logger = logging.getLogger(__name__)
 class PaymentService:
     """Service for handling Stripe payments and subscriptions (repositories only)."""
 
-    def __init__(self, db):
+    def __init__(self, db, stripe_client=None):
         self.user_repo = UserRepository(db)
         self.subscription_repo = SubscriptionRepository(db)
         self.workspace_repo = WorkspaceRepository(db)
         self.stripe_event_repo = StripeEventRepository(db)
         self.payment_transaction_repo = PaymentTransactionRepository(db)
-        self.stripe_api_key = os.environ.get("STRIPE_API_KEY")
-        if self.stripe_api_key:
-            stripe.api_key = self.stripe_api_key
+        if stripe_client is not None:
+            self.stripe = stripe_client
+        else:
+            from services.stripe_client import StripeClient
+            self.stripe = StripeClient(api_key=os.environ.get("STRIPE_API_KEY") or "")
     
     # ==========================================
     # WEBHOOK EVENT HANDLERS
@@ -417,7 +419,7 @@ class PaymentService:
                 old_stripe_id = duplicate_check.get('stripe_subscription_id')
                 if old_stripe_id:
                     try:
-                        stripe.Subscription.modify(old_stripe_id, cancel_at_period_end=True)
+                        self.stripe.modify_subscription(old_stripe_id, cancel_at_period_end=True)
                         await self.subscription_repo.update_by_stripe_subscription(
                             old_stripe_id,
                             {
@@ -709,7 +711,7 @@ class PaymentService:
         billing_interval = 'month'  # Default
         if subscription_id:
             try:
-                stripe_sub = stripe.Subscription.retrieve(subscription_id)
+                stripe_sub = self.stripe.retrieve_subscription(subscription_id)
                 if stripe_sub.items.data:
                     price = stripe_sub.items.data[0].price
                     if price.recurring:
@@ -878,28 +880,25 @@ class PaymentService:
         proration_amount = 0
         
         # For active subscriptions with Stripe, update via API first
-        if not is_trial and subscription_item_id and self.stripe_api_key:
+        if not is_trial and subscription_item_id:
             try:
                 # CRITICAL: Call Stripe BEFORE updating local DB (atomicity)
-                stripe.api_key = self.stripe_api_key
-                
-                stripe.SubscriptionItem.modify(
+                self.stripe.modify_subscription_item(
                     subscription_item_id,
                     quantity=new_seats,
-                    proration_behavior='create_prorations'  # Explicit proration
+                    proration_behavior='create_prorations',
                 )
-                
                 logger.info(f"✅ Stripe SubscriptionItem updated: {subscription_item_id} → {new_seats} seats")
-                
+
                 # Get upcoming invoice to show proration
                 try:
                     stripe_sub_id = subscription.get('stripe_subscription_id')
                     if stripe_sub_id:
-                        upcoming = stripe.Invoice.upcoming(subscription=stripe_sub_id)
-                        proration_amount = upcoming.get('amount_due', 0) / 100  # Convert cents to euros
+                        upcoming = self.stripe.upcoming_invoice(stripe_sub_id)
+                        proration_amount = upcoming.get('amount_due', 0) / 100
                 except Exception as e:
                     logger.warning(f"Could not fetch proration: {e}")
-                    
+
             except stripe.StripeError as e:
                 logger.error(f"❌ Stripe API error: {str(e)}")
                 raise Exception(f"Erreur Stripe: {str(e)}")

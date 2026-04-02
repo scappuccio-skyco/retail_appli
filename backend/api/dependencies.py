@@ -4,6 +4,7 @@ Assembles repositories and services with database connection
 """
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import Optional
 
 from core.database import get_db
 from repositories.admin_repository import AdminRepository
@@ -67,6 +68,7 @@ ConflictService = RelationshipService
 from services.competence_service import CompetenceService
 from services.admin_service import AdminService
 from services.payment_service import PaymentService
+from services.stripe_client import StripeClient
 
 
 # ===== SERVICE DEPENDENCIES =====
@@ -334,18 +336,29 @@ def get_api_key_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> APIKeySer
     return APIKeyService(api_key_repo=APIKeyRepository(db))
 
 
-def get_payment_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> PaymentService:
+_stripe_client: Optional[StripeClient] = None
+
+
+def get_stripe_client() -> StripeClient:
+    """
+    Get (or lazily create) the StripeClient singleton.
+    Sets stripe.api_key once. Subsequent calls return the same instance.
+    """
+    global _stripe_client
+    if _stripe_client is None:
+        from core.config import settings
+        _stripe_client = StripeClient(api_key=settings.STRIPE_API_KEY or "")
+    return _stripe_client
+
+
+def get_payment_service(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    stripe_client: StripeClient = Depends(get_stripe_client),
+) -> PaymentService:
     """
     Get PaymentService instance with database dependency (RC6: DI instead of explicit instantiation).
-    
-    Usage in routes:
-        @router.post("/webhooks/stripe")
-        async def stripe_webhook(
-            payment_service: PaymentService = Depends(get_payment_service)
-        ):
-            ...
     """
-    return PaymentService(db)
+    return PaymentService(db, stripe_client=stripe_client)
 
 
 # Relationship Service — also handles conflict resolution (ConflictService merged in)
