@@ -15,10 +15,12 @@ from services.gerant_service._profile_mixin import ProfileMixin
 from services.gerant_service._subscription_mixin import SubscriptionMixin
 from services.gerant_service._stores_mixin import StoresMixin
 from services.gerant_service._staff_mixin import StaffMixin
+from services.gerant_service._staff_invitation_mixin import StaffInvitationMixin
+from services.gerant_service._staff_lifecycle_mixin import StaffLifecycleMixin
 from services.gerant_service._kpi_mixin import KpiMixin
 
 
-class GerantService(ProfileMixin, SubscriptionMixin, StoresMixin, StaffMixin, KpiMixin):
+class GerantService(ProfileMixin, SubscriptionMixin, StoresMixin, StaffMixin, StaffInvitationMixin, StaffLifecycleMixin, KpiMixin):
     """Service for gérant-specific operations. Phase 0: repositories only, no self.db."""
 
     def __init__(

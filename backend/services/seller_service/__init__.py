@@ -21,12 +21,14 @@ from repositories.seller_bilan_repository import SellerBilanRepository
 from services.seller_service._profile_mixin import ProfileMixin
 from services.seller_service._kpi_mixin import KpiMixin
 from services.seller_service._objectives_mixin import ObjectivesMixin
+from services.seller_service._tasks_mixin import TasksMixin
+from services.seller_service._objectives_calculation_mixin import ObjectivesCalculationMixin
 from services.seller_service._challenges_mixin import ChallengesMixin
 from services.seller_service._notes_mixin import NotesMixin
 from services.seller_service._sales_mixin import SalesMixin
 
 
-class SellerService(ProfileMixin, KpiMixin, ObjectivesMixin, ChallengesMixin, NotesMixin, SalesMixin):
+class SellerService(ProfileMixin, KpiMixin, ObjectivesMixin, TasksMixin, ObjectivesCalculationMixin, ChallengesMixin, NotesMixin, SalesMixin):
     """Service for seller-specific operations. All repos injected via __init__ (no self.db)."""
 
     def __init__(
