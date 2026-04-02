@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ Échec de paiement</h1>
+    </div>
+    <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">Bonjour {recipient_name},</p>
+        <p style="font-size: 16px;">
+            Le prélèvement de votre abonnement <strong>Retail Performer AI</strong> a échoué.
+            Votre accès reste actif pendant que Stripe retente automatiquement le paiement.
+        </p>
+        <div style="background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #EF4444;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Montant dû</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;">{amount_str}</td>
+                </tr>
+                <tr style="border-top: 1px solid #eee;">
+                    <td style="padding: 8px 0; color: #666;">Tentative n°</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;">{attempt_count}</td>
+                </tr>
+                {retry_row}
+            </table>
+        </div>
+        <div style="background: #FEF3C7; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+            <p style="margin: 0; font-size: 14px; color: #92400E;">
+                💡 <strong>Action requise :</strong> Mettez à jour votre moyen de paiement pour éviter
+                toute interruption de service.
+            </p>
+        </div>
+        <div style="text-align: center; margin: 28px 0;">
+            <a href="{frontend_url}/dashboard"
+               style="background: #EF4444; color: white; padding: 14px 32px; border-radius: 8px;
+                      text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
+                Mettre à jour ma carte bancaire
+            </a>
+        </div>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            Retail Performer AI · <a href="mailto:hello@retailperformerai.com" style="color: #999;">hello@retailperformerai.com</a><br>
+            © 2025 Tous droits réservés
+        </p>
+    </div>
+</body>
+</html>
