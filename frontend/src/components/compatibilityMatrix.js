@@ -1,6 +1,5 @@
 // Matrice de compatibilité manager × vendeur — données statiques
-export const compatibilityMatrix = 
-  const compatibilityMatrix = {
+export const compatibilityMatrix = {
     'Pilote': {
       'Convivial': {
         score: '⭐⭐⭐',

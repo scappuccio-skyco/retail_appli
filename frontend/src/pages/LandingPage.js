@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import BannerSection from './landingPage/BannerSection';
 import HeaderSection from './landingPage/HeaderSection';
 import HeroSection from './landingPage/HeroSection';
@@ -31,6 +32,64 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <Helmet>
+        <title>Retail Performer AI — Coaching commercial IA pour équipes retail</title>
+        <meta name="description" content="Transformez vos vendeurs en experts. L'IA coache vos équipes, génère les briefs du matin, analyse les KPIs et rédige vos bilans RH. Essai gratuit 30 jours. Dès 19€/vendeur/mois." />
+        <link rel="canonical" href="https://retailperformerai.com" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://retailperformerai.com" />
+        <meta property="og:title" content="Retail Performer AI — Coaching commercial IA pour équipes retail" />
+        <meta property="og:description" content="Transformez vos vendeurs en experts grâce à l'IA. Briefs du matin, diagnostics DISC, suivi KPI, bilans RH automatisés. Essai gratuit 30 jours." />
+        <meta property="og:image" content="https://retailperformerai.com/hero-retail-boutique.png" />
+        <meta property="og:locale" content="fr_FR" />
+        <meta property="og:site_name" content="Retail Performer AI" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Retail Performer AI — Coaching commercial IA pour équipes retail" />
+        <meta name="twitter:description" content="Transformez vos vendeurs en experts grâce à l'IA. Briefs du matin, diagnostics DISC, suivi KPI, bilans RH automatisés. Essai gratuit 30 jours." />
+        <meta name="twitter:image" content="https://retailperformerai.com/hero-retail-boutique.png" />
+
+        {/* JSON-LD */}
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "Retail Performer AI",
+          "url": "https://retailperformerai.com",
+          "description": "Plateforme de coaching commercial IA pour équipes retail. Diagnostics comportementaux DISC, briefs du matin générés par IA, suivi KPI, évaluations et bilans RH automatisés.",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "inLanguage": "fr",
+          "offers": {
+            "@type": "Offer",
+            "price": "19",
+            "priceCurrency": "EUR",
+            "priceSpecification": {
+              "@type": "UnitPriceSpecification",
+              "price": "19",
+              "priceCurrency": "EUR",
+              "unitText": "vendeur/mois"
+            },
+            "description": "Essai gratuit 30 jours — Tarif Fondateur dès 19€/vendeur/mois"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Retail Performer AI",
+            "url": "https://retailperformerai.com"
+          },
+          "featureList": [
+            "Diagnostics comportementaux DISC pour vendeurs et managers",
+            "Briefs du matin générés par intelligence artificielle",
+            "Suivi KPI et objectifs en temps réel",
+            "Évaluations et bilans RH automatisés",
+            "Coaching personnalisé par profil comportemental",
+            "Multi-magasins et multi-équipes",
+            "Connexion API avec tous logiciels de caisse"
+          ]
+        })}</script>
+      </Helmet>
       <BannerSection />
       <HeaderSection
         mobileMenuOpen={mobileMenuOpen}
