@@ -27,7 +27,7 @@ import SellerObjectivesModalVariant from '../../SellerObjectivesModalVariant';
 
 /**
  * Couche de tous les modals du dashboard vendeur.
- * Reçoit les états et handlers du parent SellerDashboard.
+ * Reçoit un registre `modals` (objet) + `setModal(name, value)` du parent SellerDashboard.
  */
 export default function SellerModalsLayer({
   // Data
@@ -42,60 +42,19 @@ export default function SellerModalsLayer({
   generatingBilan,
   initialTab,
 
-  // Modal visibility
-  showEvalModal,
-  showDebriefModal,
-  showDebriefHistoryModal,
-  showKPIModal,
-  showKPIHistoryModal,
-  showChallengeHistoryModal,
-  showDailyChallengeModal,
-  showDiagnosticModal,
-  showProfileModal,
-  showPerformanceModal,
-  showObjectivesModal,
-  initialObjectiveId,
-  showBilanModal,
-  showDiagnosticFormModal,
-  showCompetencesModal,
-  showKPIReporting,
-  showCoachingModal,
-  showNotesNotebook,
-  showEvaluationModal,
-  showSupportModal,
-  showManagerCompatModal,
-  // Modal setters
-  setShowEvalModal,
-  setShowDebriefModal,
-  setShowDebriefHistoryModal,
-  setShowKPIModal,
-  setShowKPIHistoryModal,
-  setShowChallengeHistoryModal,
-  setShowDailyChallengeModal,
-  setShowDiagnosticModal,
-  setShowProfileModal,
-  setShowPerformanceModal,
-  setShowObjectivesModal,
-  setInitialObjectiveId,
-  setShowBilanModal,
-  setShowDiagnosticFormModal,
-  setShowCompetencesModal,
-  setShowKPIReporting,
-  setShowCoachingModal,
-  setShowNotesNotebook,
-  setShowEvaluationModal,
-  setShowSupportModal,
-  setShowManagerCompatModal,
+  // Modal registry
+  modals,
+  setModal,
 
-  // KPI edit state
+  // Modal-adjacent state (carry data, not just open/close)
+  initialObjectiveId,
+  setInitialObjectiveId,
   editingKPI,
   setEditingKPI,
-
-  // Auto-expand debrief
   autoExpandDebriefId,
   setAutoExpandDebriefId,
 
-  // Week navigation
+  // Week / tab navigation
   setCurrentWeekOffset,
   setInitialTab,
 
@@ -124,51 +83,51 @@ export default function SellerModalsLayer({
 
   return (
     <>
-      {showEvalModal && (
+      {modals.eval && (
         <EvaluationModal
           sales={sales}
-          onClose={() => setShowEvalModal(false)}
+          onClose={() => setModal('eval', false)}
           onSuccess={() => {
             fetchData();
-            setShowEvalModal(false);
+            setModal('eval', false);
           }}
         />
       )}
 
-      {showDebriefModal && (
+      {modals.debrief && (
         <DebriefModal
-          onClose={() => setShowDebriefModal(false)}
+          onClose={() => setModal('debrief', false)}
           onSuccess={() => {
             fetchData();
-            setShowDebriefModal(false);
+            setModal('debrief', false);
           }}
         />
       )}
 
-      {showDebriefHistoryModal && (
+      {modals.debriefHistory && (
         <DebriefHistoryModal
           onClose={() => {
-            setShowDebriefHistoryModal(false);
+            setModal('debriefHistory', false);
             setAutoExpandDebriefId(null);
           }}
           onSuccess={(newDebrief) => {
             setAutoExpandDebriefId(newDebrief.id);
-            setShowDebriefHistoryModal(false);
+            setModal('debriefHistory', false);
             fetchDebriefs();
-            setTimeout(() => setShowDebriefHistoryModal(true), 500);
+            setTimeout(() => setModal('debriefHistory', true), 500);
           }}
           autoExpandDebriefId={autoExpandDebriefId}
         />
       )}
 
-      {showKPIModal && (
+      {modals.kpi && (
         <KPIEntryModal
           onClose={() => {
-            setShowKPIModal(false);
+            setModal('kpi', false);
             setEditingKPI(null);
           }}
           onSuccess={async () => {
-            setShowKPIModal(false);
+            setModal('kpi', false);
             setEditingKPI(null);
             await fetchData();
             refreshCompetenceScores();
@@ -179,35 +138,35 @@ export default function SellerModalsLayer({
         />
       )}
 
-      {showKPIHistoryModal && (
+      {modals.kpiHistory && (
         <KPIHistoryModal
           kpiEntries={kpiEntries}
           kpiConfig={kpiConfig}
-          onClose={() => setShowKPIHistoryModal(false)}
+          onClose={() => setModal('kpiHistory', false)}
           onNewKPI={() => {
-            setShowKPIHistoryModal(false);
+            setModal('kpiHistory', false);
             handleOpenKPIModal();
           }}
           onEditKPI={(entry) => {
-            setShowKPIHistoryModal(false);
+            setModal('kpiHistory', false);
             handleOpenKPIModal(entry);
           }}
         />
       )}
 
-      {showChallengeHistoryModal && (
+      {modals.challengeHistory && (
         <ChallengeHistoryModal
-          onClose={() => setShowChallengeHistoryModal(false)}
+          onClose={() => setModal('challengeHistory', false)}
         />
       )}
 
-      {showDailyChallengeModal && dailyChallenge && (
+      {modals.dailyChallenge && dailyChallenge && (
         <DailyChallengeModal
           challenge={dailyChallenge}
-          onClose={() => setShowDailyChallengeModal(false)}
+          onClose={() => setModal('dailyChallenge', false)}
           onOpenHistory={() => {
-            setShowDailyChallengeModal(false);
-            setShowChallengeHistoryModal(true);
+            setModal('dailyChallenge', false);
+            setModal('challengeHistory', true);
           }}
           onRefresh={(newChallenge) => setDailyChallenge(newChallenge)}
           onComplete={(updatedChallenge) => {
@@ -218,7 +177,7 @@ export default function SellerModalsLayer({
       )}
 
       {/* Diagnostic invitation modal */}
-      {showDiagnosticModal && (
+      {modals.diagnostic && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Diagnostic vendeur</h2>
@@ -228,7 +187,7 @@ export default function SellerModalsLayer({
             <div className="flex gap-3">
               <button
                 onClick={() => {
-                  setShowDiagnosticModal(false);
+                  setModal('diagnostic', false);
                   navigate('/diagnostic');
                 }}
                 className="flex-1 btn-primary"
@@ -236,7 +195,7 @@ export default function SellerModalsLayer({
                 Commencer
               </button>
               <button
-                onClick={() => setShowDiagnosticModal(false)}
+                onClick={() => setModal('diagnostic', false)}
                 className="flex-1 btn-secondary"
               >
                 Plus tard
@@ -246,18 +205,18 @@ export default function SellerModalsLayer({
         </div>
       )}
 
-      {showProfileModal && (
+      {modals.profile && (
         <SellerProfileModal
           diagnostic={diagnostic}
-          onClose={() => setShowProfileModal(false)}
-          onRedoDiagnostic={() => setShowDiagnosticFormModal(true)}
+          onClose={() => setModal('profile', false)}
+          onRedoDiagnostic={() => setModal('diagnosticForm', true)}
         />
       )}
 
-      {showPerformanceModal && (
+      {modals.performance && (
         <PerformanceModal
-          isOpen={showPerformanceModal}
-          onClose={() => { setShowPerformanceModal(false); setInitialTab('bilan'); }}
+          isOpen={modals.performance}
+          onClose={() => { setModal('performance', false); setInitialTab('bilan'); }}
           bilanData={bilanIndividuel} kpiEntries={kpiEntries} user={user}
           kpiConfig={kpiConfig} currentWeekOffset={currentWeekOffset}
           onWeekChange={(offset) => { setCurrentWeekOffset(offset); fetchBilanIndividuel(offset); }}
@@ -265,20 +224,20 @@ export default function SellerModalsLayer({
           generatingBilan={generatingBilan} initialTab={initialTab}
           isReadOnly={isSubscriptionExpired} onLoadMoreKpi={loadMoreKpiEntries}
           kpiEntriesTotal={kpiEntriesTotal}
-          onEditKPI={(entry) => { handleOpenKPIModal(entry); setShowPerformanceModal(false); }}
+          onEditKPI={(entry) => { handleOpenKPIModal(entry); setModal('performance', false); }}
         />
       )}
 
-      {showObjectivesModal && (
+      {modals.objectives && (
         <SellerObjectivesModalVariant
-          isOpen={showObjectivesModal}
-          onClose={() => { setShowObjectivesModal(false); setInitialObjectiveId?.(null); }}
+          isOpen={modals.objectives}
+          onClose={() => { setModal('objectives', false); setInitialObjectiveId?.(null); }}
           activeObjectives={activeObjectives} initialObjectiveId={initialObjectiveId}
           onUpdate={async () => { await fetchActiveObjectives(); }}
         />
       )}
 
-      {showBilanModal && bilanIndividuel && (
+      {modals.bilan && bilanIndividuel && (
         <BilanIndividuelModal
           bilan={bilanIndividuel}
           kpiConfig={kpiConfig}
@@ -290,50 +249,50 @@ export default function SellerModalsLayer({
           }}
           onRegenerate={regenerateBilan}
           generatingBilan={generatingBilan}
-          onClose={() => setShowBilanModal(false)}
+          onClose={() => setModal('bilan', false)}
         />
       )}
 
-      {showDiagnosticFormModal && (
+      {modals.diagnosticForm && (
         <DiagnosticFormScrollable
           isModal={true}
-          onClose={() => setShowDiagnosticFormModal(false)}
+          onClose={() => setModal('diagnosticForm', false)}
           onComplete={async () => {
-            setShowDiagnosticFormModal(false);
+            setModal('diagnosticForm', false);
             await fetchData();
-            setShowProfileModal(true);
+            setModal('profile', true);
           }}
         />
       )}
 
-      {showCompetencesModal && (
+      {modals.competences && (
         <CompetencesExplicationModal
-          onClose={() => setShowCompetencesModal(false)}
+          onClose={() => setModal('competences', false)}
         />
       )}
 
-      {showKPIReporting && (
+      {modals.kpiReporting && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowKPIReporting(false)}
+          onClick={() => setModal('kpiReporting', false)}
         >
           <div
             className="bg-white rounded-2xl w-full max-w-7xl max-h-[90vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <KPIReporting user={user} onBack={() => setShowKPIReporting(false)} />
+            <KPIReporting user={user} onBack={() => setModal('kpiReporting', false)} />
           </div>
         </div>
       )}
 
       <CoachingModal
         key={dailyChallenge?.id || 'no-challenge'}
-        isOpen={showCoachingModal}
-        onClose={() => setShowCoachingModal(false)}
+        isOpen={modals.coaching}
+        onClose={() => setModal('coaching', false)}
         dailyChallenge={dailyChallenge}
         onRefreshChallenge={(newChallenge) => { if (newChallenge) setDailyChallenge(newChallenge); else fetchDailyChallenge(); }}
         onCompleteChallenge={async () => { await fetchDailyChallenge(); }}
-        onOpenChallengeHistory={() => { setShowCoachingModal(false); setShowChallengeHistoryModal(true); }}
+        onOpenChallengeHistory={() => { setModal('coaching', false); setModal('challengeHistory', true); }}
         debriefs={debriefs}
         onCreateDebrief={async () => { await fetchDebriefs(); }}
       />
@@ -352,28 +311,28 @@ export default function SellerModalsLayer({
       />
 
       <EvaluationNotesNotebook
-        isOpen={showNotesNotebook}
-        onClose={() => setShowNotesNotebook(false)}
-        onGenerateSynthesis={() => { setShowNotesNotebook(false); setShowEvaluationModal(true); }}
+        isOpen={modals.notesNotebook}
+        onClose={() => setModal('notesNotebook', false)}
+        onGenerateSynthesis={() => { setModal('notesNotebook', false); setModal('evaluation', true); }}
       />
 
       <EvaluationGenerator
-        isOpen={showEvaluationModal}
-        onClose={() => setShowEvaluationModal(false)}
+        isOpen={modals.evaluation}
+        onClose={() => setModal('evaluation', false)}
         employeeId={user?.id}
         employeeName={user?.name}
         role="seller"
       />
 
       <SupportModal
-        isOpen={showSupportModal}
-        onClose={() => setShowSupportModal(false)}
+        isOpen={modals.support}
+        onClose={() => setModal('support', false)}
       />
 
-      {showManagerCompatModal && (
+      {modals.managerCompat && (
         <SellerManagerCompatibiliteModal
           diagnostic={diagnostic}
-          onClose={() => setShowManagerCompatModal(false)}
+          onClose={() => setModal('managerCompat', false)}
         />
       )}
     </>

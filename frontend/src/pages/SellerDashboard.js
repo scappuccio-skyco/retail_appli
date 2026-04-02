@@ -31,37 +31,27 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showFilters, setShowFilters] = useState(false);
   const [initialTab, setInitialTab] = useState('bilan');
 
-  // ── Modal state ────────────────────────────────────────────
-  const [showEvalModal, setShowEvalModal] = useState(false);
-  const [showDebriefModal, setShowDebriefModal] = useState(false);
-  const [showDebriefHistoryModal, setShowDebriefHistoryModal] = useState(false);
-  const [autoExpandDebriefId, setAutoExpandDebriefId] = useState(null);
-  const [showKPIModal, setShowKPIModal] = useState(false);
-  const [showKPIHistoryModal, setShowKPIHistoryModal] = useState(false);
+  // ── Modal registry ─────────────────────────────────────────
+  const [modals, setModals] = useState({
+    eval: false, debrief: false, debriefHistory: false, kpi: false, kpiHistory: false,
+    challengeHistory: false, dailyChallenge: false, diagnostic: false, profile: false,
+    performance: false, objectives: false, bilan: false, diagnosticForm: false,
+    competences: false, kpiReporting: false, coaching: false, notesNotebook: false,
+    evaluation: false, support: false, managerCompat: false,
+  });
+  const setModal = (name, value) => setModals(prev => ({ ...prev, [name]: value }));
+
+  // ── Modal-adjacent state (carry data, not just open/close) ─
   const [editingKPI, setEditingKPI] = useState(null);
-  const [showKPIReporting, setShowKPIReporting] = useState(false);
-  const [showChallengeHistoryModal, setShowChallengeHistoryModal] = useState(false);
-  const [showDailyChallengeModal, setShowDailyChallengeModal] = useState(false);
-  const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showPerformanceModal, setShowPerformanceModal] = useState(false);
-  const [showObjectivesModal, setShowObjectivesModal] = useState(false);
+  const [autoExpandDebriefId, setAutoExpandDebriefId] = useState(null);
   const [initialObjectiveId, setInitialObjectiveId] = useState(null);
-  const [showBilanModal, setShowBilanModal] = useState(false);
-  const [showDiagnosticFormModal, setShowDiagnosticFormModal] = useState(false);
-  const [showCompetencesModal, setShowCompetencesModal] = useState(false);
-  const [showCoachingModal, setShowCoachingModal] = useState(false);
-  const [showNotesNotebook, setShowNotesNotebook] = useState(false);
-  const [showEvaluationModal, setShowEvaluationModal] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
-  const [showManagerCompatModal, setShowManagerCompatModal] = useState(false);
 
   // ── Onboarding ─────────────────────────────────────────────
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
   const [kpiModeReady, setKpiModeReady] = useState(false);
   const onboardingRef = useRef(null);
   const sellerSteps = useMemo(() => getSellerSteps(kpiMode, {
-    openDiagnostic: () => { onboardingRef.current?.close(); setShowDiagnosticFormModal(true); },
+    openDiagnostic: () => { onboardingRef.current?.close(); setModal('diagnosticForm', true); },
     openKPI: () => { onboardingRef.current?.close(); handleOpenKPIModal(); },
   }), [kpiMode]); // eslint-disable-line react-hooks/exhaustive-deps
   const onboarding = useOnboarding(sellerSteps.length, { readyToAutoOpen: kpiModeReady });
@@ -93,19 +83,19 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       return;
     }
     if (entry) setEditingKPI(entry);
-    setShowKPIModal(true);
+    setModal('kpi', true);
   };
 
   const handleOpenKpi = () => {
     setInitialTab('saisie');
-    setShowPerformanceModal(true);
+    setModal('performance', true);
   };
 
   const handleOpenDiagnostic = (forceForm = false) => {
     if (forceForm || !data.diagnostic) {
-      setShowDiagnosticFormModal(true);
+      setModal('diagnosticForm', true);
     } else {
-      setShowProfileModal(true);
+      setModal('profile', true);
     }
   };
 
@@ -132,12 +122,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         diagnostic={data.diagnostic}
         onLogout={onLogout}
         onboarding={onboarding}
-        onOpenProfile={() => setShowProfileModal(true)}
-        onOpenDiagnosticForm={() => setShowDiagnosticFormModal(true)}
+        onOpenProfile={() => setModal('profile', true)}
+        onOpenDiagnosticForm={() => setModal('diagnosticForm', true)}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters(f => !f)}
-        onOpenSupport={() => setShowSupportModal(true)}
-        onOpenManagerCompat={() => setShowManagerCompatModal(true)}
+        onOpenSupport={() => setModal('support', true)}
+        onOpenManagerCompat={() => setModal('managerCompat', true)}
       />
 
       <SellerPersonalizationBar
@@ -162,12 +152,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             diagnostic={data.diagnostic}
             onOpenDiagnostic={handleOpenDiagnostic}
             onOpenKpi={handleOpenKpi}
-            onOpenCoaching={() => setShowCoachingModal(true)}
-            onOpenDebrief={() => setShowDebriefModal(true)}
-            onOpenBilan={() => { setInitialTab('bilan'); setShowPerformanceModal(true); }}
+            onOpenCoaching={() => setModal('coaching', true)}
+            onOpenDebrief={() => setModal('debrief', true)}
+            onOpenBilan={() => { setInitialTab('bilan'); setModal('performance', true); }}
             onOpenObjectives={(objectiveId) => {
               setInitialObjectiveId(objectiveId || null);
-              setShowObjectivesModal(true);
+              setModal('objectives', true);
             }}
           />
         </div>
@@ -176,10 +166,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           finalOrder={finalOrder}
           dashboardFilters={dashboardFilters}
           activeObjectives={data.activeObjectives}
-          onOpenPerformance={() => setShowPerformanceModal(true)}
-          onOpenObjectives={() => setShowObjectivesModal(true)}
-          onOpenCoaching={() => setShowCoachingModal(true)}
-          onOpenNotes={() => setShowNotesNotebook(true)}
+          onOpenPerformance={() => setModal('performance', true)}
+          onOpenObjectives={() => setModal('objectives', true)}
+          onOpenCoaching={() => setModal('coaching', true)}
+          onOpenNotes={() => setModal('notesNotebook', true)}
         />
 
         <SellerCompetencesRadar competencesHistory={data.competencesHistory} />
@@ -197,57 +187,17 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         currentWeekOffset={data.currentWeekOffset}
         generatingBilan={data.generatingBilan}
         initialTab={initialTab}
-        // Modal visibility
-        showEvalModal={showEvalModal}
-        showDebriefModal={showDebriefModal}
-        showDebriefHistoryModal={showDebriefHistoryModal}
-        showKPIModal={showKPIModal}
-        showKPIHistoryModal={showKPIHistoryModal}
-        showChallengeHistoryModal={showChallengeHistoryModal}
-        showDailyChallengeModal={showDailyChallengeModal}
-        showDiagnosticModal={showDiagnosticModal}
-        showProfileModal={showProfileModal}
-        showPerformanceModal={showPerformanceModal}
-        showObjectivesModal={showObjectivesModal}
+        // Modal registry
+        modals={modals}
+        setModal={setModal}
+        // Modal-adjacent state
         initialObjectiveId={initialObjectiveId}
-        showBilanModal={showBilanModal}
-        showDiagnosticFormModal={showDiagnosticFormModal}
-        showCompetencesModal={showCompetencesModal}
-        showKPIReporting={showKPIReporting}
-        showCoachingModal={showCoachingModal}
-        showNotesNotebook={showNotesNotebook}
-        showEvaluationModal={showEvaluationModal}
-        showSupportModal={showSupportModal}
-        showManagerCompatModal={showManagerCompatModal}
-        // Modal setters
-        setShowEvalModal={setShowEvalModal}
-        setShowDebriefModal={setShowDebriefModal}
-        setShowDebriefHistoryModal={setShowDebriefHistoryModal}
-        setShowKPIModal={setShowKPIModal}
-        setShowKPIHistoryModal={setShowKPIHistoryModal}
-        setShowChallengeHistoryModal={setShowChallengeHistoryModal}
-        setShowDailyChallengeModal={setShowDailyChallengeModal}
-        setShowDiagnosticModal={setShowDiagnosticModal}
-        setShowProfileModal={setShowProfileModal}
-        setShowPerformanceModal={setShowPerformanceModal}
-        setShowObjectivesModal={setShowObjectivesModal}
         setInitialObjectiveId={setInitialObjectiveId}
-        setShowBilanModal={setShowBilanModal}
-        setShowDiagnosticFormModal={setShowDiagnosticFormModal}
-        setShowCompetencesModal={setShowCompetencesModal}
-        setShowKPIReporting={setShowKPIReporting}
-        setShowCoachingModal={setShowCoachingModal}
-        setShowNotesNotebook={setShowNotesNotebook}
-        setShowEvaluationModal={setShowEvaluationModal}
-        setShowSupportModal={setShowSupportModal}
-        setShowManagerCompatModal={setShowManagerCompatModal}
-        // KPI edit
         editingKPI={editingKPI}
         setEditingKPI={setEditingKPI}
-        // Auto-expand debrief
         autoExpandDebriefId={autoExpandDebriefId}
         setAutoExpandDebriefId={setAutoExpandDebriefId}
-        // Week navigation
+        // Week / tab navigation
         setCurrentWeekOffset={data.setCurrentWeekOffset}
         setInitialTab={setInitialTab}
         // Data setters
