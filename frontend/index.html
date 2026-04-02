@@ -4,9 +4,25 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
-        <meta name="description" content="Retail Performer AI - La plateforme de coaching commercial pour vos équipes de vente" />
+        <meta name="description" content="Transformez vos vendeurs en experts. L'IA coache vos équipes, génère les briefs du matin, analyse les KPIs et rédige vos bilans RH. Essai gratuit 30 jours. Dès 19€/vendeur/mois." />
         <meta name="google" content="notranslate" />
         <meta http-equiv="Content-Language" content="fr" />
+        <link rel="canonical" href="https://retailperformerai.com" />
+
+        <!-- Open Graph (fallback statique avant chargement React) -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://retailperformerai.com" />
+        <meta property="og:title" content="Retail Performer AI — Coaching commercial IA pour équipes retail" />
+        <meta property="og:description" content="Transformez vos vendeurs en experts grâce à l'IA. Briefs du matin, diagnostics DISC, suivi KPI, bilans RH automatisés. Essai gratuit 30 jours." />
+        <meta property="og:image" content="https://retailperformerai.com/hero-retail-boutique.png" />
+        <meta property="og:locale" content="fr_FR" />
+        <meta property="og:site_name" content="Retail Performer AI" />
+
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Retail Performer AI — Coaching commercial IA pour équipes retail" />
+        <meta name="twitter:description" content="Transformez vos vendeurs en experts grâce à l'IA. Briefs du matin, diagnostics DISC, suivi KPI, bilans RH automatisés. Essai gratuit 30 jours." />
+        <meta name="twitter:image" content="https://retailperformerai.com/hero-retail-boutique.png" />
         
         <!-- Filtrer les erreurs MetaMask AVANT le chargement de React -->
         <script>
@@ -196,8 +212,59 @@
         </script>
     </head>
     <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <noscript>
+          <div style="font-family:sans-serif;max-width:900px;margin:0 auto;padding:40px 20px;color:#1e293b;">
+            <h1>Retail Performer AI — Transformez vos vendeurs en experts</h1>
+            <p><strong>Objectif : Boostez vos ventes jusqu'à +30%</strong></p>
+            <p>L'Assistant Intelligent qui coache vos vendeurs et rédige vos bilans RH, tout en sécurisant votre management. Propulsé par l'Intelligence Artificielle.</p>
+            <p><a href="https://retailperformerai.com/early-access">Essai Gratuit 30 Jours — Sans engagement</a></p>
+
+            <h2>Une Plateforme Complète et Intelligente</h2>
+            <p>Tout ce dont vous avez besoin pour développer l'excellence de vos équipes commerciales en retail.</p>
+
+            <h3>Intelligence Comportementale (DISC)</h3>
+            <p>Ne parlez pas de la même façon à tous vos vendeurs. L'IA identifie le profil de chacun (Rouge, Jaune, Vert, Bleu) et vous dicte les mots exacts pour les motiver et les faire performer. Audit complet du style de leadership pour les managers et diagnostic de performance sur les 5 piliers de la vente pour les vendeurs. Pour un management 100% personnalisé.</p>
+
+            <h3>Briefs et Rituels d'Animation</h3>
+            <p>Transformez vos KPI en discours mobilisateurs. Chaque matin, générez en 2 secondes le brief parfait : flash-back sur la veille, objectifs du jour et booster de motivation. Pour lancer la journée sur une victoire.</p>
+
+            <h3>Montée en Compétence</h3>
+            <p>L'évaluation n'est plus une corvée annuelle. Suivez la progression de vos équipes semaine après semaine, détectez les besoins de formation et validez les acquis en temps réel. Pour transformer vos vendeurs en experts.</p>
+
+            <h3>Sérénité Managériale</h3>
+            <p>Soyez sûr de vos écrits. Qu'il s'agisse de recadrer, de féliciter ou d'évaluer, l'IA garantit un ton professionnel, constructif et toujours conforme aux bonnes pratiques RH. Pour manager avec assurance et sécurité.</p>
+
+            <h2>Fonctionnalités incluses</h2>
+            <ul>
+              <li>Dashboard Gérant, Manager et Vendeur</li>
+              <li>Diagnostic Profil Manager (DISC)</li>
+              <li>Diagnostic Profil Vendeur (DISC)</li>
+              <li>Coaching IA et Briefs Matinaux</li>
+              <li>Préparation des Évaluations</li>
+              <li>Suivi KPI, Objectifs et Challenges</li>
+              <li>Connexion API avec tous logiciels de caisse</li>
+              <li>Multi-magasins et multi-équipes</li>
+              <li>Analyses IA illimitées</li>
+            </ul>
+
+            <h2>Tarifs Simples et Transparents</h2>
+            <p>Espace Gérant et Manager inclus dans tous les plans.</p>
+            <ul>
+              <li><strong>Small Team</strong> (1 à 5 vendeurs) : 19€/vendeur/mois TTC — Tarif Fondateur</li>
+              <li><strong>Medium Team</strong> (6 à 15 vendeurs) : 15€/vendeur/mois TTC</li>
+              <li><strong>Large Team</strong> (16 vendeurs et plus) : tarif sur devis</li>
+            </ul>
+            <p>Essai gratuit 30 jours — Sans carte bancaire — Sans engagement</p>
+
+            <h2>Pour qui ?</h2>
+            <p>Retail Performer AI s'adresse aux gérants de boutiques, directeurs de magasins, managers d'équipes commerciales et responsables retail qui souhaitent améliorer les performances de leurs vendeurs grâce à l'intelligence artificielle.</p>
+
+            <p><a href="https://retailperformerai.com/early-access">Commencer l'essai gratuit</a></p>
+          </div>
+        </noscript>
         <div id="root" translate="no"></div>
+        <!-- Efface le contenu pre-rendu pour les routes non-landing (évite le flash sur /seller, /manager…) -->
+        <script>if(location.pathname!=='/')document.getElementById('root').innerHTML='';</script>
         <script type="module" src="/src/index.js"></script>
         <script>
             !(function (t, e) {
