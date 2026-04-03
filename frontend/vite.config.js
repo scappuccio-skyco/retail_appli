@@ -26,4 +26,15 @@ export default defineConfig({
     include: /src\/.*\.js$/,
     exclude: [],
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/setupTests.js'],
+    include: ['src/**/*.test.{js,jsx}'],
+    css: false,
+    // Pass 8GB heap to fork workers so React 19 + jsdom initialisation doesn't OOM
+    forks: {
+      execArgv: ['--max-old-space-size=8192'],
+    },
+  },
 });
