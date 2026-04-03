@@ -14,7 +14,7 @@ export default function TutorialButton({ onClick, isCompleted = false, currentSt
     <button
       onClick={onClick}
       className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-      title={isCompleted ? 'Revoir le guide' : 'Découvrir l\'application'}
+      title="Tuto"
     >
       <div className="relative">
         <GraduationCap className="w-5 h-5" />
@@ -22,9 +22,7 @@ export default function TutorialButton({ onClick, isCompleted = false, currentSt
           <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
         )}
       </div>
-      <span className="hidden md:inline">
-        {isCompleted ? 'Revoir le guide' : 'Tutoriel'}
-      </span>
+      <span className="hidden md:inline">Tuto</span>
       {inProgress && totalSteps && (
         <span className="text-xs font-medium text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded">
           {currentStep}/{totalSteps}
