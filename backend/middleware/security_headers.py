@@ -24,7 +24,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """
     
     async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except Exception as exc:
+            # BaseHTTPMiddleware + AnyIO can raise RuntimeError("No response returned.")
+            # when an exception propagates through the task group during concurrent requests.
+            # Return a proper 500 instead of letting the RuntimeError crash Starlette.
+            logger.error("SecurityHeadersMiddleware: exception in handler chain: %s", exc)
+            return Response("Internal Server Error", status_code=500)
 
         # ✅ SECURITY: Add security headers
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
