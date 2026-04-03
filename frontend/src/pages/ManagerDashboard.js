@@ -8,6 +8,7 @@ import ManagerPersonalizationBar from '../components/sections/manager/ManagerPer
 import ManagerDashboardGrid from '../components/sections/manager/ManagerDashboardGrid';
 import ManagerModalsLayer from '../components/sections/manager/ManagerModalsLayer';
 import ManagerTaskList from '../components/ManagerTaskList';
+import FirstStepsCard from '../components/onboarding/FirstStepsCard';
 
 export default function ManagerDashboard({ user, onLogout }) {
   const s = useManagerDashboard({ user });
@@ -113,6 +114,10 @@ export default function ManagerDashboard({ user, onLogout }) {
             if (seller) { s.setSelectedSeller({ ...seller, _openTab: 'reminder' }); s.setShowDetailView(true); }
           }}
         />
+      </div>
+
+      <div className="max-w-7xl mx-auto">
+        <FirstStepsCard onboarding={s.onboarding} steps={s.managerSteps} />
       </div>
 
       <ManagerDashboardGrid

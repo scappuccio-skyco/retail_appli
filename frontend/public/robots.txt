@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /gerant-dashboard
+Disallow: /manager-view
+Disallow: /manager/
+Disallow: /diagnostic
+Disallow: /superadmin
+Disallow: /register/
+Disallow: /invitation/
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /early-access-success
+Disallow: /welcome-pilot
+
+Sitemap: https://retailperformerai.com/sitemap.xml

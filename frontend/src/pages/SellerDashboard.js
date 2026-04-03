@@ -12,6 +12,7 @@ import SellerTaskList from '../components/sections/seller/SellerTaskList';
 import SellerDashboardGrid from '../components/sections/seller/SellerDashboardGrid';
 import SellerModalsLayer from '../components/sections/seller/SellerModalsLayer';
 import SellerCompetencesRadar from '../components/sections/seller/SellerCompetencesRadar';
+import FirstStepsCard from '../components/onboarding/FirstStepsCard';
 
 // Dashboard-scoped hooks
 import { useSellerDashboardData } from './sellerDashboard/useSellerDashboardData';
@@ -161,6 +162,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             }}
           />
         </div>
+
+        <FirstStepsCard onboarding={onboarding} steps={sellerSteps} />
 
         <SellerDashboardGrid
           finalOrder={finalOrder}
