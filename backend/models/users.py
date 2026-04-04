@@ -4,11 +4,20 @@ User authentication, registration and invitations
 All Pydantic models for users domain
 """
 from __future__ import annotations  # For forward references
+from enum import Enum
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import Optional, List, Dict
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 import uuid
+
+
+class UserRole(str, Enum):
+    GERANT = "gerant"
+    MANAGER = "manager"
+    SELLER = "seller"
+    SUPER_ADMIN = "super_admin"
+    IT_ADMIN = "it_admin"
 
 
 class User(BaseModel):
@@ -17,7 +26,7 @@ class User(BaseModel):
     name: str
     email: EmailStr
     password: str
-    role: str  # "gerant" | "manager" | "seller" | "it_admin"
+    role: UserRole
     status: str = "active"  # active, inactive, deleted
     phone: Optional[str] = None
     
