@@ -33,6 +33,18 @@ const faqs = [
   {
     question: "Proposez-vous une formation ?",
     answer: "L'outil est conçu pour être Plug & Play. Des guides interactifs sont intégrés dans chaque écran pour accompagner vos équipes pas à pas. Pour les équipes importantes (plan Large Team), nous proposons un onboarding personnalisé."
+  },
+  {
+    question: "Qu'est-ce que le profil DISC et pourquoi l'utiliser en retail ?",
+    answer: "Le DISC est la méthode comportementale la plus utilisée au monde. Elle classe les individus selon 4 profils : Dominant (direct, orienté résultats), Influent (enthousiaste, sociable), Stable (patient, loyal) et Consciencieux (précis, analytique). En retail, connaître le profil DISC de chaque vendeur permet d'adapter son style de management, ses briefs du matin et ses feedbacks pour maximiser la motivation et la performance individuelle."
+  },
+  {
+    question: "Quels KPI retail dois-je suivre pour piloter mon équipe de vendeurs ?",
+    answer: "Les 5 KPI essentiels en retail sont : le Taux de Transformation (clients convertis / visiteurs), le Panier Moyen (CA / nombre de transactions), l'Indice de Vente Complémentaire (articles par ticket), le Taux de Fidélisation client et le Chiffre d'Affaires par vendeur. Retail Performer AI centralise et visualise ces indicateurs en temps réel pour chaque vendeur et chaque magasin, avec des alertes automatiques dès qu'un écart est détecté."
+  },
+  {
+    question: "Comment le diagnostic DISC améliore-t-il la performance de mes vendeurs ?",
+    answer: "En identifiant le profil comportemental de chaque vendeur, l'IA adapte automatiquement le ton et le contenu des briefs du matin, des feedbacks et des évaluations. Un vendeur Dominant (D) sera motivé par des défis et de l'autonomie, quand un vendeur Stable (S) aura besoin de réassurance et de reconnaissance collective. Cette personnalisation crée une adhésion plus forte aux objectifs et réduit le turnover."
   }
 ];
 

@@ -12,6 +12,7 @@ import FaqSection from './landingPage/FaqSection';
 import CtaSection from './landingPage/CtaSection';
 import ContactSection from './landingPage/ContactSection';
 import FooterSection from './landingPage/FooterSection';
+import DiscSection from './landingPage/DiscSection';
 import DemoModal from './landingPage/DemoModal';
 import LiveDemoModal from './landingPage/LiveDemoModal';
 
@@ -33,23 +34,23 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       <Helmet>
-        <title>Retail Performer AI — Coaching commercial IA pour équipes retail</title>
-        <meta name="description" content="Transformez vos vendeurs en experts. L'IA coache vos équipes, génère les briefs du matin, analyse les KPIs et rédige vos bilans RH. Essai gratuit 30 jours. Dès 19€/vendeur/mois." />
+        <title>Logiciel KPI Retail & Diagnostic DISC pour Managers | Retail Performer AI</title>
+        <meta name="description" content="Pilotez vos KPI retail et coachez vos équipes avec le diagnostic DISC. Briefs IA personnalisés, suivi performance vendeurs, multi-magasins. Essai gratuit 30 jours. Dès 19€/vendeur/mois." />
         <link rel="canonical" href="https://retailperformerai.com" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://retailperformerai.com" />
-        <meta property="og:title" content="Retail Performer AI — Coaching commercial IA pour équipes retail" />
-        <meta property="og:description" content="Transformez vos vendeurs en experts grâce à l'IA. Briefs du matin, diagnostics DISC, suivi KPI, bilans RH automatisés. Essai gratuit 30 jours." />
+        <meta property="og:title" content="Logiciel KPI Retail & Diagnostic DISC pour Managers | Retail Performer AI" />
+        <meta property="og:description" content="Pilotez vos KPI retail et coachez vos équipes grâce au diagnostic DISC. Briefs IA personnalisés, suivi performance vendeurs, multi-magasins. Essai gratuit 30 jours." />
         <meta property="og:image" content="https://retailperformerai.com/hero-retail-boutique.png" />
         <meta property="og:locale" content="fr_FR" />
         <meta property="og:site_name" content="Retail Performer AI" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Retail Performer AI — Coaching commercial IA pour équipes retail" />
-        <meta name="twitter:description" content="Transformez vos vendeurs en experts grâce à l'IA. Briefs du matin, diagnostics DISC, suivi KPI, bilans RH automatisés. Essai gratuit 30 jours." />
+        <meta name="twitter:title" content="Logiciel KPI Retail & Diagnostic DISC pour Managers | Retail Performer AI" />
+        <meta name="twitter:description" content="Pilotez vos KPI retail et coachez vos équipes grâce au diagnostic DISC. Briefs IA personnalisés, suivi performance vendeurs, multi-magasins. Essai gratuit 30 jours." />
         <meta name="twitter:image" content="https://retailperformerai.com/hero-retail-boutique.png" />
 
         {/* JSON-LD */}
@@ -99,6 +100,7 @@ export default function LandingPage() {
       <HeroSection scrollToSection={scrollToSection} onOpenLiveDemo={() => setShowLiveDemoModal(true)} />
       <SocialProofSection />
       <ProblemSolutionSection />
+      <DiscSection />
       <FeaturesSection />
       <ScreenshotsSection />
       <PricingSection

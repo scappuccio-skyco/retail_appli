@@ -35,9 +35,13 @@ export default function HeroSection({ scrollToSection, onOpenLiveDemo }) {
             </div>
 
             <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-4 text-white">
-              Transformez vos vendeurs en{' '}
+              Pilotez vos{' '}
               <span className="bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">
-                experts
+                KPI Retail
+              </span>{' '}
+              & coachez avec le{' '}
+              <span className="bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">
+                Profil DISC
               </span>
             </h1>
 
@@ -46,8 +50,7 @@ export default function HeroSection({ scrollToSection, onOpenLiveDemo }) {
             </p>
 
             <p className="text-sm sm:text-base text-white/80 mb-8 leading-relaxed">
-              L'Assistant Intelligent qui coache vos vendeurs et rédige vos bilans RH,
-              tout en sécurisant votre management.
+              La plateforme IA qui analyse la performance de vos vendeurs, génère des briefs personnalisés selon leur profil DISC et sécurise votre management RH.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
