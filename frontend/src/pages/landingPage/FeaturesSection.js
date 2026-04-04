@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, TrendingUp, FileText, Shield, LayoutDashboard } from 'lucide-react';
+import { Users, TrendingUp, FileText, Shield, LayoutDashboard, Star } from 'lucide-react';
 
 export default function FeaturesSection() {
   const features = [
@@ -43,12 +43,21 @@ export default function FeaturesSection() {
       impact: 'Pour manager avec assurance et sécurité.',
       badge: 'Manager'
     },
+    {
+      icon: <Star className="w-8 h-8" />,
+      color: 'from-[#059669] to-[#047857]',
+      title: 'Mon Espace Vendeur',
+      description: "Saisissez vos KPI quotidiens en quelques secondes, consultez votre profil DISC et votre style de vente parmi 5 profils retail. Suivez votre évolution sur 4 niveaux gamifiés — du Nouveau Talent au Maître du Jeu — et recevez chaque matin un brief personnalisé à votre profil.",
+      impact: 'Pour que chaque vendeur devienne acteur de sa performance.',
+      badge: 'Vendeur'
+    },
   ];
 
   const badgeColors = {
     'Gérant': 'bg-purple-100 text-purple-700',
     'Manager': 'bg-blue-100 text-blue-700',
     'Manager & Vendeur': 'bg-orange-100 text-orange-700',
+    'Vendeur': 'bg-green-100 text-green-700',
   };
 
   return (
