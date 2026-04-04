@@ -36,15 +36,19 @@ const faqs = [
   },
   {
     question: "Qu'est-ce que le profil DISC et pourquoi l'utiliser en retail ?",
-    answer: "Le DISC est la méthode comportementale la plus utilisée au monde. Elle classe les individus selon 4 profils : Dominant (direct, orienté résultats), Influent (enthousiaste, sociable), Stable (patient, loyal) et Consciencieux (précis, analytique). En retail, connaître le profil DISC de chaque vendeur permet d'adapter son style de management, ses briefs du matin et ses feedbacks pour maximiser la motivation et la performance individuelle."
+    answer: "Le DISC est la méthode comportementale la plus utilisée au monde (4 profils : Dominant, Influent, Stable, Consciencieux). Retail Performer AI propose deux diagnostics distincts : un diagnostic vendeur (5 styles de vente retail) et un diagnostic manager (7 profils de management). Connaître les deux permet d'adapter les briefs, les feedbacks et les évaluations à chaque individu — et d'utiliser la matrice de compatibilité manager × vendeur pour que chaque manager sache exactement comment coacher chaque vendeur de son équipe."
   },
   {
     question: "Quels KPI retail dois-je suivre pour piloter mon équipe de vendeurs ?",
     answer: "Les 5 KPI essentiels en retail sont : le Taux de Transformation (clients convertis / visiteurs), le Panier Moyen (CA / nombre de transactions), l'Indice de Vente Complémentaire (articles par ticket), le Taux de Fidélisation client et le Chiffre d'Affaires par vendeur. Retail Performer AI centralise et visualise ces indicateurs en temps réel pour chaque vendeur et chaque magasin, avec des alertes automatiques dès qu'un écart est détecté."
   },
   {
-    question: "Comment le diagnostic DISC améliore-t-il la performance de mes vendeurs ?",
-    answer: "En identifiant le profil comportemental de chaque vendeur, l'IA adapte automatiquement le ton et le contenu des briefs du matin, des feedbacks et des évaluations. Un vendeur Dominant (D) sera motivé par des défis et de l'autonomie, quand un vendeur Stable (S) aura besoin de réassurance et de reconnaissance collective. Cette personnalisation crée une adhésion plus forte aux objectifs et réduit le turnover."
+    question: "Comment fonctionne la gestion multi-magasins pour un gérant ?",
+    answer: "Le gérant dispose d'un espace dédié avec une vue consolidée de tous ses points de vente : KPI agrégés par magasin, comparaison des performances entre boutiques, alertes sur les vendeurs silencieux (sans saisie depuis X jours). Il peut configurer le contexte métier de chaque magasin pour que l'IA personalise les analyses selon la réalité terrain de chaque point de vente. Aucun rapport manuel à demander aux managers."
+  },
+  {
+    question: "Comment le diagnostic DISC améliore-t-il la performance de mes équipes ?",
+    answer: "En identifiant le profil comportemental de chaque vendeur ET de chaque manager, l'IA adapte automatiquement le ton et le contenu des briefs, feedbacks et évaluations. La matrice de compatibilité révèle les duos qui fonctionnent bien naturellement et ceux qui nécessitent une adaptation de communication — évitant les frictions inutiles et réduisant le turnover. Un Pilote (manager D) apprendra à ménager son Discret (vendeur S), quand un Coach (manager I/S) sera alerté sur la nécessité de tenir le cap sur les KPI."
   }
 ];
 
