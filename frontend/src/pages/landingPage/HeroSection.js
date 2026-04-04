@@ -50,7 +50,7 @@ export default function HeroSection({ scrollToSection, onOpenLiveDemo }) {
             </p>
 
             <p className="text-sm sm:text-base text-white/80 mb-8 leading-relaxed">
-              La plateforme IA qui analyse la performance de vos vendeurs, génère des briefs personnalisés selon leur profil DISC et sécurise votre management RH.
+              La plateforme IA qui donne aux gérants une visibilité complète sur leurs équipes, pilote les KPI de chaque magasin et coache chaque vendeur selon son profil DISC.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-8">

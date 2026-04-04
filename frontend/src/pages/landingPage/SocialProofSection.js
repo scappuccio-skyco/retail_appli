@@ -7,7 +7,7 @@ export default function SocialProofSection() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center">
           <p className="text-lg sm:text-xl font-semibold text-[#334155] mb-8">
-            Une solution conçue par des Managers Retail, pour des Managers Retail
+            Une solution conçue par des experts terrain, pour les gérants, managers et équipes retail
           </p>
           <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
             {/* Carte 1 - L'Expertise */}
