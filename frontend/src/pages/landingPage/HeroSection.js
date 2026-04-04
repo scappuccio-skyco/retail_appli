@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Zap, Play } from 'lucide-react';
+import { ArrowRight, Check, Zap } from 'lucide-react';
 
 export default function HeroSection({ scrollToSection, onOpenLiveDemo }) {
   const navigate = useNavigate();
@@ -60,13 +60,6 @@ export default function HeroSection({ scrollToSection, onOpenLiveDemo }) {
               >
                 Essai Gratuit 30 Jours
                 <ArrowRight className="w-5 h-5" />
-              </button>
-              <button
-                onClick={onOpenLiveDemo}
-                className="hidden sm:flex px-7 py-3.5 bg-white/15 backdrop-blur-sm text-white text-base font-semibold rounded-xl border border-white/40 hover:bg-white/25 transition-all items-center justify-center gap-2"
-              >
-                <Play className="w-4 h-4" />
-                Explorer la démo
               </button>
             </div>
 
