@@ -161,12 +161,12 @@ export default function DiscSection() {
           <h3 className="text-xl font-semibold text-[#334155] text-center mb-8">
             Les 4 profils comportementaux de base
           </h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {DISC_PROFILES.map((profile) => (
               <div
                 key={profile.letter}
                 onClick={() => setActiveProfile(activeProfile === profile.letter ? null : profile.letter)}
-                className={`rounded-2xl border-2 ${profile.border} ${profile.bg} p-6 cursor-pointer transition-all hover:shadow-lg ${activeProfile === profile.letter ? 'shadow-lg scale-[1.02]' : ''}`}
+                className={`rounded-2xl border-2 ${profile.border} ${profile.bg} p-4 sm:p-6 cursor-pointer transition-all hover:shadow-lg ${activeProfile === profile.letter ? 'shadow-lg scale-[1.02]' : ''}`}
               >
                 <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${profile.color} flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-md`}>
                   {profile.letter}
@@ -216,7 +216,7 @@ export default function DiscSection() {
               <h3 className="text-xl font-semibold text-[#334155] text-center mb-6">
                 Les 5 styles de vente en retail
               </h3>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 {SELLER_STYLES.map((style) => (
                   <div key={style.name} className="bg-gray-50 rounded-xl border border-gray-200 p-5 text-center hover:shadow-md transition-all">
                     <div className="text-3xl mb-3">{style.icon}</div>
@@ -241,7 +241,7 @@ export default function DiscSection() {
               <p className="text-center text-sm text-[#64748B] mb-6">
                 Chaque manager a un style naturel. L&apos;IA identifie ses forces, ses angles de progression et lui indique comment adapter son coaching à chaque profil vendeur.
               </p>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-3">
                 {MANAGER_PROFILES.map((profile) => (
                   <div
                     key={profile.name}
