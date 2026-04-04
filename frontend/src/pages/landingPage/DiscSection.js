@@ -169,7 +169,7 @@ export default function DiscSection() {
                 onClick={() => setActiveProfile(activeProfile === profile.letter ? null : profile.letter)}
                 className={`rounded-2xl border-2 ${profile.border} ${profile.bg} p-4 sm:p-6 cursor-pointer transition-all hover:shadow-lg ${activeProfile === profile.letter ? 'shadow-lg scale-[1.02]' : ''}`}
               >
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${profile.color} flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-md`}>
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${profile.color} flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-md mx-auto lg:mx-0`}>
                   {profile.letter}
                 </div>
                 <h4 className={`text-lg font-bold ${profile.textColor} mb-1`}>Profil {profile.name}</h4>

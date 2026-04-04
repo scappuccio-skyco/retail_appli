@@ -78,7 +78,7 @@ export default function FaqSection({ openFaq, setOpenFaq }) {
                 />
               </button>
               {openFaq === idx && (
-                <div className="px-6 pb-4 text-[#334155]">
+                <div className="px-6 pt-3 pb-4 text-[#334155]">
                   {faq.answer}
                 </div>
               )}
