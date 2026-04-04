@@ -110,10 +110,17 @@ Manager × Vendeur — conseils de communication adaptés selon les profils DISC
 
 ---
 
+## Environnements de déploiement
+
+| Branche | Environnement | Déclencheur CI |
+|---|---|---|
+| `develop` | **Staging** | Push → tests CI auto |
+| `main` | **Production** | Push → tests CI auto |
+
 ## Règles à appliquer après chaque modification
 
 1. **Commit clair** avec message en anglais, format : `feat|fix|docs|refactor(scope): description`
-2. **Push sur les 2 environnements** (origin + production quand configuré)
+2. **Push sur les 2 environnements** : merger dans `develop` (staging) puis `main` (production) et pusher les deux
 3. **Mettre à jour ce fichier CLAUDE.md** si une nouvelle décision structurante est prise
 4. **Ne pas toucher** aux mots-clés du H1 (`KPI Retail`, `Profil DISC`) sans discussion préalable
 5. **Ne pas déplacer** les CTAs démo sans discussion préalable — les placements sont validés
