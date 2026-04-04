@@ -1,4 +1,10 @@
 // Matrice de compatibilité manager × vendeur — données statiques
+import {
+  LABEL_MANAGER_STRATEGE_X_VENDEUR_CHALLENGER,
+  LABEL_MANAGER_STRATEGE_X_VENDEUR_DYNAMIQUE,
+  LABEL_MANAGER_STRATEGE_X_VENDEUR_TECHNIQUE,
+} from '../lib/constants';
+
 export const compatibilityMatrix = {
     'Pilote': {
       'Convivial': {
