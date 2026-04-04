@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Users } from 'lucide-react';
+import { Check, Users, Play, Calendar } from 'lucide-react';
 
-export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection }) {
+export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection, onOpenLiveDemo, onOpenDemoModal }) {
   const navigate = useNavigate();
 
   return (
@@ -269,8 +269,29 @@ export default function PricingSection({ isAnnual, setIsAnnual, scrollToSection 
           </div>
         </div>
 
+        {/* Ligne secondaire — alternatives pour visiteurs hésitants */}
+        <div className="text-center mt-10">
+          <p className="text-[#64748B] text-sm mb-4">Pas encore convaincu ?</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={onOpenLiveDemo}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-[#1E40AF]/30 text-[#1E40AF] font-semibold rounded-xl hover:border-[#1E40AF] hover:bg-blue-50 transition-all text-sm"
+            >
+              <Play className="w-4 h-4" />
+              Explorer la démo en direct
+            </button>
+            <button
+              onClick={onOpenDemoModal}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-[#F97316]/30 text-[#F97316] font-semibold rounded-xl hover:border-[#F97316] hover:bg-orange-50 transition-all text-sm"
+            >
+              <Calendar className="w-4 h-4" />
+              Demander une démo personnalisée
+            </button>
+          </div>
+        </div>
+
         {/* Pricing Footer */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-10">
           {isAnnual && (
             <div className="inline-block mb-6 px-6 py-3 bg-green-50 border-2 border-green-200 rounded-xl">
               <p className="text-green-800 font-bold text-lg">

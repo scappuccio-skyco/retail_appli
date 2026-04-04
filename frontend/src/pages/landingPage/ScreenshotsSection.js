@@ -1,7 +1,7 @@
 import React from 'react';
-import { Check, Building2, Users, BarChart3 } from 'lucide-react';
+import { Check, Building2, Users, BarChart3, Play } from 'lucide-react';
 
-export default function ScreenshotsSection() {
+export default function ScreenshotsSection({ onOpenLiveDemo }) {
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -146,6 +146,22 @@ export default function ScreenshotsSection() {
             </div>
           </div>
         </div>
+
+        {/* CTA Explorer la démo */}
+        <div className="text-center mt-14 pt-10 border-t border-gray-100">
+          <p className="text-[#334155] text-lg font-medium mb-4">
+            Ces dashboards sont disponibles maintenant — explorez-les en direct
+          </p>
+          <button
+            onClick={onOpenLiveDemo}
+            className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#1E40AF] text-white font-semibold rounded-xl hover:bg-[#1E3A8A] hover:shadow-lg transition-all"
+          >
+            <Play className="w-4 h-4" />
+            Explorer la démo en direct
+          </button>
+          <p className="text-sm text-[#64748B] mt-3">Lecture seule · Données fictives · Aucun compte requis</p>
+        </div>
+
       </div>
     </section>
   );

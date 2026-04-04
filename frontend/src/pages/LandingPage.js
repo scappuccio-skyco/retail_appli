@@ -102,14 +102,16 @@ export default function LandingPage() {
       <ProblemSolutionSection />
       <DiscSection />
       <FeaturesSection />
-      <ScreenshotsSection />
+      <ScreenshotsSection onOpenLiveDemo={() => setShowLiveDemoModal(true)} />
       <PricingSection
         isAnnual={isAnnual}
         setIsAnnual={setIsAnnual}
         scrollToSection={scrollToSection}
+        onOpenLiveDemo={() => setShowLiveDemoModal(true)}
+        onOpenDemoModal={() => setShowDemoModal(true)}
       />
       <FaqSection openFaq={openFaq} setOpenFaq={setOpenFaq} />
-      <CtaSection />
+      <CtaSection onOpenLiveDemo={() => setShowLiveDemoModal(true)} />
       <ContactSection setShowDemoModal={setShowDemoModal} />
       <FooterSection scrollToSection={scrollToSection} />
       <DemoModal showDemoModal={showDemoModal} setShowDemoModal={setShowDemoModal} />
