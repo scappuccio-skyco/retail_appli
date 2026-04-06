@@ -71,7 +71,7 @@ export default function ProfilDiscRetail() {
         </div>
 
         {/* Corps */}
-        <div className="prose prose-slate max-w-none prose-headings:text-[#1E293B] prose-a:text-[#F97316]">
+        <div className="prose prose-lg prose-slate max-w-none prose-headings:text-[#1E293B] prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-slate-700 prose-p:leading-relaxed prose-p:mb-5 prose-li:text-slate-700 prose-li:leading-relaxed prose-a:text-[#F97316] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1E293B] prose-table:text-sm">
 
           <h2 id="quest-ce-que-disc">Qu'est-ce que le profil DISC ?</h2>
           <p>

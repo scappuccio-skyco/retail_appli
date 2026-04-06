@@ -71,7 +71,7 @@ export default function KpiRetail() {
         </div>
 
         {/* Corps */}
-        <div className="prose prose-slate max-w-none prose-headings:text-[#1E293B] prose-a:text-[#F97316]">
+        <div className="prose prose-lg prose-slate max-w-none prose-headings:text-[#1E293B] prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-slate-700 prose-p:leading-relaxed prose-p:mb-5 prose-li:text-slate-700 prose-li:leading-relaxed prose-a:text-[#F97316] prose-a:no-underline hover:prose-a:underline prose-strong:text-[#1E293B] prose-table:text-sm">
 
           <h2 id="pourquoi-kpi">Pourquoi les KPI retail sont-ils essentiels ?</h2>
           <p>
@@ -81,7 +81,7 @@ export default function KpiRetail() {
             Les <strong>KPI retail</strong> (Key Performance Indicators) permettent de <strong>mesurer objectivement la performance</strong> de chaque vendeur et de l'équipe, d'identifier les leviers d'amélioration, et de suivre l'impact des actions de coaching dans le temps. C'est la différence entre manager à l'intuition et manager avec méthode.
           </p>
           <p>
-            Une étude menée sur 200 points de vente en France montre que les managers qui suivent au moins 4 KPI individuels par semaine obtiennent en moyenne <strong>+23% de performance commerciale</strong> sur leurs équipes versus ceux qui ne suivent que le chiffre d'affaires global.
+            Les managers qui suivent des KPI individuels régulièrement obtiennent des résultats significativement meilleurs que ceux qui ne pilotent que le chiffre d'affaires global — parce qu'ils peuvent agir sur les causes, pas seulement constater les effets.
           </p>
 
           <h2 id="7-kpi">Les 7 KPI retail indispensables</h2>
@@ -116,9 +116,9 @@ export default function KpiRetail() {
 
           <h3>5. Le taux de fidélisation</h3>
           <p>
-            Le taux de fidélisation mesure la proportion de clients qui reviennent acheter dans les 90 jours suivant leur premier achat. Il est souvent négligé mais c'est <strong>l'indicateur le plus rentable</strong> : acquérir un nouveau client coûte 5 à 7 fois plus cher que fidéliser un client existant.
+            Le taux de fidélisation mesure la proportion de clients qui reviennent acheter dans les 90 jours suivant leur premier achat. Il est souvent négligé mais c'est <strong>l'indicateur le plus rentable</strong> : fidéliser un client existant coûte bien moins cher qu'en acquérir un nouveau.
           </p>
-          <p><strong>Profil DISC le plus performant :</strong> les profils S et I excellent naturellement sur cet indicateur grâce à leur sens de la relation client.</p>
+          <p><strong>Profil DISC :</strong> les profils S et I excellent naturellement sur cet indicateur grâce à leur sens de la relation client.</p>
 
           <h3>6. Le taux de sortie sans achat</h3>
           <p>
