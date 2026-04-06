@@ -30,6 +30,10 @@ import LegalNotice from './pages/legal/LegalNotice';
 import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 
+// Blog pages
+import ProfilDiscRetail from './pages/blog/ProfilDiscRetail';
+import KpiRetail from './pages/blog/KpiRetail';
+
 // Contextes
 import { AuthProvider, SubscriptionProvider, useAuth } from './contexts';
 
@@ -117,6 +121,10 @@ function AppContent() {
         <Route path="/legal" element={<LegalNotice />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+
+        {/* Blog */}
+        <Route path="/blog/profil-disc-retail" element={<ProfilDiscRetail />} />
+        <Route path="/blog/kpi-retail" element={<KpiRetail />} />
         
         {/* Early Access Pages - Public */}
         <Route path="/early-access" element={<EarlyAccess />} />

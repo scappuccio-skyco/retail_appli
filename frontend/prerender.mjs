@@ -28,25 +28,38 @@ try {
   const ssrEntry = pathToFileURL(path.resolve(__dirname, 'dist-server/entry-server.mjs')).href;
   const { render } = await import(ssrEntry);
 
-  // 3. Lire build/index.html
+  // 3. Lire build/index.html une seule fois comme template de base
   const templatePath = path.resolve(__dirname, 'build/index.html');
   const template = fs.readFileSync(templatePath, 'utf-8');
 
-  // 4. Rendre la landing page en HTML statique
-  const { html } = render('/');
-
-  // 5. Injecter le HTML dans le root div
-  const finalHtml = template.replace(
-    '<div id="root" translate="no"></div>',
-    `<div id="root" translate="no">${html}</div>`,
-  );
-
-  if (finalHtml === template) {
+  if (!template.includes('<div id="root" translate="no"></div>')) {
     throw new Error('Marqueur <div id="root"> introuvable dans build/index.html — injection impossible.');
   }
 
-  fs.writeFileSync(templatePath, finalHtml);
-  console.log('✓ Pre-render terminé : build/index.html enrichi avec le HTML de la landing page');
+  // 4. Pages à pre-rendre
+  const pages = [
+    { route: '/', output: 'build/index.html' },
+    { route: '/blog/profil-disc-retail', output: 'build/blog/profil-disc-retail/index.html' },
+    { route: '/blog/kpi-retail', output: 'build/blog/kpi-retail/index.html' },
+  ];
+
+  for (const page of pages) {
+    const { html } = render(page.route);
+
+    // Toujours utiliser le template original (avec le marqueur vide)
+    const finalHtml = template.replace(
+      '<div id="root" translate="no"></div>',
+      `<div id="root" translate="no">${html}</div>`,
+    );
+
+    // Créer le dossier si nécessaire
+    const outputPath = path.resolve(__dirname, page.output);
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    fs.writeFileSync(outputPath, finalHtml);
+    console.log(`✓ Pre-render : ${page.route} → ${page.output}`);
+  }
+
+  console.log('✓ Pre-render terminé');
 
   // 6. Nettoyer le dossier SSR temporaire
   fs.rmSync(path.resolve(__dirname, 'dist-server'), { recursive: true, force: true });
