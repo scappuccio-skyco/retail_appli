@@ -166,7 +166,7 @@ export default function ProfilDiscRetail() {
           <ol>
             <li><strong>L'observation comportementale</strong> — observer comment le vendeur réagit en situation de pression, de changement, ou de relation client. Fiable sur le long terme mais subjective.</li>
             <li><strong>Le questionnaire DISC standardisé</strong> — une série de questions permettant de calculer les scores D, I, S, C de chaque individu. C'est la méthode la plus fiable et reproductible.</li>
-            <li><strong>Le diagnostic intégré à l'outil de management</strong> — certaines plateformes comme Retail Performer AI intègrent directement le diagnostic DISC dans l'espace vendeur. Chaque vendeur répond à un questionnaire de 39 questions en quelques minutes, et le manager reçoit automatiquement le profil de son équipe.</li>
+            <li><strong>Le diagnostic intégré à l'outil de management</strong> — certaines plateformes comme Retail Performer AI intègrent directement le diagnostic DISC dans l'espace vendeur. Chaque vendeur répond à un questionnaire en quelques minutes, et le manager reçoit automatiquement le profil de son équipe.</li>
           </ol>
           <p>
             L'avantage du diagnostic intégré : les résultats sont directement liés aux KPI de performance. Un manager peut donc voir, en un coup d'œil, si un vendeur au profil S avec de faibles résultats manque de challenge, ou si un profil D sous-performe parce qu'il manque d'autonomie.
@@ -214,7 +214,7 @@ export default function ProfilDiscRetail() {
             La plupart des managers retail connaissent le DISC mais l'utilisent comme un exercice ponctuel, déconnecté du quotidien. Le vrai levier, c'est de <strong>croiser les profils DISC avec les indicateurs de performance</strong> : taux de conversion, panier moyen, nombre de ventes additionnelles.
           </p>
           <p>
-            C'est exactement ce que fait <strong>Retail Performer AI</strong> : chaque vendeur passe un diagnostic comportemental intégré (39 questions), et le manager accède à un dashboard où les profils DISC de l'équipe sont visibles aux côtés des KPI en temps réel. L'IA génère ensuite des recommandations de coaching personnalisées pour chaque vendeur, basées sur son profil et ses résultats.
+            C'est exactement ce que fait <strong>Retail Performer AI</strong> : chaque vendeur passe un diagnostic comportemental intégré, et le manager accède à un dashboard où les profils DISC de l'équipe sont visibles aux côtés des KPI en temps réel. L'IA génère ensuite des recommandations de coaching personnalisées pour chaque vendeur, basées sur son profil et ses résultats.
           </p>
         </div>
 

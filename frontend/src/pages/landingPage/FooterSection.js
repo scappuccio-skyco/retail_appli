@@ -26,6 +26,7 @@ export default function FooterSection({ scrollToSection }) {
               <li><button onClick={() => scrollToSection('features')} className="hover:text-[#EA580C] transition-colors">Fonctionnalités</button></li>
               <li><button onClick={() => scrollToSection('pricing')} className="hover:text-[#EA580C] transition-colors">Tarifs</button></li>
               <li><button onClick={() => navigate('/login')} className="hover:text-[#EA580C] transition-colors">Se connecter</button></li>
+              <li><Link to="/blog/profil-disc-retail" className="hover:text-[#EA580C] transition-colors">Blog</Link></li>
             </ul>
           </div>
 
