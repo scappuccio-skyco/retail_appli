@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import Logo from '../../components/shared/Logo';
 
@@ -27,6 +27,9 @@ export default function HeaderSection({ mobileMenuOpen, setMobileMenuOpen, scrol
             <button onClick={() => scrollToSection('contact')} className="text-[#334155] hover:text-[#F97316] transition-colors font-medium">
               Contact
             </button>
+            <Link to="/blog/profil-disc-retail" className="text-[#334155] hover:text-[#F97316] transition-colors font-medium">
+              Blog
+            </Link>
             <button
               onClick={() => navigate('/login')}
               className="px-4 py-2 text-[#F97316] border-2 border-[#F97316] rounded-lg hover:bg-orange-50 transition-colors font-medium"
@@ -65,6 +68,9 @@ export default function HeaderSection({ mobileMenuOpen, setMobileMenuOpen, scrol
             <button onClick={() => scrollToSection('contact')} className="block w-full text-left px-4 py-2 text-[#334155] hover:bg-blue-50 rounded-lg">
               Contact
             </button>
+            <Link to="/blog/profil-disc-retail" className="block w-full text-left px-4 py-2 text-[#334155] hover:bg-blue-50 rounded-lg">
+              Blog
+            </Link>
             <button onClick={() => navigate('/login')} className="block w-full text-left px-4 py-2 text-[#F97316] font-medium">
               Connexion
             </button>
