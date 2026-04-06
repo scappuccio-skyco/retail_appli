@@ -46,11 +46,11 @@ const DISC_PROFILES = [
 ];
 
 const SELLER_STYLES = [
-  { icon: '🤝', name: 'Le Convivial', base: 'I', desc: 'Fidélisation exceptionnelle, crée du lien naturellement', color: 'bg-blue-100 text-blue-800' },
-  { icon: '🔍', name: "L'Explorateur", base: 'I/S', desc: 'Grande capacité de découverte client, curieux et apprenant', color: 'bg-green-100 text-green-800' },
-  { icon: '⚡', name: 'Le Dynamique', base: 'D', desc: 'Volume de ventes élevé, énergie et efficacité naturelles', color: 'bg-red-100 text-red-800' },
-  { icon: '🎧', name: 'Le Discret', base: 'S', desc: 'Excellente adaptation, fidélisation silencieuse et durable', color: 'bg-gray-100 text-gray-700' },
-  { icon: '🎯', name: 'Le Stratège', base: 'C', desc: 'Ventes complexes, argumentation solide, maîtrise des objections', color: 'bg-purple-100 text-purple-800' },
+  { icon: '🤝', name: 'Le Convivial', base: 'I', desc: 'Fidélisation exceptionnelle, crée du lien naturellement', color: 'bg-blue-100 text-blue-800', force: 'Satisfaction client maximale, clients fidèles et ambassadeurs', vigilance: 'Tendance à éviter le closing direct et les relances' },
+  { icon: '🔍', name: "L'Explorateur", base: 'I/S', desc: 'Grande capacité de découverte client, curieux et apprenant', color: 'bg-green-100 text-green-800', force: 'Découverte client très qualitative, besoins bien identifiés', vigilance: 'Peut manquer de vitesse sur le closing face aux profils D' },
+  { icon: '⚡', name: 'Le Dynamique', base: 'D', desc: 'Volume de ventes élevé, énergie et efficacité naturelles', color: 'bg-red-100 text-red-800', force: 'Volume de ventes élevé, résistance à l\'objection', vigilance: 'Peut aller trop vite et négliger la relation client' },
+  { icon: '🎧', name: 'Le Discret', base: 'S', desc: 'Excellente adaptation, fidélisation silencieuse et durable', color: 'bg-gray-100 text-gray-700', force: 'Fidélisation durable, clients qui reviennent naturellement', vigilance: 'Discours parfois trop passif, manque de proactivité' },
+  { icon: '🎯', name: 'Le Stratège', base: 'C', desc: 'Ventes complexes, argumentation solide, maîtrise des objections', color: 'bg-purple-100 text-purple-800', force: 'Argumentation béton, maîtrise des objections complexes', vigilance: 'Peut sur-argumenter et perdre le client émotionnel (profil I)' },
 ];
 
 const MANAGER_PROFILES = [
@@ -135,6 +135,7 @@ const COMPAT_EXAMPLES = [
 export default function DiscSection() {
   const navigate = useNavigate();
   const [activeProfile, setActiveProfile] = useState(null);
+  const [activeSellerStyle, setActiveSellerStyle] = useState(null);
   const [activeManagerProfile, setActiveManagerProfile] = useState(null);
   const [activeTab, setActiveTab] = useState('vendeur');
 
@@ -161,14 +162,14 @@ export default function DiscSection() {
           <h3 className="text-xl font-semibold text-[#334155] text-center mb-8">
             Les 4 profils comportementaux de base
           </h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {DISC_PROFILES.map((profile) => (
               <div
                 key={profile.letter}
                 onClick={() => setActiveProfile(activeProfile === profile.letter ? null : profile.letter)}
-                className={`rounded-2xl border-2 ${profile.border} ${profile.bg} p-6 cursor-pointer transition-all hover:shadow-lg ${activeProfile === profile.letter ? 'shadow-lg scale-[1.02]' : ''}`}
+                className={`rounded-2xl border-2 ${profile.border} ${profile.bg} p-4 sm:p-6 cursor-pointer transition-all hover:shadow-lg ${activeProfile === profile.letter ? 'shadow-lg scale-[1.02]' : ''}`}
               >
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${profile.color} flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-md`}>
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${profile.color} flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-md mx-auto lg:mx-0`}>
                   {profile.letter}
                 </div>
                 <h4 className={`text-lg font-bold ${profile.textColor} mb-1`}>Profil {profile.name}</h4>
@@ -216,18 +217,28 @@ export default function DiscSection() {
               <h3 className="text-xl font-semibold text-[#334155] text-center mb-6">
                 Les 5 styles de vente en retail
               </h3>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 {SELLER_STYLES.map((style) => (
-                  <div key={style.name} className="bg-gray-50 rounded-xl border border-gray-200 p-5 text-center hover:shadow-md transition-all">
-                    <div className="text-3xl mb-3">{style.icon}</div>
-                    <h4 className="font-bold text-[#334155] mb-1">{style.name}</h4>
+                  <div
+                    key={style.name}
+                    onClick={() => setActiveSellerStyle(activeSellerStyle === style.name ? null : style.name)}
+                    className={`bg-gray-50 rounded-xl border-2 p-4 text-center cursor-pointer transition-all hover:shadow-md ${activeSellerStyle === style.name ? 'border-[#1E40AF]/40 shadow-md scale-[1.01] bg-white' : 'border-gray-200'}`}
+                  >
+                    <div className="text-3xl mb-2">{style.icon}</div>
+                    <h4 className="font-bold text-[#334155] text-sm mb-1">{style.name}</h4>
                     <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-2 ${style.color}`}>Base {style.base}</span>
                     <p className="text-xs text-[#64748B] leading-relaxed">{style.desc}</p>
+                    {activeSellerStyle === style.name && (
+                      <div className="mt-3 pt-3 border-t border-gray-200 space-y-1.5 text-left">
+                        <p className="text-xs text-green-700"><span className="font-semibold">✅ Force :</span> {style.force}</p>
+                        <p className="text-xs text-orange-700"><span className="font-semibold">⚠️ Vigilance :</span> {style.vigilance}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
               <p className="text-center text-sm text-[#64748B] mt-5">
-                Chaque vendeur complète un diagnostic de 39 questions — son style, ses 5 piliers de vente, sa motivation.
+                Cliquez sur un style pour voir force et point de vigilance · Diagnostic de 39 questions
               </p>
             </div>
           )}
@@ -241,7 +252,7 @@ export default function DiscSection() {
               <p className="text-center text-sm text-[#64748B] mb-6">
                 Chaque manager a un style naturel. L&apos;IA identifie ses forces, ses angles de progression et lui indique comment adapter son coaching à chaque profil vendeur.
               </p>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-3">
                 {MANAGER_PROFILES.map((profile) => (
                   <div
                     key={profile.name}
