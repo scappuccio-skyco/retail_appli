@@ -32,7 +32,14 @@
     <priority>0.6</priority>
   </url>
 
-  <!-- Blog SEO -->
+  <!-- Blog -->
+  <url>
+    <loc>https://retailperformerai.com/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Articles SEO -->
   <url>
     <loc>https://retailperformerai.com/blog/profil-disc-retail</loc>
     <changefreq>monthly</changefreq>

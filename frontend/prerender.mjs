@@ -39,6 +39,7 @@ try {
   // 4. Pages à pre-rendre
   const pages = [
     { route: '/', output: 'build/index.html' },
+    { route: '/blog', output: 'build/blog/index.html' },
     { route: '/blog/profil-disc-retail', output: 'build/blog/profil-disc-retail/index.html' },
     { route: '/blog/kpi-retail', output: 'build/blog/kpi-retail/index.html' },
   ];

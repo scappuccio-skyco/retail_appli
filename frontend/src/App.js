@@ -31,6 +31,7 @@ import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 
 // Blog pages
+import BlogIndex from './pages/blog/BlogIndex';
 import ProfilDiscRetail from './pages/blog/ProfilDiscRetail';
 import KpiRetail from './pages/blog/KpiRetail';
 
@@ -123,6 +124,7 @@ function AppContent() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Blog */}
+        <Route path="/blog" element={<BlogIndex />} />
         <Route path="/blog/profil-disc-retail" element={<ProfilDiscRetail />} />
         <Route path="/blog/kpi-retail" element={<KpiRetail />} />
         
